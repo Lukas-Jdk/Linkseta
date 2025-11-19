@@ -1,0 +1,51 @@
+/* src/components/layout/Header.module.css */
+
+.header {
+  background: var(--bg-header);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+}
+.brand a {
+  display: flex;
+  align-items: center;
+
+}
+.logoIcon {
+  font-size: 22px;
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.2));
+}
+.logoText {
+  color: var(--text-white);
+  font-family: var(--font-second);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  font-size: 1.7rem;
+}
+.nav {
+  display: flex;
+  gap: 1.5rem;
+}
+.nav a {
+  color: var(--text-white);
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  font-weight: 400;
+
+  letter-spacing: 1px;
+  transition: 0.5s ease;
+}
+.nav a:hover {
+  color:var(--text-nav-hover);
+ 
+}
+.bottomLine {
+  height: 2px;
+  background: var(--bg-header-bottom);
+}

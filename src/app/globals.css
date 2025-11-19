@@ -1,42 +1,73 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+/* src/app/globals.css */
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
-
+html,
+body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1;
+}
 a {
-  color: inherit;
   text-decoration: none;
+  color: inherit;
+}
+:root {
+  --brand: #0b182c; /* tamsi mėlyna – header fonas */
+  --accent: #0c7bdc; /* šviesesnė mėlyna */
+  --accent-2: #0b3670; /* gilesnė mėlyna */
+  --muted: #6b7280;
+  --border: #e6e8ee;
+  --radius: 12px;
+  --container: 1250px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+
+/* BackGrounds */
+--bg-header: #05101D;
+--bg-header-bottom: #12ada6;
+--bg-icons: #1a73e8;
+--color-animated-span:#00bbc9;
+
+
+/* Text fonts */
+--font-primary: 'Poppins', Arial, Helvetica, sans-serif;
+--font-second: 'Roboto', Arial, Helvetica, sans-serif;
+
+/* Text collor */
+--text-white: #fff;
+--text-black: #000000;
+--text-nav-hover: #01b6ce;
+
+
+
+
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--sp-6);
+}
+
+.visuallyHidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
 }

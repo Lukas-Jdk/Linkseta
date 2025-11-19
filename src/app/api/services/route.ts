@@ -1,0 +1,76 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+//                                            -=GET=-
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+
+    const city = searchParams.get("city") || undefined;      // pvz. "oslo"
+    const category = searchParams.get("category") || undefined; // pvz. "statybos"
+    const q = searchParams.get("q") || undefined;
+
+    const services = await prisma.serviceListing.findMany({
+      where: {
+        isActive: true,
+        city: city ? { slug: city } : undefined,
+        category: category ? { slug: category } : undefined,
+        OR: q
+          ? [
+              { title: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ]
+          : undefined,
+      },
+      include: {
+        city: true,
+        category: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(services);
+  } catch (error) {
+    console.error("GET /api/services error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+//                                            -=POST=-
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    // 1) PIRMIAU validacija
+    if (!body.userId || !body.title || !body.slug || !body.description) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    // 2) Tada kūrimas DB
+    const service = await prisma.serviceListing.create({
+      data: {
+        userId: body.userId,
+        title: body.title,
+        slug: body.slug,
+        description: body.description,
+        priceFrom: body.priceFrom,
+        priceTo: body.priceTo,
+        cityId: body.cityId,
+        categoryId: body.categoryId,
+        isActive: true,
+        highlighted: false,
+      },
+    });
+
+    return NextResponse.json(service);
+  } catch (error) {
+    console.error("POST /api/services error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

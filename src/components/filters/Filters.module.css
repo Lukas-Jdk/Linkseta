@@ -1,0 +1,53 @@
+/* src/components/filters/Filters.module.css */
+
+.row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* Nauja apvyniojanti dėžutė */
+.selectWrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tikras select */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background: #fff;
+  color: var(--text-black);
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: var(--font-second);
+  padding: 0 36px 0 14px; /* 36px = vieta rodyklei */
+  min-width: 200px;
+
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+/* Custom arrow */
+.selectWrap::after {
+  content: "";
+  position: absolute;
+  right: 16px; /* ČIA KEITI TARPELĮ */
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+}
+
+.select:focus {
+  outline: 2px solid #bfe2ff;
+}
+

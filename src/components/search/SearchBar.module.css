@@ -1,0 +1,30 @@
+/* src/components/search/SearchBar.module.css */
+
+.wrap {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px auto 10px;
+  max-width: 760px;
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 40px 0 14px;
+  background: #fff;
+  color: #0c1222;
+  border-radius: var(--radius);
+  border: none;
+  outline: none;
+}
+.btn {
+  position: relative;
+  right: 46px;
+  height: 40px;
+  width: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #667;
+}

@@ -1,0 +1,32 @@
+.wrapper {
+  padding: 40px 16px;
+  max-width: var(--container, 1200px);
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b182c;
+  margin-bottom: 20px;
+}
+
+.description {
+  font-size: 17px;
+  color: #4b5563;
+  margin-bottom: 20px;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  color: #374151;
+  font-size: 16px;
+}
+
+.author {
+  font-size: 15px;
+  color: #6b7280;
+}

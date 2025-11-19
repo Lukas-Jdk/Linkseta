@@ -1,0 +1,55 @@
+/* src/components/hero/AnimatedTitle.module.css */
+
+.wrapper {
+  text-align: center;
+}
+
+.title {
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-family: var(--font-primary);
+  color: var(--color-animated, #ffffff);
+  margin: 0;
+}
+
+/* Fiksuotas langelis žodžiui */
+.slot {
+  display: inline-block;
+  position: relative;
+  width: 12ch;      /* pakoreguok pagal ilgiausią žodį */
+  height: 1.2em;
+  overflow: hidden;
+}
+
+/* Žodis startuoja kairėje už langelio ribų */
+.word {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-family: var(--font-primary);
+  color: var(--color-animated-span);
+  transform: translateX(-100%);      /* startas: kairėje */
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* ĮVAŽIUOJA iš kairės į centrą */
+.slideIn {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* IŠVAŽIUOJA į dešinę */
+.slideOut {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+@media (max-width: 555px) {
+  .title {
+    font-size: 2rem;
+    padding: 0 2rem;
+  }
+}

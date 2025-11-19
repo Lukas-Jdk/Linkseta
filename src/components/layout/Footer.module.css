@@ -1,0 +1,18 @@
+/* src/components/layout/Footer.module.css */
+
+.footer {
+  border-top: 1px solid var(--border);
+  background: #fff;
+}
+.copy {
+  color: #3a4760;
+  text-align: center;
+  padding: 18px 0;
+  font-size: 14px;
+}
+.copy a {
+  color: #0b3670;
+}
+.copy a:hover {
+  text-decoration: underline;
+}
