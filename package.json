@@ -6,7 +6,11 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "npx prisma db seed"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.cjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

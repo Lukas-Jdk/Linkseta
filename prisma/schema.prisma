@@ -8,14 +8,14 @@ datasource db {
 }
 
 model User {
-  id          String           @id @default(cuid())
-  email       String           @unique
-  name        String?
-  phone       String?
-  role        UserRole         @default(USER)
+  id    String   @id @default(cuid())
+  email String   @unique
+  name  String?
+  phone String?
+  role  UserRole @default(USER)
 
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   profile     ProviderProfile?
   services    ServiceListing[]
@@ -28,86 +28,88 @@ enum UserRole {
 }
 
 model ProviderProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  companyName   String?
-  description   String?
-  website       String?
-  isApproved    Boolean  @default(false)
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  companyName String?
+  description String?
+  website     String?
+  isApproved  Boolean @default(false)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user          User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model ServiceListing {
-  id          String    @id @default(cuid())
+  id          String  @id @default(cuid())
   userId      String
   title       String
-  slug        String    @unique
+  slug        String  @unique
   description String
   priceFrom   Int?
   priceTo     Int?
-  isActive    Boolean   @default(true)
-  highlighted Boolean   @default(false)
+  isActive    Boolean @default(true)
+  highlighted Boolean @default(false)
 
-  cityId      String?
-  categoryId  String?
-  planId      String?
+  cityId     String?
+  categoryId String?
+  planId     String?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User      @relation(fields: [userId], references: [id])
-  city        City?     @relation(fields: [cityId], references: [id])
-  category    Category? @relation(fields: [categoryId], references: [id])
-  plan        Plan?     @relation(fields: [planId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  city     City?     @relation(fields: [cityId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+  plan     Plan?     @relation(fields: [planId], references: [id])
 
   @@index([isActive, cityId, categoryId])
   @@index([createdAt])
 }
 
 model JobListing {
-  id             String    @id @default(cuid())
+  id             String  @id @default(cuid())
   userId         String
   title          String
-  slug           String    @unique
+  slug           String  @unique
   description    String
-  employmentType String?   // pilnas etatas, dalinis, laikinas ir t.t.
+  employmentType String? // pilnas etatas, dalinis, laikinas ir t.t.
   salaryFrom     Int?
   salaryTo       Int?
-  isActive       Boolean   @default(true)
-  remote         Boolean   @default(false)
+  isActive       Boolean @default(true)
+  remote         Boolean @default(false)
 
-  cityId         String?
+  cityId String?
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user           User      @relation(fields: [userId], references: [id])
-  city           City?     @relation(fields: [cityId], references: [id])
+  user User  @relation(fields: [userId], references: [id])
+  city City? @relation(fields: [cityId], references: [id])
 
   @@index([isActive, cityId])
   @@index([createdAt])
 }
 
 model City {
-  id        String            @id @default(cuid())
-  name      String
-  slug      String            @unique
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
 
-  services  ServiceListing[]
-  jobs      JobListing[]
+  services         ServiceListing[]
+  jobs             JobListing[]
+  providerRequests ProviderRequest[]
 }
 
 model Category {
-  id        String            @id @default(cuid())
-  name      String
-  slug      String            @unique
-  type      CategoryType      @default(SERVICE)
+  id   String       @id @default(cuid())
+  name String
+  slug String       @unique
+  type CategoryType @default(SERVICE)
 
-  services  ServiceListing[]
+  services         ServiceListing[]
+  providerRequests ProviderRequest[]
 }
 
 enum CategoryType {
@@ -116,18 +118,38 @@ enum CategoryType {
 }
 
 model Plan {
-  id          String            @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
-  slug        String            @unique
+  slug        String     @unique
   priceNok    Int
-  period      PlanPeriod        @default(MONTHLY)
+  period      PlanPeriod @default(MONTHLY)
   maxListings Int?
-  highlight   Boolean           @default(false)
+  highlight   Boolean    @default(false)
 
-  services    ServiceListing[]
+  services ServiceListing[]
 }
 
 enum PlanPeriod {
   MONTHLY
   YEARLY
+}
+
+enum ProviderRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ProviderRequest {
+  id         String                @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  cityId     String?
+  city       City?                 @relation(fields: [cityId], references: [id])
+  categoryId String?
+  category   Category?             @relation(fields: [categoryId], references: [id])
+  message    String?
+  status     ProviderRequestStatus @default(PENDING)
+  createdAt  DateTime              @default(now())
 }

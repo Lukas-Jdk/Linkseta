@@ -1,26 +1,53 @@
 // src/components/cards/CardGrid.tsx
 
+import Link from "next/link";
 import styles from "./CardGrid.module.css";
 
-type Card = { id: string; title: string; city: string; category: string };
+export type ServiceCardItem = {
+  id: string;
+  title: string;
+  description: string;
+  city: string;
+  category: string;
+  priceFrom: number | null;
+  slug: string;
+};
 
-export default function CardGrid({ items }: { items: Card[] }) {
+type CardGridProps = {
+  items: ServiceCardItem[];
+};
+
+export default function CardGrid({ items }: CardGridProps) {
   if (!items || items.length === 0) {
     return (
-      <div className={styles.empty}>
-        <span aria-hidden>😊</span> Nėra atitinkančių kortelių.
-      </div>
+      <p className={styles.empty}>
+        Dar nėra įkeltų paslaugų. Būk pirmas, kuris atsiras Linksetoje 👋
+      </p>
     );
   }
 
   return (
-    <div className={styles.grid} role="list">
-      {items.map((it) => (
-        <article key={it.id} role="listitem" className={styles.card}>
-          <h3 className={styles.title}>{it.title}</h3>
-          <div className={styles.meta}>{it.city} • {it.category}</div>
-        </article>
+    <div className={styles.grid}>
+      {items.map((item) => (
+        <Link
+          key={item.id}
+          href={`/services/${item.slug}`}
+          className={styles.card}
+        >
+          <h2 className={styles.title}>{item.title}</h2>
+
+          <p className={styles.description}>{item.description}</p>
+
+          <div className={styles.meta}>
+            {item.city && <span>🏙 {item.city}</span>}
+            {item.category && <span>📂 {item.category}</span>}
+            {item.priceFrom != null && (
+              <span>💰 nuo {item.priceFrom} NOK</span>
+            )}
+          </div>
+        </Link>
       ))}
     </div>
   );
 }
+
