@@ -141,15 +141,18 @@ enum ProviderRequestStatus {
 }
 
 model ProviderRequest {
-  id         String                @id @default(cuid())
-  name       String
-  email      String
-  phone      String?
-  cityId     String?
-  city       City?                 @relation(fields: [cityId], references: [id])
-  categoryId String?
-  category   Category?             @relation(fields: [categoryId], references: [id])
-  message    String?
-  status     ProviderRequestStatus @default(PENDING)
-  createdAt  DateTime              @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  cityId      String?
+  categoryId  String?
+  message     String?
+  status      ProviderRequestStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  city        City?      @relation(fields: [cityId], references: [id])
+  category    Category?  @relation(fields: [categoryId], references: [id])
 }
+
