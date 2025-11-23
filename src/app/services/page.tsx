@@ -2,48 +2,82 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import styles from "./services.module.css";
+import Filters from "./Filters";
+
+export const dynamic = "force-dynamic";
 
 type ServicesPageProps = {
-  searchParams?: {
+  // NEXT 15: searchParams yra Promise
+  searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 };
 
 export default async function ServicesPage({ searchParams }: ServicesPageProps) {
-  const cityFilter = (searchParams?.city as string | undefined) ?? "";
-  const categoryFilter = (searchParams?.category as string | undefined) ?? "";
-  const q = (searchParams?.q as string | undefined) ?? "";
+  // 1. Išpakuojam Promise
+  const resolvedParams = await searchParams;
 
-  const services = await prisma.serviceListing.findMany({
-    where: {
-      isActive: true,
-      city: cityFilter ? { slug: cityFilter } : undefined,
-      category: categoryFilter ? { slug: categoryFilter } : undefined,
-      OR: q
-        ? [
-            { title: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-          ]
-        : undefined,
-    },
-    include: {
-      city: true,
-      category: true,
-      user: {
-        select: {
-          name: true,
-          email: true,
+  // 2. Pasiimam filtrus
+  const cityFilter = (resolvedParams?.city as string | undefined) ?? "";
+  const categoryFilter = (resolvedParams?.category as string | undefined) ?? "";
+  const q = (resolvedParams?.q as string | undefined) ?? "";
+
+  // 3. Prisma WHERE
+  const where: any = {
+    isActive: true,
+  };
+
+  if (cityFilter) {
+    where.cityId = cityFilter;
+  }
+
+  if (categoryFilter) {
+    where.categoryId = categoryFilter;
+  }
+
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  const [cities, categories, services] = await Promise.all([
+    prisma.city.findMany({ orderBy: { name: "asc" } }),
+    prisma.category.findMany({
+      where: { type: "SERVICE" },
+      orderBy: { name: "asc" },
+    }),
+    prisma.serviceListing.findMany({
+      where,
+      include: {
+        city: true,
+        category: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ]);
 
   return (
     <main className={styles.wrapper}>
       <h1 className={styles.heading}>Paslaugų sąrašas</h1>
+
+      {/* Filtrų juosta */}
+      <Filters
+        cities={cities.map((c) => ({ id: c.id, name: c.name }))}
+        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        initialCity={cityFilter}
+        initialCategory={categoryFilter}
+        initialQ={q}
+      />
 
       {services.length === 0 && (
         <p className={styles.empty}>Pagal pasirinktus filtrus paslaugų nėra.</p>
@@ -70,7 +104,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
                     📂 {service.category.name}
                   </span>
                 )}
-                {service.priceFrom && (
+                {service.priceFrom != null && (
                   <span className={styles.metaItem}>
                     💰 nuo {service.priceFrom} NOK
                   </span>

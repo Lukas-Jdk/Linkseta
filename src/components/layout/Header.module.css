@@ -49,3 +49,35 @@
   height: 2px;
   background: var(--bg-header-bottom);
 }
+.navAuthLink {
+  /* paprastas linkas, tik truputį atitrauktas nuo meniu */
+  margin-left: 0.5rem;
+}
+
+.navAuthPrimary {
+  margin-left: 0.5rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent, #0c7bdc);
+  color: var(--text-white, #ffffff);
+  font-weight: 500;
+}
+
+.navAuthPrimary:hover {
+  opacity: 0.9;
+}
+
+.navLogoutButton {
+  margin-left: 0.5rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: var(--text-white, #ffffff);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.navLogoutButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

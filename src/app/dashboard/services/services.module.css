@@ -1,109 +1,241 @@
+/* src/app/dashboard/services/services.module.css */
+
 .container {
-  max-width: 900px;
+  max-width: var(--container, 1200px);
   margin: 40px auto;
-  padding: 20px;
+  padding: 0 16px 40px;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 12px;
 }
 
 .title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  margin-bottom: 20px;
+  color: #0b182c;
 }
 
-.card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
+.logoutButton {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
   background: #ffffff;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+}
+
+.logoutButton:hover {
+  background: #f3f4f6;
+}
+
+.error {
+  color: #b91c1c;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* Info box'ai */
+
+.infoBox {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.infoBoxTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.infoBoxLink {
+  color: #0c7bdc;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Kortelės (sekcijos) */
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
   margin-bottom: 20px;
 }
 
 .cardTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
+  color: #111827;
   margin-bottom: 12px;
 }
 
+/* Forma */
+
 .form {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #d4d4d8;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.input,
+.textarea,
+.select {
   font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: #0c7bdc;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
 }
 
 .textarea {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #d4d4d8;
-  font-size: 14px;
-  min-height: 80px;
   resize: vertical;
 }
 
 .row {
   display: flex;
-  gap: 10px;
-}
-
-.button {
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent);
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 4px;
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.error {
-  color: red;
-  font-size: 14px;
-  margin-top: 6px;
-}
-
-.text {
-  color: var(--muted);
-}
-
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
-.listItem {
-  border: 1px solid #e5e7eb;
+.row .field {
+  flex: 1 1 160px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.primaryButton {
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: none;
+  background: #0c7bdc;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Paslaugų sąrašas */
+
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.serviceRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 8px;
   border-radius: 10px;
-  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  align-items: center;
+}
+
+.serviceMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .serviceTitle {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 4px;
+  color: #111827;
 }
 
 .serviceMeta {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
 }
 
-.serviceDescription {
+.serviceActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.linkButton {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: none;
+  background: #e5e7eb;
+  text-decoration: none;
+  color: #111827;
+}
+
+.linkButton:hover {
+  background: #d4d4d8;
+}
+
+.empty {
   font-size: 14px;
+  color: #6b7280;
+}
+
+/* Responsive */
+
+@media (max-width: 640px) {
+  .container {
+    margin-top: 24px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .serviceRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .serviceActions {
+    justify-content: flex-start;
+  }
 }

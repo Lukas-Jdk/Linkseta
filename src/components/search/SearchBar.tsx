@@ -2,8 +2,25 @@
 
 "use client";
 import styles from "./SearchBar.module.css";
+import { useEffect, useState } from "react";
 
 export default function SearchBar() {
+  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  );
+
+  // Pasiimam iš DB
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/public/filters");
+      const data = await res.json();
+      setCities(data.cities);
+      setCategories(data.categories);
+    }
+    load();
+  }, []);
+
   return (
     <form
       className={styles.wrap}
@@ -11,53 +28,35 @@ export default function SearchBar() {
       action="/services"
       method="get"
     >
-      {/* VIRŠUS: paieškos juosta + mygtukas */}
       <div className={styles.topRow}>
         <input
           className={styles.input}
           name="q"
-          placeholder="Ieškoti pagal vardą..."
-          aria-label="Ieškoti pagal vardą"
+          placeholder="Ieškoti pagal pavadinimą..."
         />
-
-        <button
-          className={styles.btn}
-          aria-label="Ieškoti"
-          type="submit"
-        >
-          🔍
-        </button>
+        <button className={styles.btn} type="submit">🔍</button>
       </div>
 
-      {/* APAČIA: miestas + kategorija */}
       <div className={styles.bottomRow}>
         <div className={styles.selectWrap}>
-          <select
-            name="city"
-            className={styles.select}
-            aria-label="Miestas"
-            defaultValue=""
-          >
+          <select name="city" className={styles.select} defaultValue="">
             <option value="">Visi miestai</option>
-            <option value="oslo">Oslo</option>
-            <option value="bergen">Bergenas</option>
-            <option value="stavanger">Stavangeris</option>
-            <option value="trondheim">Trondheim</option>
+            {cities.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className={styles.selectWrap}>
-          <select
-            name="category"
-            className={styles.select}
-            aria-label="Kategorija"
-            defaultValue=""
-          >
+          <select name="category" className={styles.select} defaultValue="">
             <option value="">Visos kategorijos</option>
-            <option value="statybos">Statyba</option>
-            <option value="apskaita">Apskaita</option>
-            <option value="automobiliai">Automobiliai</option>
-            <option value="nt">NT</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

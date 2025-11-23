@@ -1,5 +1,4 @@
 // src/app/dashboard/services/page.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,31 +6,62 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./services.module.css";
 
+type City = {
+  id: string;
+  name: string;
+};
+
+type Category = {
+  id: string;
+  name: string;
+};
+
+type ProviderProfile = {
+  id: string;
+  isApproved: boolean;
+  companyName: string | null;
+};
+
 type Service = {
   id: string;
   title: string;
   description: string;
+  city?: { name: string } | null;
+  category?: { name: string } | null;
   priceFrom: number | null;
-  priceTo: number | null;
   createdAt: string;
+  slug: string;
 };
 
-export default function MyServicesPage() {
+export default function DashboardServicesPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
-  const [services, setServices] = useState<Service[]>([]);
+
   const [loading, setLoading] = useState(true);
-  const [formLoading, setFormLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
 
-  // formos state
+  const [providerProfile, setProviderProfile] = useState<ProviderProfile | null>(
+    null
+  );
+  const [services, setServices] = useState<Service[]>([]);
+
+  const [cities, setCities] = useState<City[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Forma naujai paslaugai
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priceFrom, setPriceFrom] = useState("");
-  const [priceTo, setPriceTo] = useState("");
+  const [cityId, setCityId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [priceFrom, setPriceFrom] = useState<string>("");
 
+  const [creating, setCreating] = useState(false);
+
+  // 1. Auth check + email
   useEffect(() => {
-    async function load() {
+    async function loadUser() {
       const { data, error } = await supabase.auth.getUser();
 
       if (error || !data.user) {
@@ -40,75 +70,134 @@ export default function MyServicesPage() {
       }
 
       const userEmail = data.user.email;
-      setEmail(userEmail ?? null);
+      if (!userEmail) {
+        router.replace("/login");
+        return;
+      }
 
+      setEmail(userEmail);
+    }
+
+    loadUser();
+  }, [router]);
+
+  // 2. Užkraunam cities + categories dashboard'ui
+  useEffect(() => {
+    async function loadFilters() {
       try {
+        const res = await fetch("/api/dashboard/filters");
+        if (!res.ok) return;
+        const json = await res.json();
+        setCities(json.cities ?? []);
+        setCategories(json.categories ?? []);
+      } catch (e) {
+        console.error("filters error:", e);
+      }
+    }
+
+    loadFilters();
+  }, []);
+
+  // 3. Užkraunam services + providerProfile pagal email
+  useEffect(() => {
+    if (!email) return;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setProfileLoading(true);
+
         const res = await fetch("/api/dashboard/my-services", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: userEmail }),
+          body: JSON.stringify({ email }),
         });
 
         const json = await res.json();
 
         if (!res.ok) {
           console.error("my-services failed:", json);
-          setError("Nepavyko užkrauti paslaugų.");
-        } else {
-          setServices(json.services ?? []);
+          setError("Nepavyko užkrauti duomenų.");
+          return;
         }
-      } catch (err) {
-        console.error("my-services request error:", err);
+
+        setServices(json.services ?? []);
+        setProviderProfile(json.providerProfile ?? null);
+      } catch (e) {
+        console.error("my-services request error:", e);
         setError("Serverio klaida.");
       } finally {
         setLoading(false);
+        setProfileLoading(false);
       }
     }
 
     load();
-  }, [router]);
+  }, [email]);
 
-  async function handleCreate(e: React.FormEvent) {
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  }
+
+  async function handleCreateService(e: React.FormEvent) {
     e.preventDefault();
+    if (!title.trim() || !description.trim()) return;
     if (!email) return;
 
-    setFormLoading(true);
+    setCreating(true);
     setError(null);
 
     try {
-      const res = await fetch("/api/dashboard/create-service", {
+      const res = await fetch("/api/dashboard/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
           title,
           description,
+          cityId: cityId || null,
+          categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
-          priceTo: priceTo ? Number(priceTo) : null,
         }),
       });
 
       const json = await res.json();
 
       if (!res.ok) {
-        console.error("create-service failed:", json);
+        console.error("create service failed:", json);
         setError(json.error || "Nepavyko sukurti paslaugos.");
-      } else {
-        setServices((prev) => [json.service, ...prev]);
-        setTitle("");
-        setDescription("");
-        setPriceFrom("");
-        setPriceTo("");
+        return;
       }
-    } catch (err) {
-      console.error("create-service request error:", err);
-      setError("Serverio klaida.");
+
+      // Reset formos
+      setTitle("");
+      setDescription("");
+      setCityId("");
+      setCategoryId("");
+      setPriceFrom("");
+
+      // Atnaujinam sąrašą iš serverio
+      if (email) {
+        const refresh = await fetch("/api/dashboard/my-services", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const refreshedJson = await refresh.json();
+        if (refresh.ok) {
+          setServices(refreshedJson.services ?? []);
+        }
+      }
+    } catch (e) {
+      console.error("create service error:", e);
+      setError("Serverio klaida kuriant paslaugą.");
     } finally {
-      setFormLoading(false);
+      setCreating(false);
     }
   }
 
-  if (loading) {
+  if (!email || loading || profileLoading) {
     return (
       <main className={styles.container}>
         <p>Kraunama...</p>
@@ -118,81 +207,179 @@ export default function MyServicesPage() {
 
   return (
     <main className={styles.container}>
-      <h1 className={styles.title}>Mano paslaugos</h1>
+      <header className={styles.headerRow}>
+        <h1 className={styles.title}>Mano paslaugos</h1>
+        <button
+          type="button"
+          className={styles.logoutButton}
+          onClick={handleLogout}
+        >
+          Atsijungti
+        </button>
+      </header>
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Sukurti naują paslaugą</h2>
-        <form className={styles.form} onSubmit={handleCreate}>
-          <input
-            type="text"
-            placeholder="Pavadinimas"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={styles.input}
-            required
-          />
-          <textarea
-            placeholder="Aprašymas"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={styles.textarea}
-            required
-          />
-          <div className={styles.row}>
-            <input
-              type="number"
-              placeholder="Kaina nuo (NOK)"
-              value={priceFrom}
-              onChange={(e) => setPriceFrom(e.target.value)}
-              className={styles.input}
-            />
-            <input
-              type="number"
-              placeholder="Kaina iki (NOK)"
-              value={priceTo}
-              onChange={(e) => setPriceTo(e.target.value)}
-              className={styles.input}
-            />
+      {error && <p className={styles.error}>{error}</p>}
+
+      {/* 1️⃣ Nėra ProviderProfile – useris dar netapęs teikėju */}
+      {!providerProfile && (
+        <section className={styles.infoBox}>
+          <div className={styles.infoBoxTitle}>
+            Kol kas nesate paslaugų teikėjas.
           </div>
-          <button
-            type="submit"
-            className={styles.button}
-            disabled={formLoading}
-          >
-            {formLoading ? "Kuriama..." : "Sukurti paslaugą"}
-          </button>
-          {error && <p className={styles.error}>{error}</p>}
-        </form>
-      </section>
+          <p>
+            Norėdami skelbti paslaugas, pirmiausia užpildykite
+            formą{" "}
+            <a href="/tapti-teikeju" className={styles.infoBoxLink}>
+              „Tapti paslaugų teikėju“
+            </a>
+            . Paraišką patvirtinus, galėsite kurti ir valdyti savo skelbimus.
+          </p>
+        </section>
+      )}
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Esamos paslaugos</h2>
+      {/* 2️⃣ Yra profilis, bet nepatvirtintas */}
+      {providerProfile && !providerProfile.isApproved && (
+        <section className={styles.infoBox}>
+          <div className={styles.infoBoxTitle}>
+            Jūsų paraiška dar tikrinama.
+          </div>
+          <p>
+            Administratorius peržiūrės jūsų pateiktą informaciją ir
+            patvirtins paskyrą. Kai tik tai bus padaryta, čia galėsite
+            kurti ir redaguoti savo paslaugas.
+          </p>
+        </section>
+      )}
 
-        {services.length === 0 ? (
-          <p className={styles.text}>Šiuo metu neturi jokių paslaugų.</p>
-        ) : (
-          <ul className={styles.list}>
-            {services.map((service) => (
-              <li key={service.id} className={styles.listItem}>
-                <div>
-                  <div className={styles.serviceTitle}>{service.title}</div>
-                  <div className={styles.serviceMeta}>
-                    {service.priceFrom != null && (
-                      <span>
-                        Nuo {service.priceFrom}
-                        {service.priceTo != null && ` iki ${service.priceTo}`} NOK
-                      </span>
-                    )}
-                  </div>
-                  <p className={styles.serviceDescription}>
-                    {service.description}
-                  </p>
+      {/* 3️⃣ Tik jei teikėjas patvirtintas – rodome formą ir esamas paslaugas */}
+      {providerProfile && providerProfile.isApproved && (
+        <>
+          <section className={styles.card}>
+            <h2 className={styles.cardTitle}>Sukurti naują paslaugą</h2>
+
+            <form className={styles.form} onSubmit={handleCreateService}>
+              <div className={styles.field}>
+                <label className={styles.label}>Pavadinimas</label>
+                <input
+                  className={styles.input}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Aprašymas</label>
+                <textarea
+                  className={styles.textarea}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  required
+                  rows={4}
+                />
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Miestas</label>
+                  <select
+                    className={styles.select}
+                    value={cityId}
+                    onChange={(e) => setCityId(e.target.value)}
+                  >
+                    <option value="">Neparinkta</option>
+                    {cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+
+                <div className={styles.field}>
+                  <label className={styles.label}>Kategorija</label>
+                  <select
+                    className={styles.select}
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                  >
+                    <option value="">Neparinkta</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.row}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Kaina nuo (NOK)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className={styles.input}
+                    value={priceFrom}
+                    onChange={(e) => setPriceFrom(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.actions}>
+                <button
+                  type="submit"
+                  className={styles.primaryButton}
+                  disabled={creating}
+                >
+                  {creating ? "Kuriama..." : "Sukurti paslaugą"}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section className={styles.card}>
+            <h2 className={styles.cardTitle}>Mano paslaugų sąrašas</h2>
+
+            {services.length === 0 ? (
+              <p className={styles.empty}>
+                Dar neturite sukurtų paslaugų.
+              </p>
+            ) : (
+              <div className={styles.servicesList}>
+                {services.map((s) => (
+                  <div key={s.id} className={styles.serviceRow}>
+                    <div className={styles.serviceMain}>
+                      <div className={styles.serviceTitle}>{s.title}</div>
+                      <div className={styles.serviceMeta}>
+                        {s.city?.name && (
+                          <span>🏙 {s.city.name}</span>
+                        )}
+                        {s.category?.name && (
+                          <span>📂 {s.category.name}</span>
+                        )}
+                        {s.priceFrom != null && (
+                          <span>💰 nuo {s.priceFrom} NOK</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.serviceActions}>
+                      <a
+                        href={`/services/${s.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.linkButton}
+                      >
+                        Peržiūrėti
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </main>
   );
 }

@@ -1,4 +1,4 @@
-// src/app/api/dashboard/my-services/route.ts
+// src/app/api/auth/me/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -14,41 +14,28 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Randam User pagal email
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        role: true,
+        name: true,
+      },
     });
 
     if (!user) {
       return NextResponse.json({
-        services: [],
-        providerProfile: null,
+        user: null,
+        role: "USER",
       });
     }
 
-    // 2. Randam ProviderProfile (jei yra)
-    const providerProfile = await prisma.providerProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    // 3. Paimam visas šio userio paslaugas
-    const services = await prisma.serviceListing.findMany({
-      where: { userId: user.id },
-      include: {
-        city: true,
-        category: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
     return NextResponse.json({
-      services,
-      providerProfile,
+      user,
+      role: user.role,
     });
   } catch (error) {
-    console.error("my-services error:", error);
+    console.error("auth/me error:", error);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

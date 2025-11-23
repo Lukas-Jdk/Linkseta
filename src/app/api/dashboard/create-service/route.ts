@@ -22,12 +22,16 @@ export async function POST(req: Request) {
       description,
       priceFrom,
       priceTo,
+      cityId,
+      categoryId,
     } = body as {
       email?: string;
       title?: string;
       description?: string;
       priceFrom?: number | null;
       priceTo?: number | null;
+      cityId?: string | null;
+      categoryId?: string | null;
     };
 
     if (!email || !title || !description) {
@@ -60,7 +64,12 @@ export async function POST(req: Request) {
         priceTo: priceTo ?? null,
         isActive: true,
         highlighted: false,
-        // jei norėsi – vėliau pridėsim cityId, categoryId iš formos
+        cityId: cityId || null,
+        categoryId: categoryId || null,
+      },
+      include: {
+        city: true,
+        category: true,
       },
     });
 

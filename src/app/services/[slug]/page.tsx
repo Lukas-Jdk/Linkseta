@@ -1,15 +1,20 @@
+// src/app/services/[slug]/page.tsx
 import { prisma } from "@/lib/prisma";
 import styles from "./slugPage.module.css";
 
+// Next.js 15: params yra Promise
 type ServicePageProps = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export default async function ServicePage({ params }: ServicePageProps) {
+  // 1. Išlaukiame parametrų
+  const resolvedParams = await params;
+
   const service = await prisma.serviceListing.findFirst({
-    where: { slug: params.slug },
+    where: { slug: resolvedParams.slug }, // Naudojame resolvedParams
     include: {
       city: true,
       category: true,

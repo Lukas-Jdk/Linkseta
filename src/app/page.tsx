@@ -2,15 +2,45 @@
 
 import Hero from "@/components/hero/Hero";
 import SearchBar from "@/components/search/SearchBar";
-// import Filters from "@/components/filters/Filters"; // kol kas nenaudojam
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
 import { prisma } from "@/lib/prisma";
 
-export default async function HomePage() {
-  // paimam paskutines 6 aktyvias paslaugas
+type HomeProps = {
+  searchParams: Promise<{
+    q?: string;
+    city?: string;
+    category?: string;
+  }>;
+};
+
+export default async function HomePage({ searchParams }: HomeProps) {
+  // Next.js 15: awaitinam searchParams (NEPRASOK!)
+  const resolved = await searchParams;
+
+  const q = resolved.q ?? "";
+  const city = resolved.city ?? "";
+  const category = resolved.category ?? "";
+
+  const where: any = { isActive: true };
+
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  if (city) {
+    where.cityId = city;
+  }
+
+  if (category) {
+    where.categoryId = category;
+  }
+
   const services = await prisma.serviceListing.findMany({
-    where: { isActive: true },
+    where,
     include: {
       city: true,
       category: true,
@@ -34,7 +64,6 @@ export default async function HomePage() {
       <Hero>
         <div className="container">
           <SearchBar />
-          {/* <Filters /> */}
         </div>
       </Hero>
 

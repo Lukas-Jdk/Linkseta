@@ -1,20 +1,46 @@
+/* src/app/services/[slug]/slugPage.module.css */
+
 .wrapper {
-  padding: 40px 16px;
   max-width: var(--container, 1200px);
-  margin: 0 auto;
+  margin: 40px auto;
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.wrapper > main,
+.wrapper > div {
+  /* kad ir "Paslauga nerasta" atrodytų tvarkingai */
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .wrapper {
+    padding: 40px 16px;
+  }
+
+  .wrapper > main,
+  .wrapper > div {
+    max-width: 780px;
+  }
 }
 
 .title {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 700;
   color: #0b182c;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .description {
-  font-size: 17px;
+  font-size: 15px;
+  line-height: 1.6;
   color: #4b5563;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 }
 
 .meta {
@@ -23,10 +49,51 @@
   gap: 6px;
   margin-bottom: 20px;
   color: #374151;
-  font-size: 16px;
+  font-size: 14px;
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+}
+
+.meta span::before {
+  /* truputį mažiau „šokinėjantys“ emoji */
+  transform: translateY(1px);
 }
 
 .author {
-  font-size: 15px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 13px;
   color: #6b7280;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+}
+
+/* labai siauri ekranai */
+@media (max-width: 480px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .description {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .meta span {
+    font-size: 13px;
+  }
+
+  .author {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
 }

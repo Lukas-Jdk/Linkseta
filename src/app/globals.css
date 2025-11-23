@@ -57,6 +57,10 @@ a {
 
 }
 
+body {
+  background-color: #f8fafc;
+}
+
 .container {
   max-width: var(--container);
   margin: 0 auto;
