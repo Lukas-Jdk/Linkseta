@@ -1,4 +1,4 @@
-/* src/components/cards/CardGrid.tsx */
+/* src/components/cards/CardGrid.module.css */
 
 .grid {
   display: grid;
@@ -50,4 +50,63 @@
   text-align: center;
   color: #6b7280;
   padding: 40px 0;
+}
+
+/* viršutinė eilutė: pavadinimas + TOP */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* PREMIUM AUKSINIS TOP ŽENKLIUKAS */
+.topBadge {
+  padding: 3px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+
+  /* Auksinis gradientas */
+  background: linear-gradient(135deg, #ffcf33 0%, #ff9f00 50%, #ffcf33 100%);
+  box-shadow: 0 0 10px rgba(255, 174, 0, 0.45);
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  /* Blizgesio efektas */
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.topBadge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 60%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.35);
+  transform: skewX(-20deg);
+  animation: shine 2.5s infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -40%;
+  }
+  50% {
+    left: 120%;
+  }
+  100% {
+    left: 120%;
+  }
+}
+
+.starIcon {
+  font-size: 13px;
 }

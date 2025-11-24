@@ -1,0 +1,109 @@
+/* src/app/admin/provider-requests/provider-requests.module.css */
+
+.wrapper {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.heading {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.subheading {
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.tableWrapper {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.table th {
+  text-align: left;
+  background: #f9fafb;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 6px;
+}
+
+.btnPrimary {
+  background: #0c7bdc;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btnSecondary {
+  background: #e5e7eb;
+  color: #111827;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btnHighlight {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.statusApproved {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.statusRejected {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.statusPending {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.statusHighlighted {
+  background: #f97316;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}

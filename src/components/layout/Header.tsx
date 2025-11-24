@@ -11,20 +11,50 @@ import styles from "./Header.module.css";
 export default function Header() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // tikrinam ar yra sesija + klausom login/logout
+  async function fetchRole(email: string | null | undefined) {
+    if (!email) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const json = await res.json();
+      setIsAdmin(Boolean(json.isAdmin));
+    } catch (e) {
+      console.error("fetchRole error:", e);
+      setIsAdmin(false);
+    }
+  }
+
   useEffect(() => {
     async function checkSession() {
       const { data } = await supabase.auth.getSession();
-      setIsLoggedIn(!!data.session);
+      const session = data.session;
+
+      setIsLoggedIn(!!session);
+      await fetchRole(session?.user?.email ?? null);
     }
 
     checkSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsLoggedIn(!!session);
+      await fetchRole(session?.user?.email ?? null);
     });
 
     return () => {
@@ -39,6 +69,7 @@ export default function Header() {
       console.error("Logout error:", e);
     } finally {
       setIsLoggedIn(false);
+      setIsAdmin(false);
       router.push("/");
     }
   }
@@ -64,10 +95,17 @@ export default function Header() {
         </div>
 
         <nav className={styles.nav} aria-label="Pagrindinė navigacija">
-          {/* pagrindiniai linkai */}
+          {/* pagrindiniai public linkai */}
           <Link href="/">Pagrindinis</Link>
           <Link href="/services">Paslaugos</Link>
           <Link href="/susisiekite">Susisiekite</Link>
+
+          {/* ADMIN tik adminams */}
+          {isAdmin && (
+            <Link href="/admin" className={styles.navAuthLink}>
+              Admin
+            </Link>
+          )}
 
           {/* auth dalis */}
           {!isLoggedIn ? (

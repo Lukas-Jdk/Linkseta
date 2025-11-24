@@ -11,6 +11,7 @@ export type ServiceCardItem = {
   category: string;
   priceFrom: number | null;
   slug: string;
+  highlighted?: boolean; // 👈 PRIDĖTA
 };
 
 type CardGridProps = {
@@ -34,20 +35,26 @@ export default function CardGrid({ items }: CardGridProps) {
           href={`/services/${item.slug}`}
           className={styles.card}
         >
-          <h2 className={styles.title}>{item.title}</h2>
+          <div className={styles.headerRow}>
+            <h2 className={styles.title}>{item.title}</h2>
+
+            {item.highlighted && (
+              <span className={styles.topBadge}>
+                <span className={styles.starIcon}>⭐</span>
+                TOP
+              </span>
+            )}
+          </div>
 
           <p className={styles.description}>{item.description}</p>
 
           <div className={styles.meta}>
             {item.city && <span>🏙 {item.city}</span>}
             {item.category && <span>📂 {item.category}</span>}
-            {item.priceFrom != null && (
-              <span>💰 nuo {item.priceFrom} NOK</span>
-            )}
+            {item.priceFrom != null && <span>💰 nuo {item.priceFrom} NOK</span>}
           </div>
         </Link>
       ))}
     </div>
   );
 }
-

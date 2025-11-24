@@ -1,0 +1,124 @@
+/* src/app/admin/admin.module.css */
+
+.wrapper {
+  padding: 40px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 28px;
+  color: #0b182c;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.subtitle {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.text {
+  color: #4b5563;
+  margin-bottom: 16px;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #0c7bdc;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.button:hover {
+  background: #0b65b0;
+}
+/* --- Admin paslaugų lentelė --- */
+
+.tableWrapper {
+  margin-top: 24px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead {
+  background: #f9fafb;
+}
+
+.table th {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.table tbody tr:nth-child(even) {
+  background: #fdfdfd;
+}
+
+.statusActive {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.statusInactive {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.dangerButton {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: #ef4444;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.05s ease;
+}
+
+.dangerButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+}

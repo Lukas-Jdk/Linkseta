@@ -29,7 +29,8 @@ export default function RegisterPage() {
       return;
     }
 
-    alert("Registracija pavyko! Patikrink el. paštą");
+    alert("Registracija pavyko! Dabar galite prisijungti.");
+  
     setLoading(false);
   }
 
@@ -77,6 +78,7 @@ export default function RegisterPage() {
         </button>
 
         {error && <p className={styles.error}>{error}</p>}
+        
       </form>
     </main>
   );

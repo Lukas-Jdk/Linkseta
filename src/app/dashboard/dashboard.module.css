@@ -1,61 +1,133 @@
-.container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 20px;
+/* src/app/dashboard/dashboard.module.css */
+
+.wrapper {
+  padding: 40px 16px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .title {
   font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 20px;
+  color: #0b182c;
+  margin-bottom: 24px;
 }
 
 .card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
   background: #ffffff;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
 }
 
-.cardTitle {
-  font-size: 20px;
-  font-weight: 600;
+.welcome {
+  font-size: 18px;
   margin-bottom: 8px;
+  color: #111827;
+}
+
+.email {
+  display: inline-block;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.section {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
 }
 
 .text {
-  margin-bottom: 16px;
-  color: var(--muted);
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.secondaryButton {
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #f9fafb;
   font-size: 14px;
-  font-weight: 500;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.textSmall {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.linksRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.actionPrimary,
+.actionSecondary {
+  border-radius: 999px;
+  padding: 8px 16px;
+  border: none;
   cursor: pointer;
+  font-size: 14px;
+}
+
+.actionPrimary {
+  background: #0c7bdc;
+  color: #ffffff;
+}
+
+.actionPrimary:hover {
+  background: #0b65b0;
+}
+
+.actionSecondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.actionSecondary:hover {
+  background: #d4d4d8;
+}
+
+.footerRow {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .logoutButton {
-  padding: 10px 16px;
   border-radius: 999px;
+  padding: 8px 16px;
   border: none;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
+  font-size: 13px;
+  background: #d12b2b;
+  color: #ffffff;
 }
 
 .logoutButton:hover {
-  opacity: 0.9;
+  background: #b11f1f;
+}
+
+.loading {
+  text-align: center;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.error {
+  color: #b91c1c;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .wrapper {
+    margin-top: 24px;
+  }
+
+  .card {
+    padding: 18px 16px 20px;
+  }
 }
