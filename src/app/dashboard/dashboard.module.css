@@ -1,133 +1,99 @@
 /* src/app/dashboard/dashboard.module.css */
 
-.wrapper {
-  padding: 40px 16px;
+.container {
   max-width: 900px;
-  margin: 0 auto;
+  margin: 40px auto;
+  padding: 0 16px 60px;
 }
 
 .title {
   font-size: 28px;
+  font-weight: 700;
   color: #0b182c;
   margin-bottom: 24px;
 }
 
 .card {
   background: #ffffff;
-  border: 1px solid #e6e8ee;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  padding: 24px 24px 28px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
-.welcome {
-  font-size: 18px;
-  margin-bottom: 8px;
-  color: #111827;
-}
-
-.email {
-  display: inline-block;
-  margin-left: 6px;
+.cardTitle {
+  font-size: 20px;
   font-weight: 600;
-}
-
-.section {
-  margin-top: 18px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.sectionTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+  color: #0b182c;
 }
 
 .text {
-  font-size: 14px;
   color: #4b5563;
-  margin-bottom: 8px;
+  font-size: 15px;
+  margin-bottom: 4px;
 }
 
-.textSmall {
+.meta {
+  margin-top: 6px;
   font-size: 13px;
   color: #6b7280;
 }
 
-.linksRow {
+.meta code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 22px;
 }
 
-.actionPrimary,
-.actionSecondary {
-  border-radius: 999px;
-  padding: 8px 16px;
+.secondaryButton,
+.logoutButton {
   border: none;
-  cursor: pointer;
+  border-radius: 999px;
+  padding: 8px 18px;
   font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.06s ease,
+    box-shadow 0.12s ease;
 }
 
-.actionPrimary {
+.secondaryButton {
   background: #0c7bdc;
-  color: #ffffff;
+  color: white;
+  box-shadow: 0 8px 18px rgba(12, 123, 220, 0.35);
 }
 
-.actionPrimary:hover {
-  background: #0b65b0;
-}
-
-.actionSecondary {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.actionSecondary:hover {
-  background: #d4d4d8;
-}
-
-.footerRow {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
+.secondaryButton:hover {
+  background: #0a63b1;
+  transform: translateY(-1px);
 }
 
 .logoutButton {
-  border-radius: 999px;
-  padding: 8px 16px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  background: #d12b2b;
-  color: #ffffff;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .logoutButton:hover {
-  background: #b11f1f;
-}
-
-.loading {
-  text-align: center;
-  font-size: 14px;
-  color: #4b5563;
-}
-
-.error {
-  color: #b91c1c;
-  margin-bottom: 10px;
-  font-size: 14px;
+  background: #fecaca;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 640px) {
-  .wrapper {
+  .container {
     margin-top: 24px;
   }
 
-  .card {
-    padding: 18px 16px 20px;
+  .actions {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

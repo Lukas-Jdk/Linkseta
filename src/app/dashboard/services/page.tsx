@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./services.module.css";
 
@@ -39,18 +40,15 @@ export default function DashboardServicesPage() {
 
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
 
-  const [providerProfile, setProviderProfile] = useState<ProviderProfile | null>(
-    null
-  );
+  const [providerProfile, setProviderProfile] =
+    useState<ProviderProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
 
   const [cities, setCities] = useState<City[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Forma naujai paslaugai
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cityId, setCityId] = useState("");
@@ -59,7 +57,7 @@ export default function DashboardServicesPage() {
 
   const [creating, setCreating] = useState(false);
 
-  // 1. Auth check + email
+  // 1. auth
   useEffect(() => {
     async function loadUser() {
       const { data, error } = await supabase.auth.getUser();
@@ -81,7 +79,7 @@ export default function DashboardServicesPage() {
     loadUser();
   }, [router]);
 
-  // 2. Užkraunam cities + categories dashboard'ui
+  // 2. cities + categories
   useEffect(() => {
     async function loadFilters() {
       try {
@@ -98,7 +96,7 @@ export default function DashboardServicesPage() {
     loadFilters();
   }, []);
 
-  // 3. Užkraunam services + providerProfile pagal email
+  // 3. services + providerProfile
   useEffect(() => {
     if (!email) return;
 
@@ -170,14 +168,12 @@ export default function DashboardServicesPage() {
         return;
       }
 
-      // Reset formos
       setTitle("");
       setDescription("");
       setCityId("");
       setCategoryId("");
       setPriceFrom("");
 
-      // Atnaujinam sąrašą iš serverio
       if (email) {
         const refresh = await fetch("/api/dashboard/my-services", {
           method: "POST",
@@ -208,7 +204,7 @@ export default function DashboardServicesPage() {
   return (
     <main className={styles.container}>
       <header className={styles.headerRow}>
-        <h1 className={styles.title}>Mano paslaugos</h1>
+        <h1 className={styles.pageTitle}>Mano paslaugos</h1>
         <button
           type="button"
           className={styles.logoutButton}
@@ -218,40 +214,36 @@ export default function DashboardServicesPage() {
         </button>
       </header>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={styles.errorText}>{error}</p>}
 
-      {/* 1️⃣ Nėra ProviderProfile – useris dar netapęs teikėju */}
       {!providerProfile && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
             Kol kas nesate paslaugų teikėjas.
           </div>
           <p>
-            Norėdami skelbti paslaugas, pirmiausia užpildykite
-            formą{" "}
-            <a href="/tapti-teikeju" className={styles.infoBoxLink}>
+            Norėdami skelbti paslaugas, pirmiausia užpildykite formą{" "}
+            <Link href="/tapti-teikeju" className={styles.infoBoxLink}>
               „Tapti paslaugų teikėju“
-            </a>
+            </Link>
             . Paraišką patvirtinus, galėsite kurti ir valdyti savo skelbimus.
           </p>
         </section>
       )}
 
-      {/* 2️⃣ Yra profilis, bet nepatvirtintas */}
       {providerProfile && !providerProfile.isApproved && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
             Jūsų paraiška dar tikrinama.
           </div>
           <p>
-            Administratorius peržiūrės jūsų pateiktą informaciją ir
-            patvirtins paskyrą. Kai tik tai bus padaryta, čia galėsite
-            kurti ir redaguoti savo paslaugas.
+            Administratorius peržiūrės jūsų pateiktą informaciją ir patvirtins
+            paskyrą. Kai tik tai bus padaryta, čia galėsite kurti ir redaguoti
+            savo paslaugas.
           </p>
         </section>
       )}
 
-      {/* 3️⃣ Tik jei teikėjas patvirtintas – rodome formą ir esamas paslaugas */}
       {providerProfile && providerProfile.isApproved && (
         <>
           <section className={styles.card}>
@@ -342,9 +334,7 @@ export default function DashboardServicesPage() {
             <h2 className={styles.cardTitle}>Mano paslaugų sąrašas</h2>
 
             {services.length === 0 ? (
-              <p className={styles.empty}>
-                Dar neturite sukurtų paslaugų.
-              </p>
+              <p className={styles.empty}>Dar neturite sukurtų paslaugų.</p>
             ) : (
               <div className={styles.servicesList}>
                 {services.map((s) => (
@@ -352,9 +342,7 @@ export default function DashboardServicesPage() {
                     <div className={styles.serviceMain}>
                       <div className={styles.serviceTitle}>{s.title}</div>
                       <div className={styles.serviceMeta}>
-                        {s.city?.name && (
-                          <span>🏙 {s.city.name}</span>
-                        )}
+                        {s.city?.name && <span>🏙 {s.city.name}</span>}
                         {s.category?.name && (
                           <span>📂 {s.category.name}</span>
                         )}
@@ -364,14 +352,20 @@ export default function DashboardServicesPage() {
                       </div>
                     </div>
                     <div className={styles.serviceActions}>
-                      <a
+                      <Link
                         href={`/services/${s.slug}`}
                         target="_blank"
-                        rel="noreferrer"
                         className={styles.linkButton}
                       >
                         Peržiūrėti
-                      </a>
+                      </Link>
+
+                      <Link
+                        href={`/dashboard/services/${s.id}/edit`}
+                        className={styles.linkButtonSecondary}
+                      >
+                        Redaguoti
+                      </Link>
                     </div>
                   </div>
                 ))}

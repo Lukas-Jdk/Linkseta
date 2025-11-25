@@ -15,7 +15,7 @@ type HomeProps = {
 };
 
 export default async function HomePage({ searchParams }: HomeProps) {
-  // Next.js 15: awaitinam searchParams
+  // Next.js 15 – awaitinam searchParams
   const resolved = await searchParams;
 
   const q = resolved.q ?? "";
@@ -45,10 +45,10 @@ export default async function HomePage({ searchParams }: HomeProps) {
       city: true,
       category: true,
     },
-    // 👇 čia vienintelis rimtesnis pakeitimas:
+    // 👇 PIRMA TOP, tada naujausi
     orderBy: [
-      { highlighted: "desc" }, // pirmiau TOP
-      { createdAt: "desc" },   // po to naujausios
+      { highlighted: "desc" },
+      { createdAt: "desc" },
     ],
     take: 6,
   });
@@ -61,7 +61,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
     category: s.category?.name ?? "",
     priceFrom: s.priceFrom,
     slug: s.slug,
-    highlighted: s.highlighted, // 👈 pridedam
+    highlighted: s.highlighted, // 👈 pridėta
   }));
 
   return (

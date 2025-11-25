@@ -1,99 +1,94 @@
 /* src/app/services/[slug]/slugPage.module.css */
 
 .wrapper {
+  padding: 40px 16px;
   max-width: var(--container, 1200px);
-  margin: 40px auto;
-  padding: 24px 16px;
+  margin: 0 auto 60px;
+}
+
+.headerRow {
   display: flex;
-  justify-content: center;
-}
-
-.wrapper > main,
-.wrapper > div {
-  /* kad ir "Paslauga nerasta" atrodytų tvarkingai */
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .wrapper {
-    padding: 40px 16px;
-  }
-
-  .wrapper > main,
-  .wrapper > div {
-    max-width: 780px;
-  }
-}
-
-.title {
-  font-size: 30px;
-  font-weight: 700;
-  color: #0b182c;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0b182c;
+}
+
+.topBadge {
+  background: #f97316;
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 6px rgba(248, 148, 60, 0.35);
+}
+
 .description {
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 17px;
   color: #4b5563;
-  margin-bottom: 18px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 .meta {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: #374151;
-  font-size: 14px;
+  font-size: 15px;
 }
 
-.meta span {
-  display: inline-flex;
+.authorBox {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f3f4f6;
-}
-
-.meta span::before {
-  /* truputį mažiau „šokinėjantys“ emoji */
-  transform: translateY(1px);
+  gap: 12px;
 }
 
 .author {
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7280;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
 }
 
-/* labai siauri ekranai */
-@media (max-width: 480px) {
+.emailButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #0c7bdc;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(12, 123, 220, 0.25);
+  transition: background 0.1s ease, transform 0.06s ease,
+    box-shadow 0.06s ease;
+}
+
+.emailButton:hover {
+  background: #0b65b0;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(12, 123, 220, 0.32);
+}
+
+.emailButton:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 12px rgba(12, 123, 220, 0.24);
+}
+
+@media (max-width: 640px) {
   .title {
-    font-size: 24px;
-  }
-
-  .description {
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-
-  .meta span {
-    font-size: 13px;
-  }
-
-  .author {
-    font-size: 12px;
-    padding: 10px 12px;
+    font-size: 26px;
   }
 }
