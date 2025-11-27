@@ -1,9 +1,24 @@
+// src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
+
+function mapLoginErrorMessage(raw: string | null | undefined): string {
+  const msg = (raw || "").toLowerCase();
+
+  if (msg.includes("invalid login credentials")) {
+    return "Neteisingas el. pašto ir slaptažodžio derinys.";
+  }
+
+  if (msg.includes("email not confirmed")) {
+    return "El. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.";
+  }
+
+  return "Nepavyko prisijungti. Patikrinkite duomenis ir bandykite dar kartą.";
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,22 +30,35 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
+    if (!email || !password) {
+      setError("Įveskite el. paštą ir slaptažodį.");
       return;
     }
 
-    // sėkmingas login → gali nukreipti kur nori (pvz. į /dashboard ar /)
-    router.push("/");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("login error:", error);
+        setError(mapLoginErrorMessage(error.message));
+        return;
+      }
+
+      // sėkmingas login
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("login unexpected error:", err);
+      setError("Serverio klaida. Bandykite dar kartą.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

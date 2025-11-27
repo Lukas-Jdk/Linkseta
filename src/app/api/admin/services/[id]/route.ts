@@ -6,14 +6,15 @@ type ParamsArg =
   | { params: { id: string } }
   | { params: Promise<{ id: string }> };
 
-async function resolveParams(props: ParamsArg) {
-  // @ts-ignore – Next 15 kartais duoda Promise
-  if (props.params && "then" in props.params) {
-    // @ts-ignore
-    return await props.params;
+async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
+  const value = props.params;
+
+  if (typeof value === "object" && value !== null && "then" in value) {
+    // Promise variantas (Next 15)
+    return value as Promise<{ id: string }>;
   }
-  // @ts-ignore
-  return props.params;
+
+  return value as { id: string };
 }
 
 // PATCH /api/admin/services/:id  – keičiam isActive / highlighted
@@ -22,8 +23,9 @@ export async function PATCH(req: Request, props: ParamsArg) {
     const { id } = await resolveParams(props);
     const body = await req.json();
 
-    const data: any = {};
+    const data: { isActive?: boolean; highlighted?: boolean } = {};
     if ("isActive" in body) data.isActive = Boolean(body.isActive);
+
     if ("highlighted" in body) data.highlighted = Boolean(body.highlighted);
 
     if (Object.keys(data).length === 0) {
@@ -39,17 +41,18 @@ export async function PATCH(req: Request, props: ParamsArg) {
     });
 
     return NextResponse.json({ success: true, service });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("PATCH /api/admin/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Nepavyko atnaujinti paslaugos", details: String(err?.message) },
+      { error: "Nepavyko atnaujinti paslaugos", details: message },
       { status: 500 }
     );
   }
 }
 
 // DELETE /api/admin/services/:id
-export async function DELETE(req: Request, props: ParamsArg) {
+export async function DELETE(_req: Request, props: ParamsArg) {
   try {
     const { id } = await resolveParams(props);
 
@@ -62,17 +65,18 @@ export async function DELETE(req: Request, props: ParamsArg) {
       message: "Paslauga ištrinta",
       service,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("DELETE /api/admin/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Nepavyko ištrinti paslaugos", details: String(err?.message) },
+      { error: "Nepavyko ištrinti paslaugos", details: message },
       { status: 500 }
     );
   }
 }
 
-// GET /api/admin/services/:id (nebūtina, bet paliekam)
-export async function GET(req: Request, props: ParamsArg) {
+// GET /api/admin/services/:id
+export async function GET(_req: Request, props: ParamsArg) {
   try {
     const { id } = await resolveParams(props);
 
@@ -86,17 +90,15 @@ export async function GET(req: Request, props: ParamsArg) {
     });
 
     if (!service) {
-      return NextResponse.json(
-        { error: "Paslauga nerasta" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Paslauga nerasta" }, { status: 404 });
     }
 
     return NextResponse.json(service);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("GET /api/admin/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Klaida", details: String(err?.message) },
+      { error: "Klaida", details: message },
       { status: 500 }
     );
   }

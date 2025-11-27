@@ -10,33 +10,56 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name, phone } },
-    });
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name, phone } },
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        // čia galim rodyti draugiškesnį tekstą,
+        // bet paliekam ir originalų kaip fallback
+        if (error.message.includes("already registered")) {
+          setError("Toks el. paštas jau naudojamas. Bandykite prisijungti.");
+        } else {
+          setError(error.message || "Nepavyko užregistruoti paskyros.");
+        }
+        return;
+      }
+
+      // Sėkmė – nieko nealertinam, gražiai parodom žinutę virš formos
+      setSuccess(
+        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą."
+      );
+
+      // Pasirinktinai – galim išvalyt slaptažodį
+      setPassword("");
+    } catch (e) {
+      console.error(e);
+      setError("Įvyko serverio klaida. Bandykite dar kartą.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    alert("Registracija pavyko! Dabar galite prisijungti.");
-  
-    setLoading(false);
   }
 
   return (
     <main className={styles.container}>
       <h1 className={styles.title}>Registracija</h1>
+
+      {/* Žinutės */}
+      {error && <p className={styles.error}>{error}</p>}
+      {success && <p className={styles.success}>{success}</p>}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
@@ -76,9 +99,6 @@ export default function RegisterPage() {
         <button className={styles.button} disabled={loading}>
           {loading ? "Kuriama..." : "Registruotis"}
         </button>
-
-        {error && <p className={styles.error}>{error}</p>}
-        
       </form>
     </main>
   );

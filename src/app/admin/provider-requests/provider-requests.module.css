@@ -43,7 +43,8 @@
 
 .actionsCell {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .btnPrimary {
@@ -106,4 +107,12 @@
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
+}
+
+/* Inline error po mygtukais */
+
+.inlineError {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #b91c1c;
 }

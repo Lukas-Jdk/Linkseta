@@ -1,58 +1,41 @@
 // src/app/admin/page.tsx
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import AdminGuard from "@/components/auth/AdminGuard";
 import styles from "./admin.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  // Teikėjų paraiškos (ProviderRequest)
-  const pending = await prisma.providerRequest.count({
-    where: { status: "PENDING" },
-  });
-
-  const approved = await prisma.providerRequest.count({
-    where: { status: "APPROVED" },
-  });
-
-  // Paslaugos (ServiceListing) – nauja dalis
-  const totalServices = await prisma.serviceListing.count();
-  const activeServices = await prisma.serviceListing.count({
-    where: { isActive: true },
-  });
-
+export default function AdminHomePage() {
   return (
-    <main className={styles.wrapper}>
-      <h1 className={styles.title}>Admin panelė</h1>
+    <AdminGuard>
+      <main className={styles.wrapper}>
+        <h1 className={styles.title}>Admin valdymo skydas</h1>
 
-      {/* 1️⃣ Kortelė – paslaugų teikėjų paraiškos */}
-      <section className={styles.card}>
-        <h2 className={styles.subtitle}>Paslaugų teikėjai</h2>
-        <p className={styles.text}>
-          Laukia patvirtinimo: <strong>{pending}</strong>
-          <br />
-          Iš viso patvirtintų: <strong>{approved}</strong>
-        </p>
+        <section className={styles.card}>
+          <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
+          <p className={styles.text}>
+            Čia gali peržiūrėti visas paslaugas, jas įjungti / išjungti,
+            pažymėti kaip TOP ir ištrinti netinkamas.
+          </p>
+          <Link href="/admin/services" className={styles.button}>
+            Eiti į paslaugų sąrašą
+          </Link>
+        </section>
 
-        <Link href="/admin/provider-requests" className={styles.button}>
-          Valdyti teikėjų paraiškas
-        </Link>
-      </section>
-
-      {/* 2️⃣ Kortelė – paslaugų skelbimai */}
-      <section className={styles.card}>
-        <h2 className={styles.subtitle}>Paslaugų skelbimai</h2>
-        <p className={styles.text}>
-          Aktyvių paslaugų: <strong>{activeServices}</strong>
-          <br />
-          Iš viso sukurta: <strong>{totalServices}</strong>
-        </p>
-
-        {/* Šita nuoroda ves į būsimą admin paslaugų puslapį */}
-        <Link href="/admin/services" className={styles.button}>
-          Valdyti paslaugas
-        </Link>
-      </section>
-    </main>
+        <section className={styles.card} style={{ marginTop: "24px" }}>
+          <h2 className={styles.subtitle}>Teikėjų paraiškos</h2>
+          <p className={styles.text}>
+            Čia matosi visi „Tapk paslaugų teikėju“ užpildyti prašymai. Gali
+            juos patvirtinti arba atmesti.
+          </p>
+          <Link
+            href="/admin/provider-requests"
+            className={styles.button}
+          >
+            Eiti į paraiškas
+          </Link>
+        </section>
+      </main>
+    </AdminGuard>
   );
 }

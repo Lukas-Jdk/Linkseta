@@ -122,3 +122,16 @@
   cursor: default;
   transform: none;
 }
+/* --- Feedback žinutės --- */
+
+.feedbackError {
+  margin: 8px 0 12px;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}
+
+.feedbackSuccess {
+  margin: 8px 0 12px;
+  font-size: 0.85rem;
+  color: #15803d;
+}

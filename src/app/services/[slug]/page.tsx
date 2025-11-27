@@ -1,4 +1,6 @@
 // src/app/services/[slug]/page.tsx
+import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import { prisma } from "@/lib/prisma";
 import styles from "./slugPage.module.css";
 
@@ -8,13 +10,52 @@ type ServicePageProps = {
   }>;
 };
 
+// Kad Next galėtų sugeneruoti SEO tagus per slug
+export async function generateMetadata(
+  { params }: ServicePageProps
+): Promise<Metadata> {
+
+  const { slug } = await params;
+
+  const service = await prisma.serviceListing.findFirst({
+    where: { slug, isActive: true },
+    include: {
+      city: true,
+      category: true,
+    },
+  });
+
+  if (!service) {
+    return {
+      title: "Paslauga nerasta | Linkseta",
+      description:
+        "Šios paslaugos sistemoje nebėra. Ji galėjo būti ištrinta arba tapo neaktyvi.",
+    };
+  }
+
+  const title = `${service.title} | Linkseta`;
+  const description =
+    service.description?.slice(0, 150) ??
+    "Peržiūrėkite paslaugos informaciją platformoje Linkseta.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function ServicePage({ params }: ServicePageProps) {
   const { slug } = await params;
 
   const service = await prisma.serviceListing.findFirst({
-    where: { slug },
+    where: { slug, isActive: true }, // 👈 tik aktyvios
     include: {
       city: true,
       category: true,
@@ -28,15 +69,8 @@ export default async function ServicePage({ params }: ServicePageProps) {
   });
 
   if (!service) {
-    return (
-      <main className={styles.wrapper}>
-        <h1 className={styles.title}>Paslauga nerasta</h1>
-        <p className={styles.description}>
-          Tokios paslaugos sistemoje neradome. Ji galėjo būti ištrinta arba
-          tapo neaktyvi.
-        </p>
-      </main>
-    );
+    // gražus 404 + Next notFound (kad header'iai teisingi)
+    notFound();
   }
 
   return (
@@ -44,17 +78,13 @@ export default async function ServicePage({ params }: ServicePageProps) {
       <header className={styles.headerRow}>
         <h1 className={styles.title}>{service.title}</h1>
 
-        {service.highlighted && (
-          <span className={styles.topBadge}>TOP</span>
-        )}
+        {service.highlighted && <span className={styles.topBadge}>TOP</span>}
       </header>
 
       <p className={styles.description}>{service.description}</p>
 
       <div className={styles.meta}>
-        {service.city && (
-          <span>🏙 Miestas: {service.city.name}</span>
-        )}
+        {service.city && <span>🏙 Miestas: {service.city.name}</span>}
         {service.category && (
           <span>📂 Kategorija: {service.category.name}</span>
         )}

@@ -2,6 +2,9 @@
 
 // Pasakom Node, kad naudojam CommonJS
 // ir importuojam PrismaClient iš @prisma/client
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();

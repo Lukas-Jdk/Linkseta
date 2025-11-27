@@ -42,3 +42,9 @@
   color: red;
   font-size: 14px;
 }
+
+.success {
+  color: #15803d;
+  font-size: 14px;
+  margin-bottom: 8px;
+}

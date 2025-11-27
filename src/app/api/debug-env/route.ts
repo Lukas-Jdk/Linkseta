@@ -1,20 +1,16 @@
+// src/app/api/debug-env/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+type DebugEnv = {
+  supabaseUrl?: string;
+  nodeEnv?: string;
+};
 
 export async function GET() {
-  try {
-    await prisma.$connect();
-    return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    console.error("DB TEST ERROR:", error);
-    return NextResponse.json(
-      {
-        ok: false,
-        name: error?.name,
-        code: error?.code,
-        message: error?.message,
-      },
-      { status: 500 }
-    );
-  }
+  const data: DebugEnv = {
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    nodeEnv: process.env.NODE_ENV,
+  };
+
+  return NextResponse.json(data);
 }

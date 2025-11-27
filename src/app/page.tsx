@@ -5,6 +5,7 @@ import SearchBar from "@/components/search/SearchBar";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type HomeProps = {
   searchParams: Promise<{
@@ -22,7 +23,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
   const city = resolved.city ?? "";
   const category = resolved.category ?? "";
 
-  const where: any = { isActive: true };
+  const where: Prisma.ServiceListingWhereInput = { isActive: true };
 
   if (q) {
     where.OR = [
@@ -45,11 +46,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
       city: true,
       category: true,
     },
-    // 👇 PIRMA TOP, tada naujausi
-    orderBy: [
-      { highlighted: "desc" },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
     take: 6,
   });
 
@@ -61,7 +58,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
     category: s.category?.name ?? "",
     priceFrom: s.priceFrom,
     slug: s.slug,
-    highlighted: s.highlighted, // 👈 pridėta
+    highlighted: s.highlighted,
   }));
 
   return (

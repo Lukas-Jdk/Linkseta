@@ -1,6 +1,7 @@
 // src/app/api/dashboard/create-service/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
 function makeSlug(title: string) {
   const base = title
@@ -8,16 +9,26 @@ function makeSlug(title: string) {
     .trim()
     .replace(/[^a-z0-9ąčęėįšųūž ]/g, "")
     .replace(/\s+/g, "-");
-
   const suffix = Math.random().toString(36).slice(2, 7);
   return `${base}-${suffix}`;
 }
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data.user || !data.user.email) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const email = data.user.email;
+
     const body = await req.json();
     const {
-      email,
       title,
       description,
       priceFrom,
@@ -25,7 +36,6 @@ export async function POST(req: Request) {
       cityId,
       categoryId,
     } = body as {
-      email?: string;
       title?: string;
       description?: string;
       priceFrom?: number | null;
@@ -34,7 +44,7 @@ export async function POST(req: Request) {
       categoryId?: string | null;
     };
 
-    if (!email || !title || !description) {
+    if (!title || !description) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -73,11 +83,14 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ ok: true, service });
-  } catch (error) {
-    console.error("create-service error:", error);
     return NextResponse.json(
-      { error: "Server error", details: String(error) },
+      { ok: true, service },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("create-service error:", err);
+    return NextResponse.json(
+      { error: "Server error", details: String(err) },
       { status: 500 }
     );
   }

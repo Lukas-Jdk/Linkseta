@@ -1,7 +1,7 @@
 // src/app/admin/services/ActionButtons.tsx
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../provider-requests/provider-requests.module.css";
 
@@ -18,29 +18,68 @@ export default function ActionButtons({
 }: ActionProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   async function toggleActive() {
-    await fetch(`/api/admin/services/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
+    try {
+      setError(null);
 
-    startTransition(() => {
-      router.refresh();
-    });
+      const res = await fetch(`/api/admin/services/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("toggleActive failed:", json);
+        setError(
+          (json && typeof json === "object" && "error" in json
+            ? (json as { error?: string }).error
+            : null) || "Nepavyko atnaujinti paslaugos."
+        );
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (e) {
+      console.error("toggleActive error:", e);
+      setError("Serverio klaida. Bandykite dar kartą.");
+    }
   }
 
   async function toggleHighlight() {
-    await fetch(`/api/admin/services/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ highlighted: !highlighted }),
-    });
+    try {
+      setError(null);
 
-    startTransition(() => {
-      router.refresh();
-    });
+      const res = await fetch(`/api/admin/services/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ highlighted: !highlighted }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        console.error("toggleHighlight failed:", json);
+        setError(
+          (json && typeof json === "object" && "error" in json
+            ? (json as { error?: string }).error
+            : null) || "Nepavyko atnaujinti highlight statuso."
+        );
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (e) {
+      console.error("toggleHighlight error:", e);
+      setError("Serverio klaida. Bandykite dar kartą.");
+    }
   }
 
   return (
@@ -62,6 +101,8 @@ export default function ActionButtons({
       >
         {highlighted ? "Nuimti TOP" : "Pažymėti TOP"}
       </button>
+
+      {error && <p className={styles.inlineError}>{error}</p>}
     </div>
   );
 }

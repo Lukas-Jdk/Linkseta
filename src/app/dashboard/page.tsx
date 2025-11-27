@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import styles from "./dashboard.module.css";
 
 type UserInfo = {
-  id: string; // Supabase user ID
+  id: string;        // Supabase user ID
   email: string;
   dbUserId?: string; // Prisma User.id
 };
@@ -17,8 +17,15 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 👇 ar useris jau turi ProviderProfile (t.y. yra teikėjas / pateikė paraišką)
+  const [hasProviderProfile, setHasProviderProfile] = useState<boolean | null>(
+    null
+  );
+
   useEffect(() => {
     async function loadUser() {
+      setLoading(true);
+
       const { data, error } = await supabase.auth.getUser();
 
       if (error || !data.user) {
@@ -27,34 +34,56 @@ export default function DashboardPage() {
       }
 
       const authUser = data.user;
+      const email = authUser.email ?? "";
 
+      let dbUserId: string | undefined = undefined;
+
+      // 1️⃣ Sync į mūsų Prisma User lentelę
       try {
         const res = await fetch("/api/auth/sync-user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: authUser.email,
+            email,
             name: authUser.user_metadata?.name,
             phone: authUser.user_metadata?.phone,
           }),
         });
 
         const json = await res.json();
-
-        setUser({
-          id: authUser.id,
-          email: authUser.email ?? "",
-          dbUserId: json.userId ?? undefined,
-        });
+        dbUserId = json.userId ?? undefined;
       } catch (err) {
         console.error("sync-user request error:", err);
-        setUser({
-          id: authUser.id,
-          email: authUser.email ?? "",
-        });
-      } finally {
-        setLoading(false);
       }
+
+      // 2️⃣ Patikrinam, ar jis jau turi ProviderProfile
+      try {
+        const res = await fetch("/api/dashboard/my-services", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.providerProfile) {
+          setHasProviderProfile(true);
+        } else {
+          setHasProviderProfile(false);
+        }
+      } catch (err) {
+        console.error("check providerProfile error:", err);
+        // jei nepavyko – tiesiog laikom, kad dar nėra
+        setHasProviderProfile(false);
+      }
+
+      setUser({
+        id: authUser.id,
+        email,
+        dbUserId,
+      });
+
+      setLoading(false);
     }
 
     loadUser();
@@ -68,7 +97,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <main className={styles.container}>
-        <p>Kraunama...</p>
+        <p>Kraunama.</p>
       </main>
     );
   }
@@ -91,6 +120,7 @@ export default function DashboardPage() {
         )}
 
         <div className={styles.actions}>
+          {/* Mano paslaugos – visada rodome */}
           <button
             type="button"
             className={styles.secondaryButton}
@@ -99,13 +129,16 @@ export default function DashboardPage() {
             Mano paslaugos
           </button>
 
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => router.push("/tapti-teikeju")}
-          >
-            Tapti paslaugų teikėju
-          </button>
+          {/* Tapti paslaugų teikėju – tik jei DAR nėra ProviderProfile */}
+          {hasProviderProfile === false && (
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => router.push("/tapti-teikeju")}
+            >
+              Tapti paslaugų teikėju
+            </button>
+          )}
 
           <button
             type="button"

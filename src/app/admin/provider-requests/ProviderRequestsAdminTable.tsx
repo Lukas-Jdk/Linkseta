@@ -15,18 +15,23 @@ type RequestItem = {
   categoryName: string | null;
   message: string | null;
   status: Status;
-  createdAt: string | null; // ISO
+  createdAt: string | null;
 };
 
 type Props = {
   initialRequests: RequestItem[];
 };
 
+type Feedback =
+  | { type: "success"; text: string }
+  | { type: "error"; text: string };
+
 export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
   const [requests, setRequests] = useState<RequestItem[]>(initialRequests);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "ALL">("ALL");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -56,6 +61,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
   async function updateStatus(id: string, status: Status) {
     try {
       setUpdatingId(id);
+      setFeedback(null);
 
       const res = await fetch(`/api/admin/provider-requests/${id}`, {
         method: "PATCH",
@@ -63,16 +69,47 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
         body: JSON.stringify({ status }),
       });
 
+      const text = await res.text();
+
+      let json: unknown = null;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        // ignore JSON parse error
+      }
+
       if (!res.ok) {
-        console.error("Nepavyko atnaujinti statuso", await res.text());
+        console.error("Nepavyko atnaujinti statuso", text);
+
+        const errorText =
+          typeof json === "object" &&
+          json !== null &&
+          "error" in json &&
+          typeof (json as { error?: string }).error === "string"
+            ? (json as { error?: string }).error!
+            : "Nepavyko atnaujinti statuso. Bandykite dar kartą.";
+
+        setFeedback({
+          type: "error",
+          text: errorText,
+        });
         return;
       }
 
       setRequests((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status } : r))
       );
+
+      setFeedback({
+        type: "success",
+        text: `Statusas atnaujintas į ${status}.`,
+      });
     } catch (err) {
       console.error("updateStatus error", err);
+      setFeedback({
+        type: "error",
+        text: "Serverio klaida. Bandykite dar kartą.",
+      });
     } finally {
       setUpdatingId(null);
     }
@@ -80,8 +117,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
   function formatDate(iso: string | null) {
     if (!iso) return "-";
-    const d = new Date(iso);
-    return d.toLocaleString("lt-LT");
+    return new Date(iso).toLocaleString("lt-LT");
   }
 
   return (
@@ -89,7 +125,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
       <div className={styles.toolbar}>
         <input
           className={styles.searchInput}
-          placeholder="Ieškoti pagal vardą, el. paštą, miestą..."
+          placeholder="Ieškoti..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -101,15 +137,27 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
             setStatusFilter(e.target.value as Status | "ALL")
           }
         >
-          <option value="ALL">Visi statusai</option>
-          <option value="PENDING">Tik PENDING</option>
-          <option value="APPROVED">Tik APPROVED</option>
-          <option value="REJECTED">Tik REJECTED</option>
+          <option value="ALL">Visi</option>
+          <option value="PENDING">PENDING</option>
+          <option value="APPROVED">APPROVED</option>
+          <option value="REJECTED">REJECTED</option>
         </select>
       </div>
 
+      {feedback && (
+        <p
+          className={
+            feedback.type === "error"
+              ? styles.feedbackError
+              : styles.feedbackSuccess
+          }
+        >
+          {feedback.text}
+        </p>
+      )}
+
       {filtered.length === 0 ? (
-        <p className={styles.empty}>Pagal pasirinktus filtrus paraiškų nėra.</p>
+        <p className={styles.empty}>Nėra rezultatų.</p>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -135,22 +183,8 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
                   <td>{r.phone || "-"}</td>
                   <td>{r.cityName || "-"}</td>
                   <td>{r.categoryName || "-"}</td>
-                  <td>
-                    <span
-                      className={`${styles.badge} ${
-                        r.status === "PENDING"
-                          ? styles.badgePending
-                          : r.status === "APPROVED"
-                          ? styles.badgeApproved
-                          : styles.badgeRejected
-                      }`}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className={styles.messageCell}>
-                    {r.message || "-"}
-                  </td>
+                  <td>{r.status}</td>
+                  <td className={styles.messageCell}>{r.message || "-"}</td>
                   <td>
                     <div className={styles.actions}>
                       {r.status !== "APPROVED" && (
@@ -162,6 +196,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
                           Patvirtinti
                         </button>
                       )}
+
                       {r.status !== "REJECTED" && (
                         <button
                           className={styles.btnReject}
@@ -171,13 +206,14 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
                           Atmesti
                         </button>
                       )}
+
                       {r.status !== "PENDING" && (
                         <button
                           className={styles.btnReset}
                           onClick={() => updateStatus(r.id, "PENDING")}
                           disabled={updatingId === r.id}
                         >
-                          Į PENDING
+                          Grąžinti į pending
                         </button>
                       )}
                     </div>

@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
+      // jei userio nėra DB – grąžinam tuščius duomenis, bet 200
       return NextResponse.json({
         services: [],
         providerProfile: null,

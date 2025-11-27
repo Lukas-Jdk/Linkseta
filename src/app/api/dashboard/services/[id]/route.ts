@@ -6,14 +6,18 @@ type ParamsArg =
   | { params: { id: string } }
   | { params: Promise<{ id: string }> };
 
-async function resolveParams(props: ParamsArg) {
-  // @ts-ignore
-  if (props.params && "then" in props.params) {
-    // @ts-ignore
-    return await props.params;
+async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
+  const value = props.params;
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value
+  ) {
+    return (value as Promise<{ id: string }>);
   }
-  // @ts-ignore
-  return props.params;
+
+  return value as { id: string };
 }
 
 // PATCH – atnaujinti paslaugą
@@ -55,39 +59,41 @@ export async function PATCH(req: Request, props: ParamsArg) {
         description,
         cityId: cityId || null,
         categoryId: categoryId || null,
-        priceFrom: isNaN(price as number) ? null : (price as number | null),
+        priceFrom: Number.isNaN(price as number) ? null : (price as number | null),
       },
     });
 
     return NextResponse.json({ success: true, service: updated });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("PATCH /api/dashboard/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Nepavyko atnaujinti paslaugos", details: String(err?.message) },
+      { error: "Nepavyko atnaujinti paslaugos", details: message },
       { status: 500 }
     );
   }
 }
 
 // DELETE – ištrinti
-export async function DELETE(req: Request, props: ParamsArg) {
+export async function DELETE(_req: Request, props: ParamsArg) {
   try {
     const { id } = await resolveParams(props);
 
     await prisma.serviceListing.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("DELETE /api/dashboard/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Nepavyko ištrinti paslaugos", details: String(err?.message) },
+      { error: "Nepavyko ištrinti paslaugos", details: message },
       { status: 500 }
     );
   }
 }
 
 // GET – jei kada prireiks
-export async function GET(req: Request, props: ParamsArg) {
+export async function GET(_req: Request, props: ParamsArg) {
   try {
     const { id } = await resolveParams(props);
 
@@ -104,10 +110,11 @@ export async function GET(req: Request, props: ParamsArg) {
     }
 
     return NextResponse.json(service);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("GET /api/dashboard/services/:id error", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "Klaida", details: String(err?.message) },
+      { error: "Klaida", details: message },
       { status: 500 }
     );
   }

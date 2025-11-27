@@ -1,4 +1,5 @@
-/* src/app/admin/providerRequests.module.css */
+/* src/app/admin//provider-requests/providerRequests.module.css */
+
 .wrapper {
   padding: 40px 0;
 }
@@ -174,3 +175,20 @@
   box-shadow: none;
   transform: none;
 }
+
+/* --- Feedback žinutės --- */
+
+.feedbackError {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}
+
+.feedbackSuccess {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #15803d;
+}
+ 

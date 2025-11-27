@@ -43,8 +43,6 @@ export default function TaptiTeikejuPage() {
         if (data.user) {
           setIsLoggedIn(true);
           setEmail(data.user.email ?? "");
-          // jei norėsi, gali traukti vardą iš metadata
-          // setName(data.user.user_metadata?.name ?? "");
         } else {
           setIsLoggedIn(false);
         }
@@ -59,7 +57,7 @@ export default function TaptiTeikejuPage() {
     loadUser();
   }, []);
 
-  // 2. Užkraunam miestus ir kategorijas (iš to paties API, kaip dashboard’e)
+  // 2. Užkraunam miestus ir kategorijas
   useEffect(() => {
     async function loadFilters() {
       try {
@@ -83,7 +81,7 @@ export default function TaptiTeikejuPage() {
     setSuccess(null);
 
     try {
-      const res = await fetch("/api/provider-request", {
+      const res = await fetch("/api/provider-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,17 +94,34 @@ export default function TaptiTeikejuPage() {
         }),
       });
 
-      const json = await res.json();
+      let json: unknown = null;
+      try {
+        json = await res.json();
+      } catch {
+        // jei atsakymas ne JSON (pvz. HTML) – tiesiog praleidžiam
+      }
 
       if (!res.ok) {
         console.error("provider-request failed:", json);
-        setError(json.error || "Nepavyko išsiųsti paraiškos.");
+
+        let msg = "Nepavyko išsiųsti paraiškos. Bandykite dar kartą.";
+
+        if (
+          json &&
+          typeof json === "object" &&
+          "error" in json &&
+          typeof (json as { error?: string }).error === "string"
+        ) {
+          msg = (json as { error?: string }).error as string;
+        }
+
+        setError(msg);
         return;
       }
 
       setSuccess("Paraiška išsiųsta! Mes ją peržiūrėsime kuo greičiau.");
       setMessage("");
-      // city & category galima palikti, kad žmogus matytų ką pasirinko
+      // city & category paliekam užpildytus
     } catch (e) {
       console.error("provider-request error:", e);
       setError("Serverio klaida. Bandykite dar kartą.");
@@ -138,16 +153,10 @@ export default function TaptiTeikejuPage() {
           </p>
 
           <div className={styles.actionsRow}>
-            <Link
-              href="/login"
-              className={styles.secondaryButton}
-            >
+            <Link href="/login" className={styles.secondaryButton}>
               Prisijungti
             </Link>
-            <Link
-              href="/register"
-              className={styles.primaryButton}
-            >
+            <Link href="/register" className={styles.primaryButton}>
               Registracija
             </Link>
           </div>
@@ -159,8 +168,7 @@ export default function TaptiTeikejuPage() {
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Paraiška tapti paslaugų teikėju</h2>
           <p className={styles.textSmall}>
-            Jūsų paskyros el. paštas: <strong>{email}</strong> (bus naudojamas
-            komunikacijai ir prisijungimui).
+            Jūsų paskyros el. paštas: <strong>{email}</strong>
           </p>
 
           {error && <p className={styles.error}>{error}</p>}
@@ -168,7 +176,9 @@ export default function TaptiTeikejuPage() {
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.field}>
-              <label className={styles.label}>Vardas, pavardė / įmonės pavadinimas</label>
+              <label className={styles.label}>
+                Vardas, pavardė / įmonės pavadinimas
+              </label>
               <input
                 className={styles.input}
                 value={name}
@@ -190,7 +200,7 @@ export default function TaptiTeikejuPage() {
               <div className={styles.field}>
                 <label className={styles.label}>Miestas</label>
                 <select
-                  className={styles.select}
+                  className={styles.input}
                   value={cityId}
                   onChange={(e) => setCityId(e.target.value)}
                 >
@@ -206,7 +216,7 @@ export default function TaptiTeikejuPage() {
               <div className={styles.field}>
                 <label className={styles.label}>Pagrindinė kategorija</label>
                 <select
-                  className={styles.select}
+                  className={styles.input}
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
@@ -229,19 +239,16 @@ export default function TaptiTeikejuPage() {
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Pvz.: teikiu santechnikos paslaugas Osle, turiu 5 metų patirtį..."
               />
             </div>
 
-            <div className={styles.actionsRowRight}>
-              <button
-                type="submit"
-                className={styles.primaryButton}
-                disabled={submitting}
-              >
-                {submitting ? "Siunčiama..." : "Siųsti paraišką"}
-              </button>
-            </div>
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={submitting}
+            >
+              {submitting ? "Siunčiama..." : "Siųsti paraišką"}
+            </button>
           </form>
         </section>
       )}

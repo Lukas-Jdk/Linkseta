@@ -13,17 +13,10 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  async function fetchRole(email: string | null | undefined) {
-    if (!email) {
-      setIsAdmin(false);
-      return;
-    }
-
+  async function fetchRole() {
     try {
       const res = await fetch("/api/auth/role", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        method: "GET",
       });
 
       if (!res.ok) {
@@ -45,7 +38,11 @@ export default function Header() {
       const session = data.session;
 
       setIsLoggedIn(!!session);
-      await fetchRole(session?.user?.email ?? null);
+      if (session) {
+        await fetchRole();
+      } else {
+        setIsAdmin(false);
+      }
     }
 
     checkSession();
@@ -54,7 +51,11 @@ export default function Header() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsLoggedIn(!!session);
-      await fetchRole(session?.user?.email ?? null);
+      if (session) {
+        await fetchRole();
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => {
@@ -95,19 +96,16 @@ export default function Header() {
         </div>
 
         <nav className={styles.nav} aria-label="Pagrindinė navigacija">
-          {/* pagrindiniai public linkai */}
           <Link href="/">Pagrindinis</Link>
           <Link href="/services">Paslaugos</Link>
           <Link href="/susisiekite">Susisiekite</Link>
 
-          {/* ADMIN tik adminams */}
           {isAdmin && (
             <Link href="/admin" className={styles.navAuthLink}>
               Admin
             </Link>
           )}
 
-          {/* auth dalis */}
           {!isLoggedIn ? (
             <>
               <Link href="/login" className={styles.navAuthLink}>

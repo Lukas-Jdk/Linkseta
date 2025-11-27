@@ -1,44 +1,76 @@
 // src/app/api/auth/me/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-export async function POST(req: Request) {
+type MeResponse = {
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    phone: string | null;
+    createdAt: string;
+  } | null;
+  role: "USER" | "ADMIN";
+  error?: string;
+};
+
+export async function GET() {
   try {
-    const body = await req.json();
-    const email = body.email as string | undefined;
+    const supabase = await createSupabaseServerClient();
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
-      );
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user || !data.user.email) {
+      const body: MeResponse = {
+        user: null,
+        role: "USER",
+      };
+      return NextResponse.json(body, { status: 200 });
     }
 
-    const user = await prisma.user.findUnique({
+    const email = data.user.email;
+
+    const dbUser = await prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
         role: true,
         name: true,
+        phone: true,
+        createdAt: true,
       },
     });
 
-    if (!user) {
-      return NextResponse.json({
+    if (!dbUser) {
+      const body: MeResponse = {
         user: null,
         role: "USER",
-      });
+      };
+      return NextResponse.json(body, { status: 200 });
     }
 
-    return NextResponse.json({
-      user,
-      role: user.role,
-    });
-  } catch (error) {
-    console.error("auth/me error:", error);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    const body: MeResponse = {
+      user: {
+        id: dbUser.id,
+        email,
+        name: dbUser.name,
+        phone: dbUser.phone,
+        createdAt: dbUser.createdAt.toISOString(),
+      },
+      role: dbUser.role,
+    };
+
+    return NextResponse.json(body, { status: 200 });
+  } catch (err) {
+    console.error("GET /api/auth/me error", err);
+
+    const body: MeResponse = {
+      user: null,
+      role: "USER",
+      error: "Internal error",
+    };
+
+    return NextResponse.json(body, { status: 200 });
   }
 }

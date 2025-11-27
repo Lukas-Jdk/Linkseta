@@ -41,6 +41,7 @@ export default function DashboardServicesPage() {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [providerProfile, setProviderProfile] =
     useState<ProviderProfile | null>(null);
@@ -104,6 +105,8 @@ export default function DashboardServicesPage() {
       try {
         setLoading(true);
         setProfileLoading(true);
+        setError(null);
+        setSuccess(null);
 
         const res = await fetch("/api/dashboard/my-services", {
           method: "POST",
@@ -145,6 +148,7 @@ export default function DashboardServicesPage() {
 
     setCreating(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const res = await fetch("/api/dashboard/services", {
@@ -173,17 +177,17 @@ export default function DashboardServicesPage() {
       setCityId("");
       setCategoryId("");
       setPriceFrom("");
+      setSuccess("Paslauga sėkmingai sukurta.");
 
-      if (email) {
-        const refresh = await fetch("/api/dashboard/my-services", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-        const refreshedJson = await refresh.json();
-        if (refresh.ok) {
-          setServices(refreshedJson.services ?? []);
-        }
+      // Refresh lista
+      const refresh = await fetch("/api/dashboard/my-services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const refreshedJson = await refresh.json();
+      if (refresh.ok) {
+        setServices(refreshedJson.services ?? []);
       }
     } catch (e) {
       console.error("create service error:", e);
@@ -196,7 +200,7 @@ export default function DashboardServicesPage() {
   if (!email || loading || profileLoading) {
     return (
       <main className={styles.container}>
-        <p>Kraunama...</p>
+        <p>Kraunama.</p>
       </main>
     );
   }
@@ -215,7 +219,9 @@ export default function DashboardServicesPage() {
       </header>
 
       {error && <p className={styles.errorText}>{error}</p>}
+      {success && <p className={styles.successText}>{success}</p>}
 
+      {/* 1️⃣ Nėra teikėjo profilio */}
       {!providerProfile && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
@@ -231,6 +237,7 @@ export default function DashboardServicesPage() {
         </section>
       )}
 
+      {/* 2️⃣ Profilis yra, bet nepatvirtintas */}
       {providerProfile && !providerProfile.isApproved && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
@@ -244,6 +251,7 @@ export default function DashboardServicesPage() {
         </section>
       )}
 
+      {/* 3️⃣ Patvirtintas teikėjas – forma + sąrašas */}
       {providerProfile && providerProfile.isApproved && (
         <>
           <section className={styles.card}>
@@ -334,7 +342,9 @@ export default function DashboardServicesPage() {
             <h2 className={styles.cardTitle}>Mano paslaugų sąrašas</h2>
 
             {services.length === 0 ? (
-              <p className={styles.empty}>Dar neturite sukurtų paslaugų.</p>
+              <p className={styles.empty}>
+                Dar neturite sukurtų paslaugų – sukurkite pirmąją aukščiau.
+              </p>
             ) : (
               <div className={styles.servicesList}>
                 {services.map((s) => (
@@ -342,27 +352,25 @@ export default function DashboardServicesPage() {
                     <div className={styles.serviceMain}>
                       <div className={styles.serviceTitle}>{s.title}</div>
                       <div className={styles.serviceMeta}>
-                        {s.city?.name && <span>🏙 {s.city.name}</span>}
-                        {s.category?.name && (
-                          <span>📂 {s.category.name}</span>
-                        )}
+                        {s.city?.name && <span>{s.city.name}</span>}
+                        {s.category?.name && <span>{s.category.name}</span>}
                         {s.priceFrom != null && (
-                          <span>💰 nuo {s.priceFrom} NOK</span>
+                          <span>nuo {s.priceFrom} NOK</span>
                         )}
                       </div>
                     </div>
+
                     <div className={styles.serviceActions}>
                       <Link
                         href={`/services/${s.slug}`}
                         target="_blank"
-                        className={styles.linkButton}
+                        className={styles.linkButtonSecondary}
                       >
                         Peržiūrėti
                       </Link>
-
                       <Link
-                        href={`/dashboard/services/${s.id}/edit`}
-                        className={styles.linkButtonSecondary}
+                        href={`/dashboard/services/${s.id}`}
+                        className={styles.linkButton}
                       >
                         Redaguoti
                       </Link>

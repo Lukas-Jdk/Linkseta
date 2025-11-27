@@ -20,9 +20,14 @@ type Props = {
   initialServices: ServiceRow[];
 };
 
+type Feedback =
+  | { type: "success"; text: string }
+  | { type: "error"; text: string };
+
 export default function AdminServicesTable({ initialServices }: Props) {
   const [services, setServices] = useState<ServiceRow[]>(initialServices);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   async function handleDelete(id: string) {
     const service = services.find((s) => s.id === id);
@@ -30,6 +35,7 @@ export default function AdminServicesTable({ initialServices }: Props) {
 
     if (!confirm(`Ar tikrai nori ištrinti: "${title}"?`)) return;
 
+    setFeedback(null);
     setLoadingIds((prev) => [...prev, id]);
 
     try {
@@ -37,28 +43,66 @@ export default function AdminServicesTable({ initialServices }: Props) {
         method: "DELETE",
       });
 
+      const json = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
         console.error("Delete failed:", json);
-        alert("Nepavyko ištrinti paslaugos.");
+        setFeedback({
+          type: "error",
+          text: json.error || "Nepavyko ištrinti paslaugos.",
+        });
         return;
       }
 
       setServices((prev) => prev.filter((s) => s.id !== id));
+      setFeedback({
+        type: "success",
+        text: `Paslauga „${title}“ sėkmingai ištrinta.`,
+      });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Įvyko klaida bandant ištrinti paslaugą.");
+      setFeedback({
+        type: "error",
+        text: "Įvyko klaida bandant ištrinti paslaugą.",
+      });
     } finally {
       setLoadingIds((prev) => prev.filter((x) => x !== id));
     }
   }
 
   if (services.length === 0) {
-    return <p className={styles.text}>Šiuo metu paslaugų nėra.</p>;
+    return (
+      <>
+        {feedback && (
+          <p
+            className={
+              feedback.type === "error"
+                ? styles.feedbackError
+                : styles.feedbackSuccess
+            }
+          >
+            {feedback.text}
+          </p>
+        )}
+        <p className={styles.text}>Šiuo metu paslaugų nėra.</p>
+      </>
+    );
   }
 
   return (
     <div className={styles.tableWrapper}>
+      {feedback && (
+        <p
+          className={
+            feedback.type === "error"
+              ? styles.feedbackError
+              : styles.feedbackSuccess
+          }
+        >
+          {feedback.text}
+        </p>
+      )}
+
       <table className={styles.table}>
         <thead>
           <tr>
