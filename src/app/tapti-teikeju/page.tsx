@@ -104,7 +104,9 @@ export default function TaptiTeikejuPage() {
       if (!res.ok) {
         console.error("provider-request failed:", json);
 
-        let msg = "Nepavyko išsiųsti paraiškos. Bandykite dar kartą.";
+        // 🔹 Čia sutvarkom TypeScript – VISADA grąžinam string
+        let errorMessage =
+          "Nepavyko išsiųsti paraiškos. Bandykite dar kartą.";
 
         if (
           json &&
@@ -112,14 +114,16 @@ export default function TaptiTeikejuPage() {
           "error" in json &&
           typeof (json as { error?: string }).error === "string"
         ) {
-          msg = (json as { error?: string }).error as string;
+          errorMessage = (json as { error: string }).error;
         }
 
-        setError(msg);
+        setError(errorMessage);
         return;
       }
 
-      setSuccess("Paraiška išsiųsta! Mes ją peržiūrėsime kuo greičiau.");
+      setSuccess(
+        "Paraiška išsiųsta! Peržiūrėsime ją ir susisieksime el. paštu, kai patvirtinsime."
+      );
       setMessage("");
       // city & category paliekam užpildytus
     } catch (e) {
@@ -133,7 +137,7 @@ export default function TaptiTeikejuPage() {
   if (loadingUser) {
     return (
       <main className={styles.wrapper}>
-        <h1 className={styles.heading}>Tapti paslaugų teikėju</h1>
+        <h1 className={styles.heading}>Tapk paslaugų teikėju</h1>
         <p>Kraunama...</p>
       </main>
     );
@@ -141,7 +145,13 @@ export default function TaptiTeikejuPage() {
 
   return (
     <main className={styles.wrapper}>
-      <h1 className={styles.heading}>Tapti paslaugų teikėju</h1>
+      <h1 className={styles.heading}>Tapk paslaugų teikėju Linkseta</h1>
+
+      <p className={styles.introText}>
+        Jei teiki paslaugas Norvegijoje (statybos, remontas, valymas,
+        automobilių servisas ar kitos paslaugos) – čia gali pateikti paraišką
+        ir tapti matomas lietuvių bendruomenei visoje Norvegijoje.
+      </p>
 
       {/* Jei NEprisijungęs – prašom prisijungti / užsiregistruoti */}
       {!isLoggedIn && (
@@ -149,7 +159,8 @@ export default function TaptiTeikejuPage() {
           <h2 className={styles.cardTitle}>Pirmiausia prisijunkite</h2>
           <p className={styles.text}>
             Norėdami pateikti paraišką ir tapti paslaugų teikėju, pirmiausia
-            susikurkite paskyrą arba prisijunkite prie esamos.
+            susikurkite paskyrą arba prisijunkite prie esamos. Taip galėsime
+            susieti paraišką su jūsų paskyra ir leisti valdyti savo paslaugas.
           </p>
 
           <div className={styles.actionsRow}>
@@ -169,6 +180,10 @@ export default function TaptiTeikejuPage() {
           <h2 className={styles.cardTitle}>Paraiška tapti paslaugų teikėju</h2>
           <p className={styles.textSmall}>
             Jūsų paskyros el. paštas: <strong>{email}</strong>
+          </p>
+          <p className={styles.textSmall}>
+            Užpildykite formą kuo tiksliau – tai padės greičiau patvirtinti
+            jūsų paskyrą ir suprasti, kokias paslaugas teikiate.
           </p>
 
           {error && <p className={styles.error}>{error}</p>}
@@ -239,6 +254,7 @@ export default function TaptiTeikejuPage() {
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ką tiksliai darote, kokioje srityje dirbate, kokia patirtis, kokius miestus aptarnaujate ir pan."
               />
             </div>
 

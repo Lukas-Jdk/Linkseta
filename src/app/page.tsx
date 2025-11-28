@@ -1,29 +1,74 @@
 /* src/app/page.tsx */
 
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import Hero from "@/components/hero/Hero";
 import SearchBar from "@/components/search/SearchBar";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
-import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
+
+// ----------------------------------------
+// 🔥 PILNAS SEO – TVIRTAS IR PROFESIONALUS
+// ----------------------------------------
+
+export const metadata: Metadata = {
+  title:
+    "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+  description:
+    "Rask patikimus lietuvių paslaugų teikėjus Norvegijoje: meistrai, santechnikai, elektrikai, valymo paslaugos, remontas, automobilių servisas ir daugiau. Greita paieška ir tik patikrinti teikėjai.",
+  keywords: [
+    "lietuviai norvegijoje",
+    "paslaugos norvegijoje",
+    "lietuviu meistrai norvegijoje",
+    "lietuviai meistrai",
+    "santechnikas norvegija",
+    "elektrikas norvegija",
+    "lietuviu paslaugos",
+  ],
+  openGraph: {
+    title:
+      "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+    description:
+      "Rask patikimus lietuvių paslaugų teikėjus Norvegijoje: meistrai, remontas, valymas, statybos, automobilių servisas.",
+    url: "https://www.linkseta.com/",
+    siteName: "Linkseta",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title:
+      "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+    description:
+      "Linkseta – vieta kur lietuviai Norvegijoje randa ir siūlo paslaugas.",
+  },
+  alternates: {
+    canonical: "https://www.linkseta.com/",
+  },
+};
+
+// ----------------------------------------
+
+type SearchParams = {
+  q?: string;
+  city?: string;
+  category?: string;
+};
 
 type HomeProps = {
-  searchParams: Promise<{
-    q?: string;
-    city?: string;
-    category?: string;
-  }>;
+  searchParams: Promise<SearchParams>;
 };
 
 export default async function HomePage({ searchParams }: HomeProps) {
-  // Next.js 15 – awaitinam searchParams
   const resolved = await searchParams;
 
   const q = resolved.q ?? "";
   const city = resolved.city ?? "";
   const category = resolved.category ?? "";
 
-  const where: Prisma.ServiceListingWhereInput = { isActive: true };
+  const where: Prisma.ServiceListingWhereInput = {
+    isActive: true,
+  };
 
   if (q) {
     where.OR = [
@@ -58,7 +103,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
     category: s.category?.name ?? "",
     priceFrom: s.priceFrom,
     slug: s.slug,
-    highlighted: s.highlighted,
+    highlighted: s.highlighted ?? false,
   }));
 
   return (

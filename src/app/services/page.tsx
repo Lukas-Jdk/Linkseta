@@ -50,10 +50,7 @@ export default async function ServicesPage({ searchParams }: Props) {
           select: { name: true, email: true },
         },
       },
-      orderBy: [
-        { highlighted: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
     }),
     prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
@@ -62,9 +59,37 @@ export default async function ServicesPage({ searchParams }: Props) {
     }),
   ]);
 
+  // 🔹 Dinaminė antraštė pagal pasirinktus filtrus (SEO + UX)
+  const activeCityName = city
+    ? cities.find((c) => c.id === city)?.name ?? ""
+    : "";
+  const activeCategoryName = category
+    ? categories.find((cat) => cat.id === category)?.name ?? ""
+    : "";
+
+  let heading = "Lietuvių paslaugos Norvegijoje";
+
+  if (activeCityName && activeCategoryName) {
+    heading = `${activeCategoryName} – lietuvių paslaugos ${activeCityName}`;
+  } else if (activeCityName) {
+    heading = `Lietuvių paslaugos ${activeCityName}`;
+  } else if (activeCategoryName) {
+    heading = `${activeCategoryName} – lietuvių paslaugos Norvegijoje`;
+  }
+
   return (
     <main className={styles.wrapper}>
-      <h1 className={styles.heading}>Visos paslaugos</h1>
+      <h1 className={styles.heading}>{heading}</h1>
+
+      <p style={{ fontSize: 14, color: "#4b5563", marginBottom: 16 }}>
+        Rasta paslaugų: <strong>{services.length}</strong>
+        {q && (
+          <>
+            {" "}
+            pagal paiešką <strong>&quot;{q}&quot;</strong>
+          </>
+        )}
+      </p>
 
       {/* Filtrai – paprasta GET forma */}
       <form className={styles.filters}>
@@ -72,7 +97,7 @@ export default async function ServicesPage({ searchParams }: Props) {
           name="q"
           type="search"
           className={styles.searchInput}
-          placeholder="Ko ieškote? Pvz.: santechnikas, elektrik as, kirpėja..."
+          placeholder="Ko ieškote? Pvz.: santechnikas, elektrikas, kirpėja..."
           defaultValue={q}
         />
 
