@@ -16,6 +16,8 @@
     "@prisma/client": "^6.19.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.84.0",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.555.0",
     "next": "16.0.1",
     "next-intl": "^4.5.0",
     "prisma": "^6.19.0",

@@ -1,7 +1,6 @@
 // src/app/api/dashboard/create-service/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
 function makeSlug(title: string) {
   const base = title
@@ -15,34 +14,33 @@ function makeSlug(title: string) {
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error || !data.user || !data.user.email) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const email = data.user.email;
-
     const body = await req.json();
     const {
+      email,
       title,
       description,
       priceFrom,
       priceTo,
       cityId,
       categoryId,
+      imageUrl,
     } = body as {
+      email?: string;
       title?: string;
       description?: string;
       priceFrom?: number | null;
       priceTo?: number | null;
       cityId?: string | null;
       categoryId?: string | null;
+      imageUrl?: string | null;
     };
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "Missing email" },
+        { status: 400 }
+      );
+    }
 
     if (!title || !description) {
       return NextResponse.json(
@@ -76,6 +74,7 @@ export async function POST(req: Request) {
         highlighted: false,
         cityId: cityId || null,
         categoryId: categoryId || null,
+        imageUrl: imageUrl || null,
       },
       include: {
         city: true,

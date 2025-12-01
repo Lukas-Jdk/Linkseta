@@ -51,7 +51,7 @@ model ServiceListing {
   priceTo     Int?
   isActive    Boolean @default(true)
   highlighted Boolean @default(false)
-
+ imageUrl    String?   // nuotraukos URL
   cityId     String?
   categoryId String?
   planId     String?
@@ -125,7 +125,6 @@ model Plan {
   period      PlanPeriod @default(MONTHLY)
   maxListings Int?
   highlight   Boolean    @default(false)
-
   services ServiceListing[]
 }
 

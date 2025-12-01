@@ -1,60 +1,61 @@
 // src/components/cards/CardGrid.tsx
+"use client";
 
-import Link from "next/link";
+import PremiumServiceCard from "./PremiumServiceCard";
 import styles from "./CardGrid.module.css";
 
-export type ServiceCardItem = {
+export type CardGridItem = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   city: string;
   category: string;
   priceFrom: number | null;
   slug: string;
-  highlighted?: boolean; // 👈 PRIDĖTA
+  highlighted?: boolean;
+   imageUrl: string | null;
 };
 
-type CardGridProps = {
-  items: ServiceCardItem[];
+type Props = {
+  items: CardGridItem[];
 };
 
-export default function CardGrid({ items }: CardGridProps) {
-  if (!items || items.length === 0) {
+
+
+export default function CardGrid({ items }: Props) {
+  if (!items.length) {
     return (
-      <p className={styles.empty}>
-        Dar nėra įkeltų paslaugų. Būk pirmas, kuris atsiras Linksetoje 👋
-      </p>
+      <div className={styles.empty}>
+        Šiuo metu dar neturime rodomų paslaugų.
+      </div>
     );
   }
 
   return (
-    <div className={styles.grid}>
-      {items.map((item) => (
-        <Link
-          key={item.id}
-          href={`/services/${item.slug}`}
-          className={styles.card}
-        >
-          <div className={styles.headerRow}>
-            <h2 className={styles.title}>{item.title}</h2>
+    <div className={styles.wrapper}>
+      <header className={styles.header}>
+        <h2 className={styles.heading}>Populiariausios lietuvių paslaugos</h2>
+        <p className={styles.subheading}>
+          Atrinktos patikimos paslaugos su geriausiais atsiliepimais ir aiškiomis kainomis.
+        </p>
+      </header>
 
-            {item.highlighted && (
-              <span className={styles.topBadge}>
-                <span className={styles.starIcon}>⭐</span>
-                TOP
-              </span>
-            )}
-          </div>
-
-          <p className={styles.description}>{item.description}</p>
-
-          <div className={styles.meta}>
-            {item.city && <span>🏙 {item.city}</span>}
-            {item.category && <span>📂 {item.category}</span>}
-            {item.priceFrom != null && <span>💰 nuo {item.priceFrom} NOK</span>}
-          </div>
-        </Link>
-      ))}
+      <div className={styles.grid}>
+        {items.map((item, index) => (
+          <PremiumServiceCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            description={item.description}
+            city={item.city}
+            category={item.category}
+            priceFrom={item.priceFrom}
+            slug={item.slug}
+            highlighted={item.highlighted}
+            imageUrl={item.imageUrl || ""}
+          />
+        ))}
+      </div>
     </div>
   );
 }

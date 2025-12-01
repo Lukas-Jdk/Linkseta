@@ -53,6 +53,7 @@ type SearchParams = {
   q?: string;
   city?: string;
   category?: string;
+    
 };
 
 type HomeProps = {
@@ -104,6 +105,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
     priceFrom: s.priceFrom,
     slug: s.slug,
     highlighted: s.highlighted ?? false,
+    imageUrl: s.imageUrl, 
   }));
 
   return (

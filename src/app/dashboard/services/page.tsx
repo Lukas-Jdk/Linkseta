@@ -36,6 +36,7 @@ type Service = {
 
 export default function DashboardServicesPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -50,15 +51,21 @@ export default function DashboardServicesPage() {
   const [cities, setCities] = useState<City[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // forma
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cityId, setCityId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [priceFrom, setPriceFrom] = useState<string>("");
 
+  // nuotrauka
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+
   const [creating, setCreating] = useState(false);
 
-  // 1. auth
+  // 1) auth – pasiimam prisijungusį userį
   useEffect(() => {
     async function loadUser() {
       const { data, error } = await supabase.auth.getUser();
@@ -80,7 +87,7 @@ export default function DashboardServicesPage() {
     loadUser();
   }, [router]);
 
-  // 2. cities + categories
+  // 2) miestai ir kategorijos
   useEffect(() => {
     async function loadFilters() {
       try {
@@ -97,7 +104,7 @@ export default function DashboardServicesPage() {
     loadFilters();
   }, []);
 
-  // 3. services + providerProfile
+  // 3) mano paslaugos + provider profilio info
   useEffect(() => {
     if (!email) return;
 
@@ -124,9 +131,9 @@ export default function DashboardServicesPage() {
 
         setServices(json.services ?? []);
         setProviderProfile(json.providerProfile ?? null);
-      } catch (e) {
-        console.error("my-services request error:", e);
-        setError("Serverio klaida.");
+      } catch (err) {
+        console.error("my-services error:", err);
+        setError("Nepavyko užkrauti duomenų.");
       } finally {
         setLoading(false);
         setProfileLoading(false);
@@ -141,6 +148,60 @@ export default function DashboardServicesPage() {
     router.replace("/login");
   }
 
+  // 🔹 Nuotraukos upload į Supabase Storage (bucket: service-images)
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageError(null);
+
+    const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+    if (file.size > MAX_SIZE) {
+      setImageError("Nuotrauka per didelė (maks. 3MB).");
+      return;
+    }
+
+    setImageUploading(true);
+
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.${ext}`;
+      const filePath = `services/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from("service-images")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error || !data) {
+        console.error("image upload error:", error);
+        setImageError("Nepavyko įkelti nuotraukos.");
+        return;
+      }
+
+      const { data: publicData } = supabase.storage
+        .from("service-images")
+        .getPublicUrl(data.path);
+
+      if (!publicData?.publicUrl) {
+        setImageError("Nepavyko gauti nuotraukos adreso.");
+        return;
+      }
+
+      setImageUrl(publicData.publicUrl);
+    } catch (err) {
+      console.error("image upload error:", err);
+      setImageError("Serverio klaida keliant nuotrauką.");
+    } finally {
+      setImageUploading(false);
+    }
+  }
+
+  // 🔹 Paslaugos kūrimas
   async function handleCreateService(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
@@ -151,46 +212,62 @@ export default function DashboardServicesPage() {
     setSuccess(null);
 
     try {
-      const res = await fetch("/api/dashboard/services", {
+      const res = await fetch("/api/dashboard/create-service", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+           email,
           title,
           description,
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
+          imageUrl: imageUrl || null,
         }),
       });
 
-      const json = await res.json();
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        // jei grįžo ne JSON (pvz. HTML) – ignoruojam
+      }
 
       if (!res.ok) {
-        console.error("create service failed:", json);
-        setError(json.error || "Nepavyko sukurti paslaugos.");
+        console.error("create-service failed:", json);
+        const message =
+          json &&
+          typeof json === "object" &&
+          "error" in json &&
+          typeof (json as any).error === "string"
+            ? (json as any).error
+            : "Nepavyko sukurti paslaugos.";
+        setError(message);
         return;
       }
 
+      // išvalom formą
       setTitle("");
       setDescription("");
       setCityId("");
       setCategoryId("");
       setPriceFrom("");
+      setImageUrl("");
       setSuccess("Paslauga sėkmingai sukurta.");
 
-      // Refresh lista
+      // persikraunam sąrašą
       const refresh = await fetch("/api/dashboard/my-services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const refreshedJson = await refresh.json();
+
       if (refresh.ok) {
+        const refreshedJson = await refresh.json();
         setServices(refreshedJson.services ?? []);
       }
     } catch (e) {
-      console.error("create service error:", e);
+      console.error("create-service error:", e);
       setError("Serverio klaida kuriant paslaugą.");
     } finally {
       setCreating(false);
@@ -200,7 +277,7 @@ export default function DashboardServicesPage() {
   if (!email || loading || profileLoading) {
     return (
       <main className={styles.container}>
-        <p>Kraunama.</p>
+        <p>Kraunama...</p>
       </main>
     );
   }
@@ -221,7 +298,7 @@ export default function DashboardServicesPage() {
       {error && <p className={styles.errorText}>{error}</p>}
       {success && <p className={styles.successText}>{success}</p>}
 
-      {/* 1️⃣ Nėra teikėjo profilio */}
+      {/* jei nėra profilio */}
       {!providerProfile && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
@@ -237,7 +314,7 @@ export default function DashboardServicesPage() {
         </section>
       )}
 
-      {/* 2️⃣ Profilis yra, bet nepatvirtintas */}
+      {/* jei paraiška dar nepatvirtinta */}
       {providerProfile && !providerProfile.isApproved && (
         <section className={styles.infoBox}>
           <div className={styles.infoBoxTitle}>
@@ -251,9 +328,10 @@ export default function DashboardServicesPage() {
         </section>
       )}
 
-      {/* 3️⃣ Patvirtintas teikėjas – forma + sąrašas */}
+      {/* patvirtintas teikėjas – forma + sąrašas */}
       {providerProfile && providerProfile.isApproved && (
         <>
+          {/* forma */}
           <section className={styles.card}>
             <h2 className={styles.cardTitle}>Sukurti naują paslaugą</h2>
 
@@ -322,8 +400,28 @@ export default function DashboardServicesPage() {
                     className={styles.input}
                     value={priceFrom}
                     onChange={(e) => setPriceFrom(e.target.value)}
+                    placeholder="Pvz. 200"
                   />
                 </div>
+              </div>
+
+              {/* nuotraukos upload */}
+              <div className={styles.field}>
+                <label className={styles.label}>Paslaugos nuotrauka</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                {imageUploading && (
+                  <p className={styles.helpText}>Nuotrauka keliama...</p>
+                )}
+                {imageError && (
+                  <p className={styles.errorText}>{imageError}</p>
+                )}
+                {imageUrl && !imageUploading && !imageError && (
+                  <p className={styles.helpText}>Nuotrauka sėkmingai įkelta.</p>
+                )}
               </div>
 
               <div className={styles.actions}>
@@ -338,6 +436,7 @@ export default function DashboardServicesPage() {
             </form>
           </section>
 
+          {/* sąrašas */}
           <section className={styles.card}>
             <h2 className={styles.cardTitle}>Mano paslaugų sąrašas</h2>
 
@@ -346,38 +445,49 @@ export default function DashboardServicesPage() {
                 Dar neturite sukurtų paslaugų – sukurkite pirmąją aukščiau.
               </p>
             ) : (
-              <div className={styles.servicesList}>
-                {services.map((s) => (
-                  <div key={s.id} className={styles.serviceRow}>
-                    <div className={styles.serviceMain}>
-                      <div className={styles.serviceTitle}>{s.title}</div>
+              <ul className={styles.list}>
+                {services.map((service) => (
+                  <li key={service.id} className={styles.listItem}>
+                    <div>
+                      <div className={styles.serviceTitle}>
+                        {service.title}
+                      </div>
                       <div className={styles.serviceMeta}>
-                        {s.city?.name && <span>{s.city.name}</span>}
-                        {s.category?.name && <span>{s.category.name}</span>}
-                        {s.priceFrom != null && (
-                          <span>nuo {s.priceFrom} NOK</span>
+                        {service.city?.name && <span>{service.city.name}</span>}
+                        {service.category?.name && (
+                          <span>{service.category.name}</span>
+                        )}
+                        {service.priceFrom != null && (
+                          <span>nuo {service.priceFrom} NOK</span>
                         )}
                       </div>
                     </div>
 
                     <div className={styles.serviceActions}>
-                      <Link
-                        href={`/services/${s.slug}`}
-                        target="_blank"
-                        className={styles.linkButtonSecondary}
+                      <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={() =>
+                          router.push(`/services/${service.slug}`)
+                        }
                       >
                         Peržiūrėti
-                      </Link>
-                      <Link
-                        href={`/dashboard/services/${s.id}`}
-                        className={styles.linkButton}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.primaryButton}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/services/${service.id}/edit`
+                          )
+                        }
                       >
                         Redaguoti
-                      </Link>
+                      </button>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </section>
         </>

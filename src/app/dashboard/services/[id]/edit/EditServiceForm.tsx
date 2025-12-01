@@ -17,6 +17,7 @@ type InitialData = {
   cityId: string;
   categoryId: string;
   priceFrom: number | null;
+  imageUrl: string | null;
 };
 
 type Props = {
@@ -32,7 +33,7 @@ export default function EditServiceForm({
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-
+  const [imageUrl, setImageUrl] = useState(initial.imageUrl || "");
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
   const [cityId, setCityId] = useState(initial.cityId || "");
@@ -58,6 +59,7 @@ export default function EditServiceForm({
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom || null,
+          imageUrl: imageUrl || null,
         }),
       });
 
@@ -113,6 +115,17 @@ export default function EditServiceForm({
     <form className={styles.formCard} onSubmit={handleSubmit}>
       {error && <p className={styles.errorText}>{error}</p>}
       {success && <p className={styles.successText}>{success}</p>}
+
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Nuotraukos URL</label>
+        <input
+          className="input-base"
+          type="url"
+          placeholder="https://..."
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+        />
+      </div>
 
       <div className={styles.formGroup}>
         <label className={styles.label}>Pavadinimas</label>
