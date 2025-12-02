@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 
 type Props = {
   children: React.ReactNode;
@@ -11,8 +10,10 @@ type Props = {
 
 type GuardState = "loading" | "allowed" | "denied";
 
+type Role = "ADMIN" | "USER" | "GUEST";
+
 type RoleResponse = {
-  role: "USER" | "ADMIN";
+  role: Role;
 };
 
 export default function AdminGuard({ children }: Props) {
@@ -24,28 +25,26 @@ export default function AdminGuard({ children }: Props) {
 
     async function check() {
       try {
-        // 1. Pasiimam supabase userį iš localStorage (kliento pusėje)
-        const { data, error } = await supabase.auth.getUser();
+        // Tiesiog pasiklausiam serverio, kokia rolė pagal cookies
+        const res = await fetch("/api/auth/role", {
+          cache: "no-store",
+        });
 
-        if (error || !data?.user || !data.user.email) {
+        if (!res.ok) {
+          console.error("AdminGuard /api/auth/role error:", res.status);
           if (!cancelled) setState("denied");
           return;
         }
 
-        const email = data.user.email;
-
-        // 2. Pagal emailą pasiimam rolę iš mūsų DB
-        const res = await fetch(
-          `/api/auth/role?email=${encodeURIComponent(email)}`
-        );
         const json = (await res.json()) as RoleResponse;
+        console.log("AdminGuard role:", json.role);
 
-        console.log("AdminGuard role:", json);
+        if (cancelled) return;
 
-        if (!res.ok || json.role !== "ADMIN") {
-          if (!cancelled) setState("denied");
+        if (json.role === "ADMIN") {
+          setState("allowed");
         } else {
-          if (!cancelled) setState("allowed");
+          setState("denied");
         }
       } catch (e) {
         console.error("AdminGuard error:", e);
@@ -60,6 +59,7 @@ export default function AdminGuard({ children }: Props) {
     };
   }, []);
 
+  // jei deny – permetam į pagrindinį
   useEffect(() => {
     if (state === "denied") {
       router.replace("/");

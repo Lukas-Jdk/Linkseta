@@ -2,16 +2,53 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ProviderRequestStatus } from "@prisma/client";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-export async function PATCH(
-  req: Request,
-  props: { params: { id: string } } | { params: Promise<{ id: string }> }
-) {
+type ParamsArg =
+  | { params: { id: string } }
+  | { params: Promise<{ id: string }> };
+
+async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
+  const value = props.params;
+  if (typeof value === "object" && value !== null && "then" in value) {
+    return (value as Promise<{ id: string }>);
+  }
+  return value as { id: string };
+}
+
+// 🔐 Bendra funkcija – patikrina, ar prisijungęs ADMIN
+async function requireAdmin() {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data?.user?.email) {
+    return { ok: false as const, status: 401, message: "Unauthorized" };
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { email: data.user.email },
+    select: { role: true },
+  });
+
+  if (!dbUser || dbUser.role !== "ADMIN") {
+    return { ok: false as const, status: 403, message: "Forbidden" };
+  }
+
+  return { ok: true as const };
+}
+
+// PATCH – keičiam providerRequest statusą + kuriam user/profile/service
+export async function PATCH(req: Request, props: ParamsArg) {
   try {
-    // ⬇ Universalus params ištraukimas (veikia abiem atvejais!)
-    const resolved = "then" in props.params ? await props.params : props.params;
-    const id = resolved.id;
+    const auth = await requireAdmin();
+    if (!auth.ok) {
+      return NextResponse.json(
+        { error: auth.message },
+        { status: auth.status }
+      );
+    }
 
+    const { id } = await resolveParams(props);
     if (!id) {
       return NextResponse.json({ error: "Missing ID in URL" }, { status: 400 });
     }
@@ -27,7 +64,7 @@ export async function PATCH(
       );
     }
 
-    // 1️⃣ Paimam esamą ProviderRequest
+    // 1) randam esamą requestą
     const existing = await prisma.providerRequest.findUnique({
       where: { id },
     });
@@ -43,8 +80,7 @@ export async function PATCH(
     let providerProfile = null;
     let serviceListing = null;
 
-    // 2️⃣ Jei status keičiam į APPROVED ir anksčiau nebuvo APPROVED →
-    //    sukuriam/susiejame User + ProviderProfile + ServiceListing
+    // 2) jei patvirtinam pirmą kartą – kuriam user + providerProfile + serviceListing
     if (status === "APPROVED" && existing.status !== "APPROVED") {
       if (!existing.email) {
         return NextResponse.json(
@@ -53,11 +89,9 @@ export async function PATCH(
         );
       }
 
-      // 2.1. User upsert pagal email
       user = await prisma.user.upsert({
         where: { email: existing.email },
         update: {
-          // jei vartotojas jau yra – atnaujinam basic info
           name: existing.name,
           phone: existing.phone ?? undefined,
         },
@@ -65,11 +99,9 @@ export async function PATCH(
           email: existing.email,
           name: existing.name,
           phone: existing.phone ?? undefined,
-          // role nereikia – @default(USER)
         },
       });
 
-      // 2.2. ProviderProfile upsert pagal userId
       providerProfile = await prisma.providerProfile.upsert({
         where: { userId: user.id },
         update: {
@@ -85,7 +117,6 @@ export async function PATCH(
         },
       });
 
-      // 2.3. Automatinis ServiceListing sukūrimas (jei dar neturi)
       const existingListing = await prisma.serviceListing.findFirst({
         where: { userId: user.id },
       });
@@ -95,7 +126,7 @@ export async function PATCH(
           data: {
             userId: user.id,
             title: existing.name,
-            slug: `service-${existing.id}`, // unikalus pagal request id
+            slug: `service-${existing.id}`,
             description:
               existing.message && existing.message.trim().length > 0
                 ? existing.message
@@ -111,7 +142,7 @@ export async function PATCH(
       }
     }
 
-    // 3️⃣ Atnaujinam patį ProviderRequest (tik statusą)
+    // 3) atnaujinam patį requestą
     const updated = await prisma.providerRequest.update({
       where: { id },
       data: { status },
@@ -125,7 +156,7 @@ export async function PATCH(
       serviceListing,
     });
   } catch (error) {
-    console.error("PATCH request error:", error);
+    console.error("PATCH /api/admin/provider-requests/:id error:", error);
     return NextResponse.json(
       { error: "Server error", details: String(error) },
       { status: 500 }

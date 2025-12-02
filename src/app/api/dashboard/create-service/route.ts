@@ -1,6 +1,7 @@
 // src/app/api/dashboard/create-service/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
 function makeSlug(title: string) {
   const base = title
@@ -14,9 +15,11 @@ function makeSlug(title: string) {
 
 export async function POST(req: Request) {
   try {
+    const { response, user } = await requireUser();
+    if (response || !user) return response!; // 401
+
     const body = await req.json();
     const {
-      email,
       title,
       description,
       priceFrom,
@@ -25,7 +28,6 @@ export async function POST(req: Request) {
       categoryId,
       imageUrl,
     } = body as {
-      email?: string;
       title?: string;
       description?: string;
       priceFrom?: number | null;
@@ -35,27 +37,9 @@ export async function POST(req: Request) {
       imageUrl?: string | null;
     };
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
-      );
-    }
-
     if (!title || !description) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
         { status: 400 }
       );
     }

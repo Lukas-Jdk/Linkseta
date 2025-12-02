@@ -13,14 +13,12 @@ export type CardGridItem = {
   priceFrom: number | null;
   slug: string;
   highlighted?: boolean;
-   imageUrl: string | null;
+  imageUrl: string | null;
 };
 
 type Props = {
   items: CardGridItem[];
 };
-
-
 
 export default function CardGrid({ items }: Props) {
   if (!items.length) {
@@ -36,17 +34,18 @@ export default function CardGrid({ items }: Props) {
       <header className={styles.header}>
         <h2 className={styles.heading}>Populiariausios lietuvių paslaugos</h2>
         <p className={styles.subheading}>
-          Atrinktos patikimos paslaugos su geriausiais atsiliepimais ir aiškiomis kainomis.
+          Atrinktos patikimos paslaugos su geriausiais atsiliepimais ir aiškiomis
+          kainomis.
         </p>
       </header>
 
       <div className={styles.grid}>
-        {items.map((item, index) => (
+        {items.map((item) => (
           <PremiumServiceCard
             key={item.id}
             id={item.id}
             title={item.title}
-            description={item.description}
+            description={item.description ?? ""}
             city={item.city}
             category={item.category}
             priceFrom={item.priceFrom}

@@ -1,38 +1,13 @@
 // src/app/api/dashboard/my-services/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const body = await req.json();
-    const email = body.email as string | undefined;
+    const { response, user } = await requireUser();
+    if (response || !user) return response!; // 401
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
-      );
-    }
-
-    // 1. Randam User pagal email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      // jei userio nėra DB – grąžinam tuščius duomenis, bet 200
-      return NextResponse.json({
-        services: [],
-        providerProfile: null,
-      });
-    }
-
-    // 2. Randam ProviderProfile (jei yra)
-    const providerProfile = await prisma.providerProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    // 3. Paimam visas šio userio paslaugas
     const services = await prisma.serviceListing.findMany({
       where: { userId: user.id },
       include: {
@@ -42,6 +17,10 @@ export async function POST(req: Request) {
       orderBy: {
         createdAt: "desc",
       },
+    });
+
+    const providerProfile = await prisma.providerProfile.findUnique({
+      where: { userId: user.id },
     });
 
     return NextResponse.json({

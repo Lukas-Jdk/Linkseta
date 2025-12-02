@@ -118,6 +118,7 @@ export default function DashboardServicesPage() {
         const res = await fetch("/api/dashboard/my-services", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          // dabar API auth daro per sesiją, body nėra būtinas, bet gali ir likti
           body: JSON.stringify({ email }),
         });
 
@@ -216,7 +217,6 @@ export default function DashboardServicesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-           email,
           title,
           description,
           cityId: cityId || null,
@@ -226,27 +226,33 @@ export default function DashboardServicesPage() {
         }),
       });
 
-      let json: any = null;
+      let json: unknown = null;
+
       try {
         json = await res.json();
       } catch {
-        // jei grįžo ne JSON (pvz. HTML) – ignoruojam
+        json = null;
       }
 
       if (!res.ok) {
         console.error("create-service failed:", json);
-        const message =
+
+        let message = "Nepavyko sukurti paslaugos.";
+
+        if (
           json &&
           typeof json === "object" &&
           "error" in json &&
-          typeof (json as any).error === "string"
-            ? (json as any).error
-            : "Nepavyko sukurti paslaugos.";
+          typeof (json as { error?: string }).error === "string"
+        ) {
+          message = (json as { error: string }).error;
+        }
+
         setError(message);
         return;
       }
 
-      // išvalom formą
+      // sėkmė – išvalom formą
       setTitle("");
       setDescription("");
       setCityId("");
@@ -263,11 +269,19 @@ export default function DashboardServicesPage() {
       });
 
       if (refresh.ok) {
-        const refreshedJson = await refresh.json();
+        const refreshedJson = (await refresh.json()) as {
+          services?: Service[];
+          providerProfile?: ProviderProfile | null;
+        };
+
         setServices(refreshedJson.services ?? []);
+
+        if (typeof refreshedJson.providerProfile !== "undefined") {
+          setProviderProfile(refreshedJson.providerProfile ?? null);
+        }
       }
-    } catch (e) {
-      console.error("create-service error:", e);
+    } catch (error) {
+      console.error("create-service error:", error);
       setError("Serverio klaida kuriant paslaugą.");
     } finally {
       setCreating(false);

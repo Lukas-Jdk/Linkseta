@@ -1,30 +1,19 @@
 // src/components/cards/PremiumServiceCard.tsx
-"use client";
-
-import { useRef, useState } from "react";
-import type { MouseEvent } from "react";
-import Link from "next/link";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import { Star, MapPin, ArrowRight, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
-const springConfig = {
-  damping: 30,
-  stiffness: 100,
-  mass: 2,
-};
-
-export type PremiumServiceCardProps = {
+export interface PremiumServiceCardProps {
   id: string;
   title: string;
-  description: string | null;
+  description: string;
   city: string;
   category: string;
   priceFrom: number | null;
   slug: string;
   highlighted?: boolean;
-  imageUrl: string;
-};
+  imageUrl?: string;
+}
 
 export default function PremiumServiceCard({
   id,
@@ -37,70 +26,24 @@ export default function PremiumServiceCard({
   highlighted = false,
   imageUrl,
 }: PremiumServiceCardProps) {
-  const ref = useRef<HTMLDivElement | null>(null);
+  const displayPrice =
+    priceFrom != null ? `${priceFrom} NOK` : "Kaina sutartinė";
 
-  const rotateX = useSpring(0, springConfig);
-  const rotateY = useSpring(0, springConfig);
-  const scale = useSpring(1, springConfig);
+  // Kol kas neturim realių reitingų – panaudojam „fake“,
+  // kad dizainas išliktų toks, koks tau patinka.
+  const rating = highlighted ? 4.9 : 4.7;
+  const reviewCount = highlighted ? 32 : 12;
 
-  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
-    if (!ref.current) return;
-
-    const rect = ref.current.getBoundingClientRect();
-
-    const offsetX = e.clientX - rect.left - rect.width / 2;
-    const offsetY = e.clientY - rect.top - rect.height / 2;
-
-    const rotationX = (offsetY / (rect.height / 2)) * -10;
-    const rotationY = (offsetX / (rect.width / 2)) * 10;
-
-    rotateX.set(rotationX);
-    rotateY.set(rotationY);
-  }
-
-  function handleMouseEnter() {
-    scale.set(1.02);
-  }
-
-  function handleMouseLeave() {
-    rotateX.set(0);
-    rotateY.set(0);
-    scale.set(1);
-  }
-
-  const shortDescription =
-    description && description.length > 140
-      ? description.slice(0, 140) + "…"
-      : description || "Aprašymas nepateiktas.";
-
-  const priceText = priceFrom != null ? `${priceFrom} €` : "Kaina sutartinė";
-  const safeImage = imageUrl || "/default-service.png";
   return (
-    <div
-      ref={ref}
-      className={styles.cardContainer}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <motion.div
-        className={styles.card}
-        style={{
-          rotateX,
-          rotateY,
-          scale,
-        }}
-      >
-        {/* Fonas su nuotrauka */}
+    <div className={styles.cardContainer} data-id={id}>
+      <div className={styles.card}>
+        {/* Background su Ken Burns efektu */}
         <div className={styles.backgroundContainer}>
           <motion.img
-            src={safeImage}
+            src={imageUrl || "/placeholder-service.jpg"}
             alt={title}
             className={styles.backgroundImage}
-            animate={{
-              scale: [1, 1.12, 1],
-              x: [0, -12, 0],
-            }}
+            animate={{ scale: [1, 1.15, 1], x: [0, -10, 0] }}
             transition={{
               duration: 20,
               repeat: Infinity,
@@ -108,39 +51,32 @@ export default function PremiumServiceCard({
               ease: "linear",
             }}
           />
-
           <div className={styles.gradientOverlay} />
-
           {highlighted && <div className={styles.premiumGlow} />}
         </div>
 
-        {/* Turinio overlay */}
+        {/* Content */}
         <div className={styles.content}>
           {/* Viršus */}
           <div className={styles.header}>
             <div className={styles.badges}>
-              <span className={styles.categoryBadge}>
-                {category || "Paslaugos"}
-              </span>
-
+              <span className={styles.categoryBadge}>{category}</span>
               {highlighted && (
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={styles.premiumBadge}
-                >
+                <span className={styles.premiumBadge}>
                   <ShieldCheck className={styles.premiumIcon} />
                   TOP
-                </motion.span>
+                </span>
               )}
             </div>
 
             <div className={styles.ratingContainer}>
               <div className={styles.ratingBadge}>
                 <Star className={styles.starIcon} />
-                <span className={styles.ratingValue}>4.9</span>
+                <span className={styles.ratingValue}>{rating.toFixed(1)}</span>
               </div>
-              <span className={styles.reviewCount}>120 atsiliepimų</span>
+              <span className={styles.reviewCount}>
+                {reviewCount} atsiliepimai
+              </span>
             </div>
           </div>
 
@@ -149,60 +85,54 @@ export default function PremiumServiceCard({
             <div>
               <div className={styles.location}>
                 <MapPin className={styles.locationIcon} />
-                {city || "Norvegija"}
+                {city}
               </div>
-
               <h3 className={styles.title}>{title}</h3>
-
-              <p className={styles.description}>{shortDescription}</p>
+              <p className={styles.description}>{description}</p>
             </div>
 
             <div className={styles.footer}>
               <div className={styles.priceContainer}>
-                <span className={styles.priceLabel}>nuo</span>
+                <span className={styles.priceLabel}>Kaina nuo</span>
                 <span className={styles.priceValue}>
-                  {priceText}
-                  <span className={styles.priceUnit}> / val.</span>
+                  {displayPrice}
                 </span>
               </div>
 
               <div className={styles.actions}>
-                <Link
-                  href={`/services/${slug}`}
-                  className={styles.iconButtonLink}
-                  aria-label={`Peržiūrėti paslaugą ${title}`}
+                <motion.button
+                  type="button"
+                  className={styles.iconButton}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    // perėjimas į slug puslapį – galima tvarkyt per router vėliau
+                    window.location.href = `/services/${slug}`;
+                  }}
                 >
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={styles.iconButton}
-                  >
-                    <ArrowRight className={styles.arrowIcon} />
-                  </motion.div>
-                </Link>
-
-                <Link
-                  href={`/services/${slug}`}
-                  className={styles.contactButtonLink}
+                  <ArrowRight className={styles.arrowIcon} />
+                </motion.button>
+                <motion.button
+                  type="button"
+                  className={`${styles.contactButton} ${
+                    highlighted
+                      ? styles.contactButtonPremium
+                      : styles.contactButtonStandard
+                  }`}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    // čia vėliau galim daryt "Susisiekti" modalą
+                    window.location.href = `/services/${slug}#kontaktai`;
+                  }}
                 >
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="button"
-                    className={`${styles.contactButton} ${
-                      highlighted
-                        ? styles.contactButtonPremium
-                        : styles.contactButtonStandard
-                    }`}
-                  >
-                    Susisiekti
-                  </motion.button>
-                </Link>
+                  Susisiekti
+                </motion.button>
               </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
