@@ -1,31 +1,27 @@
 // src/app/api/admin/services/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
-type ParamsArg =
-  | { params: { id: string } }
-  | { params: Promise<{ id: string }> };
-
-async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
-  const value = props.params;
-
-  if (typeof value === "object" && value !== null && "then" in value) {
-    // Promise variantas (Next 15)
-    return value as Promise<{ id: string }>;
-  }
-
-  return value as { id: string };
-}
+type Params = { id: string };
 
 // PATCH /api/admin/services/:id  – keičiam isActive / highlighted
-export async function PATCH(req: Request, props: ParamsArg) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
+
+  const { response, user } = await requireAdmin();
+  if (response || !user) {
+    return response!;
+  }
+
   try {
-    const { id } = await resolveParams(props);
     const body = await req.json();
 
     const data: { isActive?: boolean; highlighted?: boolean } = {};
     if ("isActive" in body) data.isActive = Boolean(body.isActive);
-
     if ("highlighted" in body) data.highlighted = Boolean(body.highlighted);
 
     if (Object.keys(data).length === 0) {
@@ -52,10 +48,18 @@ export async function PATCH(req: Request, props: ParamsArg) {
 }
 
 // DELETE /api/admin/services/:id
-export async function DELETE(_req: Request, props: ParamsArg) {
-  try {
-    const { id } = await resolveParams(props);
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
 
+  const { response, user } = await requireAdmin();
+  if (response || !user) {
+    return response!;
+  }
+
+  try {
     const service = await prisma.serviceListing.delete({
       where: { id },
     });
@@ -76,10 +80,18 @@ export async function DELETE(_req: Request, props: ParamsArg) {
 }
 
 // GET /api/admin/services/:id
-export async function GET(_req: Request, props: ParamsArg) {
-  try {
-    const { id } = await resolveParams(props);
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
 
+  const { response, user } = await requireAdmin();
+  if (response || !user) {
+    return response!;
+  }
+
+  try {
     const service = await prisma.serviceListing.findUnique({
       where: { id },
       include: {
@@ -90,7 +102,10 @@ export async function GET(_req: Request, props: ParamsArg) {
     });
 
     if (!service) {
-      return NextResponse.json({ error: "Paslauga nerasta" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Paslauga nerasta" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(service);

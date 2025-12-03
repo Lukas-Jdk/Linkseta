@@ -2,57 +2,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ProviderRequestStatus } from "@prisma/client";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { requireAdmin } from "@/lib/auth";
 
-type ParamsArg =
-  | { params: { id: string } }
-  | { params: Promise<{ id: string }> };
-
-async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
-  const value = props.params;
-  if (typeof value === "object" && value !== null && "then" in value) {
-    return (value as Promise<{ id: string }>);
-  }
-  return value as { id: string };
-}
-
-// 🔐 Bendra funkcija – patikrina, ar prisijungęs ADMIN
-async function requireAdmin() {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data?.user?.email) {
-    return { ok: false as const, status: 401, message: "Unauthorized" };
-  }
-
-  const dbUser = await prisma.user.findUnique({
-    where: { email: data.user.email },
-    select: { role: true },
-  });
-
-  if (!dbUser || dbUser.role !== "ADMIN") {
-    return { ok: false as const, status: 403, message: "Forbidden" };
-  }
-
-  return { ok: true as const };
-}
+type Params = { id: string };
 
 // PATCH – keičiam providerRequest statusą + kuriam user/profile/service
-export async function PATCH(req: Request, props: ParamsArg) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
+
+  // 🔐 Tik ADMIN
+  const { response, user } = await requireAdmin();
+  if (response || !user) {
+    return response!;
+  }
+
   try {
-    const auth = await requireAdmin();
-    if (!auth.ok) {
-      return NextResponse.json(
-        { error: auth.message },
-        { status: auth.status }
-      );
-    }
-
-    const { id } = await resolveParams(props);
-    if (!id) {
-      return NextResponse.json({ error: "Missing ID in URL" }, { status: 400 });
-    }
-
     const body = await req.json();
     const status = body.status as ProviderRequestStatus | undefined;
 
@@ -76,7 +43,7 @@ export async function PATCH(req: Request, props: ParamsArg) {
       );
     }
 
-    let user = null;
+    let createdUser = null;
     let providerProfile = null;
     let serviceListing = null;
 
@@ -89,7 +56,7 @@ export async function PATCH(req: Request, props: ParamsArg) {
         );
       }
 
-      user = await prisma.user.upsert({
+      const userFromReq = await prisma.user.upsert({
         where: { email: existing.email },
         update: {
           name: existing.name,
@@ -102,15 +69,17 @@ export async function PATCH(req: Request, props: ParamsArg) {
         },
       });
 
+      createdUser = userFromReq;
+
       providerProfile = await prisma.providerProfile.upsert({
-        where: { userId: user.id },
+        where: { userId: userFromReq.id },
         update: {
           companyName: existing.name,
           description: existing.message ?? undefined,
           isApproved: true,
         },
         create: {
-          userId: user.id,
+          userId: userFromReq.id,
           companyName: existing.name,
           description: existing.message ?? undefined,
           isApproved: true,
@@ -118,13 +87,13 @@ export async function PATCH(req: Request, props: ParamsArg) {
       });
 
       const existingListing = await prisma.serviceListing.findFirst({
-        where: { userId: user.id },
+        where: { userId: userFromReq.id },
       });
 
       if (!existingListing) {
         serviceListing = await prisma.serviceListing.create({
           data: {
-            userId: user.id,
+            userId: userFromReq.id,
             title: existing.name,
             slug: `service-${existing.id}`,
             description:
@@ -151,7 +120,7 @@ export async function PATCH(req: Request, props: ParamsArg) {
     return NextResponse.json({
       ok: true,
       updated,
-      user,
+      user: createdUser,
       providerProfile,
       serviceListing,
     });

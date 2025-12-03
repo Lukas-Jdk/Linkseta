@@ -43,6 +43,7 @@ export default async function EditServicePage({ params }: PageProps) {
     cityId: service.cityId ?? "",
     categoryId: service.categoryId ?? "",
     priceFrom: service.priceFrom ?? null,
+    imageUrl: service.imageUrl ?? null, // 👈 ŠITO TRŪKO
   };
 
   return (

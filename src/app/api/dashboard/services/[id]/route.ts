@@ -1,29 +1,23 @@
 // src/app/api/dashboard/services/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-type ParamsArg =
-  | { params: { id: string } }
-  | { params: Promise<{ id: string }> };
+type Params = { id: string };
 
-async function resolveParams(props: ParamsArg): Promise<{ id: string }> {
-  const value = props.params;
+// PATCH – atnaujinti savo paslaugą
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
 
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "then" in value
-  ) {
-    return (value as Promise<{ id: string }>);
+  const { response, user } = await requireUser();
+  if (response || !user) {
+    return response!;
   }
 
-  return value as { id: string };
-}
-
-// PATCH – atnaujinti paslaugą
-export async function PATCH(req: Request, props: ParamsArg) {
   try {
-    const { id } = await resolveParams(props);
     const body = await req.json();
 
     const {
@@ -53,13 +47,18 @@ export async function PATCH(req: Request, props: ParamsArg) {
         : Number(priceFrom);
 
     const updated = await prisma.serviceListing.update({
-      where: { id },
+      where: {
+        id,
+        userId: user.id, // 👈 labai svarbu – tik savo skelbimą
+      },
       data: {
         title,
         description,
         cityId: cityId || null,
         categoryId: categoryId || null,
-        priceFrom: Number.isNaN(price as number) ? null : (price as number | null),
+        priceFrom: Number.isNaN(price as number)
+          ? null
+          : (price as number | null),
       },
     });
 
@@ -74,12 +73,25 @@ export async function PATCH(req: Request, props: ParamsArg) {
   }
 }
 
-// DELETE – ištrinti
-export async function DELETE(_req: Request, props: ParamsArg) {
-  try {
-    const { id } = await resolveParams(props);
+// DELETE – ištrinti savo paslaugą
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
 
-    await prisma.serviceListing.delete({ where: { id } });
+  const { response, user } = await requireUser();
+  if (response || !user) {
+    return response!;
+  }
+
+  try {
+    await prisma.serviceListing.delete({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -92,13 +104,24 @@ export async function DELETE(_req: Request, props: ParamsArg) {
   }
 }
 
-// GET – jei kada prireiks
-export async function GET(_req: Request, props: ParamsArg) {
-  try {
-    const { id } = await resolveParams(props);
+// GET – gauti savo paslaugą (jei reikės)
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<Params> }
+) {
+  const { id } = await params;
 
-    const service = await prisma.serviceListing.findUnique({
-      where: { id },
+  const { response, user } = await requireUser();
+  if (response || !user) {
+    return response!;
+  }
+
+  try {
+    const service = await prisma.serviceListing.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
       include: { city: true, category: true },
     });
 

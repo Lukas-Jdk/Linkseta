@@ -11,15 +11,19 @@ type SearchParams = {
 };
 
 type Props = {
-  searchParams?: SearchParams;
+  // Next 16: searchParams yra Promise<>
+  searchParams: Promise<SearchParams>;
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function ServicesPage({ searchParams }: Props) {
-  const q = searchParams?.q?.trim() ?? "";
-  const city = searchParams?.city ?? "";
-  const category = searchParams?.category ?? "";
+  // GAUNAM tikrą objektą iš Promise
+  const resolved = await searchParams;
+
+  const q = resolved.q?.trim() ?? "";
+  const city = resolved.city ?? "";
+  const category = resolved.category ?? "";
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
@@ -97,90 +101,86 @@ export default async function ServicesPage({ searchParams }: Props) {
           name="q"
           type="search"
           className={styles.searchInput}
-          placeholder="Ko ieškote? Pvz.: santechnikas, elektrikas, kirpėja..."
+          placeholder="Ko ieškote? Pvz.: santechnikas, elektrikas, valytoja"
           defaultValue={q}
         />
 
-        <div className={styles.filterRow}>
-          <select
-            name="city"
-            className={styles.select}
-            defaultValue={city}
-          >
-            <option value="">Visi miestai</option>
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+        <select name="city" className={styles.select} defaultValue={city}>
+          <option value="">Visi miestai</option>
+          {cities.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
-          <select
-            name="category"
-            className={styles.select}
-            defaultValue={category}
-          >
-            <option value="">Visos kategorijos</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+        <select
+          name="category"
+          className={styles.select}
+          defaultValue={category}
+        >
+          <option value="">Visos kategorijos</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
 
-          <button type="submit" className={styles.filterButton}>
-            Filtruoti
-          </button>
-        </div>
+        <button type="submit" className={styles.filterButton}>
+          Filtruoti
+        </button>
       </form>
 
-      {/* Sąrašas */}
-      {services.length === 0 ? (
-        <p className={styles.empty}>
-          Pagal pasirinktus filtrus paslaugų nerasta.
-        </p>
-      ) : (
-        <div className={styles.grid}>
-          {services.map((s) => (
-            <Link
-              key={s.id}
-              href={`/services/${s.slug}`}
-              className={styles.card}
-            >
-              <h2 className={styles.cardTitle}>{s.title}</h2>
-              <p className={styles.cardDescription}>
-                {s.description?.length
-                  ? s.description.length > 180
-                    ? s.description.slice(0, 180) + "…"
-                    : s.description
-                  : "Aprašymas nepateiktas."}
-              </p>
+      {/* Rezultatai */}
+      <div className={styles.grid}>
+        {services.length === 0 && (
+          <p className={styles.emptyState}>
+            Šiuo metu pagal pasirinktus filtrus paslaugų nerasta.
+            <br />
+            Pabandykite pakoreguoti paiešką arba pasirinkti kitą miestą /
+            kategoriją.
+          </p>
+        )}
 
-              <div className={styles.meta}>
-                {s.city?.name && (
-                  <span className={styles.metaItem}>🏙 {s.city.name}</span>
+        {services.map((service) => (
+          <article key={service.id} className={styles.card}>
+            <header className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>{service.title}</h2>
+              <p className={styles.cardMeta}>
+                {service.city?.name && <span>{service.city.name}</span>}
+                {service.category?.name && (
+                  <span> · {service.category.name}</span>
                 )}
-                {s.category?.name && (
-                  <span className={styles.metaItem}>
-                    📂 {s.category.name}
-                  </span>
-                )}
-                {s.priceFrom != null && (
-                  <span className={styles.metaItem}>
-                    💰 nuo {s.priceFrom} NOK
-                  </span>
+              </p>
+            </header>
+
+            <p className={styles.cardDescription}>
+              {service.description.length > 180
+                ? service.description.slice(0, 180) + "..."
+                : service.description}
+            </p>
+
+            <footer className={styles.cardFooter}>
+              <div className={styles.cardPrice}>
+                {service.priceFrom ? (
+                  <>
+                    Nuo <strong>{service.priceFrom} NOK</strong>
+                  </>
+                ) : (
+                  <span>Kaina sutartinė</span>
                 )}
               </div>
-
-              {s.user && (
-                <div className={styles.author}>
-                  Skelbėjas: {s.user.name || s.user.email}
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
+              <Link
+                href={`/services/${service.slug}`}
+                className={styles.cardLink}
+              >
+                Žiūrėti paslaugą
+              </Link>
+            </footer>
+          </article>
+        ))}
+      </div>
     </main>
   );
 }

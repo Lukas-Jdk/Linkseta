@@ -1,13 +1,14 @@
 // src/app/api/dashboard/my-services/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth"; // 👈 BŪTINAI taip
+import { requireUser } from "@/lib/auth";
 
+// Grąžina prisijungusio vartotojo provider profilį + jo paslaugas
 export async function POST() {
-  // 1) Auth – paimam userį
+  // 1) Auth – paimam userį per mūsų requireUser helperį
   const { user, response } = await requireUser();
 
-  // jei neprisijungęs – grąžinam 401
+  // jei neprisijungęs – grąžina 401
   if (response || !user) {
     return response!;
   }
@@ -33,6 +34,7 @@ export async function POST() {
       }),
     ]);
 
+    // 3) Supaprastinam atsakymą – tik tai, ko reikia UI
     return NextResponse.json(
       {
         providerProfile,
