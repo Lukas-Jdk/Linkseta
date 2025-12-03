@@ -1,34 +1,56 @@
 // src/app/api/dashboard/my-services/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth"; // 👈 BŪTINAI taip
 
 export async function POST() {
+  // 1) Auth – paimam userį
+  const { user, response } = await requireUser();
+
+  // jei neprisijungęs – grąžinam 401
+  if (response || !user) {
+    return response!;
+  }
+
   try {
-    const { response, user } = await requireUser();
-    if (response || !user) return response!; // 401
+    // 2) Provider profilio info + jo paslaugos
+    const [providerProfile, services] = await Promise.all([
+      prisma.providerProfile.findUnique({
+        where: { userId: user.id },
+        select: {
+          id: true,
+          isApproved: true,
+          companyName: true,
+        },
+      }),
+      prisma.serviceListing.findMany({
+        where: { userId: user.id },
+        include: {
+          city: { select: { name: true } },
+          category: { select: { name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    const services = await prisma.serviceListing.findMany({
-      where: { userId: user.id },
-      include: {
-        city: true,
-        category: true,
+    return NextResponse.json(
+      {
+        providerProfile,
+        services: services.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          priceFrom: s.priceFrom,
+          createdAt: s.createdAt,
+          slug: s.slug,
+          city: s.city ? { name: s.city.name } : null,
+          category: s.category ? { name: s.category.name } : null,
+        })),
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    const providerProfile = await prisma.providerProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    return NextResponse.json({
-      services,
-      providerProfile,
-    });
-  } catch (error) {
-    console.error("my-services error:", error);
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("my-services API error:", err);
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

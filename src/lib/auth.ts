@@ -9,8 +9,8 @@ export type AuthUser = {
   role: "USER" | "ADMIN";
 };
 
+// 🔹 Pagrindinė funkcija – paimti userį iš Supabase + DB
 export async function getAuthUser(): Promise<AuthUser | null> {
-  // 👇 DABAR BŪTINAI su await
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
 
@@ -34,4 +34,49 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   };
 }
 
-// requireUser ir requireAdmin gali likti tokie pat kaip turi
+// 🔹 Reikia prisijungusio USER
+export async function requireUser() {
+  const user = await getAuthUser();
+
+  if (!user) {
+    return {
+      response: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ),
+      user: null as AuthUser | null,
+    };
+  }
+
+  return {
+    response: null as NextResponse | null,
+    user,
+  };
+}
+
+// 🔹 Reikia ADMIN
+export async function requireAdmin() {
+  const { user, response } = await requireUser();
+
+  if (response || !user) {
+    return {
+      response,
+      user: null as AuthUser | null,
+    };
+  }
+
+  if (user.role !== "ADMIN") {
+    return {
+      response: NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      ),
+      user: null as AuthUser | null,
+    };
+  }
+
+  return {
+    response: null as NextResponse | null,
+    user,
+  };
+}
