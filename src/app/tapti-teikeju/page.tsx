@@ -1,273 +1,155 @@
 // src/app/tapti-teikeju/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./tapti.module.css";
 
-type City = {
+type Plan = {
   id: string;
   name: string;
+  priceLabel: string;
+  description: string;
+  features: string[];
+  recommended?: boolean;
 };
 
-type Category = {
-  id: string;
-  name: string;
-};
+const PLANS: Plan[] = [
+  {
+    id: "plan_demo",
+    name: "Demo planas",
+    priceLabel: "0 NOK",
+    description: "Puikus variantas išbandyti Linksetą testavimo laikotarpiu.",
+    features: [
+      "1 aktyvus skelbimas",
+      "Rodomas paieškos rezultate",
+      "Galite bet kada atnaujinti informaciją",
+    ],
+    recommended: true,
+  },
+  {
+    id: "plan_basic",
+    name: "Basic (paruoštas ateičiai)",
+    priceLabel: "199 NOK / mėn (bus vėliau)",
+    description: "Standartinis planas, kai įjungsim Stripe/Vipps apmokėjimus.",
+    features: [
+      "Iki 3 aktyvių skelbimų",
+      "Matomumas visoje Norvegijoje",
+      "Paprastas valdymas iš panelės",
+    ],
+  },
+  {
+    id: "plan_premium",
+    name: "Premium (paruoštas ateičiai)",
+    priceLabel: "399 NOK / mėn (bus vėliau)",
+    description: "Didesniam verslui, kai paleisim pilną versiją.",
+    features: [
+      "Iki 10 aktyvių skelbimų",
+      "Pažymėjimas kaip “Išskirtinis”",
+      "Daugiau vietos aprašymui ir nuotraukoms",
+    ],
+  },
+];
 
 export default function TaptiTeikejuPage() {
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-
-  const [cities, setCities] = useState<City[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [cityId, setCityId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [message, setMessage] = useState("");
-
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Tikrinam ar useris prisijungęs
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const { data } = await supabase.auth.getUser();
-
-        if (data.user) {
-          setIsLoggedIn(true);
-          setEmail(data.user.email ?? "");
-        } else {
-          setIsLoggedIn(false);
-        }
-      } catch (e) {
-        console.error("tapti-teikeju user error:", e);
-        setIsLoggedIn(false);
-      } finally {
-        setLoadingUser(false);
-      }
-    }
-
-    loadUser();
-  }, []);
-
-  // 2. Užkraunam miestus ir kategorijas
-  useEffect(() => {
-    async function loadFilters() {
-      try {
-        const res = await fetch("/api/dashboard/filters");
-        if (!res.ok) return;
-        const json = await res.json();
-        setCities(json.cities ?? []);
-        setCategories(json.categories ?? []);
-      } catch (e) {
-        console.error("tapti-teikeju filters error:", e);
-      }
-    }
-
-    loadFilters();
-  }, []);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
+  async function handleChoose(planId: string) {
     setError(null);
-    setSuccess(null);
+    setLoadingId(planId);
 
     try {
-      const res = await fetch("/api/provider-requests", {
+      const res = await fetch("/api/dashboard/become-provider", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          cityId: cityId || null,
-          categoryId: categoryId || null,
-          message,
-        }),
+        body: JSON.stringify({ planId }),
       });
 
-      let json: unknown = null;
-      try {
-        json = await res.json();
-      } catch {
-        // jei atsakymas ne JSON (pvz. HTML) – tiesiog praleidžiam
-      }
-
-      if (!res.ok) {
-        console.error("provider-request failed:", json);
-
-        // 🔹 Čia sutvarkom TypeScript – VISADA grąžinam string
-        let errorMessage =
-          "Nepavyko išsiųsti paraiškos. Bandykite dar kartą.";
-
-        if (
-          json &&
-          typeof json === "object" &&
-          "error" in json &&
-          typeof (json as { error?: string }).error === "string"
-        ) {
-          errorMessage = (json as { error: string }).error;
-        }
-
-        setError(errorMessage);
+      if (res.status === 401) {
+        // neprisijungęs
+        router.push("/login");
         return;
       }
 
-      setSuccess(
-        "Paraiška išsiųsta! Peržiūrėsime ją ir susisieksime el. paštu, kai patvirtinsime."
-      );
-      setMessage("");
-      // city & category paliekam užpildytus
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error || "Nepavyko pasirinkti plano. Bandykite dar kartą.");
+        return;
+      }
+
+      // DEMO: iškart nukreipiam į dashboard (ten gales kurti skelbimą)
+      router.push("/dashboard");
     } catch (e) {
-      console.error("provider-request error:", e);
+      console.error(e);
       setError("Serverio klaida. Bandykite dar kartą.");
     } finally {
-      setSubmitting(false);
+      setLoadingId(null);
     }
   }
 
-  if (loadingUser) {
-    return (
-      <main className={styles.wrapper}>
-        <h1 className={styles.heading}>Tapk paslaugų teikėju</h1>
-        <p>Kraunama...</p>
-      </main>
-    );
-  }
-
   return (
-    <main className={styles.wrapper}>
-      <h1 className={styles.heading}>Tapk paslaugų teikėju Linkseta</h1>
+    <main>
+      <div className={styles.wrapper}>
+        <h1 className={styles.heading}>Tapk paslaugų teikėju Linksetoje</h1>
+        <p className={styles.lead}>
+          Pasirink planą ir gauk galimybę sukurti savo paslaugų skelbimus,
+          kad lietuviai Norvegijoje lengvai tave rastų.
+        </p>
 
-      <p className={styles.introText}>
-        Jei teiki paslaugas Norvegijoje (statybos, remontas, valymas,
-        automobilių servisas ar kitos paslaugos) – čia gali pateikti paraišką
-        ir tapti matomas lietuvių bendruomenei visoje Norvegijoje.
-      </p>
+        <p className={styles.demoNote}>
+          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Visi planai
+          yra nemokami, apmokėjimai (Stripe / Vipps) bus įjungti vėliau –
+          dabar tiesiog pasirink planą ir sistema automatiškai suteiks
+          paslaugų teikėjo statusą.
+        </p>
 
-      {/* Jei NEprisijungęs – prašom prisijungti / užsiregistruoti */}
-      {!isLoggedIn && (
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>Pirmiausia prisijunkite</h2>
-          <p className={styles.text}>
-            Norėdami pateikti paraišką ir tapti paslaugų teikėju, pirmiausia
-            susikurkite paskyrą arba prisijunkite prie esamos. Taip galėsime
-            susieti paraišką su jūsų paskyra ir leisti valdyti savo paslaugas.
-          </p>
+        {error && <p className={styles.error}>{error}</p>}
 
-          <div className={styles.actionsRow}>
-            <Link href="/login" className={styles.secondaryButton}>
-              Prisijungti
-            </Link>
-            <Link href="/register" className={styles.primaryButton}>
-              Registracija
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Jei prisijungęs – rodom paraiškos formą */}
-      {isLoggedIn && (
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>Paraiška tapti paslaugų teikėju</h2>
-          <p className={styles.textSmall}>
-            Jūsų paskyros el. paštas: <strong>{email}</strong>
-          </p>
-          <p className={styles.textSmall}>
-            Užpildykite formą kuo tiksliau – tai padės greičiau patvirtinti
-            jūsų paskyrą ir suprasti, kokias paslaugas teikiate.
-          </p>
-
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>{success}</p>}
-
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.field}>
-              <label className={styles.label}>
-                Vardas, pavardė / įmonės pavadinimas
-              </label>
-              <input
-                className={styles.input}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.field}>
-                <label className={styles.label}>Telefonas</label>
-                <input
-                  className={styles.input}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Miestas</label>
-                <select
-                  className={styles.input}
-                  value={cityId}
-                  onChange={(e) => setCityId(e.target.value)}
-                >
-                  <option value="">Pasirinkite miestą</option>
-                  {cities.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Pagrindinė kategorija</label>
-                <select
-                  className={styles.input}
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  <option value="">Pasirinkite kategoriją</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>
-                Papasakokite trumpai apie save ir savo paslaugas
-              </label>
-              <textarea
-                className={styles.textarea}
-                rows={4}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ką tiksliai darote, kokioje srityje dirbate, kokia patirtis, kokius miestus aptarnaujate ir pan."
-              />
-            </div>
-
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={submitting}
+        <div className={styles.plansGrid}>
+          {PLANS.map((plan) => (
+            <article
+              key={plan.id}
+              className={`${styles.planCard} ${
+                plan.recommended ? styles.planCardRecommended : ""
+              }`}
             >
-              {submitting ? "Siunčiama..." : "Siųsti paraišką"}
-            </button>
-          </form>
-        </section>
-      )}
+              {plan.recommended && (
+                <div className={styles.tag}>Rekomenduojamas DEMO</div>
+              )}
+
+              <h2 className={styles.planName}>{plan.name}</h2>
+              <p className={styles.planPrice}>{plan.priceLabel}</p>
+              <p className={styles.planDescription}>{plan.description}</p>
+
+              <ul className={styles.featuresList}>
+                {plan.features.map((f) => (
+                  <li key={f} className={styles.featureItem}>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                type="button"
+                className={styles.planButton}
+                onClick={() => handleChoose(plan.id)}
+                disabled={loadingId === plan.id}
+              >
+                {loadingId === plan.id ? "Vykdoma..." : "Pasirinkti šį planą"}
+              </button>
+            </article>
+          ))}
+        </div>
+
+        <p className={styles.smallInfo}>
+          Po plano pasirinkimo būsite nukreiptas į savo paskyrą, kur galėsite
+          susikurti pilną paslaugų skelbimą (pavadinimas, aprašymas, kaina,
+          nuotrauka ir t.t.).
+        </p>
+      </div>
     </main>
   );
 }

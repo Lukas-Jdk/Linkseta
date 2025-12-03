@@ -44,6 +44,45 @@ async function main() {
     });
   }
 
+  // --- Planai (paruošta Stripe/Vipps ateičiai) ---
+  const plans = [
+    {
+      id: "plan_demo",
+      name: "Demo planas",
+      slug: "demo",
+      priceNok: 0,
+      period: "MONTHLY",
+      maxListings: 1,
+      highlight: false,
+    },
+    {
+      id: "plan_basic",
+      name: "Basic",
+      slug: "basic",
+      priceNok: 199,
+      period: "MONTHLY",
+      maxListings: 3,
+      highlight: false,
+    },
+    {
+      id: "plan_premium",
+      name: "Premium",
+      slug: "premium",
+      priceNok: 399,
+      period: "MONTHLY",
+      maxListings: 10,
+      highlight: true,
+    },
+  ];
+
+  for (const plan of plans) {
+    await prisma.plan.upsert({
+      where: { id: plan.id },
+      update: {},
+      create: plan,
+    });
+  }
+
   console.log("Seed pabaigta ✅");
 }
 
