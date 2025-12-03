@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
+import Link from "next/link";
 
 function mapLoginErrorMessage(raw: string | null | undefined): string {
   const msg = (raw || "").toLowerCase();
@@ -87,7 +88,12 @@ export default function LoginPage() {
         <button className={styles.button} disabled={loading}>
           {loading ? "Jungiama..." : "Prisijungti"}
         </button>
-
+        <p className={styles.helperText}>
+          Pamiršote slaptažodį?{" "}
+          <Link href="/forgot-password" className={styles.link}>
+            Atstatyti
+          </Link>
+        </p>
         {error && <p className={styles.error}>{error}</p>}
       </form>
     </main>
