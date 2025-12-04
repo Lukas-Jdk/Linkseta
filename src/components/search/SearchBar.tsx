@@ -1,4 +1,4 @@
-/* src/components/search/SearchBar.tsx */
+// src/components/search/SearchBar.tsx
 
 "use client";
 import styles from "./SearchBar.module.css";
@@ -10,7 +10,6 @@ export default function SearchBar() {
     []
   );
 
-  // Pasiimam iš DB
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/public/filters");
@@ -34,12 +33,17 @@ export default function SearchBar() {
           name="q"
           placeholder="Ieškoti pagal pavadinimą..."
         />
-        <button className={styles.btn} type="submit">🔍</button>
+        <button
+          className={`btn btn-primary ${styles.searchBtn}`}
+          type="submit"
+        >
+          🔍
+        </button>
       </div>
 
       <div className={styles.bottomRow}>
-        <div className={styles.selectWrap}>
-          <select name="city" className={styles.select} defaultValue="">
+        <div className="select-wrap">
+          <select name="city" className="select" defaultValue="">
             <option value="">Visi miestai</option>
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
@@ -49,8 +53,8 @@ export default function SearchBar() {
           </select>
         </div>
 
-        <div className={styles.selectWrap}>
-          <select name="category" className={styles.select} defaultValue="">
+        <div className="select-wrap">
+          <select name="category" className="select" defaultValue="">
             <option value="">Visos kategorijos</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>

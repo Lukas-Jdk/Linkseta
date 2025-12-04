@@ -5,79 +5,58 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid var(--color-header-border);
 }
+
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 0;
 }
+
 .brand a {
   display: flex;
   align-items: center;
+}
 
-}
-.logoIcon {
-  font-size: 22px;
-  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.2));
-}
 .logoText {
   color: var(--text-white);
-  font-family: var(--font-second);
+  font-family: var(--font-second, system-ui);
   font-weight: 600;
   letter-spacing: 0.3px;
   font-size: 1.7rem;
+  margin-left: 8px;
 }
+
 .nav {
   display: flex;
   gap: 1.5rem;
+  align-items: center;
 }
+
 .nav a {
   color: var(--text-white);
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, system-ui);
   font-size: 1.1rem;
   font-weight: 400;
-
   letter-spacing: 1px;
-  transition: 0.5s ease;
+  transition: color 0.2s ease;
 }
+
 .nav a:hover {
-  color:var(--text-nav-hover);
- 
+  color: var(--text-nav-hover);
 }
+
 .bottomLine {
   height: 2px;
   background: var(--bg-header-bottom);
 }
+
 .navAuthLink {
-  /* paprastas linkas, tik truputį atitrauktas nuo meniu */
   margin-left: 0.5rem;
 }
 
-.navAuthPrimary {
+.navAuthSpacer {
   margin-left: 0.5rem;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: var(--accent, #0c7bdc);
-  color: var(--text-white, #ffffff);
-  font-weight: 500;
-}
-
-.navAuthPrimary:hover {
-  opacity: 0.9;
-}
-
-.navLogoutButton {
-  margin-left: 0.5rem;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: transparent;
-  color: var(--text-white, #ffffff);
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.navLogoutButton:hover {
-  background: rgba(255, 255, 255, 0.12);
 }

@@ -76,7 +76,9 @@ export default function TaptiTeikejuPage() {
       const json = await res.json();
 
       if (!res.ok) {
-        setError(json.error || "Nepavyko pasirinkti plano. Bandykite dar kartą.");
+        setError(
+          json.error || "Nepavyko pasirinkti plano. Bandykite dar kartą."
+        );
         return;
       }
 
@@ -95,15 +97,15 @@ export default function TaptiTeikejuPage() {
       <div className={styles.wrapper}>
         <h1 className={styles.heading}>Tapk paslaugų teikėju Linksetoje</h1>
         <p className={styles.lead}>
-          Pasirink planą ir gauk galimybę sukurti savo paslaugų skelbimus,
-          kad lietuviai Norvegijoje lengvai tave rastų.
+          Pasirink planą ir gauk galimybę sukurti savo paslaugų skelbimus, kad
+          lietuviai Norvegijoje lengvai tave rastų.
         </p>
 
         <p className={styles.demoNote}>
-          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Visi planai
-          yra nemokami, apmokėjimai (Stripe / Vipps) bus įjungti vėliau –
-          dabar tiesiog pasirink planą ir sistema automatiškai suteiks
-          paslaugų teikėjo statusą.
+          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Visi planai yra
+          nemokami, apmokėjimai (Stripe / Vipps) bus įjungti vėliau – dabar
+          tiesiog pasirink planą ir sistema automatiškai suteiks paslaugų
+          teikėjo statusą.
         </p>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -134,7 +136,7 @@ export default function TaptiTeikejuPage() {
 
               <button
                 type="button"
-                className={styles.planButton}
+                className={`btn btn-primary ${styles.planButton}`}
                 onClick={() => handleChoose(plan.id)}
                 disabled={loadingId === plan.id}
               >

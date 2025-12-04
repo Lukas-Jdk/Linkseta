@@ -1,3 +1,5 @@
+/* src/components/search/SearchBar.module.css */
+
 .wrap {
   display: flex;
   flex-direction: column;
@@ -19,45 +21,20 @@
   padding: 0 14px;
   background: #fff;
   color: #0c1222;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   border: none;
   outline: none;
   font-size: 0.95rem;
 }
 
-/* Ieškoti mygtukas */
-.btn {
-  height: 44px;
-  padding: 0 18px;
-  border-radius: var(--radius);
-  border: none;
-  cursor: pointer;
-
-  background: #0c7bdc;
-  color: #fff;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: 0 8px 15px rgba(12, 123, 220, 0.25);
-  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s ease;
+/* Priauginam šiek tiek plotį ir tekstą mygtukui */
+.searchBtn {
+  min-width: 120px;
 }
 
-.btn::after {
+.searchBtn::after {
   content: "Ieškoti";
   font-size: 0.9rem;
-}
-
-.btn:hover {
-  background: #0b65b0;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(12, 123, 220, 0.32);
-}
-
-.btn:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(12, 123, 220, 0.2);
 }
 
 /* APATINĖ EILĖ: select'ai */
@@ -66,45 +43,4 @@
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-.selectWrap {
-  position: relative;
-}
-
-.select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  background: #fff;
-  color: var(--text-black, #0c1222);
-  height: 40px;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 0.95rem;
-  font-family: var(--font-second, system-ui);
-  padding: 0 36px 0 14px;
-  min-width: 190px;
-
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
-  text-align: center;
-}
-
-/* rodyklė select'ams */
-.selectWrap::after {
-  content: "";
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%) rotate(45deg);
-  width: 6px;
-  height: 6px;
-  pointer-events: none;
-  border-right: 2px solid #000000;
-  border-bottom: 2px solid #000000;
-}
-
-.select:focus {
-  outline: 2px solid #bfe2ff;
 }

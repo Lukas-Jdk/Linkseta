@@ -1,77 +1,220 @@
 /* src/app/globals.css */
+
+/* Reset / bazė */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
+
 html,
 body {
   height: 100%;
 }
+
 body {
   display: flex;
   flex-direction: column;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+  background: #f3f4f6;
+  color: #0f172a;
 }
+
 main {
   flex: 1;
 }
+
 a {
   text-decoration: none;
   color: inherit;
 }
-:root {
-  --brand: #0b182c; /* tamsi mėlyna – header fonas */
-  --accent: #0c7bdc; /* šviesesnė mėlyna */
-  --accent-2: #0b3670; /* gilesnė mėlyna */
-  --muted: #6b7280;
-  --border: #e6e8ee;
-  --radius: 12px;
-  --container: 1250px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-5: 20px;
-  --sp-6: 24px;
-  --sp-8: 32px;
-  --sp-10: 40px;
-  --sp-14: 56px;
 
-/* BackGrounds */
---bg-header: #05101D;
---bg-header-bottom: #12ada6;
---bg-icons: #1a73e8;
---color-animated-span:#00bbc9;
-
-
-/* Text fonts */
---font-primary: 'Poppins', Arial, Helvetica, sans-serif;
---font-second: 'Roboto', Arial, Helvetica, sans-serif;
-
-/* Text collor */
---text-white: #fff;
---text-black: #000000;
---text-nav-hover: #01b6ce;
-
-
-
-
-}
-
-body {
-  background-color: #f8fafc;
-}
-
+/* Konteineris */
 .container {
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 var(--sp-6);
+  padding: 0 16px;
 }
 
-.visuallyHidden {
-  position: absolute !important;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
+/* Dizaino kintamieji */
+:root {
+  /* Pagrindinės spalvos */
+  --brand: #0b182c;
+  --accent: #0c7bdc;
+  --accent-2: #0b3670;
+
+  --color-primary: #2ca59f;
+  --color-primary-dark: #0b61ac;
+  --color-accent: #2563eb;
+
+  --color-bg-card: #ffffff;
+  --color-bg-page: #f3f4f6;
+
+  --color-border-soft: #e5e7eb;
+  --color-border: #e6e8ee;
+  --color-header-border: #24e2fb;
+
+  --color-text-main: #111827;
+  --color-text-muted: #6b7280;
+  --color-text-soft: #4b5563;
+  --text-white: #ffffff;
+  --text-black: #0f172a;
+
+  --color-danger: #b91c1c;
+  --color-success: #15803d;
+
+  /* Header / hero */
+  --bg-header: #0b182c;
+  --bg-header-bottom: #0f172a;
+  --text-nav-hover: #bfdbfe;
+  --bg-title-word: #fbbf24;
+  --color-animated: #ffffff;
+  --color-animated-span: #24e2fb;
+
+  /* Dydžiai */
+  --container: 1250px;
+
+  /* Kampai */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  /* Tarpiukai */
+  --sp-xs: 6px;
+  --sp-sm: 10px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
+
+  /* Font dydžiai */
+  --fs-xl: 2rem;
+  --fs-lg: 1.4rem;
+  --fs-md: 1rem;
+  --fs-sm: 0.875rem;
+}
+
+/* ---------- BENDRI UTILITIES ---------- */
+
+/* Kortelė – naudok su <div className="card"> arba "card ..." */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+  padding: 20px 22px;
+}
+
+/* Mygtukai */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+
+  transition: background 0.12s ease, transform 0.08s ease,
+    box-shadow 0.08s ease, border-color 0.1s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(12, 123, 220, 0.28);
+}
+
+.btn-primary:hover:enabled {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(12, 123, 220, 0.34);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: default;
+  box-shadow: none;
+}
+
+.btn-outline {
+  background: #ffffff;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-outline:hover:enabled {
+  background: #eff6ff;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-ghost:hover:enabled {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Select su custom rodykle */
+
+.select-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background: #ffffff;
+  color: var(--text-black);
+  height: 40px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+  padding: 0 36px 0 12px;
+  min-width: 180px;
+
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+}
+
+.select:focus {
+  outline: 2px solid #bfe2ff;
+}
+
+/* Paprasti helperiai */
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-center {
+  text-align: center;
 }

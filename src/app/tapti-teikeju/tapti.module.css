@@ -61,6 +61,14 @@
   box-shadow: 0 14px 40px rgba(37, 99, 235, 0.22);
 }
 
+
+.planButton {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+
+
 .tag {
   position: absolute;
   top: 14px;

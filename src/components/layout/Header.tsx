@@ -111,18 +111,24 @@ export default function Header() {
               <Link href="/login" className={styles.navAuthLink}>
                 Prisijungti
               </Link>
-              <Link href="/register" className={styles.navAuthPrimary}>
+              <Link
+                href="/register"
+                className={`btn btn-primary ${styles.navAuthSpacer}`}
+              >
                 Registracija
               </Link>
             </>
           ) : (
             <>
-              <Link href="/dashboard" className={styles.navAuthLink}>
+              <Link
+                href="/dashboard"
+                className={styles.navAuthLink}
+              >
                 Mano paskyra
               </Link>
               <button
                 type="button"
-                className={styles.navLogoutButton}
+                className={`btn btn-ghost ${styles.navAuthSpacer}`}
                 onClick={handleLogout}
               >
                 Atsijungti

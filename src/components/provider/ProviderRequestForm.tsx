@@ -59,7 +59,6 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
         );
       } else {
         setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
-        // išvalom formą
         setName("");
         setEmail("");
         setPhone("");
@@ -76,7 +75,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
   }
 
   return (
-    <form className={styles.card} onSubmit={handleSubmit}>
+    <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
       <div className={styles.row}>
         <label className={styles.label}>
           Vardas / įmonės pavadinimas*
@@ -159,7 +158,11 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
 
-      <button className={styles.button} type="submit" disabled={isSubmitting}>
+      <button
+        className={`btn btn-primary ${styles.submitButton}`}
+        type="submit"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? "Siunčiama..." : "Siųsti paraišką"}
       </button>
     </form>
