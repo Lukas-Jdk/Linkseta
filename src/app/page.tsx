@@ -119,6 +119,9 @@ export default async function HomePage({ searchParams }: HomeProps) {
       <section className="container" style={{ padding: "40px 0 24px" }}>
         <CardGrid items={items} />
       </section>
+       <section className="container" style={{ padding: "40px 0 24px" }}>
+        <CardGrid items={items} />
+      </section>
 
       <section className="container" style={{ padding: "24px 0 80px" }}>
         <Features />

@@ -1,143 +1,228 @@
 // src/components/layout/Header.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import ThemeToggle from "./ThemeToggle";
 import styles from "./Header.module.css";
 
+type Role = "USER" | "ADMIN" | null;
+
 export default function Header() {
-  const router = useRouter();
+  const pathname = usePathname();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<Role>(null);
+  const [profileInitial, setProfileInitial] = useState<string>("N");
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  async function fetchRole() {
-    try {
-      const res = await fetch("/api/auth/role", {
-        method: "GET",
-      });
+  // ---- AUTH + ROLE ----
+  useEffect(() => {
+    let isMounted = true;
 
-      if (!res.ok) {
-        setIsAdmin(false);
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+
+      if (!data?.user) {
+        setIsLoggedIn(false);
+        setRole(null);
+        setProfileInitial("N");
         return;
       }
 
-      const json = await res.json();
-      setIsAdmin(Boolean(json.isAdmin));
-    } catch (e) {
-      console.error("fetchRole error:", e);
-      setIsAdmin(false);
-    }
-  }
+      setIsLoggedIn(true);
 
-  useEffect(() => {
-    async function checkSession() {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
+      const email = data.user.email ?? "";
+      const initial = email ? email[0].toUpperCase() : "N";
+      setProfileInitial(initial);
 
-      setIsLoggedIn(!!session);
-      if (session) {
-        await fetchRole();
-      } else {
-        setIsAdmin(false);
+      try {
+        const res = await fetch("/api/auth/role");
+        if (res.ok) {
+          const json = await res.json();
+          setRole((json.role as Role) ?? "USER");
+        } else {
+          setRole("USER");
+        }
+      } catch {
+        setRole("USER");
       }
     }
 
-    checkSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setIsLoggedIn(!!session);
-      if (session) {
-        await fetchRole();
-      } else {
-        setIsAdmin(false);
-      }
-    });
+    loadUser();
 
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
     };
   }, []);
 
+  const isAdmin = role === "ADMIN";
+
   async function handleLogout() {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.error("Logout error:", e);
-    } finally {
-      setIsLoggedIn(false);
-      setIsAdmin(false);
-      router.push("/");
-    }
+    await supabase.auth.signOut();
+    window.location.href = "/";
   }
 
+  function closeAllMenus() {
+    setIsProfileOpen(false);
+    setIsMobileMenuOpen(false);
+  }
+
+  // kai pasikeičia route – uždarom mobile meniu / profilį
+  useEffect(() => {
+    closeAllMenus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
   return (
-    <header className={styles.header}>
-      <div className={`container ${styles.row}`}>
-        <div className={styles.brand}>
-          <Link
-            href="/"
-            aria-label="Linkseta – grįžti į pradžią"
-            className={styles.logoLink}
-          >
-            <Image
-              src="/logo.webp"
-              alt="Linkseta – paslaugos lietuviams Norvegijoje"
-              width={80}
-              height={60}
-              priority
-            />
-            <span className={styles.logoText}>Linkseta</span>
-          </Link>
-        </div>
-
-        <nav className={styles.nav} aria-label="Pagrindinė navigacija">
-          <Link href="/">Pagrindinis</Link>
-          <Link href="/services">Paslaugos</Link>
-          <Link href="/susisiekite">Susisiekite</Link>
-
-          {isAdmin && (
-            <Link href="/admin" className={styles.navAuthLink}>
-              Admin
+    <>
+      <header className={styles.header}>
+        <div className={`container ${styles.row}`}>
+          {/* BRAND / LOGO */}
+          <div className={styles.brand}>
+            <Link
+              href="/"
+              aria-label="Linkseta – grįžti į pradžią"
+              className={styles.logoLink}
+            >
+              <Image
+                src="/logo.webp"
+                alt="Linkseta – paslaugos lietuviams Norvegijoje"
+                width={80}
+                height={60}
+                priority
+              />
+              <span className={styles.logoText}>Linkseta</span>
             </Link>
-          )}
+          </div>
 
-          {!isLoggedIn ? (
-            <>
-              <Link href="/login" className={styles.navAuthLink}>
-                Prisijungti
-              </Link>
-              <Link
-                href="/register"
-                className={`btn btn-primary ${styles.navAuthSpacer}`}
-              >
-                Registracija
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/dashboard"
-                className={styles.navAuthLink}
-              >
-                Mano paskyra
-              </Link>
+          {/* DEŠINĖ PUSĖ */}
+          <div className={styles.right}>
+            {/* NAV – DESKTOP */}
+            <nav className={styles.nav} aria-label="Pagrindinė navigacija">
+              <div className={styles.navLinks}>
+                <Link href="/">Pagrindinis</Link>
+                <Link href="/services">Paslaugos</Link>
+                <Link href="/susisiekite">Susisiekite</Link>
+                {isAdmin && (
+                  <Link href="/admin" className={styles.adminLink}>
+                    Admin
+                  </Link>
+                )}
+              </div>
+            </nav>
+
+            {/* IKONOS (tema + profilis / auth + burger) */}
+            <div className={styles.iconGroup}>
+              <ThemeToggle />
+
+              {isLoggedIn ? (
+                <div className={styles.profileWrapper}>
+                  <button
+                    type="button"
+                    className={styles.profileButton}
+                    onClick={() => setIsProfileOpen((v) => !v)}
+                    aria-label="Atidaryti paskyros meniu"
+                  >
+                    <span className={styles.profileInitial}>
+                      {profileInitial}
+                    </span>
+                  </button>
+
+                  {isProfileOpen && (
+                    <div className={styles.profileMenu}>
+                      <Link
+                        href="/dashboard"
+                        className={styles.profileItem}
+                        onClick={closeAllMenus}
+                      >
+                        Mano paskyra
+                      </Link>
+                      <button
+                        type="button"
+                        className={styles.profileItem}
+                        onClick={handleLogout}
+                      >
+                        Atsijungti
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={styles.authDesktop}>
+                  <Link
+                    href="/login"
+                    className={`${styles.btn} ${styles.btnOutline}`}
+                  >
+                    Prisijungti
+                  </Link>
+                  <Link
+                    href="/register"
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                  >
+                    Registracija
+                  </Link>
+                </div>
+              )}
+
+              {/* BURGER – TIK MOBILE */}
               <button
                 type="button"
-                className={`btn btn-ghost ${styles.navAuthSpacer}`}
-                onClick={handleLogout}
+                className={styles.menuToggle}
+                onClick={() => setIsMobileMenuOpen((v) => !v)}
+                aria-label={
+                  isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"
+                }
               >
-                Atsijungti
+                {isMobileMenuOpen ? (
+                  <span className={styles.menuX}>×</span>
+                ) : (
+                  <>
+                    <span className={styles.menuBar} />
+                    <span className={styles.menuBar} />
+                    <span className={styles.menuBar} />
+                  </>
+                )}
               </button>
-            </>
-          )}
-        </nav>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* MOBILE MENU – FIXED po headeriu, tik NAV linkai */}
+      <div
+        className={`${styles.mobileMenu} ${
+          isMobileMenuOpen ? styles.mobileMenuOpen : ""
+        }`}
+      >
+        <div className="container">
+          <nav className={styles.mobileNav} aria-label="Mobilus meniu">
+            <Link href="/" onClick={closeAllMenus}>
+              Pagrindinis
+            </Link>
+            <Link href="/services" onClick={closeAllMenus}>
+              Paslaugos
+            </Link>
+            <Link href="/susisiekite" onClick={closeAllMenus}>
+              Susisiekite
+            </Link>
+            {isAdmin && (
+              <Link href="/admin" onClick={closeAllMenus}>
+                Admin
+              </Link>
+            )}
+          </nav>
+        </div>
       </div>
-      <div className={styles.bottomLine} aria-hidden />
-    </header>
+
+      {/* SPACER – kad turinys neužliptų ant fixed headerio */}
+      <div className={styles.headerSpacer} aria-hidden="true" />
+    </>
   );
 }

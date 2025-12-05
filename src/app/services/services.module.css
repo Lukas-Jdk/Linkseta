@@ -1,158 +1,137 @@
 /* src/app/services/services.module.css */
 
-.wrapper {
-  padding: 40px 16px;
-  max-width: var(--container, 1200px);
-  margin: 0 auto;
+.page {
+  background: var(--bg-page);
 }
 
-.heading {
-  font-size: 28px;
-  line-height: 1.2;
-  margin-bottom: 24px;
-  color: #0b182c;
-}
+/* --------- Rezultatai --------- */
 
-/* Filtrai */
-
-.filters {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border, #e5e7eb);
-  font-size: 14px;
-  outline: none;
-}
-
-.searchInput:focus {
-  border-color: var(--accent, #0c7bdc);
-  box-shadow: 0 0 0 1px rgba(12, 123, 220, 0.15);
-}
-
-.filterRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.select {
-  min-width: 160px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border, #e5e7eb);
-  background: #fff;
-  font-size: 14px;
-  outline: none;
-}
-
-.select:focus {
-  border-color: var(--accent, #0c7bdc);
-  box-shadow: 0 0 0 1px rgba(12, 123, 220, 0.15);
-}
-
-.filterButton {
-  padding: 9px 18px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent, #0c7bdc);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform 0.05s ease, box-shadow 0.05s ease,
-    background-color 0.1s ease;
-}
-
-.filterButton:hover {
-  background: #0a6abd;
-}
-
-.filterButton:active {
-  transform: translateY(1px);
-  box-shadow: none;
-}
-
-/* Kortelės */
-
-.empty {
-  color: var(--muted, #6b7280);
-  font-size: 15px;
-}
-
-.grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.card {
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: var(--radius, 12px);
-  padding: 16px 18px;
-  background: #ffffff;
-  text-decoration: none;
-  transition: box-shadow 0.15s ease, transform 0.1s ease,
-    border-color 0.1s ease;
-}
-
-.card:hover {
-  border-color: rgba(12, 123, 220, 0.2);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  transform: translateY(-1px);
-}
-
-.cardTitle {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #0b182c;
-}
-
-.cardDescription {
-  margin-bottom: 10px;
-  color: #4b5563;
-  font-size: 14px;
+.results {
+  padding: 28px 0 52px;
 }
 
 .meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  background: var(--card-bg-subtle);
+  border-radius: 18px;
+  padding: 22px 20px;
+  border: 1px dashed var(--card-border);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* --------- Kortelės --------- */
+
+.card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 20px 22px 18px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 160px;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 8px;
+  gap: 6px;
 }
 
-.metaItem {
-  display: inline-flex;
+.chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--badge-border);
+  background: var(--badge-bg);
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.chipPremium {
+  background: var(--badge-premium-bg);
+  color: var(--badge-premium-text);
+  border-color: transparent;
+}
+
+.cardTitle {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.cardDescription {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.cardFooter {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
 }
 
-.author {
-  font-size: 12px;
-  color: #9ca3af;
+.cardPrice {
+  font-size: 0.9rem;
+  color: var(--text-soft);
 }
 
-/* Responsive */
+.cardLink {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--accent-2);
+  background: rgba(255, 255, 255, 0.9);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
 
-@media (max-width: 640px) {
-  .wrapper {
-    padding: 24px 12px;
+.cardLink:hover {
+  background: var(--accent-soft);
+  color: var(--text-white);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+/* --------- Responsive --------- */
+
+@media (max-width: 768px) {
+  .results {
+    padding: 24px 0 40px;
   }
 
-  .heading {
-    font-size: 22px;
-    margin-bottom: 18px;
+  .grid {
+    gap: 14px;
   }
 
   .card {
-    padding: 14px 14px;
+    padding: 18px 18px 16px;
   }
 }

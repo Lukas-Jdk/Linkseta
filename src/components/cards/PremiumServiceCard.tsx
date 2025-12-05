@@ -40,7 +40,7 @@ export default function PremiumServiceCard({
         {/* Background su Ken Burns efektu */}
         <div className={styles.backgroundContainer}>
           <motion.img
-            src={imageUrl || "/placeholder-service.jpg"}
+            src={imageUrl || "/default-service.png"}
             alt={title}
             className={styles.backgroundImage}
             animate={{ scale: [1, 1.15, 1], x: [0, -10, 0] }}

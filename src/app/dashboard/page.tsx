@@ -1,154 +1,201 @@
 // src/app/dashboard/page.tsx
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 import styles from "./dashboard.module.css";
 
-type UserInfo = {
-  id: string;        // Supabase user ID
-  email: string;
-  dbUserId?: string; // Prisma User.id
-};
+export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function DashboardPage() {
+  const authUser = await getAuthUser();
 
-  // 👇 ar useris jau turi ProviderProfile (t.y. yra teikėjas / pateikė paraišką)
-  const [hasProviderProfile, setHasProviderProfile] = useState<boolean | null>(
-    null
-  );
-
-  useEffect(() => {
-    async function loadUser() {
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.getUser();
-
-      if (error || !data.user) {
-        router.replace("/login");
-        return;
-      }
-
-      const authUser = data.user;
-      const email = authUser.email ?? "";
-
-      let dbUserId: string | undefined = undefined;
-
-      // 1️⃣ Sync į mūsų Prisma User lentelę
-      try {
-        const res = await fetch("/api/auth/sync-user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            name: authUser.user_metadata?.name,
-            phone: authUser.user_metadata?.phone,
-          }),
-        });
-
-        const json = await res.json();
-        dbUserId = json.userId ?? undefined;
-      } catch (err) {
-        console.error("sync-user request error:", err);
-      }
-
-      // 2️⃣ Patikrinam, ar jis jau turi ProviderProfile
-      try {
-        const res = await fetch("/api/dashboard/my-services", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
-
-        const json = await res.json();
-
-        if (res.ok && json.providerProfile) {
-          setHasProviderProfile(true);
-        } else {
-          setHasProviderProfile(false);
-        }
-      } catch (err) {
-        console.error("check providerProfile error:", err);
-        // jei nepavyko – tiesiog laikom, kad dar nėra
-        setHasProviderProfile(false);
-      }
-
-      setUser({
-        id: authUser.id,
-        email,
-        dbUserId,
-      });
-
-      setLoading(false);
-    }
-
-    loadUser();
-  }, [router]);
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.replace("/login");
+  if (!authUser) {
+    redirect("/login");
   }
 
-  if (loading) {
-    return (
-      <main className={styles.container}>
-        <p>Kraunama.</p>
-      </main>
-    );
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    include: {
+      profile: true, // ProviderProfile
+      services: {
+        include: {
+          city: true,
+          category: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  if (!user) {
+    redirect("/login");
   }
+
+  const isProvider = !!user.profile?.isApproved;
+  const services = user.services;
+
+  const hasServices = services.length > 0;
 
   return (
-    <main className={styles.container}>
-      <h1 className={styles.title}>Mano paskyra</h1>
+    <main className={styles.wrapper}>
+      <div className={styles.headerRow}>
+        <div>
+          <h1 className={styles.heading}>Mano paskyra</h1>
+          <p className={styles.subheading}>
+            Čia galite valdyti savo paskyrą ir paslaugų skelbimus.
+          </p>
+        </div>
 
-      <section className={styles.card}>
-        <h2 className={styles.cardTitle}>Sveikas sugrįžęs!</h2>
+        {isProvider && (
+          <Link href="/dashboard/services/new" className="btn btn-primary">
+            + Nauja paslauga
+          </Link>
+        )}
+      </div>
 
-        <p className={styles.text}>
-          Prisijungta kaip <strong>{user?.email}</strong>
+      {/* 1. Info apie paskyrą */}
+      <section className={`card ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Paskyros informacija</h2>
+        <p className={styles.cardText}>
+          El. paštas: <strong>{user.email}</strong>
+        </p>
+        <p className={styles.cardText}>
+          Vardas: <strong>{user.name ?? "—"}</strong>
+        </p>
+        <p className={styles.cardText}>
+          Rolė sistemoje: <strong>{user.role}</strong>
         </p>
 
-        {user?.dbUserId && (
-          <p className={styles.meta}>
-            DB User ID: <code>{user.dbUserId}</code>
-          </p>
-        )}
-
-        <div className={styles.actions}>
-          {/* Mano paslaugos – visada rodome */}
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => router.push("/dashboard/services")}
-          >
-            Mano paslaugos
-          </button>
-
-          {/* Tapti paslaugų teikėju – tik jei DAR nėra ProviderProfile */}
-          {hasProviderProfile === false && (
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={() => router.push("/tapti-teikeju")}
-            >
-              Tapti paslaugų teikėju
-            </button>
+        <div className={styles.badgeRow}>
+          {isProvider ? (
+            <span className={`${styles.badge} ${styles.badgeSuccess}`}>
+              Patvirtintas paslaugų teikėjas
+            </span>
+          ) : (
+            <span className={`${styles.badge} ${styles.badgeMuted}`}>
+              Kol kas nepaslaugų teikėjas
+            </span>
           )}
 
-          <button
-            type="button"
-            className={styles.logoutButton}
-            onClick={handleLogout}
-          >
-            Atsijungti
-          </button>
+          {hasServices && (
+            <span className={styles.badge}>
+              Skelbimų: <strong>{services.length}</strong>
+            </span>
+          )}
         </div>
       </section>
+
+      {/* 2. Jei NE teikėjas – kviesti tapti */}
+      {!isProvider && (
+        <section className={`card ${styles.card}`}>
+          <h2 className={styles.cardTitle}>Tapkite paslaugų teikėju</h2>
+          <p className={styles.cardText}>
+            Norite reklamuoti savo paslaugas Linksetoje? Tapkite paslaugų
+            teikėju ir sukurkite savo skelbimą, kad kiti lietuviai Norvegijoje
+            lengvai jus rastų.
+          </p>
+          <div className={styles.cardActions}>
+            <Link href="/tapti-teikeju" className="btn btn-primary">
+              Tapti paslaugų teikėju
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* 3. Jei teikėjas, bet neturi paslaugų */}
+      {isProvider && !hasServices && (
+        <section className={`card ${styles.card}`}>
+          <h2 className={styles.cardTitle}>Sukurkite savo pirmą paslaugą</h2>
+          <p className={styles.cardText}>
+            Jūs jau esate patvirtintas paslaugų teikėjas. Dabar belieka sukurti
+            savo pirmą skelbimą – įrašykite paslaugos pavadinimą, aprašymą,
+            miestą, kategoriją ir kainą.
+          </p>
+          <div className={styles.cardActions}>
+            <Link href="/dashboard/services/new" className="btn btn-primary">
+              + Sukurti skelbimą
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* 4. Jei teikėjas ir turi paslaugų – rodom sąrašą */}
+      {isProvider && hasServices && (
+        <section className={styles.servicesSection}>
+          <div className={styles.servicesHeader}>
+            <h2 className={styles.cardTitle}>Mano paslaugos</h2>
+            <p className={styles.cardText}>
+              Čia matote visus savo skelbimus. Galite juos redaguoti, išjungti
+              ar ištrinti atskirame skiltyje.
+            </p>
+          </div>
+
+          <div className={styles.servicesList}>
+            {services.map((service) => (
+              <article key={service.id} className={styles.serviceItem}>
+                <div className={styles.serviceMain}>
+                  <h3 className={styles.serviceTitle}>{service.title}</h3>
+                  <div className={styles.serviceMeta}>
+                    {service.city && (
+                      <span>{service.city.name}</span>
+                    )}
+                    {service.category && (
+                      <span>{service.category.name}</span>
+                    )}
+                    <span>
+                      Sukurta:{" "}
+                      {new Date(service.createdAt).toLocaleDateString("lt-LT")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.serviceRight}>
+                  <div className={styles.serviceBadges}>
+                    <span
+                      className={`${styles.badge} ${
+                        service.isActive
+                          ? styles.badgeSuccess
+                          : styles.badgeWarning
+                      }`}
+                    >
+                      {service.isActive ? "Aktyvi" : "Išjungta"}
+                    </span>
+                    {service.highlighted && (
+                      <span
+                        className={`${styles.badge} ${styles.badgeHighlight}`}
+                      >
+                        Išskirta
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.serviceActions}>
+                    <Link
+                      href={`/services/${service.slug}`}
+                      className={styles.linkSoft}
+                    >
+                      Peržiūrėti skelbimą
+                    </Link>
+                    <Link
+                      href={`/dashboard/services/${service.id}/edit`}
+                      className={styles.linkSoft}
+                    >
+                      Redaguoti
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.bottomActions}>
+            <Link href="/dashboard/services" className="btn btn-outline">
+              Valdyti visas paslaugas
+            </Link>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

@@ -1,14 +1,10 @@
 /* src/components/hero/Hero.module.css */
 
 .hero {
-  background: linear-gradient(
-      130deg,
-      rgba(7, 51, 90, 0.788) 0%,
-      rgba(0, 0, 0, 0.719) 40%
-    ),
-    linear-gradient(45deg, var(--accent-2), var(--accent));
+  background: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%);
+
   color: var(--text-white);
-  padding: 48px 0 36px;
+  padding: 8rem 0 36px;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--bg-header-bottom);

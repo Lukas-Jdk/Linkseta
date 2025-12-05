@@ -1,0 +1,39 @@
+/* src/components/hero/ServicesHero.module.css */
+
+.hero {
+  background: linear-gradient(
+      130deg,
+      rgba(7, 51, 90, 0.788) 0%,
+      rgba(0, 0, 0, 0.719) 40%
+    ),
+    linear-gradient(45deg, var(--accent-2), var(--accent));
+  color: var(--text-white);
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--bg-header-bottom);
+}
+
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-family: var(--font-primary);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  margin: 8px auto 18px;
+  font-size: 1rem;
+  max-width: 560px;
+  text-align: center;
+  opacity: 0.95;
+}
+
+/* kad SearchBar atrodytų "pakeltas" virš hero */
+.searchWrap {
+  margin-top: 6px;
+}
+
+.searchWrap :global(form) {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  border-radius: 18px;
+}
