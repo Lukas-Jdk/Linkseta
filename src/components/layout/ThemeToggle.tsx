@@ -17,6 +17,9 @@ export default function ThemeToggle() {
 
     const theme = stored ?? (systemPrefersLight ? "light" : "dark");
     document.documentElement.dataset.theme = theme;
+
+    // Čia yra tik pirminis inicijavimas, todėl sąmoningai leidžiam setState efekte
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLight(theme === "light");
   }, []);
 

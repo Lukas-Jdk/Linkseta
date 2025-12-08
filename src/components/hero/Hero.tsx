@@ -9,7 +9,7 @@ export default function Hero({ children }: { children: React.ReactNode }) {
       <div className="container">
         <AnimatedTitle />
         <p className={styles.subtitle}>
-          Čia rasi lietuvių paslaugų teikėjus iš Norvegijos – peržiūrėk
+          Čia rasi paslaugų teikėjus iš Norvegijos – peržiūrėk
           profilius ir susisiek tiesiogiai.
         </p>
         {children}

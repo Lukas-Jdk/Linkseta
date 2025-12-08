@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import ThemeToggle from "./ThemeToggle";
 import styles from "./Header.module.css";
@@ -12,8 +11,6 @@ import styles from "./Header.module.css";
 type Role = "USER" | "ADMIN" | null;
 
 export default function Header() {
-  const pathname = usePathname();
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
   const [profileInitial, setProfileInitial] = useState<string>("N");
@@ -73,12 +70,6 @@ export default function Header() {
     setIsProfileOpen(false);
     setIsMobileMenuOpen(false);
   }
-
-  // kai pasikeičia route – uždarom mobile meniu / profilį
-  useEffect(() => {
-    closeAllMenus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
 
   return (
     <>
