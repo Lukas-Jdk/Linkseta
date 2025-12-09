@@ -1,21 +1,22 @@
 // src/components/search/SearchBar.tsx
 
 "use client";
-import styles from "./SearchBar.module.css";
+
 import { useEffect, useState } from "react";
+import styles from "./SearchBar.module.css";
+
+type Option = { id: string; name: string };
 
 export default function SearchBar() {
-  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    []
-  );
+  const [cities, setCities] = useState<Option[]>([]);
+  const [categories, setCategories] = useState<Option[]>([]);
 
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/public/filters");
       const data = await res.json();
-      setCities(data.cities);
-      setCategories(data.categories);
+      setCities(data.cities ?? []);
+      setCategories(data.categories ?? []);
     }
     load();
   }, []);
@@ -27,42 +28,65 @@ export default function SearchBar() {
       action="/services"
       method="get"
     >
-      <div className={styles.topRow}>
-        <input
-          className={styles.input}
-          name="q"
-          placeholder="Ieškoti pagal pavadinimą..."
-        />
+      <div className={styles.bar}>
+        {/* PAVADINIMAS / PAIEŠKA */}
+        <div className={styles.segment}>
+          <label className={styles.label}>
+            Pavadinimas
+            <input
+              className={styles.input}
+              name="q"
+              placeholder="Ieškoti pagal pavadinimą..."
+            />
+          </label>
+        </div>
+
+        {/* MIESTAS */}
+        <div className={styles.segment}>
+          <label className={styles.label}>
+            Miestas
+            <select
+              name="city"
+              className={styles.select}
+              defaultValue=""
+            >
+              <option value="">Visi miestai</option>
+              {cities.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {/* KATEGORIJA */}
+        <div className={styles.segment}>
+          <label className={styles.label}>
+            Kategorija
+            <select
+              name="category"
+              className={styles.select}
+              defaultValue=""
+            >
+              <option value="">Visos kategorijos</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {/* SEARCH MYGTUKAS */}
         <button
-          className={`btn btn-primary ${styles.searchBtn}`}
           type="submit"
+          className={styles.searchButton}
+          aria-label="Ieškoti paslaugų"
         >
-          🔍
+          <span className={styles.searchIcon}>🔍</span>
         </button>
-      </div>
-
-      <div className={styles.bottomRow}>
-        <div className="select-wrap">
-          <select name="city" className="select" defaultValue="">
-            <option value="">Visi miestai</option>
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="select-wrap">
-          <select name="category" className="select" defaultValue="">
-            <option value="">Visos kategorijos</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
     </form>
   );

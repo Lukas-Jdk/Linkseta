@@ -1,10 +1,12 @@
 /* src/components/hero/Hero.module.css */
 
 .hero {
-  background: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%);
-
+  /* background: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%); */
   color: var(--text-white);
-  padding: 8rem 0 36px;
+
+  /* BUVO: padding: 8rem 0 36px; */
+  padding: 2.5rem 0 36px;
+
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--bg-header-bottom);
@@ -13,6 +15,7 @@
 .highlight {
   color: var(--bg-title-word);
 }
+
 .subtitle {
   margin: 10px auto 18px;
   font-size: 1.6rem;

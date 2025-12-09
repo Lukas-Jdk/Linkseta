@@ -17,38 +17,54 @@ export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ---- AUTH + ROLE ----
+  // ---- AUTH + ROLE per /api/auth/me ----
   useEffect(() => {
     let isMounted = true;
 
     async function loadUser() {
-      const { data } = await supabase.auth.getUser();
+      try {
+        // vienintelis "source of truth": API, kuris jau naudoja Supabase server-side
+        const res = await fetch("/api/auth/me", {
+          method: "GET",
+          // kad nebūtų cache ir visada matytume realią būseną
+          cache: "no-store",
+        });
 
-      if (!isMounted) return;
+        if (!isMounted) return;
 
-      if (!data?.user) {
+        if (!res.ok) {
+          // jeigu kažkas ne taip – laikom kaip neprisijungusį
+          setIsLoggedIn(false);
+          setRole(null);
+          setProfileInitial("N");
+          return;
+        }
+
+        const data: {
+          user: { id: string; email: string; role: "USER" | "ADMIN" } | null;
+        } = await res.json();
+
+        if (!data.user) {
+          // neprisijungęs
+          setIsLoggedIn(false);
+          setRole(null);
+          setProfileInitial("N");
+          return;
+        }
+
+        // prisijungęs
+        setIsLoggedIn(true);
+        setRole(data.user.role);
+
+        const email = data.user.email ?? "";
+        const initial = email ? email[0].toUpperCase() : "N";
+        setProfileInitial(initial);
+      } catch (error) {
+        console.error("Header auth loadUser error:", error);
+        if (!isMounted) return;
         setIsLoggedIn(false);
         setRole(null);
         setProfileInitial("N");
-        return;
-      }
-
-      setIsLoggedIn(true);
-
-      const email = data.user.email ?? "";
-      const initial = email ? email[0].toUpperCase() : "N";
-      setProfileInitial(initial);
-
-      try {
-        const res = await fetch("/api/auth/role");
-        if (res.ok) {
-          const json = await res.json();
-          setRole((json.role as Role) ?? "USER");
-        } else {
-          setRole("USER");
-        }
-      } catch {
-        setRole("USER");
       }
     }
 
@@ -211,9 +227,6 @@ export default function Header() {
           </nav>
         </div>
       </div>
-
-      {/* SPACER – kad turinys neužliptų ant fixed headerio */}
-      <div className={styles.headerSpacer} aria-hidden="true" />
     </>
   );
 }

@@ -1,46 +1,135 @@
 /* src/components/search/SearchBar.module.css */
 
 .wrap {
+  max-width: 900px;
+  margin: 18px auto;
+  padding: 0 12px;
+}
+
+/* Pagrindinė "tabletė" */
+.bar {
+  display: flex;
+  align-items: center;
+  background: var(--card-bg);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+/* Kiekviena sekcija (pavadinimas / miestas / kategorija) */
+.segment {
+  flex: 1;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+}
+
+.segment + .segment {
+  border-left: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+/* Viršutinis tekstas (Where / When stiliaus) */
+.label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 14px auto 10px;
-  max-width: 760px;
+  gap: 2px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 100%;
 }
 
-/* VIRŠUTINĖ EILĖ: input + mygtukas */
-.topRow {
-  display: flex;
-  gap: 8px;
-}
-
+/* Inputas */
 .input {
-  flex: 1;
-  min-width: 0;
-  height: 44px;
-  padding: 0 14px;
-  background: #fff;
-  color: #0c1222;
-  border-radius: var(--radius-md);
   border: none;
   outline: none;
+  background: transparent;
   font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-main);
+  padding: 0;
 }
 
-/* Priauginam šiek tiek plotį ir tekstą mygtukui */
-.searchBtn {
-  min-width: 120px;
+/* Select'ai */
+.select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-main);
+  padding: 0;
+  width: 100%;
+  appearance: none;
 }
 
-.searchBtn::after {
-  content: "Ieškoti";
-  font-size: 0.9rem;
+/* paprasta rodyklė select'ams */
+.select::-ms-expand {
+  display: none;
 }
 
-/* APATINĖ EILĖ: select'ai */
-.bottomRow {
-  display: flex;
-  gap: 12px;
+/* Search mygtukas dešinėje */
+.searchButton {
+  margin-right: 8px;
+  margin-left: 4px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: var(--accent-soft); /* tavo mėlynas gradientas */
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.45);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.15s ease,
+    opacity 0.12s ease;
+}
+
+.searchButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 24px 55px rgba(37, 99, 235, 0.6);
+}
+
+.searchButton:active {
+  transform: translateY(0);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.4);
+}
+
+.searchButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Ikona viduje mygtuko */
+.searchIcon {
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+/* Responsyvus vaizdas – ant siaurų ekranų stulpeliai */
+@media (max-width: 720px) {
+  .bar {
+    flex-wrap: wrap;
+    border-radius: 24px;
+  }
+
+  .segment {
+    flex: 1 1 100%;
+    border-left: none;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+  }
+
+  .segment:first-child {
+    border-top: none;
+  }
+
+  .searchButton {
+    margin: 8px auto 10px;
+  }
 }

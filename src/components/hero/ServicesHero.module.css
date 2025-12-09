@@ -8,7 +8,10 @@
     ),
     linear-gradient(45deg, var(--accent-2), var(--accent));
   color: var(--text-white);
-  padding: 40px 0 32px;
+
+  /* BUVO: padding: 40px 0 32px; */
+  padding: 2.5rem 0 32px;
+
   border-bottom: 1px solid var(--bg-header-bottom);
 }
 

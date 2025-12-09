@@ -26,12 +26,14 @@ export async function PATCH(
       cityId,
       categoryId,
       priceFrom,
+      imageUrl,
     } = body as {
       title?: string;
       description?: string;
       cityId?: string | null;
       categoryId?: string | null;
       priceFrom?: string | number | null;
+      imageUrl?: string | null;
     };
 
     if (!title || !description) {
@@ -46,7 +48,7 @@ export async function PATCH(
         ? null
         : Number(priceFrom);
 
-    const updated = await prisma.serviceListing.update({
+    const result = await prisma.serviceListing.updateMany({
       where: {
         id,
         userId: user.id, // 👈 labai svarbu – tik savo skelbimą
@@ -59,10 +61,28 @@ export async function PATCH(
         priceFrom: Number.isNaN(price as number)
           ? null
           : (price as number | null),
+        imageUrl: imageUrl || null,
       },
     });
 
-    return NextResponse.json({ success: true, service: updated });
+    if (result.count === 0) {
+      // arba nėra tokios paslaugos, arba ji ne to userio
+      return NextResponse.json(
+        { error: "Paslauga nerasta arba neturite teisės ją redaguoti" },
+        { status: 404 }
+      );
+    }
+
+    // perskaitom atnaujintą įrašą, kad grąžinti realius duomenis
+    const service = await prisma.serviceListing.findUnique({
+      where: { id },
+      include: {
+        city: true,
+        category: true,
+      },
+    });
+
+    return NextResponse.json({ success: true, service });
   } catch (err: unknown) {
     console.error("PATCH /api/dashboard/services/:id error", err);
     const message = err instanceof Error ? err.message : String(err);
@@ -86,12 +106,19 @@ export async function DELETE(
   }
 
   try {
-    await prisma.serviceListing.delete({
+    const result = await prisma.serviceListing.deleteMany({
       where: {
         id,
         userId: user.id,
       },
     });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: "Paslauga nerasta arba neturite teisės ją ištrinti" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -104,7 +131,7 @@ export async function DELETE(
   }
 }
 
-// GET – gauti savo paslaugą (jei reikės)
+// GET – gauti savo paslaugą
 export async function GET(
   _req: Request,
   { params }: { params: Promise<Params> }

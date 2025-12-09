@@ -1,32 +1,21 @@
 // src/app/api/dashboard/check-provider/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const { email } = await req.json();
+    const { user, response } = await requireUser();
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
+    if (response || !user) {
+      return (
+        response ??
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
 
-    // 1) Susirandam User pagal email
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-
-    if (!user) {
-      // nėra user -> tikrai nėra ir provider
-      return NextResponse.json({ isProvider: false });
-    }
-
-    // 2) Tikrinam, ar yra ProviderProfile su tuo userId
     const provider = await prisma.providerProfile.findUnique({
-      where: { userId: user.id }, // userId pas tave yra @unique, tai tinka findUnique
+      where: { userId: user.id },
       select: { id: true },
     });
 

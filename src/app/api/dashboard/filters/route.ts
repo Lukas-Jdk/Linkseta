@@ -1,6 +1,6 @@
 // src/app/api/dashboard/filters/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -9,7 +9,7 @@ export async function GET() {
     });
 
     const categories = await prisma.category.findMany({
-      where: { type: "SERVICE" }, // tik paslaugų kategorijos
+      where: { type: "SERVICE" },
       orderBy: { name: "asc" },
     });
 

@@ -12,38 +12,13 @@ body {
   height: 100%;
 }
 
-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-primary, system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", sans-serif);
-  background: var(--bg-page);
-  color: var(--text-main);
-}
-
-main {
-  flex: 1;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
 /* ------------------ Theme variables ------------------ */
-
 :root {
   color-scheme: light;
 
   /* Backgrounds */
-  --bg-page: #f4f6fb;
-  --bg-header: #020617;
+  --bg-page: #ffffff;              /* 👈 LIGHT: kūno fonas baltas */
+  --bg-header: #020617;            /* header paliekam tamsų abiem temom */
   --color-header-border: #24e2fb;
 
   /* Brand / accent */
@@ -79,6 +54,7 @@ img {
 
   /* Layout */
   --container: 1180px;
+  --header-height: 76px;
 
   /* Shadows */
   --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.12);
@@ -88,7 +64,8 @@ img {
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-page: #020617;
+  /* DARK: čia tavo norimas kūno fonas */
+  --bg-page: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%);
   --bg-header: #020617;
   --color-header-border: #24e2fb;
 
@@ -107,6 +84,41 @@ img {
   --badge-border: rgba(148, 163, 184, 0.5);
   --badge-premium-bg: rgba(249, 115, 22, 0.35);
   --badge-premium-text: #fed7aa;
+
+  --bg-btn-filters:#1a5c58;
+}
+
+/* ------------------ Global layout ------------------ */
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(
+    --font-primary,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+  );
+  background: var(--bg-page);   /* 👈 tema nusprendžia, koks fonas */
+  color: var(--text-main);
+  padding-top: var(--header-height);
+}
+
+main {
+  flex: 1;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 /* ------------------ Layout helpers ------------------ */
@@ -176,6 +188,45 @@ img {
 
 .btn-outline:hover:not(:disabled) {
   background: rgba(37, 99, 235, 0.08);
+}
+
+
+/* ------------------ Select / filtrai ------------------ */
+
+.select-wrap {
+  min-width: 170px;
+}
+
+.select {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 0 16px;
+  font-size: 0.9rem;
+  background: var(--bg-btn-filters);
+  color: var(--text-main);
+  appearance: none;              /* kad būtų švaresnis dizainas */
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      rgba(148, 163, 184, 0.9) 50%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(148, 163, 184, 0.9) 50%,
+      transparent 50%
+    );
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.select:focus {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 1px;
 }
 
 /* ------------------ Generic text helpers ------------------ */

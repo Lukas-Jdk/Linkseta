@@ -1,12 +1,14 @@
+// src/app/api/services/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 //                                            -=GET=-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
 
-    const city = searchParams.get("city") || undefined;      // pvz. "oslo"
+    const city = searchParams.get("city") || undefined; // pvz. "oslo"
     const category = searchParams.get("category") || undefined; // pvz. "statybos"
     const q = searchParams.get("q") || undefined;
 
@@ -43,26 +45,34 @@ export async function GET(req: Request) {
 }
 
 //                                            -=POST=-
+// Darom ADMIN-only, kad niekas negalėtų masiškai prispaminti skelbimų
 export async function POST(req: Request) {
   try {
+    const { user, response } = await requireAdmin();
+
+    if (response || !user) {
+      return (
+        response ??
+        NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      );
+    }
+
     const body = await req.json();
 
-    // 1) PIRMIAU validacija
     if (!body.userId || !body.title || !body.slug || !body.description) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // 2) Tada kūrimas DB
     const service = await prisma.serviceListing.create({
       data: {
         userId: body.userId,
         title: body.title,
         slug: body.slug,
         description: body.description,
-        priceFrom: body.priceFrom,
-        priceTo: body.priceTo,
-        cityId: body.cityId,
-        categoryId: body.categoryId,
+        priceFrom: body.priceFrom ?? null,
+        priceTo: body.priceTo ?? null,
+        cityId: body.cityId ?? null,
+        categoryId: body.categoryId ?? null,
         isActive: true,
         highlighted: false,
       },

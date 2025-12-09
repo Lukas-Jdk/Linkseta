@@ -29,7 +29,7 @@
   top: 0;
   white-space: nowrap;
   font-family: var(--font-primary);
-  color: var(--color-animated-span);
+  color: rgb(59, 221, 221);
   transform: translateX(-100%);      /* startas: kairėje */
   opacity: 0;
   transition: transform 0.5s ease, opacity 0.5s ease;

@@ -20,12 +20,21 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
   const email = data.user.email;
 
-  const dbUser = await prisma.user.findUnique({
+  // 🔥 PAGRINDINIS PATOBULINIMAS:
+  // jei DB user nerastas, mes jį AUTOMATIŠKAI sukuriam (default role = USER)
+  const dbUser = await prisma.user.upsert({
     where: { email },
-    select: { id: true, role: true },
+    update: {}, // kol kas nieko neatnaujinam
+    create: {
+      email,
+      // name, phone galėsi atsinaujinti per /api/auth/sync-user
+      // role pagal schema.prisma default yra USER
+    },
+    select: {
+      id: true,
+      role: true,
+    },
   });
-
-  if (!dbUser) return null;
 
   return {
     id: dbUser.id,

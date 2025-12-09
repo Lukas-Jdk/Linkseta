@@ -1,63 +1,52 @@
 // src/app/api/dashboard/provider-status/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 
-export async function POST(req: Request) {
+type ProviderStatus = "NONE" | "PENDING" | "APPROVED";
+
+export async function POST() {
   try {
-    const { email } = await req.json();
+    const { user, response } = await requireUser();
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
+    if (response || !user) {
+      return (
+        response ??
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
 
-    // 1. User pagal email (gali ir nebūti, teoriškai)
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
+    // 1. Ar vartotojas jau turi ProviderProfile?
+    const providerProfile = await prisma.providerProfile.findUnique({
+      where: { userId: user.id },
+      select: { isApproved: true },
     });
 
-    // 2. Ar jau yra ProviderProfile (t.y. patvirtintas teikėjas)?
-    if (user) {
-      const providerProfile = await prisma.providerProfile.findUnique({
-        where: { userId: user.id },
-        select: { id: true, isApproved: true },
-      });
-
-      if (providerProfile) {
-        // jei kada nors naudosi isApproved false – čia galima skirti
-        if (providerProfile.isApproved) {
-          return NextResponse.json({ status: "APPROVED" as const });
-        }
-      }
+    if (providerProfile?.isApproved) {
+      return NextResponse.json({ status: "APPROVED" as ProviderStatus });
     }
 
-    // 3. Jei nėra profilio, tikrinam ProviderRequest pagal email
-    //    (čia laikom informaciją apie paraišką ir jos statusą)
+    // 2. Jei nėra profilio – ar yra ProviderRequest pagal jo email
     const latestRequest = await prisma.providerRequest.findFirst({
-      where: { email },
+      where: { email: user.email },
       orderBy: { createdAt: "desc" },
       select: { status: true },
     });
 
     if (!latestRequest) {
-      // niekada nepildė paraiškos
-      return NextResponse.json({ status: "NONE" as const });
+      return NextResponse.json({ status: "NONE" as ProviderStatus });
     }
 
     if (latestRequest.status === "PENDING") {
-      return NextResponse.json({ status: "PENDING" as const });
+      return NextResponse.json({ status: "PENDING" as ProviderStatus });
     }
 
     if (latestRequest.status === "APPROVED") {
-      // teoriškai APPROVED, bet profilis nesusikūrė – laikom kaip APPROVED
-      return NextResponse.json({ status: "APPROVED" as const });
+      return NextResponse.json({ status: "APPROVED" as ProviderStatus });
     }
 
-    // jei REJECTED – laikom kaip NONE (gali pildyti iš naujo)
-    return NextResponse.json({ status: "NONE" as const });
+    // REJECTED – laikom kaip NONE
+    return NextResponse.json({ status: "NONE" as ProviderStatus });
   } catch (err) {
     console.error("provider-status error:", err);
     return NextResponse.json(
