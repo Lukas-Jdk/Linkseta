@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 import styles from "./ThemeToggle.module.css";
 
 export default function ThemeToggle() {
@@ -11,16 +12,12 @@ export default function ThemeToggle() {
     if (typeof window === "undefined") return;
 
     const stored = localStorage.getItem("theme");
-    const systemPrefersLight = window.matchMedia(
-      "(prefers-color-scheme: light)"
-    ).matches;
+    const systemPrefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
 
     const theme = stored ?? (systemPrefersLight ? "light" : "dark");
     document.documentElement.dataset.theme = theme;
 
-    // Čia yra tik pirminis inicijavimas, todėl sąmoningai leidžiam setState efekte
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLight(theme === "light");
+    
   }, []);
 
   function toggle() {
@@ -35,11 +32,13 @@ export default function ThemeToggle() {
       type="button"
       className={styles.toggle}
       onClick={toggle}
-      aria-label={
-        isLight ? "Perjungti į tamsų režimą" : "Perjungti į šviesų režimą"
-      }
+      aria-label="Perjungti temą"
     >
-      <span className={styles.icon}>{isLight ? "🌞" : "🌙"}</span>
+      {isLight ? (
+        <Sun className={styles.icon} strokeWidth={1.6} />
+      ) : (
+        <Moon className={styles.icon} strokeWidth={1.6} />
+      )}
     </button>
   );
 }

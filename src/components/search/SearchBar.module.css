@@ -27,19 +27,22 @@
 
 .segment + .segment {
   border-left: 1px solid rgba(148, 163, 184, 0.35);
+  max-height: 43px;
 }
 
 /* Viršutinis tekstas (Where / When stiliaus) */
 .label {
   display: flex;
   flex-direction: column;
+  text-align: left;
   gap: 2px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+ font-family: var(--font-primary);
   letter-spacing: 0.06em;
   font-weight: 600;
   color: var(--text-muted);
   width: 100%;
+  cursor: pointer;
 }
 
 /* Inputas */
@@ -49,21 +52,26 @@
   background: transparent;
   font-size: 0.95rem;
   font-weight: 400;
+   font-family: var(--font-second);
   color: var(--text-main);
   padding: 0;
+  cursor: pointer;
 }
 
 /* Select'ai */
 .select {
+  text-align: centerW;
   border: none;
   outline: none;
   background: transparent;
   font-size: 0.95rem;
   font-weight: 400;
+  font-family: var(--font-second);
   color: var(--text-main);
   padding: 0;
   width: 100%;
   appearance: none;
+  cursor: pointer;
 }
 
 /* paprasta rodyklė select'ams */

@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./SearchBar.module.css";
+import { Search } from "lucide-react";
 
 type Option = { id: string; name: string };
 
@@ -50,7 +51,7 @@ export default function SearchBar() {
               className={styles.select}
               defaultValue=""
             >
-              <option value="">Visi miestai</option>
+              <option value="">Pasirinkti...</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -69,7 +70,7 @@ export default function SearchBar() {
               className={styles.select}
               defaultValue=""
             >
-              <option value="">Visos kategorijos</option>
+              <option value="">Pasirinkti...</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -85,7 +86,7 @@ export default function SearchBar() {
           className={styles.searchButton}
           aria-label="Ieškoti paslaugų"
         >
-          <span className={styles.searchIcon}>🔍</span>
+          <Search className={styles.searchIcon} strokeWidth={2} />
         </button>
       </div>
     </form>

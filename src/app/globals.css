@@ -34,7 +34,7 @@ body {
   --card-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
 
   /* Text */
-  --text-main: #0f172a;
+  --text-main: #282a0f;
   --text-muted: #6b7280;
   --text-soft: #9ca3af;
   --text-white: #f9fafb;
@@ -74,18 +74,19 @@ body {
   --card-border: rgba(148, 163, 184, 0.3);
   --card-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
 
-  --text-main: #e5e7eb;
-  --text-muted: #9ca3af;
+  --text-main: #8f9091;
+  --text-muted: #07a5b1;
   --text-soft: #6b7280;
   --text-white: #f9fafb;
   --text-nav-hover: #38bdf8;
+  
 
   --badge-bg: rgba(15, 23, 42, 0.7);
   --badge-border: rgba(148, 163, 184, 0.5);
   --badge-premium-bg: rgba(249, 115, 22, 0.35);
   --badge-premium-text: #fed7aa;
 
-  --bg-btn-filters:#1a5c58;
+  --bg-btn-filters:#1a5c58c2;
 }
 
 /* ------------------ Global layout ------------------ */
@@ -102,9 +103,26 @@ body {
     "Segoe UI",
     sans-serif
   );
-  background: var(--bg-page);   /* 👈 tema nusprendžia, koks fonas */
   color: var(--text-main);
   padding-top: var(--header-height);
+
+  /* LIGHT MODE: bg1.png per visą ekraną */
+  background-color: var(--bg-page);        /* #ffffff iš :root */
+  background-image: url("/bg1.png");
+  background-size: cover;                  /* kad dengtų visą ekraną */
+  background-repeat: no-repeat;            /* nesikartoja */
+  background-position: center;             /* centre */
+  background-attachment: fixed;            /* lieka „prilipęs“ prie viewport */
+}
+
+/* DARK MODE: kita nuotrauka (pakeisk pavadinimą, kai turėsi) */
+:root[data-theme="dark"] body {
+  background-color: #020617;
+  background-image: url("/bg2.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 main {

@@ -1,4 +1,4 @@
-/* src/components/hero/Hero.tsx */
+// src/components/hero/Hero.tsx
 
 import AnimatedTitle from "./AnimatedTitle";
 import styles from "./Hero.module.css";
@@ -6,13 +6,26 @@ import styles from "./Hero.module.css";
 export default function Hero({ children }: { children: React.ReactNode }) {
   return (
     <section className={styles.hero} role="region" aria-label="Paieška">
+      <div className={styles.bgGlow} aria-hidden="true" />
       <div className="container">
-        <AnimatedTitle />
-        <p className={styles.subtitle}>
-          Čia rasi paslaugų teikėjus iš Norvegijos – peržiūrėk
-          profilius ir susisiek tiesiogiai.
-        </p>
-        {children}
+        <div className={styles.inner}>
+          <p className={styles.eyebrow}>Lietuvių paslaugos Norvegijoje</p>
+
+          <AnimatedTitle />
+
+          <p className={styles.subtitle}>
+            Čia rasi paslaugų teikėjus iš Norvegijos – peržiūrėk
+            profilius ir susisiek tiesiogiai.
+          </p>
+
+          <div className={styles.searchWrap}>{children}</div>
+
+          {/* jei norėsi, čia galima pridėti statistiką / punktus */}
+          {/* <div className={styles.metaRow}>
+            <span>+120 patikrintų paslaugų teikėjų</span>
+            <span>Paslaugos visuose didžiausiuose miestuose</span>
+          </div> */}
+        </div>
       </div>
     </section>
   );

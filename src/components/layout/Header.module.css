@@ -8,6 +8,7 @@
   z-index: 60;
   background: var(--bg-header);
   border-bottom: 1px solid var(--color-header-border);
+  padding: 0 1rem;
 }
 
 /* pagrindinė eilutė */

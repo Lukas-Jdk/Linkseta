@@ -1,26 +1,122 @@
 /* src/components/hero/Hero.module.css */
 
+/* Tamsus, stripe tipo hero fonas */
 .hero {
-  /* background: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%); */
-  color: var(--text-white);
-
-  /* BUVO: padding: 8rem 0 36px; */
-  padding: 2.5rem 0 36px;
-
   position: relative;
+  padding: 3.5rem 0 3rem;
   overflow: hidden;
-  border-bottom: 1px solid var(--bg-header-bottom);
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
+    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  color: var(--text-white);
 }
 
+/* Papildomas švytėjimas fone (blur) */
+.bgGlow {
+  position: absolute;
+  inset: auto;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent 60%);
+  filter: blur(16px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Vidinis turinio blokas */
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Mažas tekstas virš antraštės */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.85);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #bfdbfe;
+  margin-bottom: 18px;
+}
+
+/* AnimatedTitle viduje – paliekam tavo komponentą,
+   šis stilius tik papildo tarpą aplinkui, jei reikia */
+
+/* Aprašymas po antraštės */
+.subtitle {
+  margin: 12px auto 22px;
+  font-size: 1.1rem;
+  max-width: 640px;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* Paieškos juostos konteineris */
+.searchWrap {
+  margin-top: 8px;
+}
+
+/* Jei norėsi papildomos informacijos žemiau */
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 20px;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.metaRow span::before {
+  content: "•";
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
+
+/* akcentuotas žodis, jei naudoji */
 .highlight {
   color: var(--bg-title-word);
 }
 
-.subtitle {
-  margin: 10px auto 18px;
-  font-size: 1.6rem;
-  font-family: var(--font-primary);
-  letter-spacing: 1px;
-  text-align: center;
-  opacity: 0.95;
+/* Responsyvus */
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 0 2.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    padding: 0 4px;
+  }
+
+  .bgGlow {
+    width: 380px;
+    height: 380px;
+    top: -80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .eyebrow {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+
+  .hero {
+    padding: 2.7rem 0 2.3rem;
+  }
 }
