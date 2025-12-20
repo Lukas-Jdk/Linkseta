@@ -1,5 +1,4 @@
 // src/components/search/SearchBar.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -23,21 +22,17 @@ export default function SearchBar() {
   }, []);
 
   return (
-    <form
-      className={styles.wrap}
-      role="search"
-      action="/services"
-      method="get"
-    >
+    <form className={styles.wrap} role="search" action="/services" method="get">
       <div className={styles.bar}>
-        {/* PAVADINIMAS / PAIEŠKA */}
+         {/* PAVADINIMAS / PAIEŠKA */}
         <div className={styles.segment}>
           <label className={styles.label}>
-            Pavadinimas
+            <span className={styles.labelText}>Vardas</span>
             <input
               className={styles.input}
               name="q"
-              placeholder="Ieškoti pagal pavadinimą..."
+              placeholder="Neprivaloma..."
+              autoComplete="off"
             />
           </label>
         </div>
@@ -45,13 +40,9 @@ export default function SearchBar() {
         {/* MIESTAS */}
         <div className={styles.segment}>
           <label className={styles.label}>
-            Miestas
-            <select
-              name="city"
-              className={styles.select}
-              defaultValue=""
-            >
-              <option value="">Pasirinkti...</option>
+            <span className={styles.labelText}>Miestas</span>
+            <select name="city" className={styles.select} defaultValue="">
+              <option value="">Pasirinkite...</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -64,13 +55,13 @@ export default function SearchBar() {
         {/* KATEGORIJA */}
         <div className={styles.segment}>
           <label className={styles.label}>
-            Kategorija
+            <span className={styles.labelText}>Kategorija</span>
             <select
               name="category"
               className={styles.select}
               defaultValue=""
             >
-              <option value="">Pasirinkti...</option>
+              <option value="">Pasirinkite...</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -79,6 +70,7 @@ export default function SearchBar() {
             </select>
           </label>
         </div>
+       
 
         {/* SEARCH MYGTUKAS */}
         <button

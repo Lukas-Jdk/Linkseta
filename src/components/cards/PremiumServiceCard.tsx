@@ -1,4 +1,7 @@
 // src/components/cards/PremiumServiceCard.tsx
+"use client";
+
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, MapPin, ArrowRight, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
@@ -26,38 +29,35 @@ export default function PremiumServiceCard({
   highlighted = false,
   imageUrl,
 }: PremiumServiceCardProps) {
-  const displayPrice =
-    priceFrom != null ? `${priceFrom} NOK` : "Kaina sutartinė";
+  const displayPrice = priceFrom != null ? `${priceFrom} NOK` : "Kaina sutartinė";
 
-  // Kol kas neturim realių reitingų – panaudojam „fake“,
-  // kad dizainas išliktų toks, koks tau patinka.
   const rating = highlighted ? 4.9 : 4.7;
   const reviewCount = highlighted ? 32 : 12;
+
+  const bgSrc = imageUrl || "/default-service.webp";
 
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
-        {/* Background su Ken Burns efektu */}
+        {/* Background (STABILUS, BE ANIMACIJŲ) */}
         <div className={styles.backgroundContainer}>
-          <motion.img
-            src={imageUrl || "/default-service.png"}
+          {/* ✅ FIX: Next/Image vietoj <img> */}
+          <Image
+            src={bgSrc}
             alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, 600px"
             className={styles.backgroundImage}
-            animate={{ scale: [1, 1.15, 1], x: [0, -10, 0] }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              repeatType: "reverse",
-              ease: "linear",
-            }}
+            priority={highlighted} // jei TOP – pakraunam greičiau
           />
+
           <div className={styles.gradientOverlay} />
           {highlighted && <div className={styles.premiumGlow} />}
         </div>
 
         {/* Content */}
         <div className={styles.content}>
-          {/* Viršus */}
+          {/* Header */}
           <div className={styles.header}>
             <div className={styles.badges}>
               <span className={styles.categoryBadge}>{category}</span>
@@ -74,13 +74,11 @@ export default function PremiumServiceCard({
                 <Star className={styles.starIcon} />
                 <span className={styles.ratingValue}>{rating.toFixed(1)}</span>
               </div>
-              <span className={styles.reviewCount}>
-                {reviewCount} atsiliepimai
-              </span>
+              <span className={styles.reviewCount}>{reviewCount} atsiliepimai</span>
             </div>
           </div>
 
-          {/* Apačia */}
+          {/* Info */}
           <div className={styles.info}>
             <div>
               <div className={styles.location}>
@@ -94,37 +92,28 @@ export default function PremiumServiceCard({
             <div className={styles.footer}>
               <div className={styles.priceContainer}>
                 <span className={styles.priceLabel}>Kaina nuo</span>
-                <span className={styles.priceValue}>
-                  {displayPrice}
-                </span>
+                <span className={styles.priceValue}>{displayPrice}</span>
               </div>
 
               <div className={styles.actions}>
                 <motion.button
-                  type="button"
                   className={styles.iconButton}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    // perėjimas į slug puslapį – galima tvarkyt per router vėliau
-                    window.location.href = `/services/${slug}`;
-                  }}
+                  onClick={() => (window.location.href = `/services/${slug}`)}
+                  type="button"
                 >
                   <ArrowRight className={styles.arrowIcon} />
                 </motion.button>
+
                 <motion.button
-                  type="button"
                   className={`${styles.contactButton} ${
-                    highlighted
-                      ? styles.contactButtonPremium
-                      : styles.contactButtonStandard
+                    highlighted ? styles.contactButtonPremium : styles.contactButtonStandard
                   }`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    // čia vėliau galim daryt "Susisiekti" modalą
-                    window.location.href = `/services/${slug}#kontaktai`;
-                  }}
+                  onClick={() => (window.location.href = `/services/${slug}#kontaktai`)}
+                  type="button"
                 >
                   Susisiekti
                 </motion.button>

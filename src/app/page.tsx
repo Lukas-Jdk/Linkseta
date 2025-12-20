@@ -7,7 +7,7 @@ import Hero from "@/components/hero/Hero";
 import SearchBar from "@/components/search/SearchBar";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
-
+import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
 // ----------------------------------------
 // 🔥 PILNAS SEO – TVIRTAS IR PROFESIONALUS
 // ----------------------------------------
@@ -110,6 +110,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
 
   return (
     <>
+<ServiceMarquee />
       <Hero>
         <div className="container">
           <SearchBar />

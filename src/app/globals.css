@@ -35,10 +35,12 @@ body {
 
   /* Text */
   --text-main: #282a0f;
-  --text-muted: #6b7280;
+  --text-label: #008892;
   --text-soft: #9ca3af;
   --text-white: #f9fafb;
   --text-nav-hover: #e0f2fe;
+  --text-heading: #000000;
+  --text-search-selector: #838383;
 
   /* Badges */
   --badge-bg: rgba(15, 23, 42, 0.04);
@@ -79,6 +81,8 @@ body {
   --text-soft: #6b7280;
   --text-white: #f9fafb;
   --text-nav-hover: #38bdf8;
+  --text-heading: #ffffff;
+  --text-label: #07a5b1;
   
 
   --badge-bg: rgba(15, 23, 42, 0.7);
@@ -108,7 +112,7 @@ body {
 
   /* LIGHT MODE: bg1.png per visą ekraną */
   background-color: var(--bg-page);        /* #ffffff iš :root */
-  background-image: url("/bg1.png");
+
   background-size: cover;                  /* kad dengtų visą ekraną */
   background-repeat: no-repeat;            /* nesikartoja */
   background-position: center;             /* centre */
@@ -117,8 +121,17 @@ body {
 
 /* DARK MODE: kita nuotrauka (pakeisk pavadinimą, kai turėsi) */
 :root[data-theme="dark"] body {
-  background-color: #020617;
-  background-image: url("/bg2.png");
+  background-color: #020617; 
+
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
+    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%);
+
+    /* background: var(--bg-header); */
+
+  /* background-image: url("/bg2.webp"); */
+
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

@@ -32,11 +32,11 @@ export default function CardGrid({ items }: Props) {
   return (
     <div className={styles.wrapper}>
       <header className={styles.header}>
-        <h2 className={styles.heading}>Populiariausios lietuvių paslaugos</h2>
-        <p className={styles.subheading}>
+        <h2 className={styles.heading}>Populiariausios paslaugos</h2>
+        {/* <p className={styles.subheading}>
           Atrinktos patikimos paslaugos su geriausiais atsiliepimais ir aiškiomis
           kainomis.
-        </p>
+        </p> */}
       </header>
 
       <div className={styles.grid}>

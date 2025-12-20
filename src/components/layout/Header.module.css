@@ -7,8 +7,22 @@
   top: 0;
   z-index: 60;
   background: var(--bg-header);
-  border-bottom: 1px solid var(--color-header-border);
-  padding: 0 1rem;
+}
+
+/* GLOW LINE */
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 200, 255, 0.15),
+    rgba(0, 200, 255, 0.55),
+    rgba(0, 200, 255, 0.15)
+  );
 }
 
 /* pagrindinė eilutė */
@@ -81,6 +95,37 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding-right: 1rem;
+
+  /* ✅ svarbiausia: kad mygtukai nesėstų skirtingai */
+  height: 36px;
+}
+
+/* Theme button (desktop small circle) */
+.themeButton {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.themeButton:hover {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(226, 232, 240, 0.9);
+  transform: translateY(-1px);
+}
+
+.themeIcon {
+  width: 18px;
+  height: 18px;
+  color: #e5e7eb;
 }
 
 /* AUTH MYGTUKAI – DESKTOP */
@@ -103,10 +148,7 @@
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
     transform 0.12s ease;
 }
 
@@ -133,9 +175,12 @@
   transform: translateY(-1px);
 }
 
-/* PROFILIO MYGTUKAS */
+/* PROFILIO MYGTUKAS (desktop) */
 .profileWrapper {
   position: relative;
+  padding-right: 0;
+  display: flex;
+  align-items: center;
 }
 
 .profileButton {
@@ -151,10 +196,8 @@
   padding: 0;
   color: #e5edff;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.8);
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.12s ease;
+  overflow: hidden;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }
 
 .profileButton:hover {
@@ -163,12 +206,6 @@
   transform: translateY(-1px);
 }
 
-.profileInitial {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-/* dropdown meniu */
 .profileMenu {
   position: absolute;
   right: 0;
@@ -202,6 +239,14 @@
   background: rgba(30, 64, 175, 0.25);
 }
 
+.profileAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
+}
+
 /* BURGER – MOBILE */
 .menuToggle {
   display: none;
@@ -228,46 +273,264 @@
 .menuX {
   font-size: 1.4rem;
   line-height: 1;
-  color: #e5edff;
+  color: #e5fbff;
 }
 
-/* MOBILE MENU – FIXED po headeriu */
-.mobileMenu {
-  display: none;
+/* MOBILE OVERLAY + DRAWER */
+.mobileOverlay {
   position: fixed;
-  top: 76px; /* turi atitikti header aukštį */
   left: 0;
   right: 0;
+  bottom: 0;
+  top: var(--header-height);
   z-index: 55;
-  background: #020617;
-  border-bottom: 1px solid rgba(30, 64, 175, 0.6);
-  max-height: calc(100vh - 76px);
-  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: flex-start;
 }
 
-.mobileMenuOpen {
-  display: block;
-}
-
-.mobileNav {
+.mobileDrawer {
+  width: 100%;
+  max-width: 360px;
+  height: 100%;
+  background: var(--card-bg);
+  color: var(--text-main);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.6);
+  padding: 14px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 10px 0 14px;
+  gap: 10px;
+  animation: drawerSlideIn 0.18s ease-out;
 }
 
-.mobileNav a {
-  color: #e5edff;
-  font-size: 1rem;
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(-14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.drawerTopRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.drawerClose {
+  display: none;
+}
+
+/* PROFILE BLOCK */
+.drawerProfile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 60px;
+}
+
+.drawerAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, #bfdbfe 0%, #eff6ff 70%);
+  overflow: hidden;
+}
+
+.drawerAvatarImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.drawerProfileText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawerName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.drawerEmail {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.drawerProfileLink {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: #4f46e5;
   text-decoration: none;
 }
 
-.mobileNav a:hover {
+.drawerProfileLink:hover {
+  text-decoration: underline;
+}
+
+.drawerAuthBlock {
+  width: 100%;
+}
+
+.drawerAuthTitle {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.drawerAuthButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.drawerPrimaryBtn,
+.drawerSecondaryBtn {
+  flex: 1;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.drawerPrimaryBtn {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #f9fafb;
+}
+
+.drawerSecondaryBtn {
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  color: #111827;
+  background: transparent;
+}
+
+.drawerDivider {
+  border: none;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  margin: 4px 0 6px;
+}
+
+/* MAIN NAV LIST */
+.drawerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawerNavItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+}
+
+.drawerNavItem:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.drawerNavIcon {
+  width: 18px;
+  height: 18px;
+  color: #4b5563;
+}
+
+/* Sections */
+.drawerSection {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawerSectionTitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+/* THEME SEGMENT */
+.themeSegment {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.themeOption {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.themeOptionActive {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  color: #111827;
+}
+
+.themeOptionIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* FOOTER */
+.drawerFooter {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.drawerFooterLinks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.drawerFooterLinks a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.drawerFooterLinks a:hover {
   text-decoration: underline;
 }
 
 /* SPACER – kad turinys neužliptų ant headerio */
-
+.headerSpacer {
+  height: 80px;
+}
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
@@ -279,8 +542,16 @@
     display: none;
   }
 
+  .profileWrapper {
+    display: none;
+  }
+
   .menuToggle {
     display: inline-flex;
+  }
+
+  .themeButton {
+    display: none;
   }
 }
 
@@ -290,9 +561,9 @@
   }
 }
 
-/* desktop'e mobile menu visada paslėptas */
+/* desktop'e mobile drawer overlay neaktyvus jei mes jo nenaudojam */
 @media (min-width: 901px) {
-  .mobileMenu {
-    display: none !important;
+  .mobileOverlay {
+    display: none;
   }
 }

@@ -1,15 +1,15 @@
 /* src/components/hero/Hero.module.css */
 
-/* Tamsus, stripe tipo hero fonas */
+/* Tamsus hero fonas */
 .hero {
   position: relative;
-  padding: 3.5rem 0 3rem;
+ padding-top: 3rem;
   overflow: hidden;
-  background:
+background: var(--bg-header);
+ /* background:
     radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
     radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
-    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%); */
   color: var(--text-white);
 }
 
@@ -37,23 +37,9 @@
   text-align: center;
 }
 
-/* Mažas tekstas virš antraštės */
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(15, 23, 42, 0.85);
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #bfdbfe;
-  margin-bottom: 18px;
-}
 
-/* AnimatedTitle viduje – paliekam tavo komponentą,
+
+/* AnimatedTitle viduje – paliekam komponentą,
    šis stilius tik papildo tarpą aplinkui, jei reikia */
 
 /* Aprašymas po antraštės */
@@ -87,10 +73,44 @@
   font-size: 1.1rem;
 }
 
-/* akcentuotas žodis, jei naudoji */
+/* akcentuotas žodis*/
 .highlight {
   color: var(--bg-title-word);
 }
+
+/* divider */
+.divider {
+  position: relative;
+  width: 100%;
+  height: 1px;
+
+  margin-top: 40px;
+  margin-bottom: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 200, 255, 0.15),
+    rgba(0, 200, 255, 0.6),
+    rgba(0, 200, 255, 0.15)
+  );
+}
+.divider::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 200, 255, 0.08),
+    rgba(0, 200, 255, 0.35),
+    rgba(0, 200, 255, 0.08)
+  );
+  filter: blur(10px);
+  pointer-events: none;
+}
+
 
 /* Responsyvus */
 @media (max-width: 768px) {
@@ -103,11 +123,7 @@
     padding: 0 4px;
   }
 
-  .bgGlow {
-    width: 380px;
-    height: 380px;
-    top: -80px;
-  }
+
 }
 
 @media (max-width: 480px) {

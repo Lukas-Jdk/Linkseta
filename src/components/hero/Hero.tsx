@@ -9,7 +9,7 @@ export default function Hero({ children }: { children: React.ReactNode }) {
       <div className={styles.bgGlow} aria-hidden="true" />
       <div className="container">
         <div className={styles.inner}>
-          <p className={styles.eyebrow}>Lietuvių paslaugos Norvegijoje</p>
+        
 
           <AnimatedTitle />
 
@@ -26,7 +26,9 @@ export default function Hero({ children }: { children: React.ReactNode }) {
             <span>Paslaugos visuose didžiausiuose miestuose</span>
           </div> */}
         </div>
+        <div className={styles.divider}></div>
       </div>
+      
     </section>
   );
 }

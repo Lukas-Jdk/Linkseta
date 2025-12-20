@@ -1,0 +1,93 @@
+.wrap {
+  width: 100%;
+  height: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* viewport – tik langas */
+.viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* juda VISAS takelis */
+.track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  align-items: center;
+
+  animation: marquee 85s linear infinite;
+  will-change: transform;
+}
+
+/* viena grupė = vienas pilnas ciklas */
+.group {
+  display: flex;
+  align-items: center;
+  gap: 65px;
+  padding-right: 32px; 
+  padding-top:7px;/* tarpas tarp ciklų */
+}
+
+/* kapsulės */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.288);
+  white-space: nowrap;
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+}
+
+.text {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+/* šonų shadow / fade */
+.fadeLeft,
+.fadeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.fadeLeft {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(2, 6, 23, 0.95),
+    rgba(2, 6, 23, 0)
+  );
+}
+
+.fadeRight {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(2, 6, 23, 0.95),
+    rgba(2, 6, 23, 0)
+  );
+}
+
+/* 🔥 ČIA MAGIJA – juda per lygiai vieną grupę */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

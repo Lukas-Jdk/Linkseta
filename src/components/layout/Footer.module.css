@@ -2,17 +2,17 @@
 
 .footer {
   border-top: 1px solid var(--border);
-  background: #fff;
+  background: var(--bg-header);
 }
 .copy {
-  color: #3a4760;
+  color: #ffffff;
   text-align: center;
   padding: 18px 0;
   font-size: 14px;
   font-family: var(--font-second);
 }
 .copy a {
-  color: #0b3670;
+  color: #02ffff;
 }
 .copy a:hover {
   text-decoration: underline;
