@@ -1,3 +1,5 @@
+/* src/app/globals.css */
+
 /* ------------------ Reset ------------------ */
 *,
 *::before,
@@ -12,13 +14,13 @@ body {
   height: 100%;
 }
 
-/* ------------------ Theme variables ------------------ */
+/* ------------------ Theme variables (LIGHT ONLY) ------------------ */
 :root {
   color-scheme: light;
 
   /* Backgrounds */
-  --bg-page: #ffffff;              /* 👈 LIGHT: kūno fonas baltas */
-  --bg-header: #020617;            /* header paliekam tamsų abiem temom */
+  --bg-page: #ffffff;
+  --bg-header: #020617;
   --color-header-border: #24e2fb;
 
   /* Brand / accent */
@@ -61,40 +63,12 @@ body {
   /* Shadows */
   --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.12);
   --shadow-strong: 0 28px 80px rgba(15, 23, 42, 0.65);
-}
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  /* DARK: čia tavo norimas kūno fonas */
-  --bg-page: radial-gradient(circle at top right, #0a1a2f 0%, #020510 80%);
-  --bg-header: #020617;
-  --color-header-border: #24e2fb;
-
-  --card-bg: #020617;
-  --card-bg-subtle: #020617;
-  --card-border: rgba(148, 163, 184, 0.3);
-  --card-shadow: 0 18px 45px rgba(15, 23, 42, 0.8);
-
-  --text-main: #8f9091;
-  --text-muted: #07a5b1;
-  --text-soft: #6b7280;
-  --text-white: #f9fafb;
-  --text-nav-hover: #38bdf8;
-  --text-heading: #ffffff;
-  --text-label: #07a5b1;
-  
-
-  --badge-bg: rgba(15, 23, 42, 0.7);
-  --badge-border: rgba(148, 163, 184, 0.5);
-  --badge-premium-bg: rgba(249, 115, 22, 0.35);
-  --badge-premium-text: #fed7aa;
-
-  --bg-btn-filters:#1a5c58c2;
+  /* Select/filter background (kad nelūžtų tavo .select) */
+  --bg-btn-filters: #ffffff;
 }
 
 /* ------------------ Global layout ------------------ */
-
 body {
   min-height: 100vh;
   display: flex;
@@ -110,32 +84,15 @@ body {
   color: var(--text-main);
   padding-top: var(--header-height);
 
-  /* LIGHT MODE: bg1.png per visą ekraną */
-  background-color: var(--bg-page);        /* #ffffff iš :root */
+  background-color: var(--bg-page);
 
-  background-size: cover;                  /* kad dengtų visą ekraną */
-  background-repeat: no-repeat;            /* nesikartoja */
-  background-position: center;             /* centre */
-  background-attachment: fixed;            /* lieka „prilipęs“ prie viewport */
-}
-
-/* DARK MODE: kita nuotrauka (pakeisk pavadinimą, kai turėsi) */
-:root[data-theme="dark"] body {
-  background-color: #020617; 
-
-  background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
-    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%);
-
-    /* background: var(--bg-header); */
-
-  /* background-image: url("/bg2.webp"); */
-
+  /* Jei nori foninę nuotrauką LIGHT režime – atsikomentuok:
+  background-image: url("/bg1.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
+  */
 }
 
 main {
@@ -153,7 +110,6 @@ img {
 }
 
 /* ------------------ Layout helpers ------------------ */
-
 .container {
   width: 100%;
   max-width: var(--container);
@@ -162,7 +118,6 @@ img {
 }
 
 /* ------------------ Buttons ------------------ */
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -221,9 +176,7 @@ img {
   background: rgba(37, 99, 235, 0.08);
 }
 
-
 /* ------------------ Select / filtrai ------------------ */
-
 .select-wrap {
   min-width: 170px;
 }
@@ -237,7 +190,7 @@ img {
   font-size: 0.9rem;
   background: var(--bg-btn-filters);
   color: var(--text-main);
-  appearance: none;              /* kad būtų švaresnis dizainas */
+  appearance: none;
   background-image: linear-gradient(
       45deg,
       transparent 50%,
@@ -261,9 +214,8 @@ img {
 }
 
 /* ------------------ Generic text helpers ------------------ */
-
 .text-muted {
-  color: var(--text-muted);
+  color: var(--text-label);
 }
 
 .badge {
@@ -283,7 +235,6 @@ img {
 }
 
 /* ------------------ Misc ------------------ */
-
 .footer {
   border-top: 1px solid var(--card-border);
   background: #ffffff10;

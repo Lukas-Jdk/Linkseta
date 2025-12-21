@@ -13,32 +13,9 @@ import {
   LayoutDashboard,
   ShieldCheck,
   LogOut,
-  Sun,
-  Moon,
 } from "lucide-react";
 
 type Role = "USER" | "ADMIN" | null;
-type ThemeMode = "light" | "dark";
-
-function applyTheme(mode: ThemeMode) {
-  if (typeof document === "undefined") return;
-  document.documentElement.dataset.theme = mode;
-  try {
-    localStorage.setItem("theme", mode);
-  } catch {
-    // ignore
-  }
-}
-
-function getInitialTheme(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
-
-  const stored = localStorage.getItem("theme") as ThemeMode | null;
-  if (stored === "light" || stored === "dark") return stored;
-
-  const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-  return prefersLight ? "light" : "dark";
-}
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -50,14 +27,6 @@ export default function Header() {
 
   const [isProfileOpen, setIsProfileOpen] = useState(false); // desktop dropdown
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // drawer
-
-  // ✅ LINT FIX: tema nusistatoma per initial state, ne per setState useEffect
-  const [themeMode, setThemeMode] = useState<ThemeMode>(() => getInitialTheme());
-
-  // uždedam temą ant <html> (ir išsaugom į localStorage) kai themeMode pasikeičia
-  useEffect(() => {
-    applyTheme(themeMode);
-  }, [themeMode]);
 
   // ---- AUTH + ROLE ----
   useEffect(() => {
@@ -132,14 +101,6 @@ export default function Header() {
     setIsMobileMenuOpen((v) => !v);
   }
 
-  function handleThemeToggle() {
-    setThemeMode((prev) => (prev === "light" ? "dark" : "light"));
-  }
-
-  function handleThemeChange(mode: ThemeMode) {
-    setThemeMode(mode);
-  }
-
   return (
     <>
       <header className={styles.header}>
@@ -178,27 +139,8 @@ export default function Header() {
               </div>
             </nav>
 
-            {/* IKONOS / PROFILIS – DESKTOP */}
+            {/* PROFILIS / AUTH – DESKTOP + BURGER */}
             <div className={styles.iconGroup}>
-              {/* Tema – desktop */}
-              <button
-                type="button"
-                className={styles.themeButton}
-                onClick={handleThemeToggle}
-                aria-label={
-                  themeMode === "light"
-                    ? "Perjungti į tamsų režimą"
-                    : "Perjungti į šviesų režimą"
-                }
-              >
-                {themeMode === "light" ? (
-                  <Sun className={styles.themeIcon} strokeWidth={1.7} />
-                ) : (
-                  <Moon className={styles.themeIcon} strokeWidth={1.7} />
-                )}
-              </button>
-
-              {/* Profilis / auth – DESKTOP */}
               {isLoggedIn ? (
                 <div className={styles.profileWrapper}>
                   <button
@@ -237,7 +179,10 @@ export default function Header() {
                 </div>
               ) : (
                 <div className={styles.authDesktop}>
-                  <Link href="/login" className={`${styles.btn} ${styles.btnOutline}`}>
+                  <Link
+                    href="/login"
+                    className={`${styles.btn} ${styles.btnOutline}`}
+                  >
                     Prisijungti
                   </Link>
                   <Link
@@ -254,7 +199,9 @@ export default function Header() {
                 type="button"
                 className={styles.menuToggle}
                 onClick={toggleMobileMenu}
-                aria-label={isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"}
+                aria-label={
+                  isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"
+                }
               >
                 {isMobileMenuOpen ? (
                   <span className={styles.menuX}>×</span>
@@ -278,17 +225,11 @@ export default function Header() {
           onClick={closeAllMenus}
           aria-hidden="true"
         >
-          <div className={styles.mobileDrawer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.drawerTopRow}>
-              <button
-                type="button"
-                className={styles.drawerClose}
-                onClick={closeAllMenus}
-                aria-label="Uždaryti meniu"
-              >
-                ×
-              </button>
-            </div>
+          <div
+            className={styles.mobileDrawer}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.drawerTopRow} />
 
             {/* PROFILE BLOCK */}
             <div className={styles.drawerProfile}>
@@ -308,7 +249,9 @@ export default function Header() {
                     <div className={styles.drawerName}>
                       {userName || "Prisijungęs vartotojas"}
                     </div>
-                    {userEmail && <div className={styles.drawerEmail}>{userEmail}</div>}
+                    {userEmail && (
+                      <div className={styles.drawerEmail}>{userEmail}</div>
+                    )}
                     <Link
                       href="/dashboard"
                       onClick={closeAllMenus}
@@ -320,7 +263,9 @@ export default function Header() {
                 </>
               ) : (
                 <div className={styles.drawerAuthBlock}>
-                  <p className={styles.drawerAuthTitle}>Sveiki atvykę į Linkseta</p>
+                  <p className={styles.drawerAuthTitle}>
+                    Sveiki atvykę į Linkseta
+                  </p>
                   <div className={styles.drawerAuthButtons}>
                     <Link
                       href="/login"
@@ -345,7 +290,11 @@ export default function Header() {
 
             {/* MAIN NAV */}
             <nav className={styles.drawerNav} aria-label="Mobilus meniu">
-              <Link href="/" onClick={closeAllMenus} className={styles.drawerNavItem}>
+              <Link
+                href="/"
+                onClick={closeAllMenus}
+                className={styles.drawerNavItem}
+              >
                 <Home className={styles.drawerNavIcon} />
                 <span>Pagrindinis</span>
               </Link>
@@ -407,34 +356,6 @@ export default function Header() {
                 </button>
               </div>
             )}
-
-            {/* THEME SWITCH (Light/Dark) */}
-            <div className={styles.drawerSection}>
-              <div className={styles.drawerSectionTitle}>Tema</div>
-              <div className={styles.themeSegment}>
-                <button
-                  type="button"
-                  className={`${styles.themeOption} ${
-                    themeMode === "light" ? styles.themeOptionActive : ""
-                  }`}
-                  onClick={() => handleThemeChange("light")}
-                >
-                  <Sun className={styles.themeOptionIcon} strokeWidth={1.6} />
-                  <span>Light</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`${styles.themeOption} ${
-                    themeMode === "dark" ? styles.themeOptionActive : ""
-                  }`}
-                  onClick={() => handleThemeChange("dark")}
-                >
-                  <Moon className={styles.themeOptionIcon} strokeWidth={1.6} />
-                  <span>Dark</span>
-                </button>
-              </div>
-            </div>
 
             {/* FOOTER INFO */}
             <div className={styles.drawerFooter}>
