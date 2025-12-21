@@ -25,70 +25,102 @@ export default function Header() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // desktop dropdown
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // drawer
-
-  // ---- AUTH + ROLE ----
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      if (!isMounted) return;
-
-      if (!data?.user) {
-        setIsLoggedIn(false);
-        setRole(null);
-        setUserName(null);
-        setUserEmail(null);
-        setAvatarUrl(null);
-        return;
-      }
-
-      setIsLoggedIn(true);
-
-      const email = data.user.email ?? "";
-      setUserEmail(email || null);
-
-      const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
-
-      const fullName =
-        (meta.full_name as string | undefined) ||
-        (meta.name as string | undefined) ||
-        null;
-      setUserName(fullName);
-
-      const avatar =
-        (meta.avatar_url as string | undefined) ||
-        (meta.picture as string | undefined) ||
-        null;
-      setAvatarUrl(avatar);
-
-      try {
-        const res = await fetch("/api/auth/role");
-        if (res.ok) {
-          const json = await res.json();
-          setRole((json.role as Role) ?? "USER");
-        } else {
-          setRole("USER");
-        }
-      } catch {
-        setRole("USER");
-      }
-    }
-
-    loadUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isAdmin = role === "ADMIN";
   const profileImg = avatarUrl || "/avataras.webp";
 
+  function resetAuthUi() {
+    setIsLoggedIn(false);
+    setRole(null);
+    setUserName(null);
+    setUserEmail(null);
+    setAvatarUrl(null);
+    setIsProfileOpen(false);
+  }
+
+  async function loadRole() {
+    try {
+      const res = await fetch("/api/auth/role", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        setRole((json.role as Role) ?? "USER");
+      } else {
+        setRole("USER");
+      }
+    } catch {
+      setRole("USER");
+    }
+  }
+
+  function applyUserToUi(user: { email?: string | null; user_metadata?: any } | null) {
+    if (!user) {
+      resetAuthUi();
+      return;
+    }
+
+    setIsLoggedIn(true);
+
+    const email = user.email ?? "";
+    setUserEmail(email || null);
+
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const fullName =
+      (meta.full_name as string | undefined) ||
+      (meta.name as string | undefined) ||
+      null;
+    setUserName(fullName);
+
+    const avatar =
+      (meta.avatar_url as string | undefined) ||
+      (meta.picture as string | undefined) ||
+      null;
+    setAvatarUrl(avatar);
+  }
+
+  // ✅ Pagrindinis FIX: klausom auth state change ir updatinam Header be refresh
+  useEffect(() => {
+    let alive = true;
+
+    async function init() {
+      // 1) užkraunam dabartinį userį
+      const { data } = await supabase.auth.getUser();
+      if (!alive) return;
+
+      if (!data?.user) {
+        resetAuthUi();
+        return;
+      }
+
+      applyUserToUi(data.user);
+      await loadRole();
+    }
+
+    init();
+
+    // 2) subscribe į prisijungimą/atsijungimą
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user ?? null;
+
+      applyUserToUi(user);
+
+      if (user) {
+        await loadRole();
+      } else {
+        setRole(null);
+      }
+    });
+
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
   async function handleLogout() {
     await supabase.auth.signOut();
+    // Header atsinaujins per onAuthStateChange automatiškai
     window.location.href = "/";
   }
 
@@ -105,12 +137,12 @@ export default function Header() {
     <>
       <header className={styles.header}>
         <div className={`container ${styles.row}`}>
-          {/* BRAND / LOGO */}
           <div className={styles.brand}>
             <Link
               href="/"
               aria-label="Linkseta – grįžti į pradžią"
               className={styles.logoLink}
+              onClick={closeAllMenus}
             >
               <Image
                 src="/logo.webp"
@@ -123,9 +155,7 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* DEŠINĖ PUSĖ */}
           <div className={styles.right}>
-            {/* NAV – DESKTOP */}
             <nav className={styles.nav} aria-label="Pagrindinė navigacija">
               <div className={styles.navLinks}>
                 <Link href="/">Pagrindinis</Link>
@@ -139,7 +169,6 @@ export default function Header() {
               </div>
             </nav>
 
-            {/* PROFILIS / AUTH – DESKTOP + BURGER */}
             <div className={styles.iconGroup}>
               {isLoggedIn ? (
                 <div className={styles.profileWrapper}>
@@ -179,29 +208,20 @@ export default function Header() {
                 </div>
               ) : (
                 <div className={styles.authDesktop}>
-                  <Link
-                    href="/login"
-                    className={`${styles.btn} ${styles.btnOutline}`}
-                  >
+                  <Link href="/login" className={`${styles.btn} ${styles.btnOutline}`}>
                     Prisijungti
                   </Link>
-                  <Link
-                    href="/register"
-                    className={`${styles.btn} ${styles.btnPrimary}`}
-                  >
+                  <Link href="/register" className={`${styles.btn} ${styles.btnPrimary}`}>
                     Registracija
                   </Link>
                 </div>
               )}
 
-              {/* BURGER – TIK MOBILE */}
               <button
                 type="button"
                 className={styles.menuToggle}
                 onClick={toggleMobileMenu}
-                aria-label={
-                  isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"
-                }
+                aria-label={isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"}
               >
                 {isMobileMenuOpen ? (
                   <span className={styles.menuX}>×</span>
@@ -218,20 +238,11 @@ export default function Header() {
         </div>
       </header>
 
-      {/* MOBILE DRAWER OVERLAY */}
       {isMobileMenuOpen && (
-        <div
-          className={styles.mobileOverlay}
-          onClick={closeAllMenus}
-          aria-hidden="true"
-        >
-          <div
-            className={styles.mobileDrawer}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className={styles.mobileOverlay} onClick={closeAllMenus} aria-hidden="true">
+          <div className={styles.mobileDrawer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.drawerTopRow} />
 
-            {/* PROFILE BLOCK */}
             <div className={styles.drawerProfile}>
               {isLoggedIn ? (
                 <>
@@ -249,9 +260,8 @@ export default function Header() {
                     <div className={styles.drawerName}>
                       {userName || "Prisijungęs vartotojas"}
                     </div>
-                    {userEmail && (
-                      <div className={styles.drawerEmail}>{userEmail}</div>
-                    )}
+                    {userEmail && <div className={styles.drawerEmail}>{userEmail}</div>}
+
                     <Link
                       href="/dashboard"
                       onClick={closeAllMenus}
@@ -263,15 +273,9 @@ export default function Header() {
                 </>
               ) : (
                 <div className={styles.drawerAuthBlock}>
-                  <p className={styles.drawerAuthTitle}>
-                    Sveiki atvykę į Linkseta
-                  </p>
+                  <p className={styles.drawerAuthTitle}>Sveiki atvykę į Linkseta</p>
                   <div className={styles.drawerAuthButtons}>
-                    <Link
-                      href="/login"
-                      onClick={closeAllMenus}
-                      className={styles.drawerPrimaryBtn}
-                    >
+                    <Link href="/login" onClick={closeAllMenus} className={styles.drawerPrimaryBtn}>
                       Prisijungti
                     </Link>
                     <Link
@@ -288,52 +292,31 @@ export default function Header() {
 
             <hr className={styles.drawerDivider} />
 
-            {/* MAIN NAV */}
             <nav className={styles.drawerNav} aria-label="Mobilus meniu">
-              <Link
-                href="/"
-                onClick={closeAllMenus}
-                className={styles.drawerNavItem}
-              >
+              <Link href="/" onClick={closeAllMenus} className={styles.drawerNavItem}>
                 <Home className={styles.drawerNavIcon} />
                 <span>Pagrindinis</span>
               </Link>
 
-              <Link
-                href="/services"
-                onClick={closeAllMenus}
-                className={styles.drawerNavItem}
-              >
+              <Link href="/services" onClick={closeAllMenus} className={styles.drawerNavItem}>
                 <Wrench className={styles.drawerNavIcon} />
                 <span>Paslaugos</span>
               </Link>
 
-              <Link
-                href="/susisiekite"
-                onClick={closeAllMenus}
-                className={styles.drawerNavItem}
-              >
+              <Link href="/susisiekite" onClick={closeAllMenus} className={styles.drawerNavItem}>
                 <MessageCircle className={styles.drawerNavIcon} />
                 <span>Susisiekite</span>
               </Link>
 
               {isLoggedIn && (
-                <Link
-                  href="/dashboard"
-                  onClick={closeAllMenus}
-                  className={styles.drawerNavItem}
-                >
+                <Link href="/dashboard" onClick={closeAllMenus} className={styles.drawerNavItem}>
                   <LayoutDashboard className={styles.drawerNavIcon} />
                   <span>Mano paslaugos</span>
                 </Link>
               )}
 
               {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={closeAllMenus}
-                  className={styles.drawerNavItem}
-                >
+                <Link href="/admin" onClick={closeAllMenus} className={styles.drawerNavItem}>
                   <ShieldCheck className={styles.drawerNavIcon} />
                   <span>Admin</span>
                 </Link>
@@ -342,22 +325,16 @@ export default function Header() {
 
             <hr className={styles.drawerDivider} />
 
-            {/* ACCOUNT / LOGOUT */}
             {isLoggedIn && (
               <div className={styles.drawerSection}>
                 <div className={styles.drawerSectionTitle}>Paskyra</div>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={styles.drawerNavItem}
-                >
+                <button type="button" onClick={handleLogout} className={styles.drawerNavItem}>
                   <LogOut className={styles.drawerNavIcon} />
                   <span>Atsijungti</span>
                 </button>
               </div>
             )}
 
-            {/* FOOTER INFO */}
             <div className={styles.drawerFooter}>
               <span>© {new Date().getFullYear()} Linkseta</span>
               <div className={styles.drawerFooterLinks}>
@@ -374,7 +351,6 @@ export default function Header() {
         </div>
       )}
 
-      {/* SPACER – kad turinys neužliptų ant fixed headerio */}
       <div className={styles.headerSpacer} aria-hidden="true" />
     </>
   );

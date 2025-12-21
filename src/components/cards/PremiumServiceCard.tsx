@@ -29,26 +29,26 @@ export default function PremiumServiceCard({
   highlighted = false,
   imageUrl,
 }: PremiumServiceCardProps) {
-  const displayPrice = priceFrom != null ? `${priceFrom} NOK` : "Kaina sutartinė";
-
-  const rating = highlighted ? 4.9 : 4.7;
-  const reviewCount = highlighted ? 32 : 12;
+  // ✅ skaičių suformatuojam, kad būtų trumpiau ir gražiau (pvz. 12000 -> 12 000)
+  const formattedPrice =
+    priceFrom != null
+      ? `${new Intl.NumberFormat("nb-NO").format(priceFrom)} NOK`
+      : "Kaina sutartinė";
 
   const bgSrc = imageUrl || "/default-service.webp";
 
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
-        {/* Background (STABILUS, BE ANIMACIJŲ) */}
+        {/* Background */}
         <div className={styles.backgroundContainer}>
-          {/* ✅ FIX: Next/Image vietoj <img> */}
           <Image
             src={bgSrc}
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             className={styles.backgroundImage}
-            priority={highlighted} // jei TOP – pakraunam greičiau
+            priority={highlighted}
           />
 
           <div className={styles.gradientOverlay} />
@@ -69,12 +69,12 @@ export default function PremiumServiceCard({
               )}
             </div>
 
-            <div className={styles.ratingContainer}>
+            {/* ✅ Reviews: nebe fake. Kol nėra sistemos – rodome neutraliai */}
+            <div className={styles.ratingContainer} aria-label="Atsiliepimai">
               <div className={styles.ratingBadge}>
                 <Star className={styles.starIcon} />
-                <span className={styles.ratingValue}>{rating.toFixed(1)}</span>
+                <span className={styles.ratingText}>Nėra įvertinimų</span>
               </div>
-              <span className={styles.reviewCount}>{reviewCount} atsiliepimai</span>
             </div>
           </div>
 
@@ -85,14 +85,20 @@ export default function PremiumServiceCard({
                 <MapPin className={styles.locationIcon} />
                 {city}
               </div>
+
               <h3 className={styles.title}>{title}</h3>
               <p className={styles.description}>{description}</p>
             </div>
 
             <div className={styles.footer}>
+              {/* ✅ Kaina sutvarkyta: label + value nebesilieja */}
               <div className={styles.priceContainer}>
-                <span className={styles.priceLabel}>Kaina nuo</span>
-                <span className={styles.priceValue}>{displayPrice}</span>
+                <span className={styles.priceLabel}>
+                  {priceFrom != null ? "Kaina nuo" : "Kaina"}
+                </span>
+                <span className={styles.priceValue} title={formattedPrice}>
+                  {formattedPrice}
+                </span>
               </div>
 
               <div className={styles.actions}>
@@ -102,17 +108,22 @@ export default function PremiumServiceCard({
                   whileTap={{ scale: 0.95 }}
                   onClick={() => (window.location.href = `/services/${slug}`)}
                   type="button"
+                  aria-label="Žiūrėti paslaugą"
                 >
                   <ArrowRight className={styles.arrowIcon} />
                 </motion.button>
 
                 <motion.button
                   className={`${styles.contactButton} ${
-                    highlighted ? styles.contactButtonPremium : styles.contactButtonStandard
+                    highlighted
+                      ? styles.contactButtonPremium
+                      : styles.contactButtonStandard
                   }`}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => (window.location.href = `/services/${slug}#kontaktai`)}
+                  onClick={() =>
+                    (window.location.href = `/services/${slug}#kontaktai`)
+                  }
                   type="button"
                 >
                   Susisiekti
@@ -121,6 +132,7 @@ export default function PremiumServiceCard({
             </div>
           </div>
         </div>
+        {/* /content */}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 "use client";
 
 import PremiumServiceCard from "./PremiumServiceCard";
+import ServiceCard from "./ServiceCard";
 import styles from "./CardGrid.module.css";
 
 export type CardGridItem = {
@@ -18,9 +19,10 @@ export type CardGridItem = {
 
 type Props = {
   items: CardGridItem[];
+  variant?: "premium" | "compact";
 };
 
-export default function CardGrid({ items }: Props) {
+export default function CardGrid({ items, variant = "premium" }: Props) {
   if (!items.length) {
     return (
       <div className={styles.empty}>
@@ -32,28 +34,40 @@ export default function CardGrid({ items }: Props) {
   return (
     <div className={styles.wrapper}>
       <header className={styles.header}>
-        <h2 className={styles.heading}>Populiariausios paslaugos</h2>
-        {/* <p className={styles.subheading}>
-          Atrinktos patikimos paslaugos su geriausiais atsiliepimais ir aiškiomis
-          kainomis.
-        </p> */}
+        <h2 className={styles.heading}>
+          {variant === "premium" ? "Populiariausios paslaugos" : "Rezultatai"}
+        </h2>
       </header>
 
       <div className={styles.grid}>
-        {items.map((item) => (
-          <PremiumServiceCard
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            description={item.description ?? ""}
-            city={item.city}
-            category={item.category}
-            priceFrom={item.priceFrom}
-            slug={item.slug}
-            highlighted={item.highlighted}
-            imageUrl={item.imageUrl || ""}
-          />
-        ))}
+        {items.map((item) =>
+          variant === "premium" ? (
+            <PremiumServiceCard
+              key={item.id}
+              id={item.id}
+              title={item.title}
+              description={item.description ?? ""}
+              city={item.city}
+              category={item.category}
+              priceFrom={item.priceFrom}
+              slug={item.slug}
+              highlighted={item.highlighted}
+              imageUrl={item.imageUrl || ""}
+            />
+          ) : (
+            <ServiceCard
+              key={item.id}
+              title={item.title}
+              description={item.description ?? ""}
+              city={item.city}
+              category={item.category}
+              priceFrom={item.priceFrom}
+              slug={item.slug}
+              highlighted={item.highlighted}
+              imageUrl={item.imageUrl || ""}
+            />
+          )
+        )}
       </div>
     </div>
   );

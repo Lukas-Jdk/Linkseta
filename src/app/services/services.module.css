@@ -16,14 +16,13 @@
   margin-bottom: 14px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+/* Wrapperis aplink CardGrid, kad būtų gražus tarpas */
+.gridWrap {
+  margin-top: 10px;
 }
 
+/* Empty state */
 .emptyState {
-  grid-column: 1 / -1;
   background: var(--card-bg-subtle);
   border-radius: 18px;
   padding: 22px 20px;
@@ -32,106 +31,10 @@
   font-size: 0.95rem;
 }
 
-/* --------- Kortelės --------- */
-
-.card {
-  background: var(--card-bg);
-  border-radius: 18px;
-  padding: 20px 22px 18px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 160px;
-}
-
-.cardHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--badge-border);
-  background: var(--badge-bg);
-  font-size: 0.7rem;
-  line-height: 1.2;
-}
-
-.chipPremium {
-  background: var(--badge-premium-bg);
-  color: var(--badge-premium-text);
-  border-color: transparent;
-}
-
-.cardTitle {
-  font-size: 1.02rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.cardDescription {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-}
-
-.cardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: auto;
-}
-
-.cardPrice {
-  font-size: 0.9rem;
-  color: var(--text-soft);
-}
-
-.cardLink {
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  font-size: 0.86rem;
-  font-weight: 500;
-  color: var(--accent-2);
-  background: rgba(255, 255, 255, 0.9);
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.12s ease;
-}
-
-.cardLink:hover {
-  background: var(--accent-soft);
-  color: var(--text-white);
-  box-shadow: var(--shadow-soft);
-  transform: translateY(-1px);
-}
-
 /* --------- Responsive --------- */
 
 @media (max-width: 768px) {
   .results {
     padding: 24px 0 40px;
-  }
-
-  .grid {
-    gap: 14px;
-  }
-
-  .card {
-    padding: 18px 18px 16px;
   }
 }

@@ -52,8 +52,10 @@ export default function LoginPage() {
         return;
       }
 
-      // sėkmingas login
-      router.push("/dashboard");
+      // ✅ geriau nei push (back negrįš į login)
+      router.replace("/dashboard");
+      // ✅ App Router dažnai naudinga atšviežinti server komponentus
+      router.refresh();
     } catch (err) {
       console.error("login unexpected error:", err);
       setError("Serverio klaida. Bandykite dar kartą.");
@@ -85,15 +87,17 @@ export default function LoginPage() {
           className={styles.input}
         />
 
-        <button className={styles.button} disabled={loading}>
+        <button className={styles.button} disabled={loading} type="submit">
           {loading ? "Jungiama..." : "Prisijungti"}
         </button>
+
         <p className={styles.helperText}>
           Pamiršote slaptažodį?{" "}
           <Link href="/forgot-password" className={styles.link}>
             Atstatyti
           </Link>
         </p>
+
         {error && <p className={styles.error}>{error}</p>}
       </form>
     </main>

@@ -44,7 +44,7 @@ export default function SearchBar() {
         {/* PAVADINIMAS */}
         <div className={styles.segment}>
           <div className={styles.label}>
-            <div className={styles.labelText}>Vardas</div>
+            <div className={styles.labelText}>Raktinis žodis</div>
             <input
               className={styles.input}
               name="q"

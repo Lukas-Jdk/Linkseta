@@ -6,15 +6,24 @@ export default function ServicesHero() {
   return (
     <section className={styles.hero} aria-label="Paslaugų paieška">
       <div className="container">
-        <h1 className={styles.title}>Rask lietuvių paslaugas Norvegijoje</h1>
+        <h1 className={styles.title}>
+          Paslaugos tavo mieste{" "}
+          <span className={styles.mark}>Norvegijoje</span>
+        </h1>
+
         <p className={styles.subtitle}>
-          Filtruok pagal miestą, kategoriją ir raktinius žodžius – surask
+          Filtruok pagal{" "}
+          <span className={styles.softAccent}>miestą</span>,{" "}
+          <span className={styles.softAccent}>kategoriją</span> ar{" "}
+          <span className={styles.softAccent}>raktinius žodžius</span> – surask
           tinkamą specialistą savo mieste.
         </p>
 
         <div className={styles.searchWrap}>
           <SearchBar />
         </div>
+
+        <div className={styles.divider} />
       </div>
     </section>
   );

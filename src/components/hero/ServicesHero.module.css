@@ -1,42 +1,96 @@
 /* src/components/hero/ServicesHero.module.css */
 
 .hero {
-  background: linear-gradient(
-      130deg,
-      rgba(7, 51, 90, 0.788) 0%,
-      rgba(0, 0, 0, 0.719) 40%
-    ),
-    linear-gradient(45deg, var(--accent-2), var(--accent));
+  background: var(--bg-header);
   color: var(--text-white);
-
-  /* BUVO: padding: 40px 0 32px; */
-  padding: 2.5rem 0 32px;
-
+  padding-top: 2.5rem;
+  padding-bottom: 32px;
   border-bottom: 1px solid var(--bg-header-bottom);
 }
 
+/* H1 */
 .title {
   text-align: center;
   font-size: 2.2rem;
   font-family: var(--font-primary);
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
+  line-height: 1.25;
 }
 
+/* Pagrindinis akcentas */
+.mark {
+  color: rgb(59, 221, 221);
+}
+
+/* Subtitle */
 .subtitle {
-  margin: 8px auto 18px;
+  margin: 10px auto 18px;
   font-size: 1rem;
   max-width: 560px;
   text-align: center;
-  opacity: 0.95;
+  line-height: 1.6;
+  opacity: 0.9;
 }
 
-/* kad SearchBar atrodytų "pakeltas" virš hero */
+/* Subtilūs raktiniai žodžiai subtitle'e */
+.softAccent {
+  color: rgba(67, 228, 228, 0.95);
+  font-weight: 500;
+}
+
+/* SearchBar pozicionavimas */
 .searchWrap {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
+/* Kad forma atrodytų „pakelta“ */
 .searchWrap :global(form) {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.45);
   border-radius: 18px;
+}
+
+/* Divider */
+.divider {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 200, 255, 0.15),
+    rgba(0, 200, 255, 0.6),
+    rgba(0, 200, 255, 0.15)
+  );
+}
+
+.divider::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 200, 255, 0.08),
+    rgba(0, 200, 255, 0.35),
+    rgba(0, 200, 255, 0.08)
+  );
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+    padding: 0 6px;
+  }
 }

@@ -1,8 +1,8 @@
 // src/app/services/page.tsx
-import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import ServicesHero from "@/components/hero/ServicesHero";
+import CardGrid from "@/components/cards/CardGrid";
 import styles from "./services.module.css";
 
 type SearchParams = {
@@ -12,7 +12,6 @@ type SearchParams = {
 };
 
 type Props = {
-  // Next 16: searchParams yra Promise<>
   searchParams: Promise<SearchParams>;
 };
 
@@ -36,13 +35,8 @@ export default async function ServicesPage({ searchParams }: Props) {
     ];
   }
 
-  if (city) {
-    where.cityId = city;
-  }
-
-  if (category) {
-    where.categoryId = category;
-  }
+  if (city) where.cityId = city;
+  if (category) where.categoryId = category;
 
   const [services, cities, categories] = await Promise.all([
     prisma.serviceListing.findMany({
@@ -60,9 +54,7 @@ export default async function ServicesPage({ searchParams }: Props) {
     }),
   ]);
 
-  const activeCityName = city
-    ? cities.find((c) => c.id === city)?.name ?? ""
-    : "";
+  const activeCityName = city ? cities.find((c) => c.id === city)?.name ?? "" : "";
   const activeCategoryName = category
     ? categories.find((cat) => cat.id === category)?.name ?? ""
     : "";
@@ -76,6 +68,19 @@ export default async function ServicesPage({ searchParams }: Props) {
   } else if (activeCategoryName) {
     heading = `${activeCategoryName} – lietuvių paslaugos Norvegijoje`;
   }
+
+  // ✅ Paruošiam CardGrid item'us (tas pats formatas kaip Home page)
+  const items = services.map((service) => ({
+    id: service.id,
+    title: service.title,
+    description: service.description,
+    city: service.city?.name ?? "",
+    category: service.category?.name ?? "",
+    priceFrom: service.priceFrom,
+    slug: service.slug,
+    highlighted: service.highlighted ?? false,
+    imageUrl: service.imageUrl,
+  }));
 
   return (
     <main className={styles.page}>
@@ -93,66 +98,17 @@ export default async function ServicesPage({ searchParams }: Props) {
             )}
           </p>
 
-          <div className={styles.grid}>
-            {services.length === 0 && (
-              <p className={styles.emptyState}>
-                Šiuo metu pagal pasirinktus filtrus paslaugų nerasta.
-                <br />
-                Pabandykite pakoreguoti paiešką arba pasirinkti kitą miestą /
-                kategoriją.
-              </p>
-            )}
-
-            {services.map((service) => (
-              <article key={service.id} className={styles.card}>
-                <header className={styles.cardHeader}>
-                  <div className={styles.chips}>
-                    {service.city?.name && (
-                      <span className={styles.chip}>{service.city.name}</span>
-                    )}
-                    {service.category?.name && (
-                      <span className={styles.chip}>
-                        {service.category.name}
-                      </span>
-                    )}
-                    {service.highlighted && (
-                      <span
-                        className={`${styles.chip} ${styles.chipPremium}`}
-                      >
-                        Rekomenduojama
-                      </span>
-                    )}
-                  </div>
-                  <h2 className={styles.cardTitle}>{service.title}</h2>
-                </header>
-
-                <p className={styles.cardDescription}>
-                  {service.description.length > 190
-                    ? service.description.slice(0, 190) + "..."
-                    : service.description}
-                </p>
-
-                <footer className={styles.cardFooter}>
-                  <div className={styles.cardPrice}>
-                    {service.priceFrom ? (
-                      <>
-                        Nuo <strong>{service.priceFrom} NOK</strong>
-                      </>
-                    ) : (
-                      <span>Kaina sutartinė</span>
-                    )}
-                  </div>
-
-                  <Link
-                    href={`/services/${service.slug}`}
-                    className={styles.cardLink}
-                  >
-                    Žiūrėti paslaugą
-                  </Link>
-                </footer>
-              </article>
-            ))}
-          </div>
+          {services.length === 0 ? (
+            <p className={styles.emptyState}>
+              Šiuo metu pagal pasirinktus filtrus paslaugų nerasta.
+              <br />
+              Pabandykite pakoreguoti paiešką arba pasirinkti kitą miestą / kategoriją.
+            </p>
+          ) : (
+            <div className={styles.gridWrap}>
+              <CardGrid items={items} variant="compact" />
+            </div>
+          )}
         </div>
       </section>
     </main>
