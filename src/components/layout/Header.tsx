@@ -116,7 +116,7 @@ export default function Header() {
   }, []);
 
   const isAdmin = role === "ADMIN";
-  const profileImg = avatarUrl || "/default-service.webp";
+  const profileImg = avatarUrl || "/avataras.webp";
 
   async function handleLogout() {
     await supabase.auth.signOut();

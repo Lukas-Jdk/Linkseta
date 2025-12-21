@@ -1,7 +1,7 @@
 // src/components/search/SearchBar.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./SearchBar.module.css";
 import { Search } from "lucide-react";
 
@@ -10,6 +10,11 @@ type Option = { id: string; name: string };
 export default function SearchBar() {
   const [cities, setCities] = useState<Option[]>([]);
   const [categories, setCategories] = useState<Option[]>([]);
+
+  // kad gražiai rodytų pasirinktą reikšmę
+  const [q, setQ] = useState("");
+  const [cityId, setCityId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -21,27 +26,52 @@ export default function SearchBar() {
     load();
   }, []);
 
+  const cityName = useMemo(() => {
+    if (!cityId) return "Pasirinkite...";
+    return cities.find((c) => c.id === cityId)?.name ?? "Pasirinkite...";
+  }, [cityId, cities]);
+
+  const categoryName = useMemo(() => {
+    if (!categoryId) return "Pasirinkite...";
+    return (
+      categories.find((c) => c.id === categoryId)?.name ?? "Pasirinkite..."
+    );
+  }, [categoryId, categories]);
+
   return (
     <form className={styles.wrap} role="search" action="/services" method="get">
       <div className={styles.bar}>
-         {/* PAVADINIMAS / PAIEŠKA */}
+        {/* PAVADINIMAS */}
         <div className={styles.segment}>
-          <label className={styles.label}>
-            <span className={styles.labelText}>Vardas</span>
+          <div className={styles.label}>
+            <div className={styles.labelText}>Vardas</div>
             <input
               className={styles.input}
               name="q"
               placeholder="Neprivaloma..."
               autoComplete="off"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
             />
-          </label>
+          </div>
         </div>
 
-        {/* MIESTAS */}
+        {/* MIESTAS (overlay select per visą segmentą) */}
         <div className={styles.segment}>
-          <label className={styles.label}>
-            <span className={styles.labelText}>Miestas</span>
-            <select name="city" className={styles.select} defaultValue="">
+          <div className={styles.label}>
+            <div className={styles.labelText}>Miestas</div>
+
+            {/* Čia rodom tekstą (UI) */}
+            <div className={styles.fakeValue}>{cityName}</div>
+
+            {/* Čia tikras select, bet jis uždėtas per visą segmentą */}
+            <select
+              name="city"
+              className={styles.selectOverlay}
+              value={cityId}
+              onChange={(e) => setCityId(e.target.value)}
+              aria-label="Miestas"
+            >
               <option value="">Pasirinkite...</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -49,17 +79,22 @@ export default function SearchBar() {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         </div>
 
-        {/* KATEGORIJA */}
+        {/* KATEGORIJA (overlay select per visą segmentą) */}
         <div className={styles.segment}>
-          <label className={styles.label}>
-            <span className={styles.labelText}>Kategorija</span>
+          <div className={styles.label}>
+            <div className={styles.labelText}>Kategorija</div>
+
+            <div className={styles.fakeValue}>{categoryName}</div>
+
             <select
               name="category"
-              className={styles.select}
-              defaultValue=""
+              className={styles.selectOverlay}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              aria-label="Kategorija"
             >
               <option value="">Pasirinkite...</option>
               {categories.map((cat) => (
@@ -68,11 +103,10 @@ export default function SearchBar() {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         </div>
-       
 
-        {/* SEARCH MYGTUKAS */}
+        {/* SEARCH */}
         <button
           type="submit"
           className={styles.searchButton}

@@ -51,6 +51,6 @@
 @media (max-width: 555px) {
   .title {
     font-size: clamp(1.4rem, 5vw, 1.4rem);
-    padding: 0 2rem;
+    
   }
 }

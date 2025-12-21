@@ -15,7 +15,7 @@
   font-weight: 700;
   color: var(--text-heading);
   padding-bottom: 0.5rem;
-  padding: 0 2rem;
+ 
 
 }
 
@@ -39,16 +39,17 @@
 
 /* Responsive */
 @media (max-width: 1250px) {
-  .grid {
-  
+  .wrapper {
     padding: 0 2rem;
+  
+    
   }
   
 }
 @media (max-width: 1024px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 2rem;
+  
   }
   
 }
