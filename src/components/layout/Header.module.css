@@ -462,10 +462,8 @@
   text-decoration: underline;
 }
 
-/* SPACER – kad turinys neužliptų ant headerio */
-.headerSpacer {
-  height: 80px;
-}
+
+
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
