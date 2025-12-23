@@ -3,23 +3,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  try {
-    const [cities, categories] = await Promise.all([
-      prisma.city.findMany({
-        orderBy: { name: "asc" },
-      }),
-      prisma.category.findMany({
-        where: { type: "SERVICE" }, // tik paslaugų kategorijos
-        orderBy: { name: "asc" },
-      }),
-    ]);
+  const [cities, categories] = await Promise.all([
+    prisma.city.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.category.findMany({
+      where: { type: "SERVICE" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, slug: true }, // ✅ SVARBU
+    }),
+  ]);
 
-    return NextResponse.json({ cities, categories });
-  } catch (error) {
-    console.error("GET /api/public/filters error:", error);
-    return NextResponse.json(
-      { error: "Server error", details: String(error) },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ cities, categories });
 }

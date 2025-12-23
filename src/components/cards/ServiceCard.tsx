@@ -1,4 +1,3 @@
-// src/components/cards/ServiceCard.tsx
 "use client";
 
 import Image from "next/image";
@@ -17,6 +16,10 @@ type Props = {
   imageUrl?: string;
 };
 
+function formatPriceNOK(value: number) {
+  return new Intl.NumberFormat("nb-NO").format(value);
+}
+
 export default function ServiceCard({
   title,
   description,
@@ -27,19 +30,49 @@ export default function ServiceCard({
   highlighted = false,
   imageUrl,
 }: Props) {
-  const displayPrice = priceFrom != null ? `${priceFrom} NOK` : "Kaina sutartinė";
-  const cover = imageUrl || "/default-service.webp";
+  const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
+
+  const priceLabel = priceFrom != null ? "Kaina nuo" : "Kaina";
+  const priceValue =
+    priceFrom != null ? `${formatPriceNOK(priceFrom)} NOK` : "Kaina sutartinė";
+
+  // 👇 default “center art” kai nėra cover nuotraukos
+  // įdėk į public/ tokį failą (arba pakeisk pavadinimą)
+  const defaultArt = "/logo.webp";
 
   return (
     <Link href={`/services/${slug}`} className={styles.card}>
+      {/* TOP HALF */}
       <div className={styles.imageWrap}>
-        <Image
-          src={cover}
-          alt={title}
-          fill
-          className={styles.image}
-          sizes="(max-width: 768px) 100vw, 420px"
-        />
+        {hasCover ? (
+          <>
+            <Image
+              src={imageUrl as string}
+              alt={title}
+              fill
+              className={styles.image}
+              sizes="(max-width: 768px) 100vw, 420px"
+              priority={highlighted}
+            />
+            <div className={styles.imageOverlay} />
+          </>
+        ) : (
+          <>
+            <div className={styles.heroBg} />
+            <div className={styles.imageOverlay} />
+            <div className={styles.centerArt}>
+              <Image
+                src={defaultArt}
+                alt=""
+                width={200}
+                height={200}
+                className={styles.centerArtImg}
+                priority={highlighted}
+              />
+            </div>
+          </>
+        )}
+
         {highlighted && (
           <div className={styles.topBadge}>
             <Star className={styles.topIcon} />
@@ -48,12 +81,16 @@ export default function ServiceCard({
         )}
       </div>
 
+      {/* BOTTOM HALF */}
       <div className={styles.body}>
         <div className={styles.metaRow}>
-          <span className={styles.category}>{category || "—"}</span>
+          <span className={styles.category} title={category || ""}>
+            {category || "—"}
+          </span>
+
           <span className={styles.location}>
             <MapPin className={styles.pin} />
-            {city || "—"}
+            <span className={styles.locationText}>{city || "—"}</span>
           </span>
         </div>
 
@@ -61,8 +98,14 @@ export default function ServiceCard({
         <p className={styles.desc}>{description}</p>
 
         <div className={styles.footer}>
-          <span className={styles.priceLabel}>Kaina nuo</span>
-          <span className={styles.priceValue}>{displayPrice}</span>
+          <div className={styles.priceContainer}>
+            <span className={styles.priceLabel}>{priceLabel}</span>
+            <span className={styles.priceValue} title={priceValue}>
+              {priceValue}
+            </span>
+          </div>
+
+          <span className={styles.cta}>Žiūrėti</span>
         </div>
       </div>
     </Link>

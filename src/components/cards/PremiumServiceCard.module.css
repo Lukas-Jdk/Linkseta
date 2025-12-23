@@ -4,7 +4,6 @@
   position: relative;
   width: 100%;
   height: 420px;
-  perspective: 1000px;
 }
 
 .card {
@@ -12,9 +11,9 @@
   width: 100%;
   height: 100%;
   border-radius: 30px;
-  background-color: #0f172a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  background: #020617;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
 }
 
 /* ================= BACKGROUND ================= */
@@ -23,47 +22,101 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
 }
 
-.backgroundImage {
+/* ✅ USER COVER MODE */
+.coverImage {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.9;
-
-  transform: scale(1.33);
-  animation: none !important;
-  transition: none !important;
-  will-change: auto;
+  transform: scale(1.22);
+  opacity: 0.95;
 }
 
-.gradientOverlay {
+.coverOverlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgba(2, 6, 23, 0.10) 0%,
-    rgba(2, 6, 23, 0.35) 45%,
-    rgba(2, 6, 23, 0.85) 100%
+    rgba(2, 6, 23, 0.12) 0%,
+    rgba(2, 6, 23, 0.42) 48%,
+    rgba(2, 6, 23, 0.9) 100%
   );
 }
 
+/* ✅ DEFAULT HERO MODE (kaip header/hero) */
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      900px 420px at 20% 15%,
+      #020617,
+      transparent 55%
+    ),
+    radial-gradient(
+      700px 380px at 80% 25%,
+      #020617,
+      transparent 60%
+    ),
+    linear-gradient(135deg, #050b1a 0%, #0b1430 45%, #071a2b 100%);
+}
+
+.heroShine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.08),
+    transparent 35%,
+    rgba(255, 255, 255, 0.03)
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+}
+
+.heroNoise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+/* ✅ Centrinė ikoninė nuotrauka (tik kai default) */
+.centerArt {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  transform: translateY(-35px);
+}
+
+.centerArtImg {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  opacity: 0.85;
+
+  /* kad “įsipaišytų” kaip kontūrai */
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45));
+}
+
+/* Premium glow */
 .premiumGlow {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top right,
-    rgba(245, 158, 11, 0.12),
-    transparent,
+    rgba(245, 158, 11, 0.14),
+    transparent 55%,
     rgba(245, 158, 11, 0.2)
   );
   mix-blend-mode: overlay;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* ================= CONTENT ================= */
@@ -79,7 +132,6 @@
 }
 
 /* Header */
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -108,7 +160,6 @@
 }
 
 /* Premium */
-
 .premiumBadge {
   display: inline-flex;
   align-items: center;
@@ -117,7 +168,7 @@
   border-radius: 9999px;
   background: linear-gradient(to right, #fbbf24, #f97316);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: white;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
   width: fit-content;
@@ -129,7 +180,6 @@
 }
 
 /* Rating */
-
 .ratingContainer {
   display: flex;
   flex-direction: column;
@@ -141,10 +191,10 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(2, 6, 23, 0.6);
+  background: rgba(2, 6, 23, 0.55);
   backdrop-filter: blur(10px);
   padding: 0.25rem 0.55rem;
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   max-width: 190px;
 }
@@ -159,7 +209,7 @@
 
 .ratingText {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #e2e8f0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,7 +217,6 @@
 }
 
 /* Info */
-
 .info {
   display: flex;
   flex-direction: column;
@@ -189,7 +238,7 @@
 
 .title {
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 800;
   color: white;
   margin-bottom: 0.5rem;
 }
@@ -199,23 +248,21 @@
   font-size: 0.875rem;
   line-height: 1.5;
   display: -webkit-box;
-
+ 
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 /* Footer */
-
 .footer {
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   gap: 0.75rem;
 }
 
-/* ✅ ŠITO TRŪKO – dėl to kaina “sulipdavo” */
 .priceContainer {
   display: flex;
   flex-direction: column;
@@ -232,20 +279,15 @@
 
 .priceValue {
   font-size: 1.2rem;
-  font-weight: 800;
+  font-weight: 900;
   color: white;
-
-  /* ✅ kad nesilaužytų į kitą eilutę */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  /* ✅ skaičiai gražiau “sulygiuoti” */
   font-variant-numeric: tabular-nums;
 }
 
 /* Actions */
-
 .actions {
   display: flex;
   gap: 0.5rem;
@@ -269,7 +311,7 @@
 .contactButton {
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
-  font-weight: 800;
+  font-weight: 900;
   color: white;
   border: none;
   cursor: pointer;
@@ -284,10 +326,14 @@
 }
 
 /* Responsive */
-
 @media (max-width: 768px) {
   .cardContainer {
     height: 380px;
+  }
+
+  .centerArtImg {
+    width: 200px;
+    height: 200px;
   }
 
   .priceContainer {

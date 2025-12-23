@@ -17,9 +17,7 @@ export default async function NewServicePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: authUser.id },
-    include: {
-      profile: true,
-    },
+    include: { profile: true },
   });
 
   if (!user) {
@@ -29,9 +27,7 @@ export default async function NewServicePage() {
   const isProvider = !!user.profile?.isApproved;
 
   const [cities, categories] = await Promise.all([
-    prisma.city.findMany({
-      orderBy: { name: "asc" },
-    }),
+    prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
       where: { type: CategoryType.SERVICE },
       orderBy: { name: "asc" },
@@ -41,19 +37,25 @@ export default async function NewServicePage() {
   if (!isProvider) {
     return (
       <main className={styles.wrapper}>
-        <div className={`card ${styles.card}`}>
-          <h1 className={styles.heading}>Sukurti paslaugą</h1>
-          <p className={styles.lead}>
-            Norėdami sukurti paslaugos skelbimą, pirmiausia turite tapti
-            patvirtintu paslaugų teikėju.
-          </p>
-          <p className={styles.text}>
-            Pasirinkite planą puslapyje <strong>„Tapti paslaugų teikėju“</strong>, o
-            tada grįžkite čia ir galėsite sukurti skelbimą.
-          </p>
-          <a href="/tapti-teikeju" className="btn btn-primary">
-            Tapti paslaugų teikėju
-          </a>
+        <div className={styles.shell}>
+          <header className={styles.pageHeader}>
+            <h1 className={styles.pageTitle}>Sukurti paslaugą</h1>
+            <p className={styles.pageSubtitle}>
+              Norėdami sukurti paslaugos skelbimą, pirmiausia turite tapti
+              patvirtintu paslaugų teikėju.
+            </p>
+          </header>
+
+          <div className={styles.sectionCard}>
+            <p className={styles.infoText}>
+              Pasirinkite planą puslapyje <strong>„Tapti paslaugų teikėju“</strong>,
+              tada grįžkite čia ir galėsite sukurti skelbimą.
+            </p>
+
+            <a href="/tapti-teikeju" className="btn btn-primary">
+              Tapti paslaugų teikėju
+            </a>
+          </div>
         </div>
       </main>
     );
@@ -61,12 +63,14 @@ export default async function NewServicePage() {
 
   return (
     <main className={styles.wrapper}>
-      <div className={`card ${styles.card}`}>
-        <h1 className={styles.heading}>Nauja paslauga</h1>
-        <p className={styles.lead}>
-          Užpildykite žemiau esančią formą ir sukurkite savo paslaugos
-          skelbimą. Vėliau galėsite jį koreguoti per savo paskyrą.
-        </p>
+      <div className={styles.shell}>
+        <header className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Nauja paslauga</h1>
+          <p className={styles.pageSubtitle}>
+            Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau
+            galėsite jį redaguoti per savo paskyrą.
+          </p>
+        </header>
 
         <NewServiceForm
           cities={cities.map((c) => ({ id: c.id, name: c.name }))}

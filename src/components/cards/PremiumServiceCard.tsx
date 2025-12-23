@@ -29,29 +29,57 @@ export default function PremiumServiceCard({
   highlighted = false,
   imageUrl,
 }: PremiumServiceCardProps) {
-  // ✅ skaičių suformatuojam, kad būtų trumpiau ir gražiau (pvz. 12000 -> 12 000)
   const formattedPrice =
     priceFrom != null
       ? `${new Intl.NumberFormat("nb-NO").format(priceFrom)} NOK`
       : "Kaina sutartinė";
 
-  const bgSrc = imageUrl || "/default-service.webp";
+  // ✅ Jei user įkėlė nuotrauką – rodom cover per visą kortelę.
+  const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
+
+  // ✅ Default centro ikonai (kol kas lagaminas) – tu vėliau pakeisi į ką nori
+  const defaultCenterImg = "/logo.webp"; // <- įsidėk į /public (pvz. tavo lagaminas)
 
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
         {/* Background */}
         <div className={styles.backgroundContainer}>
-          <Image
-            src={bgSrc}
-            alt={title}
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            className={styles.backgroundImage}
-            priority={highlighted}
-          />
+          {/* ✅ 1) Jei yra user foto – cover per visą */}
+          {hasUserImage ? (
+            <>
+              <Image
+                src={imageUrl as string}
+                alt={title}
+                fill
+                sizes="(max-width: 768px) 100vw, 600px"
+                className={styles.coverImage}
+                priority={highlighted}
+              />
+              <div className={styles.coverOverlay} />
+            </>
+          ) : (
+            <>
+              {/* ✅ 2) Jei nėra user foto – gradient kaip header/hero */}
+              <div className={styles.heroBg} />
+              <div className={styles.heroShine} />
+              <div className={styles.heroNoise} />
 
-          <div className={styles.gradientOverlay} />
+              {/* ✅ Centro ikoninis paveikslas (NE per visą) */}
+              <div className={styles.centerArt} aria-hidden="true">
+                <Image
+                  src={defaultCenterImg}
+                  alt=""
+                  width={220}
+                  height={220}
+                  className={styles.centerArtImg}
+                  priority={false}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Premium glow kaip buvo */}
           {highlighted && <div className={styles.premiumGlow} />}
         </div>
 
@@ -61,6 +89,7 @@ export default function PremiumServiceCard({
           <div className={styles.header}>
             <div className={styles.badges}>
               <span className={styles.categoryBadge}>{category}</span>
+
               {highlighted && (
                 <span className={styles.premiumBadge}>
                   <ShieldCheck className={styles.premiumIcon} />
@@ -69,7 +98,6 @@ export default function PremiumServiceCard({
               )}
             </div>
 
-            {/* ✅ Reviews: nebe fake. Kol nėra sistemos – rodome neutraliai */}
             <div className={styles.ratingContainer} aria-label="Atsiliepimai">
               <div className={styles.ratingBadge}>
                 <Star className={styles.starIcon} />
@@ -91,7 +119,6 @@ export default function PremiumServiceCard({
             </div>
 
             <div className={styles.footer}>
-              {/* ✅ Kaina sutvarkyta: label + value nebesilieja */}
               <div className={styles.priceContainer}>
                 <span className={styles.priceLabel}>
                   {priceFrom != null ? "Kaina nuo" : "Kaina"}
@@ -131,6 +158,7 @@ export default function PremiumServiceCard({
               </div>
             </div>
           </div>
+          {/* /info */}
         </div>
         {/* /content */}
       </div>

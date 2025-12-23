@@ -3,10 +3,11 @@
 /* Tamsus hero fonas */
 .hero {
   position: relative;
- padding-top: 3rem;
-  overflow: hidden;
-background: var(--bg-header);
- /* background:
+  padding-top: 3rem;
+  padding-bottom: 1rem;
+  overflow: visible;
+  background: var(--bg-header);
+  /* background:
     radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
     radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
     linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%); */
@@ -36,8 +37,6 @@ background: var(--bg-header);
   margin: 0 auto;
   text-align: center;
 }
-
-
 
 /* AnimatedTitle viduje – paliekam komponentą,
    šis stilius tik papildo tarpą aplinkui, jei reikia */
@@ -111,7 +110,6 @@ background: var(--bg-header);
   pointer-events: none;
 }
 
-
 /* Responsyvus */
 @media (max-width: 768px) {
   .hero {
@@ -122,8 +120,6 @@ background: var(--bg-header);
     font-size: 1rem;
     padding: 0 4px;
   }
-
-
 }
 
 @media (max-width: 480px) {

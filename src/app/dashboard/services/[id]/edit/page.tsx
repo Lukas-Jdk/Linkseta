@@ -1,7 +1,7 @@
 // src/app/dashboard/services/[id]/edit/page.tsx
 import { prisma } from "@/lib/prisma";
-import EditServiceForm from "./EditServiceForm";
-import styles from "@/app/dashboard/services/services.module.css";
+import EditServiceForm from "./editServiceForm";
+import styles from "./edit.module.css";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,10 +15,7 @@ export default async function EditServicePage({ params }: PageProps) {
   const [service, cities, categories] = await Promise.all([
     prisma.serviceListing.findUnique({
       where: { id },
-      include: {
-        city: true,
-        category: true,
-      },
+      include: { city: true, category: true },
     }),
     prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
@@ -43,7 +40,7 @@ export default async function EditServicePage({ params }: PageProps) {
     cityId: service.cityId ?? "",
     categoryId: service.categoryId ?? "",
     priceFrom: service.priceFrom ?? null,
-    imageUrl: service.imageUrl ?? null, // 👈 ŠITO TRŪKO
+    imageUrl: service.imageUrl ?? null,
   };
 
   return (
