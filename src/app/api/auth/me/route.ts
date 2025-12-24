@@ -1,35 +1,19 @@
 // src/app/api/auth/me/route.ts
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
-
 type MeResponse = {
-  user: {
-    id: string;
-    email: string;
-    role: "USER" | "ADMIN";
-  } | null;
+  user: { id: string; email: string; role: "USER" | "ADMIN" } | null;
 };
-
 export async function GET() {
   try {
     const user = await getAuthUser();
-
     const body: MeResponse = {
-      user: user
-        ? {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-          }
-        : null,
+      user: user ? { id: user.id, email: user.email, role: user.role } : null,
     };
-
     return NextResponse.json(body, { status: 200 });
   } catch (err) {
     console.error("GET /api/auth/me error", err);
-    const body: MeResponse = {
-      user: null,
-    };
+    const body: MeResponse = { user: null };
     return NextResponse.json(body, { status: 200 });
   }
 }
