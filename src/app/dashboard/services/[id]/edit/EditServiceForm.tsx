@@ -1,5 +1,5 @@
-"use client";
 
+"use client";
 import { useState, FormEvent, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";

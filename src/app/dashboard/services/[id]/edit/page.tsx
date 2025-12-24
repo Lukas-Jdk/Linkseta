@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import EditServiceForm from "./editServiceForm";
+import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";
 
 type PageProps = {
