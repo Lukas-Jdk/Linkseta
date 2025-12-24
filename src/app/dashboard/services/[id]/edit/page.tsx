@@ -1,4 +1,3 @@
-// src/app/dashboard/services/[id]/edit/page.tsx
 import { prisma } from "@/lib/prisma";
 import EditServiceForm from "./editServiceForm";
 import styles from "./edit.module.css";
@@ -26,9 +25,11 @@ export default async function EditServicePage({ params }: PageProps) {
 
   if (!service) {
     return (
-      <main className={styles.container}>
-        <h1 className={styles.pageTitle}>Paslauga nerasta</h1>
-        <p>Tokios paslaugos sistemoje nebėra.</p>
+      <main className={styles.wrapper}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>Paslauga nerasta</h1>
+          <p className={styles.subtitle}>Tokios paslaugos sistemoje nebėra.</p>
+        </div>
       </main>
     );
   }
@@ -44,17 +45,19 @@ export default async function EditServicePage({ params }: PageProps) {
   };
 
   return (
-    <main className={styles.container}>
-      <h1 className={styles.pageTitle}>Redaguoti paslaugą</h1>
-      <p className={styles.pageSubtitle}>
-        Čia gali atnaujinti savo paslaugos informaciją arba ją ištrinti.
-      </p>
+    <main className={styles.wrapper}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Redaguoti paslaugą</h1>
+        <p className={styles.subtitle}>
+          Atnaujinkite paslaugos informaciją arba ištrinkite skelbimą.
+        </p>
 
-      <EditServiceForm
-        initial={initial}
-        cities={cities.map((c) => ({ id: c.id, name: c.name }))}
-        categories={categories.map((c) => ({ id: c.id, name: c.name }))}
-      />
+        <EditServiceForm
+          initial={initial}
+          cities={cities.map((c) => ({ id: c.id, name: c.name }))}
+          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+        />
+      </div>
     </main>
   );
 }
