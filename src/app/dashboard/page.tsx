@@ -5,16 +5,24 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import styles from "./dashboard.module.css";
+import ProfileCardClient from "./ProfileCardClient";
+
+import {
+  MapPin,
+  Folder,
+  Calendar,
+  Eye,
+  Pencil,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-function getInitialLetter(name: string | null, email: string) {
-  const source = (name && name.trim()) ? name.trim() : email;
-  return source.slice(0, 1).toUpperCase();
-}
-
 function formatDateLT(date: Date) {
-  return new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("lt-LT", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 export default async function DashboardPage() {
@@ -43,9 +51,6 @@ export default async function DashboardPage() {
   const totalServices = services.length;
   const activeServices = services.filter((s) => s.isActive).length;
 
-  const displayName = user.name?.trim() || user.email.split("@")[0];
-  const initial = getInitialLetter(user.name ?? null, user.email);
-
   return (
     <main className={styles.page}>
       <div className="container">
@@ -70,60 +75,15 @@ export default async function DashboardPage() {
 
         {/* MAIN GRID */}
         <div className={styles.grid}>
-          {/* LEFT: PROFILE CARD */}
-          <aside className={styles.profileCard}>
-            <div className={styles.profileHeaderBg} />
-
-            <div className={styles.profileBody}>
-              <div className={styles.avatarWrap}>
-                <div className={styles.avatarCircle} aria-hidden="true">
-                  {initial}
-                </div>
-              </div>
-
-              <div className={styles.profileIdentity}>
-                <div className={styles.profileName}>{displayName}</div>
-                <div className={styles.profileType}>Paslaugų teikėjas</div>
-              </div>
-
-              <div className={styles.profileInfoList}>
-                <div className={styles.infoRow}>
-                  <span className={styles.infoIcon}>✉</span>
-                  <span className={styles.infoText}>{user.email}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                  <span className={styles.infoIcon}>🛡</span>
-                  <span className={styles.infoText}>
-                    {user.role === "ADMIN" ? "Administratorius" : "Vartotojas"}
-                  </span>
-                </div>
-
-                <div className={styles.infoRow}>
-                  <span className={styles.infoIcon}>📦</span>
-                  <span className={styles.infoText}>
-                    {totalServices} skelbimai
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.profileBadges}>
-                {isProviderApproved ? (
-                  <span className={styles.providerOk}>Patvirtintas teikėjas</span>
-                ) : (
-                  <span className={styles.providerPending}>Nepatvirtintas teikėjas</span>
-                )}
-              </div>
-
-              {!isProviderApproved && (
-                <div className={styles.profileCta}>
-                  <Link href="/tapti-teikeju" className={styles.ctaBtn}>
-                    Tapti paslaugų teikėju
-                  </Link>
-                </div>
-              )}
-            </div>
-          </aside>
+          {/* LEFT: PROFILE CARD (client) */}
+          <ProfileCardClient
+            name={user.name ?? null}
+            email={user.email}
+            role={user.role}
+            avatarUrl={user.avatarUrl ?? null}
+            totalServices={totalServices}
+            isProviderApproved={isProviderApproved}
+          />
 
           {/* RIGHT: SERVICES */}
           <section className={styles.servicesCard}>
@@ -132,9 +92,7 @@ export default async function DashboardPage() {
                 <h2 className={styles.h2}>Mano paslaugos</h2>
               </div>
 
-              <div className={styles.servicesCount}>
-                {activeServices} aktyvūs
-              </div>
+              <div className={styles.servicesCount}>{activeServices} aktyvūs</div>
             </div>
 
             <div className={styles.servicesList}>
@@ -142,7 +100,10 @@ export default async function DashboardPage() {
                 <div className={styles.empty}>
                   Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.
                   <div className={styles.emptyActions}>
-                    <Link href="/dashboard/services/new" className={styles.newBtnSmall}>
+                    <Link
+                      href="/dashboard/services/new"
+                      className={styles.newBtnSmall}
+                    >
                       ＋ Sukurti skelbimą
                     </Link>
                   </div>
@@ -151,7 +112,8 @@ export default async function DashboardPage() {
 
               {!isProviderApproved && (
                 <div className={styles.empty}>
-                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų teikėju.
+                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų
+                  teikėju.
                   <div className={styles.emptyActions}>
                     <Link href="/tapti-teikeju" className={styles.newBtnSmall}>
                       Tapti teikėju
@@ -177,7 +139,9 @@ export default async function DashboardPage() {
                           className={styles.thumbImg}
                           sizes="120px"
                         />
-                        {s.highlighted && <span className={styles.topBadge}>TOP</span>}
+                        {s.highlighted && (
+                          <span className={styles.topBadge}>TOP</span>
+                        )}
                       </div>
 
                       <div className={styles.serviceMain}>
@@ -185,7 +149,9 @@ export default async function DashboardPage() {
                           <div className={styles.serviceTitle}>{s.title}</div>
                           <span
                             className={
-                              s.isActive ? styles.statusActive : styles.statusInactive
+                              s.isActive
+                                ? styles.statusActive
+                                : styles.statusInactive
                             }
                           >
                             {s.isActive ? "Aktyvi" : "Išjungta"}
@@ -193,20 +159,39 @@ export default async function DashboardPage() {
                         </div>
 
                         <div className={styles.serviceMeta}>
-                          <span className={styles.metaItem}>📍 {cityName}</span>
-                          <span className={styles.metaItem}>📁 {catName}</span>
-                          <span className={styles.metaItem}>📅 {date}</span>
+                          <span className={styles.metaItem}>
+                            <MapPin className={styles.metaIcon} />
+                            {cityName}
+                          </span>
+
+                          <span className={styles.metaItem}>
+                            <Folder className={styles.metaIcon} />
+                            {catName}
+                          </span>
+
+                          <span className={styles.metaItem}>
+                            <Calendar className={styles.metaIcon} />
+                            {date}
+                          </span>
                         </div>
 
                         <div className={styles.serviceActions}>
-                          <Link href={`/services/${s.slug}`} className={styles.actionLink}>
-                            👁 Peržiūrėti
+                          <Link
+                            href={`/services/${s.slug}`}
+                            className={styles.actionLink}
+                            aria-label="Peržiūrėti paslaugą"
+                          >
+                            <Eye className={styles.actionIcon} />
+                            <span>Peržiūrėti</span>
                           </Link>
+
                           <Link
                             href={`/dashboard/services/${s.id}/edit`}
                             className={styles.actionLink}
+                            aria-label="Redaguoti paslaugą"
                           >
-                            ✏️ Redaguoti
+                            <Pencil className={styles.actionIcon} />
+                            <span>Redaguoti</span>
                           </Link>
                         </div>
                       </div>

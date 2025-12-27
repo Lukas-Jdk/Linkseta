@@ -99,9 +99,10 @@
 }
 
 .avatarWrap {
-  position: absolute;
-  top: -42px;
-  left: 16px;
+  width: 92px;         /* pas tave gali būti 110 ar 120 – rinkis */
+  height: 92px;
+  margin: -50px auto 0;   /* kad “užliptų” ant header bg */
+  margin-left: 18px;
 }
 
 .avatarCircle {
@@ -119,7 +120,7 @@
 }
 
 .profileIdentity {
-  padding-top: 46px;
+  padding-top: 12px;
   padding-left: 6px;
 }
 
@@ -233,7 +234,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 6px 6px 10px;
+  padding: 6px 6px 20px;
 }
 
 .h2 {
@@ -245,6 +246,7 @@
 .servicesCount {
   font-size: 0.9rem;
   color: #6b7280;
+  font-family: var(--font-second);
 }
 
 /* List */
@@ -365,16 +367,23 @@
 
 .serviceMeta {
   display: flex;
+  gap: 14px;
   flex-wrap: wrap;
-  gap: 10px;
-  color: #64748b;
-  font-size: 0.88rem;
 }
 
 .metaItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b; /* 🔹 neutrali pilka-mėlyna */
+}
+
+.metaIcon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+   color: #0ea5e9;
 }
 
 /* Actions */
@@ -387,6 +396,7 @@
 
 .actionLink {
   font-size: 0.95rem;
+  font-family: var(--font-second);
   color: #334155;
   text-decoration: none;
   display: inline-flex;
@@ -394,6 +404,11 @@
   gap: 8px;
 }
 
+.actionIcon {
+  width: 20px;
+  height: 20px;
+  color: #0ea5e9;
+}
 .actionLink:hover {
   text-decoration: underline;
 }

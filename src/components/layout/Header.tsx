@@ -15,18 +15,19 @@ import {
   ShieldCheck,
   LogOut,
 } from "lucide-react";
+import Avatar from "@/components/ui/Avatar";
 
 type Role = "USER" | "ADMIN" | null;
 
-type UserMeta = {
-  full_name?: string;
-  name?: string;
-  avatar_url?: string;
-  picture?: string;
+type MeUser = {
+  id: string;
+  email: string;
+  role: "USER" | "ADMIN";
+  name: string | null;
+  avatarUrl: string | null;
 };
 
 export default function Header() {
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
 
@@ -38,7 +39,6 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isAdmin = role === "ADMIN";
-  const profileImg = avatarUrl || "/avataras.webp";
 
   const closeAllMenus = useCallback(() => {
     setIsProfileOpen(false);
@@ -54,21 +54,18 @@ export default function Header() {
     setIsProfileOpen(false);
   }, []);
 
-  const loadRole = useCallback(async () => {
+  const loadMe = useCallback(async () => {
     try {
-      // jei user nėra – net nekviečiam
-      const { data } = await supabase.auth.getUser();
-      if (!data?.user) {
-        setRole(null);
-        return;
-      }
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const json = (await res.json()) as { user: MeUser | null };
 
-      const res = await fetch("/api/auth/role", { cache: "no-store" });
-      if (res.ok) {
-        const json = (await res.json()) as { role?: Role };
-        setRole(json.role ?? "USER");
+      if (json.user) {
+        setRole(json.user.role ?? "USER");
+        setUserName(json.user.name);
+        setUserEmail(json.user.email);
+        setAvatarUrl(json.user.avatarUrl);
       } else {
-        setRole("USER");
+        setRole(null);
       }
     } catch {
       setRole("USER");
@@ -83,17 +80,8 @@ export default function Header() {
       }
 
       setIsLoggedIn(true);
-
-      const email = user.email ?? "";
-      setUserEmail(email || null);
-
-      const meta = (user.user_metadata ?? {}) as UserMeta;
-
-      const fullName = meta.full_name || meta.name || null;
-      setUserName(fullName);
-
-      const avatar = meta.avatar_url || meta.picture || null;
-      setAvatarUrl(avatar);
+      setUserEmail(user.email ?? null);
+      // vardą ir avatarą trauksim iš DB per /api/auth/me
     },
     [resetAuthUi]
   );
@@ -107,9 +95,8 @@ export default function Header() {
 
       applyUserToUi(data?.user ?? null);
 
-      // rolę užkraunam tik jei prisijungęs
       if (data?.user) {
-        await loadRole();
+        await loadMe();
       } else {
         setRole(null);
       }
@@ -124,7 +111,7 @@ export default function Header() {
         applyUserToUi(user);
 
         if (user) {
-          await loadRole();
+          await loadMe();
         } else {
           setRole(null);
         }
@@ -135,11 +122,10 @@ export default function Header() {
       alive = false;
       sub.subscription.unsubscribe();
     };
-  }, [applyUserToUi, loadRole]);
+  }, [applyUserToUi, loadMe]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    // Header atsinaujins per onAuthStateChange
     window.location.href = "/";
   }
 
@@ -191,11 +177,11 @@ export default function Header() {
                     onClick={() => setIsProfileOpen((v) => !v)}
                     aria-label="Atidaryti paskyros meniu"
                   >
-                    <Image
-                      src={profileImg}
-                      alt="Profilio nuotrauka"
-                      width={36}
-                      height={36}
+                    <Avatar
+                      name={userName}
+                      email={userEmail}
+                      avatarUrl={avatarUrl}
+                      size={36}
                       className={styles.profileAvatar}
                     />
                   </button>
@@ -275,11 +261,11 @@ export default function Header() {
               {isLoggedIn ? (
                 <>
                   <div className={styles.drawerAvatar}>
-                    <Image
-                      src={profileImg}
-                      alt="Profilio nuotrauka"
-                      width={44}
-                      height={44}
+                    <Avatar
+                      name={userName}
+                      email={userEmail}
+                      avatarUrl={avatarUrl}
+                      size={44}
                       className={styles.drawerAvatarImg}
                     />
                   </div>
@@ -363,7 +349,7 @@ export default function Header() {
                   className={styles.drawerNavItem}
                 >
                   <LayoutDashboard className={styles.drawerNavIcon} />
-                  <span>Mano paslaugos</span>
+                  <span>Mano paskyra</span>
                 </Link>
               )}
 
