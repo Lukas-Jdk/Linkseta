@@ -16,6 +16,33 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
 }
 
+
+
+/* ✅ Visa kortelė clickable per Link overlay */
+.cardLinkOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;          /* virš background */
+  border-radius: 30px;
+}
+
+/* ✅ turinys turi būti virš overlay, kad mygtukai būtų spaudžiami */
+.content {
+  position: absolute;
+  inset: 0;
+  z-index: 10;         /* jau pas tave taip buvo */
+}
+
+/* ✅ mygtukai turi būti virš overlay */
+.actions,
+.iconButton,
+.contactButton {
+  position: relative;
+  z-index: 20;
+}
+
+
+
 /* ================= BACKGROUND ================= */
 
 .backgroundContainer {
@@ -24,7 +51,7 @@
   z-index: 0;
 }
 
-/* ✅ USER COVER MODE */
+/*  USER COVER MODE */
 .coverImage {
   position: absolute;
   inset: 0;

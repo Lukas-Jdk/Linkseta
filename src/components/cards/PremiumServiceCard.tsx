@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Star, MapPin, ArrowRight, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
@@ -34,18 +35,24 @@ export default function PremiumServiceCard({
       ? `${new Intl.NumberFormat("nb-NO").format(priceFrom)} NOK`
       : "Kaina sutartinė";
 
-  // ✅ Jei user įkėlė nuotrauką – rodom cover per visą kortelę.
   const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
+  const defaultCenterImg = "/logo.webp";
 
-  // ✅ Default centro ikonai (kol kas lagaminas) – tu vėliau pakeisi į ką nori
-  const defaultCenterImg = "/logo.webp"; // <- įsidėk į /public (pvz. tavo lagaminas)
+  const serviceHref = `/services/${slug}`;
+  const contactHref = `/services/${slug}#kontaktai`;
 
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
+        {/* ✅ Visa kortelė paspaudžiama per Link overlay (be window.location) */}
+        <Link
+          href={serviceHref}
+          className={styles.cardLinkOverlay}
+          aria-label={`Atidaryti paslaugą: ${title}`}
+        />
+
         {/* Background */}
-        <div className={styles.backgroundContainer}>
-          {/* ✅ 1) Jei yra user foto – cover per visą */}
+        <div className={styles.backgroundContainer} aria-hidden="true">
           {hasUserImage ? (
             <>
               <Image
@@ -60,13 +67,11 @@ export default function PremiumServiceCard({
             </>
           ) : (
             <>
-              {/* ✅ 2) Jei nėra user foto – gradient kaip header/hero */}
               <div className={styles.heroBg} />
               <div className={styles.heroShine} />
               <div className={styles.heroNoise} />
 
-              {/* ✅ Centro ikoninis paveikslas (NE per visą) */}
-              <div className={styles.centerArt} aria-hidden="true">
+              <div className={styles.centerArt}>
                 <Image
                   src={defaultCenterImg}
                   alt=""
@@ -79,7 +84,6 @@ export default function PremiumServiceCard({
             </>
           )}
 
-          {/* Premium glow kaip buvo */}
           {highlighted && <div className={styles.premiumGlow} />}
         </div>
 
@@ -129,32 +133,29 @@ export default function PremiumServiceCard({
               </div>
 
               <div className={styles.actions}>
-                <motion.button
-                  className={styles.iconButton}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => (window.location.href = `/services/${slug}`)}
-                  type="button"
-                  aria-label="Žiūrėti paslaugą"
-                >
-                  <ArrowRight className={styles.arrowIcon} />
-                </motion.button>
+                {/* ✅ Link vietoj window.location */}
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Link
+                    href={serviceHref}
+                    className={styles.iconButton}
+                    aria-label="Žiūrėti paslaugą"
+                  >
+                    <ArrowRight className={styles.arrowIcon} />
+                  </Link>
+                </motion.div>
 
-                <motion.button
-                  className={`${styles.contactButton} ${
-                    highlighted
-                      ? styles.contactButtonPremium
-                      : styles.contactButtonStandard
-                  }`}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() =>
-                    (window.location.href = `/services/${slug}#kontaktai`)
-                  }
-                  type="button"
-                >
-                  Susisiekti
-                </motion.button>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    href={contactHref}
+                    className={`${styles.contactButton} ${
+                      highlighted
+                        ? styles.contactButtonPremium
+                        : styles.contactButtonStandard
+                    }`}
+                  >
+                    Susisiekti
+                  </Link>
+                </motion.div>
               </div>
             </div>
           </div>
