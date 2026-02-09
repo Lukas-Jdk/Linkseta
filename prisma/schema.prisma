@@ -1,25 +1,26 @@
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id    String   @id @default(cuid())
-  email String   @unique
-  name  String?
-  phone String?
-  role  UserRole @default(USER)
+  id         String   @id @default(cuid())
+  email      String   @unique
+  supabaseId String?  @unique
 
-  avatarUrl String?
+  name       String?
+  phone      String?
+  role       UserRole @default(USER)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  avatarUrl  String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   profile     ProviderProfile?
   services    ServiceListing[]
@@ -55,7 +56,9 @@ model ServiceListing {
   priceTo     Int?
   isActive    Boolean @default(true)
   highlighted Boolean @default(false)
- imageUrl    String?   // nuotraukos URL
+
+  imageUrl    String?
+
   cityId     String?
   categoryId String?
   planId     String?
@@ -78,7 +81,7 @@ model JobListing {
   title          String
   slug           String  @unique
   description    String
-  employmentType String? // pilnas etatas, dalinis, laikinas ir t.t.
+  employmentType String?
   salaryFrom     Int?
   salaryTo       Int?
   isActive       Boolean @default(true)
@@ -129,6 +132,7 @@ model Plan {
   period      PlanPeriod @default(MONTHLY)
   maxListings Int?
   highlight   Boolean    @default(false)
+
   services ServiceListing[]
 }
 
@@ -144,18 +148,18 @@ enum ProviderRequestStatus {
 }
 
 model ProviderRequest {
-  id          String   @id @default(cuid())
-  name        String
-  email       String
-  phone       String?
-  cityId      String?
-  categoryId  String?
-  message     String?
-  status      ProviderRequestStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String                @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  cityId     String?
+  categoryId String?
+  message    String?
+  status     ProviderRequestStatus @default(PENDING)
 
-  city        City?      @relation(fields: [cityId], references: [id])
-  category    Category?  @relation(fields: [categoryId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  city     City?     @relation(fields: [cityId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
 }
-

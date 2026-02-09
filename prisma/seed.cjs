@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -16,61 +15,51 @@ function slugify(input) {
 }
 
 async function upsertCities() {
-  // ✅ Norvegijos miestai (LT pavadinimai)
   const cities = [
-    // === OSLO REGIONAS (TOP) ===
-  { name: "Oslo", slug: "oslo" },
-  { name: "Lillestrøm", slug: "lillestrom" },
-  { name: "Strømmen", slug: "strommen" },
-  { name: "Lysaker", slug: "lysaker" },
-  { name: "Skøyen", slug: "skoyen" },
-  { name: "Billingstad", slug: "billingstad" },
-  { name: "Sandvika", slug: "sandvika" },
-  { name: "Asker", slug: "asker" },
-  { name: "Bærum", slug: "baerum" },
-  { name: "Fornebu", slug: "fornebu" },
-  { name: "Drammen", slug: "drammen" },
-    // === DIDIEJI NORVEGIJOS MIESTAI ===
-  { name: "Bergen", slug: "bergen" },
-  { name: "Trondheim", slug: "trondheim" },
-  { name: "Stavanger", slug: "stavanger" },
-  { name: "Sandnes", slug: "sandnes" },
-  { name: "Kristiansand", slug: "kristiansand" },
-  { name: "Tromsø", slug: "tromso" },
-  { name: "Ålesund", slug: "alesund" },
-  { name: "Bodø", slug: "bodo" },
-  { name: "Haugesund", slug: "haugesund" },
-    // === KITI SVARBŪS MIESTAI ===
-  { name: "Fredrikstad", slug: "fredrikstad" },
-  { name: "Sarpsborg", slug: "sarpsborg" },
-  { name: "Tønsberg", slug: "tonsberg" },
-  { name: "Moss", slug: "moss" },
-  { name: "Skien", slug: "skien" },
-  { name: "Arendal", slug: "arendal" },
-  { name: "Hamar", slug: "hamar" },
-  { name: "Lillehammer", slug: "lillehammer" },
-    
+    { name: "Oslo", slug: "oslo" },
+    { name: "Lillestrøm", slug: "lillestrom" },
+    { name: "Strømmen", slug: "strommen" },
+    { name: "Lysaker", slug: "lysaker" },
+    { name: "Skøyen", slug: "skoyen" },
+    { name: "Billingstad", slug: "billingstad" },
+    { name: "Sandvika", slug: "sandvika" },
+    { name: "Asker", slug: "asker" },
+    { name: "Bærum", slug: "baerum" },
+    { name: "Fornebu", slug: "fornebu" },
+    { name: "Drammen", slug: "drammen" },
+
+    { name: "Bergen", slug: "bergen" },
+    { name: "Trondheim", slug: "trondheim" },
+    { name: "Stavanger", slug: "stavanger" },
+    { name: "Sandnes", slug: "sandnes" },
+    { name: "Kristiansand", slug: "kristiansand" },
+    { name: "Tromsø", slug: "tromso" },
+    { name: "Ålesund", slug: "alesund" },
+    { name: "Bodø", slug: "bodo" },
+    { name: "Haugesund", slug: "haugesund" },
+
+    { name: "Fredrikstad", slug: "fredrikstad" },
+    { name: "Sarpsborg", slug: "sarpsborg" },
+    { name: "Tønsberg", slug: "tonsberg" },
+    { name: "Moss", slug: "moss" },
+    { name: "Skien", slug: "skien" },
+    { name: "Arendal", slug: "arendal" },
+    { name: "Hamar", slug: "hamar" },
+    { name: "Lillehammer", slug: "lillehammer" }
   ];
 
   for (const city of cities) {
     const slug = city.slug || slugify(city.name);
-
     await prisma.city.upsert({
-      where: { slug }, // ✅ stabilu, nes slug @unique
-      update: {
-        name: city.name, // ✅ jei pakeisi pavadinimą, seed pataisys
-      },
-      create: {
-        name: city.name,
-        slug,
-      },
+      where: { slug },
+      update: { name: city.name },
+      create: { name: city.name, slug }
     });
   }
 }
 
 async function upsertCategories() {
-  // ✅ SERVICE kategorijos (gali plėsti)
-  const serviceCategories = [
+  const names = [
     "Statybos",
     "Remontas",
     "Santechnika",
@@ -90,88 +79,46 @@ async function upsertCategories() {
     "Gyvūnų priežiūra",
     "Maistas / Kateris",
     "Namų ūkis",
-    "Kita",
+    "Kita"
   ];
 
-  for (const name of serviceCategories) {
+  for (const name of names) {
     const slug = slugify(name);
-
     await prisma.category.upsert({
       where: { slug },
-      update: {
-        name,
-        type: "SERVICE",
-      },
-      create: {
-        name,
-        slug,
-        type: "SERVICE",
-      },
+      update: { name, type: "SERVICE" },
+      create: { name, slug, type: "SERVICE" }
     });
   }
-
-  // ✅ Jei nori ir JOB kategorijų ateičiai:
-  // const jobCategories = ["Statybininkai", "Vairuotojai", "Valytojai"];
-  // for (const name of jobCategories) {
-  //   const slug = `job-${slugify(name)}`;
-  //   await prisma.category.upsert({
-  //     where: { slug },
-  //     update: { name, type: "JOB" },
-  //     create: { name, slug, type: "JOB" },
-  //   });
-  // }
 }
 
 async function upsertPlans() {
   const plans = [
-    {
-      name: "Demo planas",
-      slug: "demo",
-      priceNok: 0,
-      period: "MONTHLY",
-      maxListings: 1,
-      highlight: false,
-    },
-    {
-      name: "Basic",
-      slug: "basic",
-      priceNok: 199,
-      period: "MONTHLY",
-      maxListings: 3,
-      highlight: false,
-    },
-    {
-      name: "Premium",
-      slug: "premium",
-      priceNok: 399,
-      period: "MONTHLY",
-      maxListings: 10,
-      highlight: true,
-    },
+    { name: "Demo planas", slug: "demo", priceNok: 0, period: "MONTHLY", maxListings: 1, highlight: false },
+    { name: "Basic", slug: "basic", priceNok: 199, period: "MONTHLY", maxListings: 3, highlight: false },
+    { name: "Premium", slug: "premium", priceNok: 399, period: "MONTHLY", maxListings: 10, highlight: true }
   ];
 
   for (const plan of plans) {
     await prisma.plan.upsert({
-      where: { slug: plan.slug }, // ✅ FIX čia
+      where: { slug: plan.slug },
       update: {
         name: plan.name,
         priceNok: plan.priceNok,
         period: plan.period,
         maxListings: plan.maxListings,
-        highlight: plan.highlight,
+        highlight: plan.highlight
       },
-      create: plan,
+      create: plan
     });
   }
 }
 
 async function main() {
   console.log("Seeding duomenis...");
-
   await upsertCities();
   await upsertCategories();
   await upsertPlans();
-
   console.log("Seed pabaigta ✅");
 }
 
