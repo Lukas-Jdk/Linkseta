@@ -7,12 +7,9 @@ export type AuthUser = {
   id: string;
   email: string;
   role: "USER" | "ADMIN";
-  name: string | null;
-  phone: string | null;
-  avatarUrl: string | null;
 };
 
-// 🔹 Pagrindinė funkcija – paimti userį iš Supabase + DB (ir pasisyncinti vardą/telefoną)
+// 🔹 Pagrindinė funkcija – paimti userį iš Supabase + DB
 export async function getAuthUser(): Promise<AuthUser | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
@@ -23,29 +20,19 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
   const email = data.user.email;
 
-  const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
-  const metaName = typeof meta.name === "string" ? meta.name.trim() : null;
-  const metaPhone = typeof meta.phone === "string" ? meta.phone.trim() : null;
-
-  // Upsertinam vartotoją DB ir (jei turim) atnaujinam name/phone iš metadata
+  // 🔥 PAGRINDINIS PATOBULINIMAS:
+  // jei DB user nerastas, mes jį AUTOMATIŠKAI sukuriam (default role = USER)
   const dbUser = await prisma.user.upsert({
     where: { email },
-    update: {
-      ...(metaName ? { name: metaName } : {}),
-      ...(metaPhone ? { phone: metaPhone } : {}),
-    },
+    update: {}, // kol kas nieko neatnaujinam
     create: {
       email,
-      ...(metaName ? { name: metaName } : {}),
-      ...(metaPhone ? { phone: metaPhone } : {}),
-      // role default USER pagal schema
+      // name, phone galėsi atsinaujinti per /api/auth/sync-user
+      // role pagal schema.prisma default yra USER
     },
     select: {
       id: true,
       role: true,
-      name: true,
-      phone: true,
-      avatarUrl: true,
     },
   });
 
@@ -53,9 +40,6 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     id: dbUser.id,
     email,
     role: dbUser.role,
-    name: dbUser.name,
-    phone: dbUser.phone,
-    avatarUrl: dbUser.avatarUrl,
   };
 }
 
@@ -65,7 +49,10 @@ export async function requireUser() {
 
   if (!user) {
     return {
-      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      response: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ),
       user: null as AuthUser | null,
     };
   }
@@ -81,15 +68,24 @@ export async function requireAdmin() {
   const { user, response } = await requireUser();
 
   if (response || !user) {
-    return { response, user: null as AuthUser | null };
-  }
-
-  if (user.role !== "ADMIN") {
     return {
-      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      response,
       user: null as AuthUser | null,
     };
   }
 
-  return { response: null as NextResponse | null, user };
+  if (user.role !== "ADMIN") {
+    return {
+      response: NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      ),
+      user: null as AuthUser | null,
+    };
+  }
+
+  return {
+    response: null as NextResponse | null,
+    user,
+  };
 }

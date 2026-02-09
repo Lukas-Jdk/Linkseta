@@ -1,3 +1,4 @@
+// src/components/service-marquee/ServiceMarquee.tsx
 "use client";
 
 import React from "react";

@@ -1,3 +1,4 @@
+// src/app/dashboard/services/[id]/edit/page.tsx
 import { prisma } from "@/lib/prisma";
 import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";

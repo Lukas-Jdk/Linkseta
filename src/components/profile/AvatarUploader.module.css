@@ -1,6 +1,5 @@
 /* src/components/profile/AvatarUploader.module.css */
 .wrap {
-  /* ✅ čia svarbiausia – nekurti savo layout, tik užpildyti tėvinį */
   width: 100%;
   height: 100%;
 }
@@ -9,7 +8,7 @@
   display: none;
 }
 
-/* ✅ mygtukas užpildo tėvinį avatarWrap */
+/*  mygtukas užpildo tėvinį avatarWrap */
 .avatarButton {
   position: relative;
   width: 100%;
