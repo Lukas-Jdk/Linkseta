@@ -1,42 +1,30 @@
 // src/app/api/auth/sync-user/route.ts
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const email = body.email as string | undefined;
-    const name = body.name as string | undefined;
-    const phone = body.phone as string | undefined;
+export const dynamic = "force-dynamic";
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Missing email" },
-        { status: 400 }
-      );
-    }
+export async function POST() {
+  const { user, response } = await requireUser();
+  if (response || !user) return response!;
 
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: {
-        // atnaujinam tik jei ateina reikšmė
-        name: name ?? undefined,
-        phone: phone ?? undefined,
-      },
-      create: {
-        email,
-        name: name ?? null,
-        phone: phone ?? null,
-        // role paliekam default(USER)
-      },
-    });
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
 
-    return NextResponse.json({ ok: true, userId: user.id, user });
-  } catch (error) {
-    console.error("sync-user error:", error);
-    return NextResponse.json(
-      { error: "Server error", details: String(error) },
-      { status: 500 }
-    );
-  }
+  const meta = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+  const metaName = typeof meta.name === "string" ? meta.name.trim() : null;
+  const metaPhone = typeof meta.phone === "string" ? meta.phone.trim() : null;
+
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      ...(metaName ? { name: metaName } : {}),
+      ...(metaPhone ? { phone: metaPhone } : {}),
+    },
+    select: { id: true, email: true, name: true, phone: true, role: true, avatarUrl: true },
+  });
+
+  return NextResponse.json({ ok: true, user: updated }, { status: 200 });
 }

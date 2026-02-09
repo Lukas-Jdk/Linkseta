@@ -1,18 +1,27 @@
-// src/app/register/page.tsx
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
+
+function mapRegisterError(raw: string | null | undefined) {
+  const msg = (raw || "").toLowerCase();
+  if (msg.includes("already registered"))
+    return "Toks el. paštas jau naudojamas. Bandykite prisijungti.";
+  if (msg.includes("password"))
+    return "Slaptažodis per silpnas. Naudokite bent 8 simbolius.";
+  return "Nepavyko užregistruoti paskyros. Bandykite dar kartą.";
+}
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -23,25 +32,24 @@ export default function RegisterPage() {
     setSuccess(null);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { name, phone },
-        },
+        options: { data: { name, phone } },
       });
 
       if (error) {
-        if (error.message.includes("already registered")) {
-          setError("Toks el. paštas jau naudojamas. Bandykite prisijungti.");
-        } else {
-          setError(error.message || "Nepavyko užregistruoti paskyros.");
-        }
+        setError(mapRegisterError(error.message));
         return;
       }
 
+      // jei email confirmation įjungtas — session dažnai bus null (čia ok)
+      if (data.session) {
+        await fetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
+      }
+
       setSuccess(
-        "Registracija pavyko! Patikrinkite el. paštą ir patvirtinkite paskyrą."
+        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą."
       );
       setPassword("");
     } catch (e) {
@@ -57,84 +65,85 @@ export default function RegisterPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Registracija</h1>
         <p className={styles.subtitle}>
-          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir
-          funkcijomis.
+          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir funkcijomis.
         </p>
-
-        {error && <p className={styles.error}>{error}</p>}
-        {success && <p className={styles.success}>{success}</p>}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputRow}>
-            <User className={styles.icon} />
+            <User className={styles.icon} aria-hidden="true" />
             <input
+              className={styles.input}
               type="text"
               placeholder="Vardas"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={styles.input}
+              autoComplete="name"
             />
           </div>
 
           <div className={styles.inputRow}>
-            <Phone className={styles.icon} />
+            <Phone className={styles.icon} aria-hidden="true" />
             <input
+              className={styles.input}
               type="text"
               placeholder="Telefonas"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className={styles.input}
+              autoComplete="tel"
             />
           </div>
 
           <div className={styles.inputRow}>
-            <Mail className={styles.icon} />
+            <Mail className={styles.icon} aria-hidden="true" />
             <input
+              className={styles.input}
               type="email"
               placeholder="El. paštas"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
+              autoComplete="email"
             />
           </div>
 
           <div className={styles.inputRow}>
-            <Lock className={styles.icon} />
+            <Lock className={styles.icon} aria-hidden="true" />
             <input
+              className={styles.input}
               type="password"
               placeholder="Slaptažodis"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
+              autoComplete="new-password"
             />
           </div>
 
-          <div className={styles.hint}>
-            *Slaptažodis turi būti bent 8 simbolių ilgio
-          </div>
+          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
 
-          <button className={styles.button} disabled={loading}>
+          {error && <p className={styles.error}>{error}</p>}
+          {success && <p className={styles.success}>{success}</p>}
+
+          <button className={styles.button} disabled={loading} type="submit">
             {loading ? "Kuriama..." : "Registruotis"}
           </button>
 
           <div className={styles.bottomText}>
             Jau turite paskyrą?{" "}
-            <a href="/login" className={styles.link}>
+            <Link href="/login" className={styles.link}>
               Prisijunkite
-            </a>
+            </Link>
           </div>
 
           <div className={styles.legal}>
             Registruodamiesi sutinkate su mūsų{" "}
-            <a href="/terms" className={styles.link}>
+            <Link href="/terms" className={styles.link}>
               Naudojimosi sąlygomis
-            </a>{" "}
+            </Link>{" "}
             ir{" "}
-            <a href="/privacy" className={styles.link}>
+            <Link href="/privacy" className={styles.link}>
               Privatumo politika
-            </a>
+            </Link>
             .
           </div>
         </form>

@@ -7,8 +7,9 @@ type MeResponse = {
     id: string;
     email: string;
     role: "USER" | "ADMIN";
-    // jei nori – gali laikyt name, bet tik jei getAuthUser jį tikrai grąžina
-    // name?: string | null;
+    name: string | null;
+    phone: string | null;
+    avatarUrl: string | null;
   } | null;
 };
 
@@ -22,15 +23,16 @@ export async function GET() {
             id: user.id,
             email: user.email,
             role: user.role,
+            name: user.name,
+            phone: user.phone,
+            avatarUrl: user.avatarUrl,
           }
         : null,
     };
 
     return NextResponse.json(body, { status: 200 });
-  } catch (err: unknown) {
+  } catch (err) {
     console.error("GET /api/auth/me error", err);
-
-    const body: MeResponse = { user: null };
-    return NextResponse.json(body, { status: 200 });
+    return NextResponse.json({ user: null } satisfies MeResponse, { status: 200 });
   }
 }
