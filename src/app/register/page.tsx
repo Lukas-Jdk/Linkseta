@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./register.module.css";
+import { User, Phone, Mail, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -25,12 +26,12 @@ export default function RegisterPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, phone } },
+        options: {
+          data: { name, phone },
+        },
       });
 
       if (error) {
-        // čia galim rodyti draugiškesnį tekstą,
-        // bet paliekam ir originalų kaip fallback
         if (error.message.includes("already registered")) {
           setError("Toks el. paštas jau naudojamas. Bandykite prisijungti.");
         } else {
@@ -39,12 +40,9 @@ export default function RegisterPage() {
         return;
       }
 
-      // Sėkmė – nieko nealertinam, gražiai parodom žinutę virš formos
       setSuccess(
-        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą."
+        "Registracija pavyko! Patikrinkite el. paštą ir patvirtinkite paskyrą."
       );
-
-      // Pasirinktinai – galim išvalyt slaptažodį
       setPassword("");
     } catch (e) {
       console.error(e);
@@ -55,52 +53,92 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className={styles.container}>
-      <h1 className={styles.title}>Registracija</h1>
+    <main className={styles.page}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Registracija</h1>
+        <p className={styles.subtitle}>
+          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir
+          funkcijomis.
+        </p>
 
-      {/* Žinutės */}
-      {error && <p className={styles.error}>{error}</p>}
-      {success && <p className={styles.success}>{success}</p>}
+        {error && <p className={styles.error}>{error}</p>}
+        {success && <p className={styles.success}>{success}</p>}
 
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input
-          type="text"
-          placeholder="Vardas"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={styles.input}
-        />
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputRow}>
+            <User className={styles.icon} />
+            <input
+              type="text"
+              placeholder="Vardas"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={styles.input}
+            />
+          </div>
 
-        <input
-          type="text"
-          placeholder="Telefonas"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className={styles.input}
-        />
+          <div className={styles.inputRow}>
+            <Phone className={styles.icon} />
+            <input
+              type="text"
+              placeholder="Telefonas"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={styles.input}
+            />
+          </div>
 
-        <input
-          type="email"
-          placeholder="El. paštas"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
-        />
+          <div className={styles.inputRow}>
+            <Mail className={styles.icon} />
+            <input
+              type="email"
+              placeholder="El. paštas"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.input}
+            />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Slaptažodis"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
-        />
+          <div className={styles.inputRow}>
+            <Lock className={styles.icon} />
+            <input
+              type="password"
+              placeholder="Slaptažodis"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+            />
+          </div>
 
-        <button className={styles.button} disabled={loading}>
-          {loading ? "Kuriama..." : "Registruotis"}
-        </button>
-      </form>
+          <div className={styles.hint}>
+            *Slaptažodis turi būti bent 8 simbolių ilgio
+          </div>
+
+          <button className={styles.button} disabled={loading}>
+            {loading ? "Kuriama..." : "Registruotis"}
+          </button>
+
+          <div className={styles.bottomText}>
+            Jau turite paskyrą?{" "}
+            <a href="/login" className={styles.link}>
+              Prisijunkite
+            </a>
+          </div>
+
+          <div className={styles.legal}>
+            Registruodamiesi sutinkate su mūsų{" "}
+            <a href="/terms" className={styles.link}>
+              Naudojimosi sąlygomis
+            </a>{" "}
+            ir{" "}
+            <a href="/privacy" className={styles.link}>
+              Privatumo politika
+            </a>
+            .
+          </div>
+        </form>
+      </div>
     </main>
   );
 }

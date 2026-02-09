@@ -1,0 +1,47 @@
+/* src/components/cta/BecomeProviderCTA.module.css */
+.section {
+  width: 100%;
+  background: linear-gradient(135deg, #cbe5fa, #d4e8f8);
+  padding: 64px 16px;
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+  color: #000000;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  opacity: 0.95;
+  max-width: 640px;
+  margin: 0 auto 28px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: #000000;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}

@@ -1,3 +1,4 @@
+// src/app/forgot-password/page.tsx
 "use client";
 
 import { FormEvent, useState } from "react";
@@ -43,33 +44,35 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className={styles.main}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Atstatyti slaptažodį</h1>
-        <p className={styles.subtitle}>
-          Įveskite el. paštą ir išsiųsime slaptažodžio atstatymo nuorodą.
-        </p>
+    <main className={styles.page}>
+    <div className={styles.card}>
+      <h1 className={styles.title}>Atstatyti slaptažodį</h1>
+      <p className={styles.subtitle}>
+        Įveskite el. paštą ir išsiųsime slaptažodžio atstatymo nuorodą.
+      </p>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.label}>
-            El. paštas
-            <input
-              className={styles.input}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
+      {error && <p className={styles.error}>{error}</p>}
+      {message && <p className={styles.success}>{message}</p>}
 
-          {error && <p className={styles.error}>{error}</p>}
-          {message && <p className={styles.success}>{message}</p>}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.inputRow}>
+          {/* jei nori ikonėlės kaip login: */}
+          {/* <Mail className={styles.icon} /> */}
+          <input
+            className={styles.input}
+            type="email"
+            placeholder="El. paštas"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-          <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? "Siunčiama..." : "Siųsti nuorodą"}
-          </button>
-        </form>
-      </div>
-    </main>
+        <button className={styles.button} type="submit" disabled={loading}>
+          {loading ? "Siunčiama..." : "Siųsti nuorodą"}
+        </button>
+      </form>
+    </div>
+  </main>
   );
 }

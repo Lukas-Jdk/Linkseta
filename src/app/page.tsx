@@ -8,9 +8,7 @@ import SearchBar from "@/components/search/SearchBar";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
 import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
-// ----------------------------------------
-// 🔥 PILNAS SEO – TVIRTAS IR PROFESIONALUS
-// ----------------------------------------
+
 
 export const metadata: Metadata = {
   title:
@@ -53,7 +51,6 @@ type SearchParams = {
   q?: string;
   city?: string;
   category?: string;
-    
 };
 
 type HomeProps = {
@@ -105,12 +102,12 @@ export default async function HomePage({ searchParams }: HomeProps) {
     priceFrom: s.priceFrom,
     slug: s.slug,
     highlighted: s.highlighted ?? false,
-    imageUrl: s.imageUrl, 
+    imageUrl: s.imageUrl,
   }));
 
   return (
     <>
-<ServiceMarquee />
+      <ServiceMarquee />
       <Hero>
         <div className="container">
           <SearchBar />
@@ -120,9 +117,9 @@ export default async function HomePage({ searchParams }: HomeProps) {
       <section className="container" style={{ padding: "40px 0 24px" }}>
         <CardGrid items={items} />
       </section>
-   
-   
-        <Features />
+
+      <Features />
+     
     </>
   );
 }

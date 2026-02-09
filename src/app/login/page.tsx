@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
 import Link from "next/link";
+import { Mail, Lock } from "lucide-react";
 
 function mapLoginErrorMessage(raw: string | null | undefined): string {
   const msg = (raw || "").toLowerCase();
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,9 +54,7 @@ export default function LoginPage() {
         return;
       }
 
-      // ✅ geriau nei push (back negrįš į login)
       router.replace("/dashboard");
-      // ✅ App Router dažnai naudinga atšviežinti server komponentus
       router.refresh();
     } catch (err) {
       console.error("login unexpected error:", err);
@@ -65,41 +65,51 @@ export default function LoginPage() {
   }
 
   return (
-    <main className={styles.container}>
-      <h1 className={styles.title}>Prisijungimas</h1>
-
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input
-          type="email"
-          placeholder="El. paštas"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
-        />
-
-        <input
-          type="password"
-          placeholder="Slaptažodis"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
-        />
-
-        <button className={styles.button} disabled={loading} type="submit">
-          {loading ? "Jungiama..." : "Prisijungti"}
-        </button>
-
-        <p className={styles.helperText}>
-          Pamiršote slaptažodį?{" "}
-          <Link href="/forgot-password" className={styles.link}>
-            Atstatyti
-          </Link>
-        </p>
+    <main className={styles.page}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Prisijungimas</h1>
 
         {error && <p className={styles.error}>{error}</p>}
-      </form>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputRow}>
+            <Mail className={styles.icon} />
+            <input
+              type="email"
+              placeholder="El. paštas"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.input}
+              autoComplete="email"
+            />
+          </div>
+
+          <div className={styles.inputRow}>
+            <Lock className={styles.icon} />
+            <input
+              type="password"
+              placeholder="Slaptažodis"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              autoComplete="current-password"
+            />
+          </div>
+
+          <button className={styles.button} disabled={loading} type="submit">
+            {loading ? "Jungiama..." : "Prisijungti"}
+          </button>
+
+          <p className={styles.helperText}>
+            Pamiršote slaptažodį?{" "}
+            <Link href="/forgot-password" className={styles.link}>
+              Atstatyti
+            </Link>
+          </p>
+        </form>
+      </div>
     </main>
   );
 }

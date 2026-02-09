@@ -1,15 +1,34 @@
 /* src/app/login/login.module.css */
 
-.container {
-  max-width: 420px;
-  margin: 40px auto;
-  padding: 20px;
+.page {
+  min-height: calc(100vh - var(--header-height, 72px));
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+
+  background: radial-gradient(
+      900px 400px at 50% 20%,
+      rgba(15, 23, 42, 0.08),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #eef2f7 0%, #e7ebf2 100%);
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 26px 22px;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, 0.18);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 16px;
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 14px 0;
+  color: #0f172a;
 }
 
 .form {
@@ -17,22 +36,47 @@
   gap: 12px;
 }
 
-.input {
-  padding: 10px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.55);
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
   border-radius: 10px;
+  background: #fff;
+}
+
+.inputRow:focus-within {
+  border-color: rgba(37, 99, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.input {
+  border: none;
+  outline: none;
   font-size: 15px;
+  flex: 1;
 }
 
 .button {
-  padding: 10px 16px;
-  background: var(--accent);
-  color: white;
+  height: 44px;
   border: none;
   border-radius: 10px;
+  background: linear-gradient(180deg, #1d9bf0 0%, #1677ff 100%);
+  color: #fff;
+  font-weight: 800;
   font-size: 15px;
-  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 12px 24px rgba(29, 155, 240, 0.25);
+  margin-top: 2px;
 }
 
 .button:disabled {
@@ -41,21 +85,24 @@
 }
 
 .helperText {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #6b7280;
-}
-
-.error {
-  color: #dc2626;
-  font-size: 14px;
+  text-align: center;
+  margin: 0;
 }
 
 .link {
-  color: var(--accent);
+  color: #2563eb;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .link:hover {
   text-decoration: underline;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin: 0 0 10px 0;
 }

@@ -27,7 +27,7 @@ export default function Footer() {
             </Link>
 
             <p className={styles.brandDesc}>
-              Jūsų patikimas tiltas tarp klientų ir lietuvių specialistų
+              Jūsų patikimas tiltas tarp klientų ir specialistų
               Norvegijoje.
             </p>
           </div>
