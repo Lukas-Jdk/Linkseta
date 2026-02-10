@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./tapti.module.css";
 
 type Plan = {
-  id: string;
+  slug: "demo" | "basic" | "premium";
   name: string;
   priceLabel: string;
   description: string;
@@ -16,7 +16,7 @@ type Plan = {
 
 const PLANS: Plan[] = [
   {
-    id: "plan_demo",
+    slug: "demo",
     name: "Demo planas",
     priceLabel: "0 NOK",
     description: "Puikus variantas išbandyti Linksetą testavimo laikotarpiu.",
@@ -28,7 +28,7 @@ const PLANS: Plan[] = [
     recommended: true,
   },
   {
-    id: "plan_basic",
+    slug: "basic",
     name: "Basic (paruoštas ateičiai)",
     priceLabel: "199 NOK / mėn (bus vėliau)",
     description: "Standartinis planas, kai įjungsim Stripe/Vipps apmokėjimus.",
@@ -39,7 +39,7 @@ const PLANS: Plan[] = [
     ],
   },
   {
-    id: "plan_premium",
+    slug: "premium",
     name: "Premium (paruoštas ateičiai)",
     priceLabel: "399 NOK / mėn (bus vėliau)",
     description: "Didesniam verslui, kai paleisim pilną versiją.",
@@ -53,42 +53,38 @@ const PLANS: Plan[] = [
 
 export default function TaptiTeikejuPage() {
   const router = useRouter();
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleChoose(planId: string) {
+  async function handleChoose(planSlug: Plan["slug"]) {
     setError(null);
-    setLoadingId(planId);
+    setLoadingSlug(planSlug);
 
     try {
       const res = await fetch("/api/dashboard/become-provider", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planSlug }),
       });
 
       if (res.status === 401) {
-        // neprisijungęs
         router.push("/login");
         return;
       }
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(
-          json.error || "Nepavyko pasirinkti plano. Bandykite dar kartą."
-        );
+        setError(json?.error || "Nepavyko pasirinkti plano. Bandykite dar kartą.");
         return;
       }
 
-      // DEMO: iškart nukreipiam į dashboard (ten gales kurti skelbimą)
       router.push("/dashboard");
     } catch (e) {
       console.error(e);
       setError("Serverio klaida. Bandykite dar kartą.");
     } finally {
-      setLoadingId(null);
+      setLoadingSlug(null);
     }
   }
 
@@ -113,7 +109,7 @@ export default function TaptiTeikejuPage() {
         <div className={styles.plansGrid}>
           {PLANS.map((plan) => (
             <article
-              key={plan.id}
+              key={plan.slug}
               className={`${styles.planCard} ${
                 plan.recommended ? styles.planCardRecommended : ""
               }`}
@@ -137,10 +133,10 @@ export default function TaptiTeikejuPage() {
               <button
                 type="button"
                 className={`btn btn-primary ${styles.planButton}`}
-                onClick={() => handleChoose(plan.id)}
-                disabled={loadingId === plan.id}
+                onClick={() => handleChoose(plan.slug)}
+                disabled={loadingSlug === plan.slug}
               >
-                {loadingId === plan.id ? "Vykdoma..." : "Pasirinkti šį planą"}
+                {loadingSlug === plan.slug ? "Vykdoma..." : "Pasirinkti šį planą"}
               </button>
             </article>
           ))}
