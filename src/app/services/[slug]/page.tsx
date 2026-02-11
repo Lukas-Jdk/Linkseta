@@ -1,9 +1,9 @@
 // src/app/services/[slug]/page.tsx
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import styles from "./slugPage.module.css";
+import GalleryClient from "./GalleryClient";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +24,8 @@ function formatPriceNOK(value: number) {
 }
 
 function initialLetter(name: string | null, email: string) {
-  const src = (name && name.trim()) ? name.trim() : email;
-  return src.slice(0, 1).toUpperCase();
+  const src = name?.trim() ? name.trim() : email;
+  return src.slice(0, 1).toUpperCase() || "U";
 }
 
 export default async function ServiceDetailsPage({ params }: Props) {
@@ -36,30 +36,46 @@ export default async function ServiceDetailsPage({ params }: Props) {
     include: {
       city: true,
       category: true,
-      user: true,
+      user: {
+        include: {
+          profile: true,
+        },
+      },
     },
   });
 
-  if (!service || !service.isActive) {
-    notFound();
-  }
+  if (!service || !service.isActive) notFound();
 
   const cover = service.imageUrl || "/def.webp";
+  const images = service.imageUrl ? [cover, cover, cover] : [cover];
+
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
+  const created = formatDateLT(service.createdAt);
 
-  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
+  // DEMO rating
+  const ratingValue = 5.0;
+  const ratingCount = 1;
+
+  const sellerName =
+    service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
 
-  const created = formatDateLT(service.createdAt);
+  const isVerified = Boolean(service.user.profile?.isApproved);
 
   const priceLabel = service.priceFrom != null ? "Kaina nuo" : "Kaina";
   const priceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "Kaina sutartinė";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "Kaina sutartinė";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`
   )}`;
+
+  // ✅ Highlights iš DB (be jokių default)
+  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
+  const hasHighlights = highlights.length > 0;
 
   return (
     <main className={styles.page}>
@@ -73,43 +89,77 @@ export default async function ServiceDetailsPage({ params }: Props) {
         <div className={styles.layout}>
           {/* LEFT */}
           <section className={styles.left}>
-            <div className={styles.coverCard}>
-              <div className={styles.coverWrap}>
-                <Image
-                  src={cover}
-                  alt={service.title}
-                  fill
-                  className={styles.coverImg}
-                  sizes="(max-width: 980px) 100vw, 760px"
-                  priority={service.highlighted}
-                />
-                {service.highlighted && (
-                  <span className={styles.topBadge}>TOP skelbimas</span>
-                )}
-              </div>
-            </div>
+            <div className={styles.stackCard}>
+              {/* HERO */}
+              <div className={styles.heroCard}>
+                <div className={styles.heroTop}>
+                  <div className={styles.heroMedia}>
+                    <GalleryClient
+                      title={service.title}
+                      images={images}
+                      highlighted={service.highlighted}
+                    />
+                  </div>
 
-            <div className={styles.detailsCard}>
-              <header className={styles.detailsHeader}>
-                <h1 className={styles.title}>{service.title}</h1>
+                  <div className={styles.heroContent}>
+                    <h1 className={styles.title}>{service.title}</h1>
 
-                <div className={styles.metaRow}>
-                  <span className={styles.metaChip}>📍 {city}</span>
-                  <span className={styles.metaChip}>📁 {category}</span>
-                  <span className={styles.metaChip}>📅 {created}</span>
+                    <div className={styles.ratingRow}>
+                      <span className={styles.ratingValue}>
+                        ⭐ {ratingValue.toFixed(1)}
+                      </span>
+                      <span className={styles.ratingCount}>({ratingCount})</span>
+                    </div>
+
+                    <div className={styles.metaRow}>
+                      <span className={styles.metaChip}>📍 {city}</span>
+                      <span className={styles.metaChip}>📁 {category}</span>
+                      <span className={styles.metaChip}>📅 {created}</span>
+                    </div>
+
+                    <div className={styles.quickInfo}>
+                      ⚡ Dažniausiai atsako per 1 val.
+                    </div>
+                  </div>
                 </div>
-              </header>
-
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Aprašymas</h2>
-                <p className={styles.desc}>{service.description}</p>
               </div>
 
-              <div id="kontaktai" className={styles.section}>
-               
-            
+              {/* CONTENT */}
+              <div className={styles.contentCard}>
+                <div className={styles.tabs}>
+                  <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
+                    Apie paslaugą
+                  </a>
+                  <a className={styles.tab} href="#atsiliepimai">
+                    Atsiliepimai
+                  </a>
+                </div>
 
-             
+                <div id="apie" className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Aprašymas</h2>
+                  <p className={styles.desc}>{service.description}</p>
+                </div>
+
+                {/* ✅ RODYTI TIK JEI YRA */}
+                {hasHighlights && (
+                  <div className={styles.section}>
+                    <h2 className={styles.sectionTitle}>
+                      Kodėl verta rinktis šią paslaugą?
+                    </h2>
+                    <ul className={styles.bullets}>
+                      {highlights.map((h, i) => (
+                        <li key={i}>✅ {h}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div id="atsiliepimai" className={styles.section}>
+                  <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
+                  <p className={styles.descSmall}>
+                    DEMO: atsiliepimai bus vėliau (kai pridėsiu review sistemą).
+                  </p>
+                </div>
               </div>
             </div>
           </section>
@@ -117,26 +167,37 @@ export default async function ServiceDetailsPage({ params }: Props) {
           {/* RIGHT */}
           <aside className={styles.right}>
             <div className={styles.sideCard}>
-              <div className={styles.sideLabel}>{priceLabel}</div>
-              <div className={styles.sidePrice}>{priceValue}</div>
-            </div>
-
-            <div className={styles.sideCard}>
-              <div className={styles.sellerRow}>
-                <div className={styles.sellerAvatar} aria-hidden="true">
-                  {sellerInitial}
-                </div>
-                <div className={styles.sellerInfo}>
-                  <div className={styles.sellerLabel}>Skelbėjas</div>
-                  <div className={styles.sellerName}>{sellerName}</div>
-                </div>
+              <div className={styles.priceBlock}>
+                <div className={styles.sideLabel}>{priceLabel}</div>
+                <div className={styles.sidePrice}>{priceValue}</div>
               </div>
 
-              <a className={styles.emailBtn} href={mailto}>
-                ✉ Rašyti el. paštu
-              </a>
+              <div className={styles.sellerBlock}>
+                <div className={styles.sellerRow}>
+                  <div className={styles.sellerAvatar} aria-hidden="true">
+                    {sellerInitial}
+                  </div>
 
-          
+                  <div className={styles.sellerInfo}>
+                    <div className={styles.sellerLabel}>Skelbėjas</div>
+
+                    <div className={styles.sellerNameRow}>
+                      <span className={styles.sellerName}>{sellerName}</span>
+                      {isVerified && (
+                        <span className={styles.verified}>✔ Patvirtintas</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <a className={styles.primaryBtn} href={mailto}>
+                  ✉ Rašyti el. paštu
+                </a>
+
+                <button className={styles.secondaryBtn} type="button" disabled>
+                  💬 Siųsti žinutę (bus vėliau)
+                </button>
+              </div>
             </div>
           </aside>
         </div>

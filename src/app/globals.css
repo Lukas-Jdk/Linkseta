@@ -18,55 +18,112 @@ body {
 :root {
   color-scheme: light;
 
-  /* Backgrounds */
+  /* =======================
+     Layout
+  ======================= */
+  --container: 1180px;
+  --header-height: 76px;
+
+  /* =======================
+     Page / backgrounds
+  ======================= */
   --bg-page: #ffffff;
   --bg-header: #020617;
   --color-header-border: #24e2fb;
 
-  /* Brand / accent */
+  /* (tu naudoji body background-color tiesiogiai – palieku)
+     Jei norėsi grįžti prie --bg-page, tiesiog perjunk body apačioje */
+  --bg-body: rgb(233, 233, 233);
+
+  /* =======================
+     Brand / accent
+  ======================= */
   --accent: #0ea5e9;
   --accent-2: #2563eb;
   --accent-soft: linear-gradient(125deg, #0ea5e9, #22c1c3);
   --bg-title-word: #22c1c3;
-  
 
-  /* Surfaces */
+  /* papildomi (tavo service puslapio dark UI) */
+  --c-accent: #0ea5e9;
+  --c-accent-grad: linear-gradient(135deg, #06b6d4, #0ea5e9);
+
+  /* =======================
+     Surfaces (LIGHT)
+  ======================= */
   --card-bg: #ffffff;
   --card-bg-subtle: #f9fafb;
   --card-border: rgba(15, 23, 42, 0.06);
   --card-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
 
-  /* Text */
+  /* =======================
+     Surfaces (DARK cards inside light page)
+     (naudosi service/[slug] kortelėms)
+  ======================= */
+  --bg-card: linear-gradient(135deg, #0e1e3d, #081226);
+  --bg-tabs: linear-gradient(135deg, #081530, #040c1d);
+  --bg-chip: linear-gradient(135deg, #2c4372, #203663);
+
+  /* =======================
+     Text
+  ======================= */
   --text-main: #282a0f;
+  --text-heading: #000000;
+
   --text-label: #008892;
   --text-soft: #9ca3af;
+
   --text-white: #f9fafb;
   --text-nav-hover: #13d4ee;
-  --text-heading: #000000;
   --text-search-selector: #838383;
-  --text-footer-label:#22c1c3;
+  --text-footer-label: #22c1c3;
 
-  /* Badges */
+  /* papildomi (service dark UI tekstai) */
+  --c-white: #ffffff;
+  --c-grey-1: #d4d4d4;
+  --c-grey-2: #8f8f8f;
+  --c-grey-3: #64748b;
+  --c-blue-soft: #bfe1f5;
+
+  /* =======================
+     Badges
+  ======================= */
   --badge-bg: rgba(15, 23, 42, 0.04);
   --badge-border: rgba(148, 163, 184, 0.5);
   --badge-premium-bg: rgba(249, 115, 22, 0.16);
   --badge-premium-text: #9a3412;
 
-  /* Radiuses */
+  /* =======================
+     Radius
+  ======================= */
   --radius-sm: 999px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 24px;
 
-  /* Layout */
-  --container: 1180px;
-  --header-height: 76px;
+  /* papildomi (service kortelėms) */
+  --r-card: 18px;
+  --r-pill: 12px;
+  --r-btn: 14px;
 
-  /* Shadows */
+  /* =======================
+     Shadows
+  ======================= */
   --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.12);
   --shadow-strong: 0 28px 80px rgba(15, 23, 42, 0.65);
 
-  /* Select/filter background (kad nelūžtų tavo .select) */
+  /* papildomas (service kortelėms) */
+  --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.08);
+
+  /* =======================
+     Borders / dividers
+  ======================= */
+  --border-soft: 1px solid rgba(15, 23, 42, 0.08);
+  --border-divider: 1px solid rgba(255, 255, 255, 0.10);
+  --btn-outline: 1px solid rgb(103, 194, 247);
+
+  /* =======================
+     Select/filter background
+  ======================= */
   --bg-btn-filters: #ffffff;
 }
 
@@ -75,6 +132,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+
   font-family: var(
     --font-primary,
     system-ui,
@@ -83,9 +141,11 @@ body {
     "Segoe UI",
     sans-serif
   );
+
   color: var(--text-main);
   padding-top: var(--header-height);
-background-color: rgb(233, 233, 233);
+
+  background-color: var(--bg-body);
   /* background-color: var(--bg-page); */
 
   /* Jei nori foninę nuotrauką LIGHT režime – atsikomentuok:

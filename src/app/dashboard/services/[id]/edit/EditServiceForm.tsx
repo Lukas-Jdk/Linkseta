@@ -1,6 +1,5 @@
-// src/app/dashboard/services/[id]/edit/EditServiceForm.tsx
 "use client";
-import { useState, FormEvent, useTransition } from "react";
+import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./edit.module.css";
@@ -18,6 +17,8 @@ type InitialData = {
   categoryId: string;
   priceFrom: number | null;
   imageUrl: string | null;
+
+  highlights: string[]; // ✅ NEW
 };
 
 type Props = {
@@ -28,11 +29,15 @@ type Props = {
 
 const BUCKET = "service-images";
 
-export default function EditServiceForm({
-  initial,
-  cities,
-  categories,
-}: Props) {
+function parseHighlights(text: string) {
+  return text
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+}
+
+export default function EditServiceForm({ initial, cities, categories }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -44,7 +49,16 @@ export default function EditServiceForm({
     initial.priceFrom != null ? String(initial.priceFrom) : ""
   );
 
-  // 🔥 tikra nuotrauka (jei nėra – tuščia)
+  
+  const [highlightsText, setHighlightsText] = useState(
+    (initial.highlights ?? []).join("\n")
+  );
+
+  const highlightsPreview = useMemo(
+    () => parseHighlights(highlightsText),
+    [highlightsText]
+  );
+
   const [imageUrl, setImageUrl] = useState<string>(initial.imageUrl || "");
   const [uploading, setUploading] = useState(false);
 
@@ -73,10 +87,7 @@ export default function EditServiceForm({
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(path, file, { cacheControl: "3600", upsert: false });
 
       if (uploadError) {
         console.error(uploadError);
@@ -106,6 +117,8 @@ export default function EditServiceForm({
     setError(null);
     setSuccess(null);
 
+    const highlights = parseHighlights(highlightsText);
+
     try {
       const res = await fetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
@@ -117,6 +130,9 @@ export default function EditServiceForm({
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
           imageUrl: imageUrl || null,
+
+      
+          highlights,
         }),
       });
 
@@ -170,7 +186,6 @@ export default function EditServiceForm({
       {error && <p className={styles.errorText}>{error}</p>}
       {success && <p className={styles.successText}>{success}</p>}
 
-      {/* PAGRINDINĖ INFORMACIJA */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
 
@@ -199,7 +214,22 @@ export default function EditServiceForm({
         </div>
       </section>
 
-      {/* DETALĖS IR KAINA */}
+      <section className={styles.sectionCard}>
+        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Privalumai (1 eilutė = 1 punktas)</label>
+          <textarea
+            className={styles.textarea}
+            rows={5}
+            value={highlightsText}
+            onChange={(e) => setHighlightsText(e.target.value)}
+            placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
+          />
+          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
+        </div>
+      </section>
+
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Detalės ir kaina</h2>
 
@@ -252,7 +282,6 @@ export default function EditServiceForm({
         </div>
       </section>
 
-      {/* NUOTRAUKOS */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Nuotraukos</h2>
 
@@ -287,22 +316,6 @@ export default function EditServiceForm({
             <img src={imageUrl} alt="Nuotraukos peržiūra" />
           ) : (
             <div className={styles.emptyState}>
-              <svg
-                className={styles.emptyIcon}
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
-
               <span className={styles.emptyText}>Nuotrauka neįkelta</span>
             </div>
           )}
@@ -313,20 +326,17 @@ export default function EditServiceForm({
         </p>
       </section>
 
-      {/* ACTIONS */}
       <div className={styles.actionsBar}>
-       <button
-            type="button"
-            className={styles.dangerButton}
-            onClick={handleDelete}
-            disabled={pending || uploading}
-          >
-            Ištrinti paslaugą
-          </button>
+        <button
+          type="button"
+          className={styles.dangerButton}
+          onClick={handleDelete}
+          disabled={pending || uploading}
+        >
+          Ištrinti paslaugą
+        </button>
 
         <div className={styles.actionsRight}>
-        
-
           <button
             type="submit"
             className={styles.primaryButton}

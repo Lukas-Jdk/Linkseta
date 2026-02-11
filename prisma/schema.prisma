@@ -56,7 +56,7 @@ model ServiceListing {
   priceTo     Int?
   isActive    Boolean @default(true)
   highlighted Boolean @default(false)
-
+  highlights  String[] @default([])
   imageUrl    String?
 
   cityId     String?

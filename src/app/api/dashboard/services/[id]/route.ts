@@ -1,171 +1,84 @@
 // src/app/api/dashboard/services/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 
-type Params = { id: string };
-
-// PATCH – atnaujinti savo paslaugą
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<Params> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-
-  const { response, user } = await requireUser();
-  if (response || !user) {
-    return response!;
-  }
-
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const service = await prisma.serviceListing.findUnique({ where: { id } });
+    if (!service) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await req.json();
 
-    const {
-      title,
-      description,
-      cityId,
-      categoryId,
-      priceFrom,
-      imageUrl,
-    } = body as {
-      title?: string;
-      description?: string;
-      cityId?: string | null;
-      categoryId?: string | null;
-      priceFrom?: string | number | null;
-      imageUrl?: string | null;
-    };
+    const highlights: string[] = Array.isArray(body.highlights)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : service.highlights;
 
-    if (!title || !description) {
-      return NextResponse.json(
-        { error: "Trūksta pavadinimo arba aprašymo" },
-        { status: 400 }
-      );
-    }
-
-    const price =
-      priceFrom === null || priceFrom === "" || priceFrom === undefined
-        ? null
-        : Number(priceFrom);
-
-    const result = await prisma.serviceListing.updateMany({
-      where: {
-        id,
-        userId: user.id, // 👈 labai svarbu – tik savo skelbimą
-      },
-      data: {
-        title,
-        description,
-        cityId: cityId || null,
-        categoryId: categoryId || null,
-        priceFrom: Number.isNaN(price as number)
-          ? null
-          : (price as number | null),
-        imageUrl: imageUrl || null,
-      },
-    });
-
-    if (result.count === 0) {
-      // arba nėra tokios paslaugos, arba ji ne to userio
-      return NextResponse.json(
-        { error: "Paslauga nerasta arba neturite teisės ją redaguoti" },
-        { status: 404 }
-      );
-    }
-
-    // perskaitom atnaujintą įrašą, kad grąžinti realius duomenis
-    const service = await prisma.serviceListing.findUnique({
+    await prisma.serviceListing.update({
       where: { id },
-      include: {
-        city: true,
-        category: true,
+      data: {
+        title: body.title ?? service.title,
+        description: body.description ?? service.description,
+        cityId: body.cityId ?? service.cityId,
+        categoryId: body.categoryId ?? service.categoryId,
+        priceFrom: body.priceFrom ?? service.priceFrom,
+        imageUrl: body.imageUrl ?? service.imageUrl,
+        highlights, 
       },
     });
 
-    return NextResponse.json({ success: true, service });
-  } catch (err: unknown) {
-    console.error("PATCH /api/dashboard/services/:id error", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: "Nepavyko atnaujinti paslaugos", details: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("PATCH /api/dashboard/services/[id] error:", e);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-// DELETE – ištrinti savo paslaugą
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<Params> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-
-  const { response, user } = await requireUser();
-  if (response || !user) {
-    return response!;
-  }
-
   try {
-    const result = await prisma.serviceListing.deleteMany({
-      where: {
-        id,
-        userId: user.id,
-      },
-    });
-
-    if (result.count === 0) {
-      return NextResponse.json(
-        { error: "Paslauga nerasta arba neturite teisės ją ištrinti" },
-        { status: 404 }
-      );
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error("DELETE /api/dashboard/services/:id error", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: "Nepavyko ištrinti paslaugos", details: message },
-      { status: 500 }
-    );
-  }
-}
+    const { id } = await params;
 
-// GET – gauti savo paslaugą
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<Params> }
-) {
-  const { id } = await params;
-
-  const { response, user } = await requireUser();
-  if (response || !user) {
-    return response!;
-  }
-
-  try {
-    const service = await prisma.serviceListing.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-      include: { city: true, category: true },
-    });
-
+    const service = await prisma.serviceListing.findUnique({ where: { id } });
     if (!service) {
-      return NextResponse.json(
-        { error: "Paslauga nerasta" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json(service);
-  } catch (err: unknown) {
-    console.error("GET /api/dashboard/services/:id error", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: "Klaida", details: message },
-      { status: 500 }
-    );
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await prisma.serviceListing.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("DELETE /api/dashboard/services/[id] error:", e);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

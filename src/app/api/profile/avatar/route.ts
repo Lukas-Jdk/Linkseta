@@ -68,24 +68,11 @@ export async function POST(req: Request) {
     const { data } = supabaseAdmin.storage.from("avatars").getPublicUrl(path);
     const publicUrl = data.publicUrl;
 
-    // ✅ SVARBU: jei DB neturi avatarUrl stulpelio – čia kris.
-    // Todėl duodu ir fallback: jei update nepavyksta – grąžinam URL, bet nebreakinam upload’o.
-    try {
-      await prisma.user.update({
-        where: { id: authUser.id },
-        data: { avatarUrl: publicUrl },
-      });
-    } catch (dbErr) {
-      console.error("DB update avatarUrl failed:", dbErr);
-      return NextResponse.json(
-        {
-          error:
-            "Nuotrauka įkelta į storage, bet DB neturi avatarUrl stulpelio. Reikia migracijos.",
-          publicUrl,
-        },
-        { status: 500 }
-      );
-    }
+    // ✅ DB update (normaliai, be atskiro catch)
+    await prisma.user.update({
+      where: { id: authUser.id },
+      data: { avatarUrl: publicUrl },
+    });
 
     return NextResponse.json({ ok: true, publicUrl }, { status: 200 });
   } catch (err: unknown) {

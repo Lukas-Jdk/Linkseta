@@ -5,7 +5,7 @@
   margin: 18px auto;
   padding: 0 12px;
 
-  /* ✅ kad dropdown nebūtų nukerpamas */
+
   position: relative;
   overflow: visible;
   z-index: 50;
@@ -20,7 +20,7 @@
   border: 1px solid rgba(148, 163, 184, 0.35);
   box-shadow: var(--shadow-soft);
 
-  /* ✅ dropdown turi galėti išlįsti */
+
   overflow: visible;
 
   flex-wrap: nowrap;
@@ -150,8 +150,6 @@
   top: calc(100% + 10px);
   left: 0;
   right: 0;
-
-  /* ✅ ant viršaus visko */
   z-index: 9999;
 
   border-radius: 16px;

@@ -35,7 +35,7 @@ export default function ProfileCardClient({
       <div className={styles.profileHeaderBg} />
 
       <div className={styles.profileBody}>
-        {/* ✅ AVATAR vietoje, ne “ore” */}
+    
         <div className={styles.avatarWrap}>
           <AvatarUploader
             avatarUrl={avatarUrl}

@@ -69,7 +69,7 @@ export default async function ServicesPage({ searchParams }: Props) {
     heading = `${activeCategoryName} – lietuvių paslaugos Norvegijoje`;
   }
 
-  // ✅ Paruošiam CardGrid item'us (tas pats formatas kaip Home page)
+
   const items = services.map((service) => ({
     id: service.id,
     title: service.title,

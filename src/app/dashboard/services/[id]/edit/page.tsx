@@ -26,10 +26,12 @@ export default async function EditServicePage({ params }: PageProps) {
 
   if (!service) {
     return (
-      <main className={styles.wrapper}>
-        <div className={styles.card}>
-          <h1 className={styles.title}>Paslauga nerasta</h1>
-          <p className={styles.subtitle}>Tokios paslaugos sistemoje nebėra.</p>
+      <main className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.card}>
+            <h1 className={styles.pageTitle}>Paslauga nerasta</h1>
+            <p className={styles.pageSubtitle}>Tokios paslaugos sistemoje nebėra.</p>
+          </div>
         </div>
       </main>
     );
@@ -43,21 +45,28 @@ export default async function EditServicePage({ params }: PageProps) {
     categoryId: service.categoryId ?? "",
     priceFrom: service.priceFrom ?? null,
     imageUrl: service.imageUrl ?? null,
+    highlights: service.highlights ?? [],
   };
 
   return (
-    <main className={styles.wrapper}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Redaguoti paslaugą</h1>
-        <p className={styles.subtitle}>
-          Atnaujinkite paslaugos informaciją arba ištrinkite skelbimą.
-        </p>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div>
+            <h1 className={styles.pageTitle}>Redaguoti paslaugą</h1>
+            <p className={styles.pageSubtitle}>
+              Atnaujinkite paslaugos informaciją arba ištrinkite skelbimą.
+            </p>
+          </div>
+        </header>
 
-        <EditServiceForm
-          initial={initial}
-          cities={cities.map((c) => ({ id: c.id, name: c.name }))}
-          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
-        />
+        <div className={styles.formCard}>
+          <EditServiceForm
+            initial={initial}
+            cities={cities.map((c) => ({ id: c.id, name: c.name }))}
+            categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+          />
+        </div>
       </div>
     </main>
   );

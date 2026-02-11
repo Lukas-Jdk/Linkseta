@@ -1,7 +1,7 @@
 // src/app/dashboard/services/new/NewServiceForm.tsx
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./NewServiceForm.module.css";
@@ -18,6 +18,14 @@ type Props = {
 
 const BUCKET = "service-images";
 
+function parseHighlights(text: string) {
+  return text
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+}
+
 export default function NewServiceForm({ cities, categories }: Props) {
   const router = useRouter();
 
@@ -27,7 +35,14 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [categoryId, setCategoryId] = useState("");
   const [priceFrom, setPriceFrom] = useState<string>("");
 
-  // ✅ tik upload URL iš Supabase storage
+  const [highlightsText, setHighlightsText] = useState("");
+
+  const highlightsPreview = useMemo(
+    () => parseHighlights(highlightsText),
+    [highlightsText]
+  );
+
+  
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -92,6 +107,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
       return;
     }
 
+    const highlights = parseHighlights(highlightsText);
+
     setIsSubmitting(true);
 
     try {
@@ -105,6 +122,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
           imageUrl: imageUrl || null,
+          highlights,
         }),
       });
 
@@ -161,6 +179,45 @@ export default function NewServiceForm({ cities, categories }: Props) {
           <div className={styles.charHint}>
             {description.length} / 2000 simbolių
           </div>
+        </div>
+      </section>
+
+   
+      <section className={styles.sectionCard}>
+        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>
+            Privalumai (1 eilutė = 1 punktas, max 6)
+          </label>
+
+          <textarea
+            className={styles.textarea}
+            rows={5}
+            value={highlightsText}
+            onChange={(e) => setHighlightsText(e.target.value)}
+            placeholder={"Pvz:\nGreita komunikacija\nSutarti terminai\nGarantija darbams"}
+          />
+
+          <div className={styles.hintsRow}>
+            <span className={styles.smallHint}>
+              Rodoma kaip „checklist“ tavo paslaugos puslapyje.
+            </span>
+            <span className={styles.smallHint}>
+              Punktų: {highlightsPreview.length} / 6
+            </span>
+          </div>
+
+          {highlightsPreview.length > 0 && (
+            <div className={styles.previewBox}>
+              <div className={styles.previewTitle}>Peržiūra:</div>
+              <ul className={styles.previewList}>
+                {highlightsPreview.map((h, i) => (
+                  <li key={i}>✅ {h}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </section>
 

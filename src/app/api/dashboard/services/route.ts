@@ -1,117 +1,83 @@
 // src/app/api/dashboard/services/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 
-type Body = {
-  title?: string;
-  description?: string;
-  cityId?: string | null;
-  categoryId?: string | null;
-  priceFrom?: string | number | null;
-  imageUrl?: string | null;
-};
-
-function slugify(title: string): string {
-  return title
+function slugify(input: string) {
+  return input
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9ąčęėįšųūž\- ]/g, "")
+    .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
 
-async function generateUniqueSlug(baseTitle: string) {
-  const base = slugify(baseTitle) || "paslauga";
-  let slug = base;
-  let counter = 1;
-
-  // kol toks slug jau egzistuoja – pridedam skaičių
-  // pvz. "santechnikos-darbai", "santechnikos-darbai-2", ...
-  // kad Next/Prisma nepyktų dėl unique
-  // (ServiceListing.slug yra @unique)
-  while (true) {
-    const existing = await prisma.serviceListing.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-
-    if (!existing) return slug;
-
-    counter += 1;
-    slug = `${base}-${counter}`;
-  }
-}
-
-// POST /api/dashboard/services – sukurti naują paslaugą
 export async function POST(req: Request) {
   try {
-    const { user, response } = await requireUser();
-    if (response || !user) {
-      return (
-        response ??
-        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      );
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // patikrinam, ar user yra patvirtintas teikėjas
-    const profile = await prisma.providerProfile.findUnique({
-      where: { userId: user.id },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { profile: true },
     });
 
-    if (!profile || !profile.isApproved) {
-      return NextResponse.json(
-        {
-          error:
-            "Jūs dar nesate patvirtintas paslaugų teikėjas. Pirmiausia pasirinkite planą puslapyje „Tapti teikėju“.",
-        },
-        { status: 403 }
-      );
+    if (!dbUser || !dbUser.profile?.isApproved) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = (await req.json()) as Body;
+    const body = await req.json();
 
-    const { title, description, cityId, categoryId, priceFrom, imageUrl } =
-      body;
-
-    if (!title || !description) {
-      return NextResponse.json(
-        { error: "Trūksta pavadinimo arba aprašymo." },
-        { status: 400 }
-      );
+    if (!body.title || !body.description) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    const price =
-      priceFrom === null || priceFrom === "" || priceFrom === undefined
-        ? null
-        : Number(priceFrom);
+    const title: string = body.title;
+    const description: string = body.description;
 
-    const slug = await generateUniqueSlug(title);
+    const cityId: string | null = body.cityId ?? null;
+    const categoryId: string | null = body.categoryId ?? null;
+    const priceFrom: number | null = body.priceFrom ?? null;
+    const imageUrl: string | null = body.imageUrl ?? null;
+
+    const highlights: string[] = Array.isArray(body.highlights)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : [];
+
+    const baseSlug = slugify(title);
+    let slug = baseSlug;
+    let i = 2;
+
+    while (await prisma.serviceListing.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${i}`;
+      i += 1;
+    }
 
     const created = await prisma.serviceListing.create({
       data: {
-        userId: user.id,
+        userId: dbUser.id,
         title,
         slug,
         description,
-        cityId: cityId || null,
-        categoryId: categoryId || null,
-        priceFrom: Number.isNaN(price as number)
-          ? null
-          : ((price as number) ?? null),
-        imageUrl: imageUrl || null,
+        cityId,
+        categoryId,
+        priceFrom,
+        imageUrl,
+        highlights, 
         isActive: true,
         highlighted: false,
       },
+      select: { id: true },
     });
 
-    return NextResponse.json({ success: true, service: created });
-  } catch (err: unknown) {
-    console.error("POST /api/dashboard/services error", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: "Nepavyko sukurti paslaugos", details: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true, id: created.id });
+  } catch (e) {
+    console.error("POST /api/dashboard/services error:", e);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

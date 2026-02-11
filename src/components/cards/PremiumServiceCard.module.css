@@ -18,7 +18,7 @@
 
 
 
-/* ✅ Visa kortelė clickable per Link overlay */
+
 .cardLinkOverlay {
   position: absolute;
   inset: 0;
@@ -26,14 +26,14 @@
   border-radius: 30px;
 }
 
-/* ✅ turinys turi būti virš overlay, kad mygtukai būtų spaudžiami */
+
 .content {
   position: absolute;
   inset: 0;
   z-index: 10;         /* jau pas tave taip buvo */
 }
 
-/* ✅ mygtukai turi būti virš overlay */
+
 .actions,
 .iconButton,
 .contactButton {
@@ -74,7 +74,7 @@
   );
 }
 
-/* ✅ DEFAULT HERO MODE (kaip header/hero) */
+
 .heroBg {
   position: absolute;
   inset: 0;
@@ -112,7 +112,6 @@
   background-size: 220px 220px;
 }
 
-/* ✅ Centrinė ikoninė nuotrauka (tik kai default) */
 .centerArt {
   position: absolute;
   inset: 0;
@@ -321,14 +320,7 @@
   flex: 0 0 auto;
 }
 
-.iconButton {
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
-  cursor: pointer;
-}
+
 
 .arrowIcon {
   width: 18px;
@@ -349,6 +341,7 @@
 }
 
 .contactButtonStandard {
+  
   background: #06b6d4;
 }
 

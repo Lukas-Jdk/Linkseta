@@ -44,7 +44,7 @@ export default function PremiumServiceCard({
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
-        {/* ✅ Visa kortelė paspaudžiama per Link overlay (be window.location) */}
+       
         <Link
           href={serviceHref}
           className={styles.cardLinkOverlay}
@@ -133,17 +133,6 @@ export default function PremiumServiceCard({
               </div>
 
               <div className={styles.actions}>
-                {/* ✅ Link vietoj window.location */}
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link
-                    href={serviceHref}
-                    className={styles.iconButton}
-                    aria-label="Žiūrėti paslaugą"
-                  >
-                    <ArrowRight className={styles.arrowIcon} />
-                  </Link>
-                </motion.div>
-
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                   <Link
                     href={contactHref}
