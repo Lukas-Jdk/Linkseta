@@ -40,7 +40,10 @@ export async function POST(req: Request) {
     const cityId: string | null = body.cityId ?? null;
     const categoryId: string | null = body.categoryId ?? null;
     const priceFrom: number | null = body.priceFrom ?? null;
+
+    // kuriant paslaugą dažniausiai dar neturėsi nuotraukos
     const imageUrl: string | null = body.imageUrl ?? null;
+    const imagePath: string | null = body.imagePath ?? null;
 
     const highlights: string[] = Array.isArray(body.highlights)
       ? body.highlights
@@ -68,7 +71,8 @@ export async function POST(req: Request) {
         categoryId,
         priceFrom,
         imageUrl,
-        highlights, 
+        imagePath,
+        highlights,
         isActive: true,
         highlighted: false,
       },

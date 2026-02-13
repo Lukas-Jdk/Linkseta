@@ -6,21 +6,16 @@ import { requireAdmin } from "@/lib/auth";
 
 type Params = { id: string };
 
-// PATCH – keičiam providerRequest statusą + kuriam user/profile/service
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<Params> }
-) {
+export const dynamic = "force-dynamic";
+
+export async function PATCH(req: Request, { params }: { params: Promise<Params> }) {
   const { id } = await params;
 
-  // 🔐 Tik ADMIN
   const { response, user } = await requireAdmin();
-  if (response || !user) {
-    return response!;
-  }
+  if (response || !user) return response!;
 
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const status = body.status as ProviderRequestStatus | undefined;
 
     const allowed = Object.values(ProviderRequestStatus);
@@ -31,98 +26,119 @@ export async function PATCH(
       );
     }
 
-    // 1) randam esamą requestą
-    const existing = await prisma.providerRequest.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: "ProviderRequest not found" },
-        { status: 404 }
-      );
-    }
-
-    let createdUser = null;
-    let providerProfile = null;
-    let serviceListing = null;
-
-    // 2) jei patvirtinam pirmą kartą – kuriam user + providerProfile + serviceListing
-    if (status === "APPROVED" && existing.status !== "APPROVED") {
-      if (!existing.email) {
-        return NextResponse.json(
-          { error: "ProviderRequest has no email – cannot create User" },
-          { status: 400 }
-        );
+    const result = await prisma.$transaction(async (tx) => {
+      // 1) paimam request
+      const existing = await tx.providerRequest.findUnique({ where: { id } });
+      if (!existing) {
+        return { kind: "NOT_FOUND" as const };
       }
 
-      const userFromReq = await prisma.user.upsert({
-        where: { email: existing.email },
-        update: {
-          name: existing.name,
-          phone: existing.phone ?? undefined,
-        },
-        create: {
-          email: existing.email,
-          name: existing.name,
-          phone: existing.phone ?? undefined,
-        },
-      });
+      // 2) jei tiesiog keičiam į PENDING/REJECTED arba jau buvo APPROVED -> tik update
+      const willApproveFirstTime =
+        status === "APPROVED" && existing.status !== "APPROVED";
 
-      createdUser = userFromReq;
+      let createdUser = null;
+      let providerProfile = null;
+      let serviceListing = null;
 
-      providerProfile = await prisma.providerProfile.upsert({
-        where: { userId: userFromReq.id },
-        update: {
-          companyName: existing.name,
-          description: existing.message ?? undefined,
-          isApproved: true,
-        },
-        create: {
-          userId: userFromReq.id,
-          companyName: existing.name,
-          description: existing.message ?? undefined,
-          isApproved: true,
-        },
-      });
+      if (willApproveFirstTime) {
+        if (!existing.email) {
+          return { kind: "BAD_REQUEST" as const, error: "ProviderRequest has no email" };
+        }
 
-      const existingListing = await prisma.serviceListing.findFirst({
-        where: { userId: userFromReq.id },
-      });
-
-      if (!existingListing) {
-        serviceListing = await prisma.serviceListing.create({
-          data: {
-            userId: userFromReq.id,
-            title: existing.name,
-            slug: `service-${existing.id}`,
-            description:
-              existing.message && existing.message.trim().length > 0
-                ? existing.message
-                : "Paslaugų teikėjas Norvegijoje.",
-            cityId: existing.cityId ?? undefined,
-            categoryId: existing.categoryId ?? undefined,
-            isActive: true,
-            highlighted: false,
+        // 2.1) user upsert
+        const userFromReq = await tx.user.upsert({
+          where: { email: existing.email },
+          update: {
+            name: existing.name,
+            phone: existing.phone ?? undefined,
+          },
+          create: {
+            email: existing.email,
+            name: existing.name,
+            phone: existing.phone ?? undefined,
           },
         });
-      } else {
-        serviceListing = existingListing;
+
+        createdUser = userFromReq;
+
+        // 2.2) provider profile upsert + patvirtinam
+        providerProfile = await tx.providerProfile.upsert({
+          where: { userId: userFromReq.id },
+          update: {
+            companyName: existing.name,
+            description: existing.message ?? undefined,
+            isApproved: true,
+          },
+          create: {
+            userId: userFromReq.id,
+            companyName: existing.name,
+            description: existing.message ?? undefined,
+            isApproved: true,
+          },
+        });
+
+        // 2.3) pirmas listing (jei dar nėra)
+        const existingListing = await tx.serviceListing.findFirst({
+          where: { userId: userFromReq.id },
+        });
+
+        if (!existingListing) {
+          // slug – stabilus ir unikalus pagal request id
+          const slug = `service-${existing.id}`;
+
+          serviceListing = await tx.serviceListing.create({
+            data: {
+              userId: userFromReq.id,
+              title: existing.name,
+              slug,
+              description:
+                existing.message && existing.message.trim().length > 0
+                  ? existing.message
+                  : "Paslaugų teikėjas Norvegijoje.",
+              cityId: existing.cityId ?? undefined,
+              categoryId: existing.categoryId ?? undefined,
+              isActive: true,
+              highlighted: false,
+              priceFrom: null,
+              imageUrl: null,
+              highlights: [],
+            },
+          });
+        } else {
+          serviceListing = existingListing;
+        }
       }
+
+      // 3) update request status
+      const updated = await tx.providerRequest.update({
+        where: { id },
+        data: { status },
+      });
+
+      return {
+        kind: "OK" as const,
+        updated,
+        user: createdUser,
+        providerProfile,
+        serviceListing,
+      };
+    });
+
+    if (result.kind === "NOT_FOUND") {
+      return NextResponse.json({ error: "ProviderRequest not found" }, { status: 404 });
     }
 
-    // 3) atnaujinam patį requestą
-    const updated = await prisma.providerRequest.update({
-      where: { id },
-      data: { status },
-    });
+    if (result.kind === "BAD_REQUEST") {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
 
     return NextResponse.json({
       ok: true,
-      updated,
-      user: createdUser,
-      providerProfile,
-      serviceListing,
+      updated: result.updated,
+      user: result.user,
+      providerProfile: result.providerProfile,
+      serviceListing: result.serviceListing,
     });
   } catch (error) {
     console.error("PATCH /api/admin/provider-requests/:id error:", error);

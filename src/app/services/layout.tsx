@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "lietuviu paslaugos norvegijoje",
     "lietuviu meistrai norvegijoje",
     "statybos paslaugos norvegijoje",
-    "valymo paslaugos norvegijoje",
+    "valymo paslaugos norvegijoje", 
     "automobiliu remontas norvegijoje",
   ],
   openGraph: {

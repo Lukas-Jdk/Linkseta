@@ -1,6 +1,5 @@
 // src/app/admin/provider-requests/page.tsx
 import { prisma } from "@/lib/prisma";
-import AdminGuard from "@/components/auth/AdminGuard";
 import styles from "./providerRequests.module.css";
 import ProviderRequestsAdminTable from "./ProviderRequestsAdminTable";
 
@@ -8,13 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function ProviderRequestsAdminPage() {
   const requests = await prisma.providerRequest.findMany({
-    include: {
-      city: true,
-      category: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    include: { city: true, category: true },
+    orderBy: { createdAt: "desc" },
   });
 
   const safeRequests = requests.map((r) => ({
@@ -30,17 +24,13 @@ export default async function ProviderRequestsAdminPage() {
   }));
 
   return (
-    <AdminGuard>
-      <main className={styles.wrapper}>
-        <div className="container">
-          <h1 className={styles.title}>Paslaugų teikėjų paraiškos</h1>
-          <p className={styles.subtitle}>
-            Čia matosi visi užpildyti „Tapk paslaugų teikėju“ prašymai.
-          </p>
+    <main className={styles.wrapper}>
+      <div className="container">
+        <h1 className={styles.title}>Paslaugų teikėjų paraiškos</h1>
+        <p className={styles.subtitle}>Čia matosi visi užpildyti „Tapk paslaugų teikėju“ prašymai.</p>
 
-          <ProviderRequestsAdminTable initialRequests={safeRequests} />
-        </div>
-      </main>
-    </AdminGuard>
+        <ProviderRequestsAdminTable initialRequests={safeRequests} />
+      </div>
+    </main>
   );
 }

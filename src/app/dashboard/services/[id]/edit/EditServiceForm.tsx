@@ -1,4 +1,6 @@
+// src/app/dashboard/services/[id]/edit/EditServiceForm.tsx
 "use client";
+
 import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -17,8 +19,8 @@ type InitialData = {
   categoryId: string;
   priceFrom: number | null;
   imageUrl: string | null;
-
-  highlights: string[]; // ✅ NEW
+  imagePath: string | null; 
+  highlights: string[];
 };
 
 type Props = {
@@ -46,20 +48,20 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
   const [cityId, setCityId] = useState(initial.cityId || "");
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [priceFrom, setPriceFrom] = useState(
-    initial.priceFrom != null ? String(initial.priceFrom) : ""
+    initial.priceFrom != null ? String(initial.priceFrom) : "",
   );
 
-  
   const [highlightsText, setHighlightsText] = useState(
-    (initial.highlights ?? []).join("\n")
+    (initial.highlights ?? []).join("\n"),
   );
 
   const highlightsPreview = useMemo(
     () => parseHighlights(highlightsText),
-    [highlightsText]
+    [highlightsText],
   );
 
   const [imageUrl, setImageUrl] = useState<string>(initial.imageUrl || "");
+  const [imagePath, setImagePath] = useState<string>(initial.imagePath || ""); // ✅ NEW
   const [uploading, setUploading] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +75,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       setError("Nuotrauka per didelė. Maksimaliai 5MB.");
       return;
@@ -82,8 +83,17 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
     setUploading(true);
 
     try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
+        return;
+      }
+
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `services/${initial.id}/${Date.now()}.${ext}`;
+      const userId = userData.user.id;
+
+      // ✅ tvarkingas kelias: userId/services/serviceId/...
+      const path = `${userId}/services/${initial.id}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
@@ -96,13 +106,15 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       }
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-
       if (!data?.publicUrl) {
         setError("Nepavyko gauti nuotraukos URL.");
         return;
       }
 
+      // ✅ atsimenam abu: url + path
       setImageUrl(data.publicUrl);
+      setImagePath(path);
+
       setSuccess("Nuotrauka įkelta. Nepamirškite išsaugoti pakeitimų.");
     } catch (e) {
       console.error(e);
@@ -130,8 +142,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
           imageUrl: imageUrl || null,
-
-      
+          imagePath: imagePath || null, // ✅ NEW
           highlights,
         }),
       });
@@ -156,7 +167,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
   async function handleDelete() {
     const ok = window.confirm(
-      "Ar tikrai nori ištrinti šią paslaugą? Šio veiksmo atšaukti nebus galima."
+      "Ar tikrai nori ištrinti šią paslaugą? Šio veiksmo atšaukti nebus galima.",
     );
     if (!ok) return;
 
@@ -226,7 +237,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setHighlightsText(e.target.value)}
             placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
           />
-          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
+          <div className={styles.charHint}>
+            Punktų: {highlightsPreview.length} / 6
+          </div>
         </div>
       </section>
 
@@ -294,7 +307,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
               disabled={uploading || pending}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleUpload(file);
+                if (file) void handleUpload(file);
                 e.currentTarget.value = "";
               }}
             />
@@ -303,7 +316,11 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           <button
             type="button"
             className={styles.secondaryButton}
-            onClick={() => setImageUrl("")}
+            onClick={() => {
+              // ✅ paspaudus “Pašalinti” – nusiunčiam null į API, o API ištrins seną file
+              setImageUrl("");
+              setImagePath("");
+            }}
             disabled={uploading || pending}
           >
             Pašalinti nuotrauką

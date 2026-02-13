@@ -1,5 +1,8 @@
 // src/app/dashboard/services/[id]/edit/page.tsx
+// src/app/dashboard/services/[id]/edit/page.tsx
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
 import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";
 
@@ -10,32 +13,29 @@ type PageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function EditServicePage({ params }: PageProps) {
+  const authUser = await getAuthUser();
+  if (!authUser) redirect("/login");
+
   const { id } = await params;
 
-  const [service, cities, categories] = await Promise.all([
-    prisma.serviceListing.findUnique({
-      where: { id },
-      include: { city: true, category: true },
-    }),
+  const service = await prisma.serviceListing.findUnique({
+    where: { id },
+    include: { city: true, category: true },
+  });
+
+  if (!service) redirect("/dashboard/services");
+
+  if (service.userId !== authUser.id) {
+    redirect("/dashboard/services");
+  }
+
+  const [cities, categories] = await Promise.all([
     prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
       where: { type: "SERVICE" },
       orderBy: { name: "asc" },
     }),
   ]);
-
-  if (!service) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.shell}>
-          <div className={styles.card}>
-            <h1 className={styles.pageTitle}>Paslauga nerasta</h1>
-            <p className={styles.pageSubtitle}>Tokios paslaugos sistemoje nebėra.</p>
-          </div>
-        </div>
-      </main>
-    );
-  }
 
   const initial = {
     id: service.id,
@@ -45,7 +45,8 @@ export default async function EditServicePage({ params }: PageProps) {
     categoryId: service.categoryId ?? "",
     priceFrom: service.priceFrom ?? null,
     imageUrl: service.imageUrl ?? null,
-    highlights: service.highlights ?? [],
+    imagePath: service.imagePath ?? null, // ✅ NEW
+    highlights: Array.isArray(service.highlights) ? service.highlights : [],
   };
 
   return (

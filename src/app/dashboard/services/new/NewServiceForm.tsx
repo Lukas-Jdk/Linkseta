@@ -36,21 +36,22 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [priceFrom, setPriceFrom] = useState<string>("");
 
   const [highlightsText, setHighlightsText] = useState("");
-
   const highlightsPreview = useMemo(
     () => parseHighlights(highlightsText),
-    [highlightsText]
+    [highlightsText],
   );
 
-  
-  const [imageUrl, setImageUrl] = useState("");
-  const [uploading, setUploading] = useState(false);
+  // ✅ naujas flow: laikom File state + preview
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
+  const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  async function handleUpload(file: File) {
+  function onPickFile(file: File) {
     setError(null);
     setSuccess(null);
 
@@ -58,40 +59,57 @@ export default function NewServiceForm({ cities, categories }: Props) {
       setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       setError("Nuotrauka per didelė. Maksimaliai 5MB.");
       return;
     }
 
-    setUploading(true);
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+  }
 
+  async function uploadServiceImage(serviceId: string): Promise<{
+    publicUrl: string;
+    path: string;
+  } | null> {
+    if (!imageFile) return null;
+
+    setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `services/new/${Date.now()}.${ext}`;
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
+        return null;
+      }
+
+      const ext = imageFile.name.split(".").pop() || "jpg";
+      const userId = userData.user.id;
+
+      // ✅ tvarkingas kelias: userId/services/serviceId/...
+      const path = `${userId}/services/${serviceId}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, { cacheControl: "3600", upsert: false });
+        .upload(path, imageFile, { cacheControl: "3600", upsert: false });
 
       if (uploadError) {
         console.error(uploadError);
         setError("Nepavyko įkelti nuotraukos.");
-        return;
+        return null;
       }
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-
       if (!data?.publicUrl) {
         setError("Nepavyko gauti nuotraukos URL.");
-        return;
+        return null;
       }
 
-      setImageUrl(data.publicUrl);
-      setSuccess("Nuotrauka įkelta.");
+      return { publicUrl: data.publicUrl, path };
     } catch (e) {
       console.error(e);
       setError("Įvyko klaida įkeliant nuotrauką.");
+      return null;
     } finally {
       setUploading(false);
     }
@@ -110,8 +128,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
     const highlights = parseHighlights(highlightsText);
 
     setIsSubmitting(true);
-
     try {
+      // 1) Sukuriam paslaugą be image
       const res = await fetch("/api/dashboard/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -121,7 +139,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
-          imageUrl: imageUrl || null,
+          imageUrl: null,
+          imagePath: null,
           highlights,
         }),
       });
@@ -131,9 +150,26 @@ export default function NewServiceForm({ cities, categories }: Props) {
       if (!res.ok) {
         setError(
           json?.error ||
-            "Nepavyko sukurti paslaugos. Bandykite dar kartą vėliau."
+            "Nepavyko sukurti paslaugos. Bandykite dar kartą vėliau.",
         );
         return;
+      }
+
+      const serviceId = json.id as string;
+
+      // 2) Jei vartotojas pasirinko failą -> upload į tvarkingą path
+      const uploaded = await uploadServiceImage(serviceId);
+
+      // 3) Jei įkėlėm, atnaujinam įrašą su imageUrl + imagePath
+      if (uploaded) {
+        await fetch(`/api/dashboard/services/${serviceId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageUrl: uploaded.publicUrl,
+            imagePath: uploaded.path,
+          }),
+        });
       }
 
       router.push("/dashboard");
@@ -182,9 +218,10 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
       </section>
 
-   
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+        <h2 className={styles.sectionTitle}>
+          Kodėl verta rinktis šią paslaugą?
+        </h2>
 
         <div className={styles.formGroup}>
           <label className={styles.label}>
@@ -282,14 +319,14 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         <div className={styles.uploadRow}>
           <label className={styles.uploadBtn}>
-            {uploading ? "Įkeliama..." : "Įkelti nuotrauką"}
+            {uploading ? "Įkeliama..." : "Pasirinkti nuotrauką"}
             <input
               type="file"
               accept="image/*"
               disabled={uploading || isSubmitting}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) void handleUpload(f);
+                if (f) onPickFile(f);
                 e.currentTarget.value = "";
               }}
             />
@@ -298,7 +335,10 @@ export default function NewServiceForm({ cities, categories }: Props) {
           <button
             type="button"
             className={styles.secondaryButton}
-            onClick={() => setImageUrl("")}
+            onClick={() => {
+              setImageFile(null);
+              setImagePreview("");
+            }}
             disabled={uploading || isSubmitting}
           >
             Pašalinti nuotrauką
@@ -306,27 +346,11 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.imagePreview}>
-          {imageUrl ? (
+          {imagePreview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt="Nuotraukos peržiūra" />
+            <img src={imagePreview} alt="Nuotraukos peržiūra" />
           ) : (
             <div className={styles.emptyState}>
-              <svg
-                className={styles.emptyIcon}
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
-
               <span className={styles.emptyText}>Nuotrauka neįkelta</span>
             </div>
           )}
