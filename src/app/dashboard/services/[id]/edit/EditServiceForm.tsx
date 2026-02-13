@@ -21,6 +21,7 @@ type InitialData = {
   imageUrl: string | null;
   imagePath: string | null; 
   highlights: string[];
+  isActive?: boolean; 
 };
 
 type Props = {
@@ -39,6 +40,12 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
+function getExt(file: File) {
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
 export default function EditServiceForm({ initial, cities, categories }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -48,21 +55,23 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
   const [cityId, setCityId] = useState(initial.cityId || "");
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [priceFrom, setPriceFrom] = useState(
-    initial.priceFrom != null ? String(initial.priceFrom) : "",
+    initial.priceFrom != null ? String(initial.priceFrom) : ""
   );
 
   const [highlightsText, setHighlightsText] = useState(
-    (initial.highlights ?? []).join("\n"),
+    (initial.highlights ?? []).join("\n")
   );
 
   const highlightsPreview = useMemo(
     () => parseHighlights(highlightsText),
-    [highlightsText],
+    [highlightsText]
   );
 
   const [imageUrl, setImageUrl] = useState<string>(initial.imageUrl || "");
-  const [imagePath, setImagePath] = useState<string>(initial.imagePath || ""); // ✅ NEW
+  const [imagePath, setImagePath] = useState<string>(initial.imagePath || ""); 
   const [uploading, setUploading] = useState(false);
+
+  const [isActive, setIsActive] = useState<boolean>(initial.isActive ?? true); 
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -75,6 +84,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
       setError("Nuotrauka per didelė. Maksimaliai 5MB.");
       return;
@@ -89,11 +99,12 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         return;
       }
 
-      const ext = file.name.split(".").pop() || "jpg";
       const userId = userData.user.id;
+      const ext = getExt(file);
+      const random = crypto.randomUUID();
 
-      // ✅ tvarkingas kelias: userId/services/serviceId/...
-      const path = `${userId}/services/${initial.id}/${Date.now()}.${ext}`;
+      //  tvarkingas path: userId/services/random.ext
+      const path = `${userId}/services/${random}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
@@ -111,7 +122,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         return;
       }
 
-      // ✅ atsimenam abu: url + path
+      //  išsaugom abu: url + path
       setImageUrl(data.publicUrl);
       setImagePath(path);
 
@@ -142,8 +153,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
           imageUrl: imageUrl || null,
-          imagePath: imagePath || null, // ✅ NEW
+          imagePath: imagePath || null, 
           highlights,
+          isActive, 
         }),
       });
 
@@ -167,17 +179,21 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
   async function handleDelete() {
     const ok = window.confirm(
-      "Ar tikrai nori ištrinti šią paslaugą? Šio veiksmo atšaukti nebus galima.",
+      "Ar tikrai nori ištrinti šią paslaugą? (Soft delete: paslauga dings iš sąrašo.)"
     );
     if (!ok) return;
+
+    setError(null);
+    setSuccess(null);
 
     try {
       const res = await fetch(`/api/dashboard/services/${initial.id}`, {
         method: "DELETE",
       });
 
+      const json = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const json = await res.json().catch(() => null);
         setError(json?.error || "Nepavyko ištrinti paslaugos.");
         return;
       }
@@ -188,6 +204,36 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       });
     } catch (e) {
       console.error(e);
+      setError("Serverio klaida.");
+    }
+  }
+
+  async function handleToggleActive() {
+    setError(null);
+    setSuccess(null);
+
+    const next = !isActive;
+    setIsActive(next);
+
+    try {
+      const res = await fetch(`/api/dashboard/services/${initial.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: next }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setIsActive(!next); // rollback
+        setError(json?.error || "Nepavyko pakeisti aktyvumo.");
+        return;
+      }
+
+      setSuccess(next ? "Paslauga įjungta." : "Paslauga išjungta.");
+    } catch (e) {
+      console.error(e);
+      setIsActive(!next);
       setError("Serverio klaida.");
     }
   }
@@ -219,9 +265,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-          <div className={styles.charHint}>
-            {description.length} / 2000 simbolių
-          </div>
+          <div className={styles.charHint}>{description.length} / 2000 simbolių</div>
         </div>
       </section>
 
@@ -237,9 +281,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setHighlightsText(e.target.value)}
             placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
           />
-          <div className={styles.charHint}>
-            Punktų: {highlightsPreview.length} / 6
-          </div>
+          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
         </div>
       </section>
 
@@ -317,9 +359,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             type="button"
             className={styles.secondaryButton}
             onClick={() => {
-              // ✅ paspaudus “Pašalinti” – nusiunčiam null į API, o API ištrins seną file
               setImageUrl("");
-              setImagePath("");
+              setImagePath(""); 
             }}
             disabled={uploading || pending}
           >
@@ -341,6 +382,24 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         <p className={styles.helpText}>
           Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.
         </p>
+      </section>
+
+      {/* ACTIVE TOGGLE */}
+      <section className={styles.sectionCard}>
+        <h2 className={styles.sectionTitle}>Aktyvumas</h2>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <span>
+            Statusas: <strong>{isActive ? "Aktyvi" : "Išjungta"}</strong>
+          </span>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={handleToggleActive}
+            disabled={uploading || pending}
+          >
+            {isActive ? "Išjungti" : "Įjungti"}
+          </button>
+        </div>
       </section>
 
       <div className={styles.actionsBar}>

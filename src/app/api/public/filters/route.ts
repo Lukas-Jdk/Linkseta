@@ -11,7 +11,7 @@ export async function GET() {
     prisma.category.findMany({
       where: { type: "SERVICE" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, slug: true }, // ✅ SVARBU
+      select: { id: true, name: true, slug: true }, 
     }),
   ]);
 

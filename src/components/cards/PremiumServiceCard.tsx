@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star, MapPin, ArrowRight, ShieldCheck } from "lucide-react";
+import { Star, MapPin, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
 export interface PremiumServiceCardProps {

@@ -73,7 +73,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     `Užklausa dėl paslaugos: ${service.title}`
   )}`;
 
-  // ✅ Highlights iš DB (be jokių default)
+  //  Highlights iš DB (be jokių default)
   const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
 
@@ -140,7 +140,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                   <p className={styles.desc}>{service.description}</p>
                 </div>
 
-                {/* ✅ RODYTI TIK JEI YRA */}
+                {/*  RODYTI TIK JEI YRA */}
                 {hasHighlights && (
                   <div className={styles.section}>
                     <h2 className={styles.sectionTitle}>

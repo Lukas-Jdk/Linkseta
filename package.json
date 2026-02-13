@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "npx prisma db seed"
@@ -19,18 +19,19 @@
     "@supabase/supabase-js": "^2.84.0",
     "framer-motion": "^12.23.25",
     "lucide-react": "^0.555.0",
-    "next": "16.0.10",
+    "next": "15.5.10",
     "next-intl": "^4.5.0",
     "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1",
-    "typescript": "^5"
-  }
+"devDependencies": {
+  "@types/node": "^20",
+  "@types/react": "^19",
+  "@types/react-dom": "^19",
+  "baseline-browser-mapping": "^2.9.19",
+  "eslint": "^8.57.0",
+  "eslint-config-next": "15.5.10",
+  "typescript": "^5"
+}
 }

@@ -41,7 +41,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
     [highlightsText],
   );
 
-  // ✅ naujas flow: laikom File state + preview
+  //  naujas flow: laikom File state + preview
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
@@ -86,7 +86,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
       const ext = imageFile.name.split(".").pop() || "jpg";
       const userId = userData.user.id;
 
-      // ✅ tvarkingas kelias: userId/services/serviceId/...
+      //  tvarkingas kelias: userId/services/serviceId/...
       const path = `${userId}/services/${serviceId}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage

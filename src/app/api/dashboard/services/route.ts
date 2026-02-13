@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { rateLimit, getIp } from "@/lib/rateLimit";
 
 function slugify(input: string) {
   return input
@@ -14,6 +15,19 @@ function slugify(input: string) {
 
 export async function POST(req: Request) {
   try {
+    //  Rate limit (pvz. 20/min)
+    const ip = getIp(req);
+    const rl = rateLimit(`POST:/api/dashboard/services:${ip}`, {
+      limit: 20,
+      windowMs: 60_000,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Per daug užklausų. Bandykite vėliau." },
+        { status: 429 }
+      );
+    }
+
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,9 +55,10 @@ export async function POST(req: Request) {
     const categoryId: string | null = body.categoryId ?? null;
     const priceFrom: number | null = body.priceFrom ?? null;
 
-    // kuriant paslaugą dažniausiai dar neturėsi nuotraukos
     const imageUrl: string | null = body.imageUrl ?? null;
     const imagePath: string | null = body.imagePath ?? null;
+
+    const planId: string | null = body.planId ?? null;
 
     const highlights: string[] = Array.isArray(body.highlights)
       ? body.highlights
@@ -52,11 +67,24 @@ export async function POST(req: Request) {
           .slice(0, 6)
       : [];
 
+    //  Plan highlight logika
+    let highlighted = false;
+    if (planId) {
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      highlighted = Boolean(plan?.highlight);
+    }
+
+    // Unikalus slug
     const baseSlug = slugify(title);
     let slug = baseSlug;
     let i = 2;
 
-    while (await prisma.serviceListing.findUnique({ where: { slug } })) {
+    while (
+      await prisma.serviceListing.findFirst({
+        where: { slug },
+        select: { id: true },
+      })
+    ) {
       slug = `${baseSlug}-${i}`;
       i += 1;
     }
@@ -72,9 +100,11 @@ export async function POST(req: Request) {
         priceFrom,
         imageUrl,
         imagePath,
+        planId,
+        highlighted,
         highlights,
         isActive: true,
-        highlighted: false,
+        deletedAt: null,
       },
       select: { id: true },
     });

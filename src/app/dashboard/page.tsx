@@ -6,14 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import styles from "./dashboard.module.css";
 import ProfileCardClient from "./ProfileCardClient";
-
-import {
-  MapPin,
-  Folder,
-  Calendar,
-  Eye,
-  Pencil,
-} from "lucide-react";
+import { MapPin, Folder, Calendar, Eye, Pencil } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +30,7 @@ export default async function DashboardPage() {
     include: {
       profile: true,
       services: {
+        where: { deletedAt: null }, // ✅ SOFT DELETE FILTER
         include: { city: true, category: true },
         orderBy: { createdAt: "desc" },
       },
@@ -54,7 +48,6 @@ export default async function DashboardPage() {
   return (
     <main className={styles.page}>
       <div className="container">
-        {/* TOP HEADER CARD */}
         <section className={styles.topCard}>
           <div className={styles.topCardLeft}>
             <h1 className={styles.h1}>Mano paskyra</h1>
@@ -73,9 +66,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* MAIN GRID */}
         <div className={styles.grid}>
-          {/* LEFT: PROFILE CARD (client) */}
           <ProfileCardClient
             name={user.name ?? null}
             email={user.email}
@@ -85,13 +76,11 @@ export default async function DashboardPage() {
             isProviderApproved={isProviderApproved}
           />
 
-          {/* RIGHT: SERVICES */}
           <section className={styles.servicesCard}>
             <div className={styles.servicesHeader}>
               <div>
                 <h2 className={styles.h2}>Mano paslaugos</h2>
               </div>
-
               <div className={styles.servicesCount}>{activeServices} aktyvūs</div>
             </div>
 
@@ -100,10 +89,7 @@ export default async function DashboardPage() {
                 <div className={styles.empty}>
                   Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.
                   <div className={styles.emptyActions}>
-                    <Link
-                      href="/dashboard/services/new"
-                      className={styles.newBtnSmall}
-                    >
+                    <Link href="/dashboard/services/new" className={styles.newBtnSmall}>
                       ＋ Sukurti skelbimą
                     </Link>
                   </div>
@@ -112,8 +98,7 @@ export default async function DashboardPage() {
 
               {!isProviderApproved && (
                 <div className={styles.empty}>
-                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų
-                  teikėju.
+                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų teikėju.
                   <div className={styles.emptyActions}>
                     <Link href="/tapti-teikeju" className={styles.newBtnSmall}>
                       Tapti teikėju
@@ -139,9 +124,7 @@ export default async function DashboardPage() {
                           className={styles.thumbImg}
                           sizes="120px"
                         />
-                        {s.highlighted && (
-                          <span className={styles.topBadge}>TOP</span>
-                        )}
+                        {s.highlighted && <span className={styles.topBadge}>TOP</span>}
                       </div>
 
                       <div className={styles.serviceMain}>
@@ -149,9 +132,7 @@ export default async function DashboardPage() {
                           <div className={styles.serviceTitle}>{s.title}</div>
                           <span
                             className={
-                              s.isActive
-                                ? styles.statusActive
-                                : styles.statusInactive
+                              s.isActive ? styles.statusActive : styles.statusInactive
                             }
                           >
                             {s.isActive ? "Aktyvi" : "Išjungta"}

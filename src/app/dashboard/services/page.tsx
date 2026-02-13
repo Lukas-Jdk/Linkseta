@@ -15,7 +15,10 @@ export default async function DashboardServicesPage() {
   }
 
   const services = await prisma.serviceListing.findMany({
-    where: { userId: authUser.id },
+    where: {
+      userId: authUser.id,
+      deletedAt: null, 
+    },
     include: {
       city: true,
       category: true,
@@ -51,22 +54,30 @@ export default async function DashboardServicesPage() {
                     {typeof s.priceFrom === "number" && (
                       <span> · nuo {s.priceFrom} NOK</span>
                     )}
+                    <span> · {s.isActive ? "Aktyvi" : "Išjungta"}</span>
                   </div>
                 </div>
 
                 <div className={styles.actions}>
-                  <Link
-                    href={`/services/${s.slug}`}
-                    className={styles.linkButton}
-                  >
+                  <Link href={`/services/${s.slug}`} className={styles.linkButton}>
                     Peržiūrėti
                   </Link>
+
                   <Link
                     href={`/dashboard/services/${s.id}/edit`}
                     className={styles.linkButton}
                   >
                     Redaguoti
                   </Link>
+
+                  {/*  ACTIVE TOGGLE */}
+                  <form
+                    action={async () => {
+                      "use server";
+                      // server action nenaudoju čia, nes  turi API.
+                      // todėl paliekam paprastą linką į edit (toggle ten).
+                    }}
+                  />
                 </div>
               </li>
             ))}

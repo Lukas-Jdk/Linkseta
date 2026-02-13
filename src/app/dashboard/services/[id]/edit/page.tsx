@@ -1,4 +1,4 @@
-// src/app/dashboard/services/[id]/edit/page.tsx
+
 // src/app/dashboard/services/[id]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -38,16 +38,17 @@ export default async function EditServicePage({ params }: PageProps) {
   ]);
 
   const initial = {
-    id: service.id,
-    title: service.title,
-    description: service.description ?? "",
-    cityId: service.cityId ?? "",
-    categoryId: service.categoryId ?? "",
-    priceFrom: service.priceFrom ?? null,
-    imageUrl: service.imageUrl ?? null,
-    imagePath: service.imagePath ?? null, // ✅ NEW
-    highlights: Array.isArray(service.highlights) ? service.highlights : [],
-  };
+  id: service.id,
+  title: service.title,
+  description: service.description ?? "",
+  cityId: service.cityId ?? "",
+  categoryId: service.categoryId ?? "",
+  priceFrom: service.priceFrom ?? null,
+  imageUrl: service.imageUrl ?? null,
+  imagePath: service.imagePath ?? null, // ✅ NEW
+  highlights: Array.isArray(service.highlights) ? service.highlights : [],
+  isActive: service.isActive, 
+};
 
   return (
     <main className={styles.page}>

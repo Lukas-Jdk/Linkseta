@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Neprisijungęs." }, { status: 401 });
     }
 
-    // ✅ KRITIŠKA: storage RLS remiasi auth.uid() (supabase user id)
+    
     if (!authUser.supabaseId) {
       return NextResponse.json(
         { error: "Trūksta supabaseId (vartotojo susiejimas nepavyko)." },
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
     const ext = extFromType(file.type);
 
-    // ✅ folderis pagal supabase uid, ne pagal DB id
+    //  folderis pagal supabase uid, ne pagal DB id
     const path = `${authUser.supabaseId}/${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
