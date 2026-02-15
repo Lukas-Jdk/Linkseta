@@ -24,22 +24,32 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // ✅ rate limit
     const ip = getClientIp(req);
-    rateLimitOrThrow({ key: `dashboard:patchService:${ip}`, limit: 60, windowMs: 60_000 });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    //  rate limit po auth + userId + ip
+    rateLimitOrThrow({
+      key: `dashboard:patchService:${user.id}:${ip}`,
+      limit: 60,
+      windowMs: 60_000,
+    });
 
     const { id } = await params;
 
-    // ✅ tik ne-deleted
     const service = await prisma.serviceListing.findFirst({
       where: { id, deletedAt: null },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const body = await req.json();
 
@@ -50,16 +60,23 @@ export async function PATCH(
       body.imagePath === undefined ? service.imagePath : body.imagePath;
 
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
       : service.highlights;
 
-    // ✅ jeigu pakeitė imagePath → trinam seną failą
     const oldPath = service.imagePath;
     const safePrefix = `${user.id}/`;
 
-    const isPathChanged = oldPath && nextImagePath && oldPath !== nextImagePath;
-    const isRemoved = oldPath && (nextImagePath === null || nextImagePath === "");
-    const shouldDelete = (isPathChanged || isRemoved) && oldPath.startsWith(safePrefix);
+    const isPathChanged =
+      oldPath && nextImagePath && oldPath !== nextImagePath;
+
+    const isRemoved =
+      oldPath && (nextImagePath === null || nextImagePath === "");
+
+    const shouldDelete =
+      (isPathChanged || isRemoved) && oldPath.startsWith(safePrefix);
 
     await prisma.serviceListing.update({
       where: { id: service.id },
@@ -69,7 +86,7 @@ export async function PATCH(
         cityId: body.cityId ?? service.cityId,
         categoryId: body.categoryId ?? service.categoryId,
         priceFrom: body.priceFrom ?? service.priceFrom,
-        isActive: body.isActive ?? service.isActive, // ✅ leidžiam toggle
+        isActive: body.isActive ?? service.isActive, 
         imageUrl: nextImageUrl,
         imagePath: nextImagePath || null,
         highlights,
@@ -82,9 +99,9 @@ export async function PATCH(
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    if (e instanceof NextResponse) return e;
+    if (e instanceof Response) return e;
 
-    console.error("PATCH /api/dashboard/services/[id] error:", e);
+    console.error("API error: PATCH /api/dashboard/services/[id]", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
@@ -94,12 +111,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // ✅ rate limit
     const ip = getClientIp(req);
-    rateLimitOrThrow({ key: `dashboard:deleteService:${ip}`, limit: 20, windowMs: 60_000 });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+  
+    rateLimitOrThrow({
+      key: `dashboard:deleteService:${user.id}:${ip}`,
+      limit: 20,
+      windowMs: 60_000,
+    });
 
     const { id } = await params;
 
@@ -107,15 +131,17 @@ export async function DELETE(
       where: { id, deletedAt: null },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    // ✅ trinam storage failą (tik savo foldery)
     if (service.imagePath && service.imagePath.startsWith(`${user.id}/`)) {
       await removeFromStorage(service.imagePath);
     }
 
-    // ✅ SOFT DELETE vietoj hard delete
     await prisma.serviceListing.update({
       where: { id: service.id },
       data: {
@@ -126,9 +152,9 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    if (e instanceof NextResponse) return e;
+    if (e instanceof Response) return e;
 
-    console.error("DELETE /api/dashboard/services/[id] error:", e);
+    console.error("API error: DELETE /api/dashboard/services/[id]", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

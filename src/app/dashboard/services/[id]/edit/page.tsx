@@ -45,7 +45,7 @@ export default async function EditServicePage({ params }: PageProps) {
   categoryId: service.categoryId ?? "",
   priceFrom: service.priceFrom ?? null,
   imageUrl: service.imageUrl ?? null,
-  imagePath: service.imagePath ?? null, // ✅ NEW
+  imagePath: service.imagePath ?? null, 
   highlights: Array.isArray(service.highlights) ? service.highlights : [],
   isActive: service.isActive, 
 };

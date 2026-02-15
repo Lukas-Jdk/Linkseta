@@ -24,11 +24,26 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: authUser.id },
-    include: {
-      profile: true,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      avatarUrl: true,
+      profile: { select: { isApproved: true } },
       services: {
-        where: { deletedAt: null }, // ✅ svarbiausia vieta
-        include: { city: true, category: true },
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          createdAt: true,
+          isActive: true,
+          highlighted: true,
+          imageUrl: true,
+          city: { select: { name: true } },
+          category: { select: { name: true } },
+        },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -75,16 +90,44 @@ export default async function DashboardPage() {
 
           <section className={styles.servicesCard}>
             <div className={styles.servicesHeader}>
-              <h2 className={styles.h2}>Mano paslaugos</h2>
-              <div className={styles.servicesCount}>
-                {activeServices} aktyvūs
+              <div>
+                <h2 className={styles.h2}>Mano paslaugos</h2>
               </div>
+              <div className={styles.servicesCount}>{activeServices} aktyvūs</div>
             </div>
 
             <div className={styles.servicesList}>
+              {isProviderApproved && services.length === 0 && (
+                <div className={styles.empty}>
+                  Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.
+                  <div className={styles.emptyActions}>
+                    <Link
+                      href="/dashboard/services/new"
+                      className={styles.newBtnSmall}
+                    >
+                      ＋ Sukurti skelbimą
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {!isProviderApproved && (
+                <div className={styles.empty}>
+                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų
+                  teikėju.
+                  <div className={styles.emptyActions}>
+                    <Link href="/tapti-teikeju" className={styles.newBtnSmall}>
+                      Tapti teikėju
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               {isProviderApproved &&
                 services.map((s) => {
                   const img = s.imageUrl || "/default.png";
+                  const cityName = s.city?.name ?? "—";
+                  const catName = s.category?.name ?? "—";
                   const date = formatDateLT(s.createdAt);
 
                   return (
@@ -104,9 +147,7 @@ export default async function DashboardPage() {
 
                       <div className={styles.serviceMain}>
                         <div className={styles.serviceTopRow}>
-                          <div className={styles.serviceTitle}>
-                            {s.title}
-                          </div>
+                          <div className={styles.serviceTitle}>{s.title}</div>
                           <span
                             className={
                               s.isActive
@@ -121,12 +162,14 @@ export default async function DashboardPage() {
                         <div className={styles.serviceMeta}>
                           <span className={styles.metaItem}>
                             <MapPin className={styles.metaIcon} />
-                            {s.city?.name ?? "—"}
+                            {cityName}
                           </span>
+
                           <span className={styles.metaItem}>
                             <Folder className={styles.metaIcon} />
-                            {s.category?.name ?? "—"}
+                            {catName}
                           </span>
+
                           <span className={styles.metaItem}>
                             <Calendar className={styles.metaIcon} />
                             {date}
@@ -137,6 +180,7 @@ export default async function DashboardPage() {
                           <Link
                             href={`/services/${s.slug}`}
                             className={styles.actionLink}
+                            aria-label="Peržiūrėti paslaugą"
                           >
                             <Eye className={styles.actionIcon} />
                             <span>Peržiūrėti</span>
@@ -145,6 +189,7 @@ export default async function DashboardPage() {
                           <Link
                             href={`/dashboard/services/${s.id}/edit`}
                             className={styles.actionLink}
+                            aria-label="Redaguoti paslaugą"
                           >
                             <Pencil className={styles.actionIcon} />
                             <span>Redaguoti</span>
@@ -155,6 +200,14 @@ export default async function DashboardPage() {
                   );
                 })}
             </div>
+
+            {isProviderApproved && services.length > 0 && (
+              <div className={styles.bottomAction}>
+                <Link href="/dashboard/services" className={styles.manageAllBtn}>
+                  Valdyti visas paslaugas
+                </Link>
+              </div>
+            )}
           </section>
         </div>
       </div>

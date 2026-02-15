@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 
+export const dynamic = "force-dynamic";
+
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -13,18 +15,22 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
-export const dynamic = "force-dynamic";
-
 export async function POST(req: Request) {
   try {
-    // ✅ rate limit
     const ip = getClientIp(req);
-    rateLimitOrThrow({ key: `dashboard:createService:${ip}`, limit: 15, windowMs: 60_000 });
 
+    // ✅ Auth pirmiau (kad rate-limit raktas būtų stabilus pagal userId)
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // ✅ Rate limit (userId + ip)
+    rateLimitOrThrow({
+      key: `dashboard:createService:${user.id}:${ip}`,
+      limit: 15,
+      windowMs: 60_000,
+    });
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -52,14 +58,17 @@ export async function POST(req: Request) {
     const imagePath: string | null = body.imagePath ?? null;
 
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
       : [];
 
     const baseSlug = slugify(title);
     let slug = baseSlug;
     let i = 2;
 
-    // ✅ slug unique tik tarp aktyvių (ne deleted)
+    // ✅ slug unikalumas tik tarp ne-deleted
     while (
       await prisma.serviceListing.findFirst({
         where: { slug, deletedAt: null },
@@ -91,10 +100,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, id: created.id });
   } catch (e: any) {
-    // jei rateLimitOrThrow metė NextResponse — grąžinam jį
-    if (e instanceof NextResponse) return e;
+    // ✅ jei rateLimitOrThrow grąžino Response/NextResponse — atiduodam jį
+    if (e instanceof Response) return e;
 
-    console.error("POST /api/dashboard/services error:", e);
+    console.error("API error: POST /api/dashboard/services", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
