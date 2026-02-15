@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { rateLimit, getIp } from "@/lib/rateLimit";
+import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 
 function slugify(input: string) {
   return input
@@ -13,20 +13,13 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   try {
-    //  Rate limit (pvz. 20/min)
-    const ip = getIp(req);
-    const rl = rateLimit(`POST:/api/dashboard/services:${ip}`, {
-      limit: 20,
-      windowMs: 60_000,
-    });
-    if (!rl.ok) {
-      return NextResponse.json(
-        { error: "Per daug užklausų. Bandykite vėliau." },
-        { status: 429 }
-      );
-    }
+    // ✅ rate limit
+    const ip = getClientIp(req);
+    rateLimitOrThrow({ key: `dashboard:createService:${ip}`, limit: 15, windowMs: 60_000 });
 
     const user = await getAuthUser();
     if (!user) {
@@ -58,30 +51,18 @@ export async function POST(req: Request) {
     const imageUrl: string | null = body.imageUrl ?? null;
     const imagePath: string | null = body.imagePath ?? null;
 
-    const planId: string | null = body.planId ?? null;
-
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights
-          .map((s: unknown) => String(s).trim())
-          .filter(Boolean)
-          .slice(0, 6)
+      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
       : [];
 
-    //  Plan highlight logika
-    let highlighted = false;
-    if (planId) {
-      const plan = await prisma.plan.findUnique({ where: { id: planId } });
-      highlighted = Boolean(plan?.highlight);
-    }
-
-    // Unikalus slug
     const baseSlug = slugify(title);
     let slug = baseSlug;
     let i = 2;
 
+    // ✅ slug unique tik tarp aktyvių (ne deleted)
     while (
       await prisma.serviceListing.findFirst({
-        where: { slug },
+        where: { slug, deletedAt: null },
         select: { id: true },
       })
     ) {
@@ -100,17 +81,19 @@ export async function POST(req: Request) {
         priceFrom,
         imageUrl,
         imagePath,
-        planId,
-        highlighted,
         highlights,
         isActive: true,
+        highlighted: false,
         deletedAt: null,
       },
       select: { id: true },
     });
 
     return NextResponse.json({ ok: true, id: created.id });
-  } catch (e) {
+  } catch (e: any) {
+    // jei rateLimitOrThrow metė NextResponse — grąžinam jį
+    if (e instanceof NextResponse) return e;
+
     console.error("POST /api/dashboard/services error:", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

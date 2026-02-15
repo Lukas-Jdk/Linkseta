@@ -14,17 +14,11 @@ export default async function DashboardServicesPage() {
     redirect("/login");
   }
 
-  const services = await prisma.serviceListing.findMany({
-    where: {
-      userId: authUser.id,
-      deletedAt: null, 
-    },
-    include: {
-      city: true,
-      category: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+const services = await prisma.serviceListing.findMany({
+  where: { userId: authUser.id, deletedAt: null }, 
+  include: { city: true, category: true },
+  orderBy: { createdAt: "desc" },
+});
 
   return (
     <main className={styles.wrapper}>

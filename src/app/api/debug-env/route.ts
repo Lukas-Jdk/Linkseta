@@ -1,16 +1,17 @@
 // src/app/api/debug-env/route.ts
 import { NextResponse } from "next/server";
 
-type DebugEnv = {
-  supabaseUrl?: string;
-  nodeEnv?: string;
-};
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const data: DebugEnv = {
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    nodeEnv: process.env.NODE_ENV,
-  };
+  // Production'e šitas endpointas neturi egzistuot.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
-  return NextResponse.json(data);
+
+  return NextResponse.json({
+    ok: true,
+    nodeEnv: process.env.NODE_ENV,
+  });
 }

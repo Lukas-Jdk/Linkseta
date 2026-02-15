@@ -10,13 +10,14 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
 
-    const city = searchParams.get("city") || undefined; // pvz. "oslo"
-    const category = searchParams.get("category") || undefined; // pvz. "statybos"
+    const city = searchParams.get("city") || undefined;
+    const category = searchParams.get("category") || undefined;
     const q = searchParams.get("q") || undefined;
 
     const services = await prisma.serviceListing.findMany({
       where: {
         isActive: true,
+        deletedAt: null, // ✅ svarbiausia apsauga
         city: city ? { slug: city } : undefined,
         category: category ? { slug: category } : undefined,
         OR: q
@@ -47,12 +48,11 @@ export async function GET(req: Request) {
 }
 
 // ---------------------------------------------
-// POST /api/services  (ADMIN-only)
+// POST /api/services (ADMIN only)
 // ---------------------------------------------
 export async function POST(req: Request) {
   try {
     const { user, response } = await requireAdmin();
-
     if (response || !user) {
       return (
         response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -65,18 +65,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-   
     let highlights: string[] = [];
 
     if (Array.isArray(body.highlights)) {
       highlights = body.highlights
         .map((s: unknown) => String(s).trim())
-        .filter(Boolean)
-        .slice(0, 6);
-    } else if (typeof body.highlights === "string") {
-      highlights = body.highlights
-        .split("\n")
-        .map((s: string) => s.trim())
         .filter(Boolean)
         .slice(0, 6);
     }
@@ -91,12 +84,10 @@ export async function POST(req: Request) {
         priceTo: body.priceTo ?? null,
         cityId: body.cityId ?? null,
         categoryId: body.categoryId ?? null,
-
-      
         highlights,
-
         isActive: true,
         highlighted: false,
+        deletedAt: null,
       },
     });
 

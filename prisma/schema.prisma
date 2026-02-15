@@ -54,23 +54,19 @@ model ServiceListing {
   description String
   priceFrom   Int?
   priceTo     Int?
-
   isActive    Boolean  @default(true)
   highlighted Boolean  @default(false)
-
   highlights  String[] @default([])
   imageUrl    String?
   imagePath   String?
+  cityId      String?
+  categoryId  String?
+  planId      String?
 
-  cityId     String?
-  categoryId String?
-  planId     String?
+  deletedAt   DateTime? // 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  
-  deletedAt DateTime?
 
   user     User      @relation(fields: [userId], references: [id])
   city     City?     @relation(fields: [cityId], references: [id])
