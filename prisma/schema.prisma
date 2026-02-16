@@ -9,22 +9,23 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  supabaseId String?  @unique
+  id         String  @id @default(cuid())
+  email      String  @unique
+  supabaseId String? @unique
 
-  name       String?
-  phone      String?
-  role       UserRole @default(USER)
+  name  String?
+  phone String?
+  role  UserRole @default(USER)
 
-  avatarUrl  String?
+  avatarUrl String?
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   profile     ProviderProfile?
   services    ServiceListing[]
   jobListings JobListing[]
+  auditLogs   AuditLog[]       @relation("UserAuditLogs")
 }
 
 enum UserRole {
@@ -63,7 +64,7 @@ model ServiceListing {
   categoryId  String?
   planId      String?
 
-  deletedAt   DateTime? // 
+  deletedAt DateTime? // 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,4 +166,29 @@ model ProviderRequest {
 
   city     City?     @relation(fields: [cityId], references: [id])
   category Category? @relation(fields: [categoryId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // kas atliko veiksmą (gali būti null jei anon)
+  userId String?
+  user   User?   @relation("UserAuditLogs", fields: [userId], references: [id])
+
+  // ką padarė
+  action   String // pvz. "SERVICE_CREATE", "SERVICE_UPDATE", "SERVICE_DELETE"
+  entity   String // pvz. "ServiceListing", "ProviderRequest"
+  entityId String?
+
+  // kontekstas
+  ip        String?
+  userAgent String?
+
+  // papildoma info (pvz. kas pasikeitė, senas/new)
+  metadata Json?
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([entity, entityId])
 }

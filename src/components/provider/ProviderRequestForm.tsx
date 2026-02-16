@@ -1,21 +1,10 @@
 // src/components/provider/ProviderRequestForm.tsx
-
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import styles from "./ProviderRequestForm.module.css";
 
-type Option = {
-  id: string;
-  name: string;
-};
-
-type Props = {
-  cities: Option[];
-  categories: Option[];
-};
-
-export default function ProviderRequestForm({ cities, categories }: Props) {
+export default function ProviderRequestForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -23,21 +12,20 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
   const [categoryId, setCategoryId] = useState("");
   const [message, setMessage] = useState("");
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  //  Honeypot field
+  const [website, setWebsite] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    setLoading(true);
     setError(null);
-    setSuccess(null);
+    setSuccess(false);
 
-    if (!name || !email) {
-      setError("Vardas ir el. paštas yra privalomi.");
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
       const res = await fetch("/api/provider-requests", {
         method: "POST",
@@ -46,124 +34,92 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
           name,
           email,
           phone,
-          cityId: cityId || null,
-          categoryId: categoryId || null,
+          cityId,
+          categoryId,
           message,
+          website, 
         }),
       });
 
+      const json = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(
-          data?.error || "Įvyko klaida siunčiant paraišką. Bandykite vėliau."
-        );
-      } else {
-        setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
-        setName("");
-        setEmail("");
-        setPhone("");
-        setCityId("");
-        setCategoryId("");
-        setMessage("");
+        setError(json?.error || "Nepavyko išsiųsti užklausos.");
+        return;
       }
+
+      setSuccess(true);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCityId("");
+      setCategoryId("");
+      setMessage("");
+      setWebsite("");
     } catch (err) {
       console.error(err);
-      setError("Serverio klaida. Bandykite dar kartą vėliau.");
+      setError("Serverio klaida.");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   }
 
   return (
-    <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
-      <div className={styles.row}>
-        <label className={styles.label}>
-          Vardas / įmonės pavadinimas*
-          <input
-            className={styles.input}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </label>
+    <form className={styles.form} onSubmit={handleSubmit}>
+      {/* 🔒 Honeypot input (nematomas žmonėms) */}
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        style={{ display: "none" }}
+      />
 
-        <label className={styles.label}>
-          El. paštas*
-          <input
-            className={styles.input}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
+      <div className={styles.field}>
+        <label>Vardas *</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
       </div>
 
-      <div className={styles.row}>
-        <label className={styles.label}>
-          Telefonas
-          <input
-            className={styles.input}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </label>
-
-        <label className={styles.label}>
-          Miestas
-          <select
-            className={styles.input}
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-          >
-            <option value="">Pasirinkti...</option>
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className={styles.field}>
+        <label>El. paštas *</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
       </div>
 
-      <div className={styles.row}>
-        <label className={styles.label}>
-          Kategorija
-          <select
-            className={styles.input}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">Pasirinkti...</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className={styles.field}>
+        <label>Telefonas</label>
+        <input
+          type="text"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+        />
       </div>
 
-      <label className={styles.label}>
-        Papildoma informacija
+      <div className={styles.field}>
+        <label>Žinutė</label>
         <textarea
-          className={styles.textarea}
-          rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Trumpai aprašykite, kokias paslaugas teikiate."
+          rows={4}
         />
-      </label>
+      </div>
 
       {error && <p className={styles.error}>{error}</p>}
-      {success && <p className={styles.success}>{success}</p>}
+      {success && <p className={styles.success}>Užklausa išsiųsta!</p>}
 
-      <button
-        className={`btn btn-primary ${styles.submitButton}`}
-        type="submit"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "Siunčiama..." : "Siųsti paraišką"}
+      <button type="submit" disabled={loading}>
+        {loading ? "Siunčiama..." : "Siųsti užklausą"}
       </button>
     </form>
   );

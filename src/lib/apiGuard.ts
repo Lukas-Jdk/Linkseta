@@ -33,5 +33,6 @@ export async function withRateLimit(
 
   const res = await handler();
   res.headers.set("X-RateLimit-Remaining", String(rl.remaining));
+  res.headers.set("X-RateLimit-Reset", String(rl.resetAt));
   return res;
 }

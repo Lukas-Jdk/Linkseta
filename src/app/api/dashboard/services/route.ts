@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
-
-export const dynamic = "force-dynamic";
+import { auditLog } from "@/lib/audit";
+import { logError, newRequestId } from "@/lib/logger";
 
 function slugify(input: string) {
   return input
@@ -15,22 +15,23 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
+  const requestId = newRequestId();
+  const ip = getClientIp(req);
+  const ua = req.headers.get("user-agent") ?? null;
+
   try {
-    const ip = getClientIp(req);
-
-    // ✅ Auth pirmiau (kad rate-limit raktas būtų stabilus pagal userId)
-    const user = await getAuthUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // ✅ Rate limit (userId + ip)
+    // rate limit
     rateLimitOrThrow({
-      key: `dashboard:createService:${user.id}:${ip}`,
+      key: `dashboard:createService:${ip}`,
       limit: 15,
       windowMs: 60_000,
     });
+
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -58,17 +59,14 @@ export async function POST(req: Request) {
     const imagePath: string | null = body.imagePath ?? null;
 
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights
-          .map((s: unknown) => String(s).trim())
-          .filter(Boolean)
-          .slice(0, 6)
+      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
       : [];
 
     const baseSlug = slugify(title);
     let slug = baseSlug;
     let i = 2;
 
-    // ✅ slug unikalumas tik tarp ne-deleted
+    // slug unique tik tarp ne-deleted
     while (
       await prisma.serviceListing.findFirst({
         where: { slug, deletedAt: null },
@@ -95,15 +93,30 @@ export async function POST(req: Request) {
         highlighted: false,
         deletedAt: null,
       },
-      select: { id: true },
+      select: { id: true, slug: true },
+    });
+
+    await auditLog({
+      action: "SERVICE_CREATE",
+      entity: "ServiceListing",
+      entityId: created.id,
+      userId: dbUser.id,
+      ip,
+      userAgent: ua,
+      metadata: { slug: created.slug, title },
     });
 
     return NextResponse.json({ ok: true, id: created.id });
   } catch (e: any) {
-    // ✅ jei rateLimitOrThrow grąžino Response/NextResponse — atiduodam jį
     if (e instanceof Response) return e;
 
-    console.error("API error: POST /api/dashboard/services", e);
+    logError("POST /api/dashboard/services failed", {
+      requestId,
+      route: "/api/dashboard/services",
+      ip,
+      meta: { message: e?.message, stack: e?.stack },
+    });
+
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
