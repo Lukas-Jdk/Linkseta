@@ -1,4 +1,4 @@
-/* src/app/page.tsx */
+// src/app/page.tsx
 
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -9,36 +9,56 @@ import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
 import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
 
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title:
-    "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+  metadataBase: new URL("https://www.linkseta.com"),
+  title: "Paslaugos Norvegijoje – rask meistrus, valymą, remontą | Linkseta",
   description:
-    "Rask patikimus lietuvių paslaugų teikėjus Norvegijoje: meistrai, santechnikai, elektrikai, valymo paslaugos, remontas, automobilių servisas ir daugiau. Greita paieška ir tik patikrinti teikėjai.",
+    "Rask patikimus paslaugų teikėjus Norvegijoje: meistrai, santechnikai, elektrikai, valymas, remontas, automobilių servisas ir daugiau. Greita paieška pagal miestą ir kategoriją.",
   keywords: [
-    "lietuviai norvegijoje",
     "paslaugos norvegijoje",
-    "lietuviu meistrai norvegijoje",
-    "lietuviai meistrai",
+    "meistrai norvegijoje",
+    "valymo paslaugos norvegijoje",
+    "remontas norvegijoje",
     "santechnikas norvegija",
     "elektrikas norvegija",
-    "lietuviu paslaugos",
+    "automobiliu servisas norvegijoje",
+    "paslaugu teikejai norvegijoje",
   ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
-    title:
-      "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+    title: "Paslaugos Norvegijoje – rask meistrus, valymą, remontą | Linkseta",
     description:
-      "Rask patikimus lietuvių paslaugų teikėjus Norvegijoje: meistrai, remontas, valymas, statybos, automobilių servisas.",
+      "Linkseta padeda rasti paslaugų teikėjus Norvegijoje: remontas, valymas, statybos, auto servisas ir daugiau.",
     url: "https://www.linkseta.com/",
     siteName: "Linkseta",
     type: "website",
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Linkseta – paslaugos Norvegijoje",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
-    title:
-      "Lietuvių paslaugos Norvegijoje – meistrai, remontas, valymas | Linkseta",
+    card: "summary_large_image",
+    title: "Paslaugos Norvegijoje – rask meistrus, valymą, remontą | Linkseta",
     description:
-      "Linkseta – vieta kur lietuviai Norvegijoje randa ir siūlo paslaugas.",
+      "Rask paslaugų teikėjus Norvegijoje pagal miestą ir kategoriją. Greita paieška, aiškūs skelbimai.",
+    images: ["/og.jpg"],
   },
   alternates: {
     canonical: "https://www.linkseta.com/",
@@ -66,6 +86,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
+    deletedAt: null,
   };
 
   if (q) {
@@ -108,6 +129,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
   return (
     <>
       <ServiceMarquee />
+
       <Hero>
         <div className="container">
           <SearchBar />
@@ -119,7 +141,6 @@ export default async function HomePage({ searchParams }: HomeProps) {
       </section>
 
       <Features />
-     
     </>
   );
 }

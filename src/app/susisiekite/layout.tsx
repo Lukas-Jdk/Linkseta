@@ -2,20 +2,20 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Susisiekite dėl lietuvių paslaugų Norvegijoje | Linkseta",
+  title: "Susisiekite dėl paslaugų Norvegijoje | Linkseta",
   description:
-    "Turite klausimų apie lietuvių paslaugas Norvegijoje, platformą Linkseta ar norite bendradarbiauti? Susisiekite el. paštu – padėsime rasti ar pasiūlyti paslaugas.",
+    "Turite klausimų apie paslaugas Norvegijoje, platformą Linkseta ar norite bendradarbiauti? Susisiekite su mumis el. paštu – padėsime rasti ar pasiūlyti paslaugas.",
   keywords: [
     "susisiekite",
     "kontaktai",
-    "lietuviu paslaugos norvegijoje",
-    "klausimai apie paslaugas norvegijoje",
+    "paslaugos norvegijoje",
+    "paslaugų platforma norvegijoje",
     "linkseta kontaktai",
   ],
   openGraph: {
     title: "Susisiekite dėl paslaugų Norvegijoje | Linkseta",
     description:
-      "Parašykite mums, jei ieškote lietuvių paslaugų Norvegijoje, norite reklamuoti savo paslaugas ar turite klausimų apie platformą Linkseta.",
+      "Parašykite mums, jei ieškote paslaugų Norvegijoje, norite reklamuoti savo veiklą ar turite klausimų apie platformą Linkseta.",
     url: "https://www.linkseta.com/susisiekite",
     siteName: "Linkseta",
     type: "website",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Susisiekite su Linkseta",
     description:
-      "Kontaktai lietuviams Norvegijoje – klausimai apie paslaugas, reklamos galimybes ir bendradarbiavimą.",
+      "Kontaktai – klausimai apie paslaugas, reklamos galimybes ir bendradarbiavimą Norvegijoje.",
   },
   alternates: {
     canonical: "https://www.linkseta.com/susisiekite",

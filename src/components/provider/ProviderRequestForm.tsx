@@ -1,10 +1,29 @@
 // src/components/provider/ProviderRequestForm.tsx
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import styles from "./ProviderRequestForm.module.css";
 
-export default function ProviderRequestForm() {
+type Option = {
+  id: string;
+  name: string;
+};
+
+type Props = {
+  cities: Option[];
+  categories: Option[];
+};
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      execute: (siteKey: string, opts: { action: string }) => Promise<string>;
+      ready: (cb: () => void) => void;
+    };
+  }
+}
+
+export default function ProviderRequestForm({ cities, categories }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -12,21 +31,54 @@ export default function ProviderRequestForm() {
   const [categoryId, setCategoryId] = useState("");
   const [message, setMessage] = useState("");
 
-  //  Honeypot field
+  
   const [website, setWebsite] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function getRecaptchaToken() {
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+    if (!siteKey) return null;
+
+    const g = window.grecaptcha;
+    if (!g) return null;
+
+    return await new Promise<string | null>((resolve) => {
+      g.ready(async () => {
+        try {
+          const t = await g.execute(siteKey, { action: "provider_request" });
+          resolve(t);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-
-    setLoading(true);
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
 
+    if (!name || !email) {
+      setError("Vardas ir el. paštas yra privalomi.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
+      const recaptchaToken = await getRecaptchaToken();
+
+      // ✅ jei nepavyko gauti tokeno – stabdom, kad useris suprastų
+      if (!recaptchaToken) {
+        setError(
+          "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą."
+        );
+        return;
+      }
+
       const res = await fetch("/api/provider-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,92 +86,153 @@ export default function ProviderRequestForm() {
           name,
           email,
           phone,
-          cityId,
-          categoryId,
+          cityId: cityId || null,
+          categoryId: categoryId || null,
           message,
-          website, 
+          website, // ✅ honeypot
+          recaptchaToken, // ✅ v3 token
         }),
       });
 
-      const json = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(json?.error || "Nepavyko išsiųsti užklausos.");
-        return;
+        setError(
+          data?.error || "Įvyko klaida siunčiant paraišką. Bandykite vėliau."
+        );
+      } else {
+        setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
+        setName("");
+        setEmail("");
+        setPhone("");
+        setCityId("");
+        setCategoryId("");
+        setMessage("");
+        setWebsite("");
       }
-
-      setSuccess(true);
-      setName("");
-      setEmail("");
-      setPhone("");
-      setCityId("");
-      setCategoryId("");
-      setMessage("");
-      setWebsite("");
     } catch (err) {
       console.error(err);
-      setError("Serverio klaida.");
+      setError("Serverio klaida. Bandykite dar kartą vėliau.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      {/* 🔒 Honeypot input (nematomas žmonėms) */}
-      <input
-        type="text"
-        name="website"
-        value={website}
-        onChange={(e) => setWebsite(e.target.value)}
-        tabIndex={-1}
-        autoComplete="off"
-        style={{ display: "none" }}
-      />
-
-      <div className={styles.field}>
-        <label>Vardas *</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+    <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
+      {/* ✅ honeypot (geriau ne display:none, o “off-screen”) */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "-10000px",
+          top: "auto",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+      >
+        <label>
+          Website
+          <input
+            type="text"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </label>
       </div>
 
-      <div className={styles.field}>
-        <label>El. paštas *</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      <div className={styles.row}>
+        <label className={styles.label}>
+          Vardas / įmonės pavadinimas*
+          <input
+            className={styles.input}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className={styles.label}>
+          El. paštas*
+          <input
+            className={styles.input}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
       </div>
 
-      <div className={styles.field}>
-        <label>Telefonas</label>
-        <input
-          type="text"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+      <div className={styles.row}>
+        <label className={styles.label}>
+          Telefonas
+          <input
+            className={styles.input}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </label>
+
+        <label className={styles.label}>
+          Miestas
+          <select
+            className={styles.input}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
+          >
+            <option value="">Pasirinkti...</option>
+            {cities.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      <div className={styles.field}>
-        <label>Žinutė</label>
+      <div className={styles.row}>
+        <label className={styles.label}>
+          Kategorija
+          <select
+            className={styles.input}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          >
+            <option value="">Pasirinkti...</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <label className={styles.label}>
+        Papildoma informacija
         <textarea
+          className={styles.textarea}
+          rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          rows={4}
+          placeholder="Trumpai aprašykite, kokias paslaugas teikiate."
         />
-      </div>
+      </label>
 
       {error && <p className={styles.error}>{error}</p>}
-      {success && <p className={styles.success}>Užklausa išsiųsta!</p>}
+      {success && <p className={styles.success}>{success}</p>}
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Siunčiama..." : "Siųsti užklausą"}
+      <button
+        className={`btn btn-primary ${styles.submitButton}`}
+        type="submit"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Siunčiama..." : "Siųsti paraišką"}
       </button>
     </form>
   );

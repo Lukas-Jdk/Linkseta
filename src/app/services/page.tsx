@@ -26,6 +26,7 @@ export default async function ServicesPage({ searchParams }: Props) {
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
+    deletedAt: null, // ✅ soft-delete filtras
   };
 
   if (q) {
@@ -41,10 +42,7 @@ export default async function ServicesPage({ searchParams }: Props) {
   const [services, cities, categories] = await Promise.all([
     prisma.serviceListing.findMany({
       where,
-      include: {
-        city: true,
-        category: true,
-      },
+      include: { city: true, category: true },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
     }),
     prisma.city.findMany({ orderBy: { name: "asc" } }),
@@ -59,16 +57,16 @@ export default async function ServicesPage({ searchParams }: Props) {
     ? categories.find((cat) => cat.id === category)?.name ?? ""
     : "";
 
-  let heading = "Lietuvių paslaugos Norvegijoje";
+  
+  let heading = "Paslaugos Norvegijoje";
 
   if (activeCityName && activeCategoryName) {
-    heading = `${activeCategoryName} – lietuvių paslaugos ${activeCityName}`;
+    heading = `${activeCategoryName} – paslaugos ${activeCityName}`;
   } else if (activeCityName) {
-    heading = `Lietuvių paslaugos ${activeCityName}`;
+    heading = `Paslaugos ${activeCityName}`;
   } else if (activeCategoryName) {
-    heading = `${activeCategoryName} – lietuvių paslaugos Norvegijoje`;
+    heading = `${activeCategoryName} – paslaugos Norvegijoje`;
   }
-
 
   const items = services.map((service) => ({
     id: service.id,

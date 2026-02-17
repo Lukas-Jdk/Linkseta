@@ -1,4 +1,4 @@
-// // src/lib/seo.ts
+// src/lib/seo.ts
 import type { Metadata } from "next";
 
 export const siteUrl = "https://www.linkseta.com";
@@ -6,38 +6,40 @@ export const siteUrl = "https://www.linkseta.com";
 export const baseMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Linkseta – Lietuvių paslaugos Norvegijoje",
-    template: "%s | Linkseta", // Allows pages to have "Page Name | Linkseta"
+    default: "Linkseta – Paslaugos Norvegijoje",
+    template: "%s | Linkseta",
   },
   description:
-    "Raskite patikimus lietuvių meistrus ir paslaugų teikėjus Norvegijoje. Statyba, grožis, transportas, valymas ir daugiau. Susisiekite tiesiogiai.",
+    "Raskite patikimus paslaugų teikėjus Norvegijoje: statyba, remontas, valymas, grožis, transportas ir daugiau. Filtruokite pagal miestą ir kategoriją, susisiekite tiesiogiai.",
   keywords: [
-    "lietuviai norvegijoje",
-    "paslaugos norvegijoje",
-    "darbas norvegijoje",
-    "statybos darbai osle",
-    "lietuvių bendruomenė norvegijoje",
-    "skelbimai norvegijoje",
-    "meistrai norvegijoje",
-    "santechnikas osle",
-    "kirpeja bergene",
-    "automechanikas norvegijoje"
+    "paslaugos Norvegijoje",
+    "meistrai Norvegijoje",
+    "remontas Norvegijoje",
+    "valymo paslaugos Norvegijoje",
+    "santechnikas Norvegijoje",
+    "elektrikas Norvegijoje",
+    "statybos Norvegijoje",
+    "autoservisas Norvegijoje",
+    "paslaugų teikėjai Norvegijoje",
+    "paslaugos Osle",
+    "paslaugos Bergene",
   ],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: "/",
     siteName: "Linkseta",
-    title: "Linkseta – Lietuvių paslaugos Norvegijoje",
+    title: "Linkseta – Paslaugos Norvegijoje",
     description:
-      "Didžiausia lietuvių paslaugų teikėjų bazė Norvegijoje. Raskite meistrą savo mieste.",
+      "Paslaugų katalogas Norvegijoje: raskite teikėją pagal miestą ir kategoriją, susisiekite tiesiogiai.",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Linkseta" }],
     locale: "lt_LT",
   },
   twitter: {
     card: "summary_large_image",
     title: "Linkseta – Paslaugos Norvegijoje",
-    description: "Lietuvių paslaugų teikėjai Norvegijoje vienoje vietoje.",
+    description:
+      "Raskite paslaugų teikėjus Norvegijoje pagal miestą ir kategoriją.",
     images: ["/og.png"],
   },
   robots: {
@@ -54,10 +56,10 @@ export function orgJsonLd() {
     url: siteUrl,
     logo: `${siteUrl}/og.png`,
     sameAs: [
-      // Add your social media links here if you have them
+      // pvz.:
       // "https://facebook.com/linkseta",
-      // "https://instagram.com/linkseta"
-    ]
+      // "https://instagram.com/linkseta",
+    ],
   };
 }
 
@@ -69,7 +71,7 @@ export function webSiteJsonLd() {
     name: "Linkseta",
     potentialAction: {
       "@type": "SearchAction",
-      target: `${siteUrl}/?q={search_term_string}`,
+      target: `${siteUrl}/services?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };

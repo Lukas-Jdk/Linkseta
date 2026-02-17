@@ -2,32 +2,31 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title:
-    "Tapk paslaugų teikėju – lietuvių paslaugos Norvegijoje | Linkseta",
+  title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
   description:
-    "Tapk lietuvių paslaugų teikėju Norvegijoje: pridėk savo paslaugas, gauk naujus klientus ir būk matomas tarp lietuvių bendruomenės. Nemokama registracija, paprastas valdymas.",
+    "Tapk paslaugų teikėju Norvegijoje su Linkseta: susikurk profilį, įkelk paslaugas, gauk užklausas ir būk lengvai randamas. Paprastas valdymas ir greitas startas.",
   keywords: [
-    "tapti paslaugu teikeju",
-    "lietuviu paslaugos norvegijoje",
-    "lietuviu meistrai norvegijoje",
+    "tapti paslaugų teikėju",
+    "paslaugų teikėjas norvegijoje",
     "skelbti paslaugas norvegijoje",
-    "gauti klientu norvegijoje",
+    "gauti klientų norvegijoje",
+    "meistrai norvegijoje",
+    "valymo paslaugos norvegijoje",
+    "remontas norvegijoje",
   ],
   openGraph: {
-    title:
-      "Tapk paslaugų teikėju – lietuvių paslaugos Norvegijoje | Linkseta",
+    title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
     description:
-      "Prisijunk prie Linkseta ir tapk lietuvių paslaugų teikėju Norvegijoje. Paprastai pateik paraišką, įkelk paslaugas ir pasiek lietuvius visoje Norvegijoje.",
+      "Prisijunk prie Linkseta ir tapk paslaugų teikėju Norvegijoje. Sukurk paslaugų skelbimus, gauk užklausas ir augink savo veiklą.",
     url: "https://www.linkseta.com/tapti-teikeju",
     siteName: "Linkseta",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title:
-      "Tapk paslaugų teikėju Norvegijoje | Linkseta",
+    title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
     description:
-      "Pildyk paraišką ir tapk lietuvių paslaugų teikėju Norvegijoje – meistrai, remontas, valymas, statybos ir daugiau.",
+      "Sukurk paslaugų skelbimus ir būk randamas Norvegijoje: remontas, valymas, statybos, servisas ir daugiau.",
   },
   alternates: {
     canonical: "https://www.linkseta.com/tapti-teikeju",

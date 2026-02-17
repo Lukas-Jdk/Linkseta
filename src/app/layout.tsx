@@ -2,6 +2,7 @@
 
 import "./globals.css";
 import type { Metadata } from "next";
+import Script from "next/script";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { baseMetadata, siteUrl } from "@/lib/seo";
@@ -19,7 +20,7 @@ const roboto = Roboto({
   variable: "--font-second",
 });
 
-// JSON-LD – Organization + WebSite viename graf'e
+// JSON-LD – Organization + WebSite
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -30,7 +31,7 @@ const jsonLd = {
       url: siteUrl,
       logo: `${siteUrl}/logo.webp`,
       description:
-        "Linkseta – platforma lietuviams Norvegijoje, kur gali rasti ir siūlyti paslaugas: statybos, remontas, valymas, automobilių servisas ir daugiau.",
+        "Linkseta – platforma lietuviams Norvegijoje, kur gali rasti ir siūlyti paslaugas.",
     },
     {
       "@type": "WebSite",
@@ -56,10 +57,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
   return (
     <html lang="lt">
       <head>
-        {/* JSON-LD: Organization + WebSite – labai gerai SEO */}
+        {/* JSON-LD */}
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -67,7 +70,16 @@ export default function RootLayout({
             __html: JSON.stringify(jsonLd),
           }}
         />
+
+        {/*  reCAPTCHA v3 – globaliai visam projektui */}
+        {siteKey ? (
+          <Script
+            src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+            strategy="afterInteractive"
+          />
+        ) : null}
       </head>
+
       <body className={`${poppins.variable} ${roboto.variable}`}>
         <Header />
         <main>{children}</main>
