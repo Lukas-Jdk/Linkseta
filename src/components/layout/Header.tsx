@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./Header.module.css";
 import type { User } from "@supabase/supabase-js";
@@ -28,6 +29,9 @@ type MeUser = {
 };
 
 export default function Header() {
+  const params = useParams();
+  const locale = (params?.locale as string) || "lt"; // ✅ default jei kažkur be locale
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
 
@@ -126,7 +130,7 @@ export default function Header() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = `/${locale}`; // ✅ atgal į locale home
   }
 
   function toggleMobileMenu() {
@@ -139,7 +143,7 @@ export default function Header() {
         <div className={`container ${styles.row}`}>
           <div className={styles.brand}>
             <Link
-              href="/"
+              href={`/${locale}`}
               aria-label="Linkseta – grįžti į pradžią"
               className={styles.logoLink}
             >
@@ -157,11 +161,11 @@ export default function Header() {
           <div className={styles.right}>
             <nav className={styles.nav} aria-label="Pagrindinė navigacija">
               <div className={styles.navLinks}>
-                <Link href="/">Pagrindinis</Link>
-                <Link href="/services">Paslaugos</Link>
-                <Link href="/susisiekite">Susisiekite</Link>
+                <Link href={`/${locale}`}>Pagrindinis</Link>
+                <Link href={`/${locale}/services`}>Paslaugos</Link>
+                <Link href={`/${locale}/susisiekite`}>Susisiekite</Link>
                 {isAdmin && (
-                  <Link href="/admin" className={styles.adminLink}>
+                  <Link href={`/${locale}/admin`} className={styles.adminLink}>
                     Admin
                   </Link>
                 )}
@@ -189,7 +193,7 @@ export default function Header() {
                   {isProfileOpen && (
                     <div className={styles.profileMenu}>
                       <Link
-                        href="/dashboard"
+                        href={`/${locale}/dashboard`}
                         className={styles.profileItem}
                         onClick={closeAllMenus}
                       >
@@ -208,13 +212,13 @@ export default function Header() {
               ) : (
                 <div className={styles.authDesktop}>
                   <Link
-                    href="/login"
+                    href={`/${locale}/login`}
                     className={`${styles.btn} ${styles.btnOutline}`}
                   >
                     Prisijungti
                   </Link>
                   <Link
-                    href="/register"
+                    href={`/${locale}/register`}
                     className={`${styles.btn} ${styles.btnPrimary}`}
                   >
                     Registracija
@@ -279,7 +283,7 @@ export default function Header() {
                     )}
 
                     <Link
-                      href="/dashboard"
+                      href={`/${locale}/dashboard`}
                       onClick={closeAllMenus}
                       className={styles.drawerProfileLink}
                     >
@@ -294,14 +298,14 @@ export default function Header() {
                   </p>
                   <div className={styles.drawerAuthButtons}>
                     <Link
-                      href="/login"
+                      href={`/${locale}/login`}
                       onClick={closeAllMenus}
                       className={styles.drawerPrimaryBtn}
                     >
                       Prisijungti
                     </Link>
                     <Link
-                      href="/register"
+                      href={`/${locale}/register`}
                       onClick={closeAllMenus}
                       className={styles.drawerSecondaryBtn}
                     >
@@ -316,7 +320,7 @@ export default function Header() {
 
             <nav className={styles.drawerNav} aria-label="Mobilus meniu">
               <Link
-                href="/"
+                href={`/${locale}`}
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
@@ -325,7 +329,7 @@ export default function Header() {
               </Link>
 
               <Link
-                href="/services"
+                href={`/${locale}/services`}
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
@@ -334,7 +338,7 @@ export default function Header() {
               </Link>
 
               <Link
-                href="/susisiekite"
+                href={`/${locale}/susisiekite`}
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
@@ -344,7 +348,7 @@ export default function Header() {
 
               {isLoggedIn && (
                 <Link
-                  href="/dashboard"
+                  href={`/${locale}/dashboard`}
                   onClick={closeAllMenus}
                   className={styles.drawerNavItem}
                 >
@@ -355,7 +359,7 @@ export default function Header() {
 
               {isAdmin && (
                 <Link
-                  href="/admin"
+                  href={`/${locale}/admin`}
                   onClick={closeAllMenus}
                   className={styles.drawerNavItem}
                 >
@@ -384,11 +388,11 @@ export default function Header() {
             <div className={styles.drawerFooter}>
               <span>© {new Date().getFullYear()} Linkseta</span>
               <div className={styles.drawerFooterLinks}>
-                <Link href="/terms" onClick={closeAllMenus}>
+                <Link href={`/${locale}/terms`} onClick={closeAllMenus}>
                   Taisyklės
                 </Link>
                 <span>•</span>
-                <Link href="/privacy" onClick={closeAllMenus}>
+                <Link href={`/${locale}/privacy`} onClick={closeAllMenus}>
                   Privatumas
                 </Link>
               </div>

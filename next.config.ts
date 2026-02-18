@@ -1,5 +1,6 @@
 // next.config.ts
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -33,11 +34,12 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value:
               "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
-          },
+          }
         ],
       },
     ];
   },
 };
 
-export default nextConfig;
+const withNextIntl = createNextIntlPlugin(); // naudos src/i18n/request.ts automatiškai
+export default withNextIntl(nextConfig);

@@ -1,10 +1,21 @@
 /* src/components/layout/Footer.tsx */
+"use client";
 
 import Link from "next/link";
-import styles from "./Footer.module.css";
 import Image from "next/image";
+import { useParams } from "next/navigation";
+import styles from "./Footer.module.css";
 
 export default function Footer() {
+  const params = useParams();
+  const locale =
+    typeof params?.locale === "string" && params.locale ? params.locale : "lt";
+
+  const href = (path: string) => {
+    const clean = path.startsWith("/") ? path : `/${path}`;
+    return `/${locale}${clean}`;
+  };
+
   return (
     <footer className={styles.footer}>
       <div className="container">
@@ -12,7 +23,7 @@ export default function Footer() {
           {/* BRAND */}
           <div className={styles.brand}>
             <Link
-              href="/"
+              href={href("/")}
               aria-label="Linkseta – grįžti į pradžią"
               className={styles.brandLink}
             >
@@ -27,8 +38,7 @@ export default function Footer() {
             </Link>
 
             <p className={styles.brandDesc}>
-              Jūsų patikimas tiltas tarp klientų ir specialistų
-              Norvegijoje.
+              Jūsų patikimas tiltas tarp klientų ir specialistų Norvegijoje.
             </p>
           </div>
 
@@ -37,22 +47,22 @@ export default function Footer() {
             <h3 className={styles.colTitle}>Navigacija</h3>
             <ul className={styles.list}>
               <li>
-                <Link className={styles.link} href="/">
+                <Link className={styles.link} href={href("/")}>
                   Pagrindinis
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href="/services">
+                <Link className={styles.link} href={href("/services")}>
                   Paslaugos
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href="/tapti-teikeju">
+                <Link className={styles.link} href={href("/tapti-teikeju")}>
                   Pasiūlyti paslaugas
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href="/susisiekite">
+                <Link className={styles.link} href={href("/susisiekite")}>
                   Apie mus
                 </Link>
               </li>
@@ -64,17 +74,17 @@ export default function Footer() {
             <h3 className={styles.colTitle}>Teisinė informacija</h3>
             <ul className={styles.list}>
               <li>
-                <Link className={styles.link} href="/terms">
+                <Link className={styles.link} href={href("/terms")}>
                   Naudojimosi sąlygos
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href="/privacy">
+                <Link className={styles.link} href={href("/privacy")}>
                   Privatumo politika
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href="/susisiekite">
+                <Link className={styles.link} href={href("/susisiekite")}>
                   Kontaktai
                 </Link>
               </li>
@@ -119,8 +129,21 @@ export default function Footer() {
             </div>
           </div>
         </div>
+
         <div className={styles.bottom}>
-          <p className={styles.copy}>© 2025 Linkseta. Visos teisės saugomos.</p>
+          <p className={styles.copy}>© {new Date().getFullYear()} Linkseta. Visos teisės saugomos.</p>
+
+          <p className={styles.copy}>
+            Created by{" "}
+            <a
+              href="https://lukas-juodeikis-portfolio.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.createdByLink}
+            >
+              LjD
+            </a>
+          </p>
         </div>
       </div>
     </footer>

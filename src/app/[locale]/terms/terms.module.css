@@ -1,0 +1,35 @@
+/* src/app/[locale]/terms/terms.module.css */
+.wrapper {
+  padding: 48px 0;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.title {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.updated {
+  opacity: 0.7;
+  margin: 0 0 24px;
+}
+.section {
+  margin: 22px 0;
+}
+.h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.p {
+  margin: 0;
+  line-height: 1.6;
+}
+.ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}

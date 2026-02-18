@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "siteName": "Linkseta",
+    "homeTitle": "Services in Norway | Linkseta",
+    "homeDesc": "Find trusted service providers in Norway: repairs, cleaning, construction, car service and more.",
+    "servicesTitle": "Services | Linkseta",
+    "servicesDesc": "Browse service providers in Norway by city and category.",
+    "contactTitle": "Contact | Linkseta",
+    "contactDesc": "Questions about Linkseta? Send us a message.",
+    "becomeTitle": "Become a provider | Linkseta",
+    "becomeDesc": "Join Linkseta and publish your services in Norway."
+  },
+    "common": {
+    "brand": "Linkseta"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "updated": "Updated: 2026-02-18",
+    "introTitle": "General",
+    "introText": "By using Linkseta you agree to these terms.",
+    "accountTitle": "Account",
+    "account1": "You are responsible for keeping your account secure.",
+    "account2": "Do not use false or misleading information.",
+    "account3": "We may suspend accounts in case of abuse.",
+    "contentTitle": "Content & Listings",
+    "content1": "Illegal or misleading content is not allowed.",
+    "content2": "You are responsible for information in your listings.",
+    "content3": "Linkseta may remove listings that violate the rules.",
+    "liabilityTitle": "Limitation of liability",
+    "liabilityText": "Linkseta is not responsible for provider actions or transactions between users.",
+    "contactTitle": "Contact",
+    "contactText": "Questions: info@linkseta.com"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updated": "Updated: 2026-02-18",
+    "whatTitle": "What data we collect",
+    "what1": "Account data (email, name).",
+    "what2": "Listing data you submit.",
+    "what3": "Technical data for security (e.g., IP, user-agent).",
+    "whyTitle": "Why we use data",
+    "whyText": "We use data to run accounts, display listings and keep the platform secure.",
+    "cookiesTitle": "Cookies",
+    "cookiesText": "We use essential cookies for login and sessions. Analytics may be enabled later.",
+    "rightsTitle": "Your rights",
+    "rights1": "Request access to your data.",
+    "rights2": "Request correction or deletion (when applicable).",
+    "rights3": "Opt out of marketing messages (if used).",
+    "contactTitle": "Contact",
+    "contactText": "Privacy questions: info@linkseta.com"
+  }
+}

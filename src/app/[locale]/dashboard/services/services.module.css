@@ -1,0 +1,96 @@
+/* src/app/[locale]/dashboard/services/services.module.css */
+
+.wrapper {
+  max-width: var(--container);
+  margin: 32px auto 40px;
+  padding: 0 16px 40px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+  padding: 20px 22px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.newButton {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #0c7bdc;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.newButton:hover {
+  background: #0b65b0;
+}
+
+.empty {
+  font-size: 0.95rem;
+  color: var(--color-text-soft);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.serviceTitle {
+  font-weight: 600;
+  color: #111827;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.linkButton {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  text-decoration: none;
+  color: #111827;
+  background: #f9fafb;
+}
+
+.linkButton:hover {
+  background: #eef2ff;
+}

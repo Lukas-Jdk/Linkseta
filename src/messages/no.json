@@ -1,0 +1,53 @@
+
+{
+  "meta": {
+    "siteName": "Linkseta",
+    "homeTitle": "Tjenester i Norge | Linkseta",
+    "homeDesc": "Finn pålitelige tjenesteleverandører i Norge: reparasjon, rengjøring, bygg, bilservice og mer.",
+    "servicesTitle": "Tjenester | Linkseta",
+    "servicesDesc": "Se tjenesteleverandører i Norge etter by og kategori.",
+    "contactTitle": "Kontakt | Linkseta",
+    "contactDesc": "Spørsmål om Linkseta? Send oss en melding.",
+    "becomeTitle": "Bli leverandør | Linkseta",
+    "becomeDesc": "Bli med i Linkseta og publiser tjenestene dine i Norge."
+  },
+    "common": {
+    "brand": "Linkseta"
+  },
+    "terms": {
+    "title": "Vilkår",
+    "updated": "Oppdatert: 2026-02-18",
+    "introTitle": "Generelt",
+    "introText": "Ved å bruke Linkseta godtar du disse vilkårene.",
+    "accountTitle": "Konto",
+    "account1": "Du er ansvarlig for sikkerheten til kontoen din.",
+    "account2": "Ikke bruk falsk eller villedende informasjon.",
+    "account3": "Vi kan stenge kontoer ved misbruk.",
+    "contentTitle": "Innhold og annonser",
+    "content1": "Ulovlig eller villedende innhold er ikke tillatt.",
+    "content2": "Du er ansvarlig for informasjonen i annonsene dine.",
+    "content3": "Linkseta kan fjerne annonser som bryter reglene.",
+    "liabilityTitle": "Ansvarsbegrensning",
+    "liabilityText": "Linkseta er ikke ansvarlig for leverandørers handlinger eller avtaler mellom brukere.",
+    "contactTitle": "Kontakt",
+    "contactText": "Spørsmål: info@linkseta.com"
+  },
+  "privacy": {
+    "title": "Personvernerklæring",
+    "updated": "Oppdatert: 2026-02-18",
+    "whatTitle": "Hvilke data vi samler inn",
+    "what1": "Kontodata (e-post, navn).",
+    "what2": "Annonsedata du sender inn.",
+    "what3": "Tekniske data for sikkerhet (f.eks. IP, user-agent).",
+    "whyTitle": "Hvorfor vi bruker data",
+    "whyText": "Vi bruker data for å administrere kontoer, vise annonser og sikre plattformen.",
+    "cookiesTitle": "Informasjonskapsler",
+    "cookiesText": "Vi bruker nødvendige cookies for innlogging og sesjoner. Analyse kan komme senere.",
+    "rightsTitle": "Dine rettigheter",
+    "rights1": "Be om innsyn i dine data.",
+    "rights2": "Be om retting eller sletting (når aktuelt).",
+    "rights3": "Reservere deg mot markedsføring (hvis brukt).",
+    "contactTitle": "Kontakt",
+    "contactText": "Personvern: info@linkseta.com"
+  }
+}

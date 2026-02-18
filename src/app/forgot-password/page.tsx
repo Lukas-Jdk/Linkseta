@@ -3,7 +3,7 @@
 
 import { FormEvent, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import styles from "../login/login.module.css"; // naudosim tą patį stilių
+import styles from "../[locale]/login/login.module.css"; // naudosim tą patį stilių
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setMessage(null);
-    setError(null);
+    setError(null); 
 
     if (!email) {
       setError("Įveskite el. paštą");

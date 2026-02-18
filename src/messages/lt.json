@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "siteName": "Linkseta",
+    "homeTitle": "Paslaugos Norvegijoje | Linkseta",
+    "homeDesc": "Rask patikimus paslaugų teikėjus Norvegijoje: meistrai, remontas, valymas, auto servisas ir daugiau.",
+    "servicesTitle": "Paslaugos | Linkseta",
+    "servicesDesc": "Peržiūrėk paslaugų teikėjų sąrašą Norvegijoje pagal miestą ir kategoriją.",
+    "contactTitle": "Susisiekite | Linkseta",
+    "contactDesc": "Turite klausimų apie Linkseta? Parašykite mums.",
+    "becomeTitle": "Tapk paslaugų teikėju | Linkseta",
+    "becomeDesc": "Prisijunk prie Linkseta ir skelbk savo paslaugas Norvegijoje."
+  },
+    "common": {
+    "brand": "Linkseta"
+  },
+  "terms": {
+    "title": "Naudojimo taisyklės",
+    "updated": "Atnaujinta: 2026-02-18",
+    "introTitle": "Bendra informacija",
+    "introText": "Naudodamiesi Linkseta, sutinkate laikytis šių taisyklių.",
+    "accountTitle": "Paskyra",
+    "account1": "Jūs atsakote už savo paskyros saugumą.",
+    "account2": "Draudžiama naudoti melagingą informaciją.",
+    "account3": "Administracija gali sustabdyti paskyrą pažeidimų atveju.",
+    "contentTitle": "Turinys ir skelbimai",
+    "content1": "Draudžiamas neteisėtas ar klaidinantis turinys.",
+    "content2": "Jūs atsakote už skelbimuose pateiktą informaciją.",
+    "content3": "Linkseta gali pašalinti netinkamus skelbimus.",
+    "liabilityTitle": "Atsakomybės ribojimas",
+    "liabilityText": "Linkseta nėra atsakinga už paslaugų teikėjų veiksmus ar sandorius tarp vartotojų.",
+    "contactTitle": "Kontaktai",
+    "contactText": "Klausimams: info@linkseta.com"
+  },
+  "privacy": {
+    "title": "Privatumo politika",
+    "updated": "Atnaujinta: 2026-02-18",
+    "whatTitle": "Kokią informaciją renkame",
+    "what1": "Paskyros duomenis (el. paštas, vardas).",
+    "what2": "Skelbimų informaciją, kurią pateikiate patys.",
+    "what3": "Techninius duomenis saugumui (pvz. IP, user-agent).",
+    "whyTitle": "Kam naudojame duomenis",
+    "whyText": "Duomenis naudojame paskyrai valdyti, skelbimams rodyti ir saugumui užtikrinti.",
+    "cookiesTitle": "Slapukai",
+    "cookiesText": "Naudojame būtinus slapukus prisijungimui ir sesijoms. Analitika gali būti įjungta vėliau.",
+    "rightsTitle": "Jūsų teisės",
+    "rights1": "Prašyti prieigos prie savo duomenų.",
+    "rights2": "Prašyti ištaisyti ar ištrinti duomenis (kai taikoma).",
+    "rights3": "Atsisakyti rinkodaros pranešimų (jei bus siunčiami).",
+    "contactTitle": "Kontaktai",
+    "contactText": "Privatumo klausimais: info@linkseta.com"
+  }
+}

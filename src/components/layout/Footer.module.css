@@ -13,7 +13,6 @@
 }
 
 
-
 /* Brand */
 .brand {
   min-width: 0;
@@ -132,10 +131,20 @@
 
 .copy {
   margin: 0;
-  color: #49e5fa;
-  font-size: 0.9rem;
+  color: #ffffff;
+  font-size: 0.8rem;
  
 }
+
+.createdByLink {
+  text-decoration: underline;
+  font-weight: 400;
+  color: #0ea5e9;
+}
+.createdByLink:hover {
+  opacity: 0.85;
+}
+
 
 @media (max-width: 920px) {
   .grid {

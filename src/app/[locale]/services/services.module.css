@@ -1,0 +1,40 @@
+/* src/app/[locale]/services/services.module.css */
+
+.page {
+  background: var(--bg-page);
+}
+
+/* --------- Rezultatai --------- */
+
+.results {
+  padding: 28px 0 52px;
+}
+
+.meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+/* Wrapperis aplink CardGrid, kad būtų gražus tarpas */
+.gridWrap {
+  margin-top: 10px;
+}
+
+/* Empty state */
+.emptyState {
+  background: var(--card-bg-subtle);
+  border-radius: 18px;
+  padding: 22px 20px;
+  border: 1px dashed var(--card-border);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* --------- Responsive --------- */
+
+@media (max-width: 768px) {
+  .results {
+    padding: 24px 0 40px;
+  }
+}
