@@ -1,14 +1,16 @@
 // src/app/[locale]/services/[slug]/page.tsx
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/lib/seo";
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 };
 
 function formatDateLT(date: Date) {
@@ -28,8 +30,79 @@ function initialLetter(name: string | null, email: string) {
   return src.slice(0, 1).toUpperCase() || "U";
 }
 
+function stripHtml(input: string) {
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function truncate(input: string, max = 160) {
+  const s = input.trim();
+  if (s.length <= max) return s;
+  return s.slice(0, max - 1).trimEnd() + "…";
+}
+
+function absUrl(pathOrUrl: string) {
+  if (!pathOrUrl) return `${siteUrl}/og.png`;
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) return pathOrUrl;
+  const clean = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  return `${siteUrl}${clean}`;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+
+  const service = await prisma.serviceListing.findUnique({
+    where: { slug },
+    select: {
+      title: true,
+      description: true,
+      imageUrl: true,
+      isActive: true,
+      updatedAt: true,
+      createdAt: true,
+    },
+  });
+
+  if (!service || !service.isActive) {
+    return {
+      title: "Paslauga nerasta | Linkseta",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = `${service.title} | Linkseta`;
+  const description = truncate(stripHtml(service.description || ""), 170);
+
+  const canonical = `${siteUrl}/${locale}/services/${slug}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+      languages: {
+        lt: `${siteUrl}/lt/services/${slug}`,
+        en: `${siteUrl}/en/services/${slug}`,
+        no: `${siteUrl}/no/services/${slug}`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: "article",
+      images: [{ url: absUrl(service.imageUrl || "/og.png"), width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [absUrl(service.imageUrl || "/og.png")],
+    },
+  };
+}
+
 export default async function ServiceDetailsPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
 
   const service = await prisma.serviceListing.findUnique({
     where: { slug },
@@ -37,9 +110,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       city: true,
       category: true,
       user: {
-        include: {
-          profile: true,
-        },
+        include: { profile: true },
       },
     },
   });
@@ -57,23 +128,18 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName =
-    service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
-
   const isVerified = Boolean(service.user.profile?.isApproved);
 
   const priceLabel = service.priceFrom != null ? "Kaina nuo" : "Kaina";
   const priceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "Kaina sutartinė";
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "Kaina sutartinė";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`
   )}`;
 
-  //  Highlights iš DB (be jokių default)
   const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
 
@@ -81,7 +147,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <main className={styles.page}>
       <div className="container">
         <div className={styles.topBar}>
-          <Link href="/services" className={styles.backLink}>
+          <Link href={`/${locale}/services`} className={styles.backLink}>
             ← Grįžti į sąrašą
           </Link>
         </div>
@@ -90,24 +156,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
           {/* LEFT */}
           <section className={styles.left}>
             <div className={styles.stackCard}>
-              {/* HERO */}
               <div className={styles.heroCard}>
                 <div className={styles.heroTop}>
                   <div className={styles.heroMedia}>
-                    <GalleryClient
-                      title={service.title}
-                      images={images}
-                      highlighted={service.highlighted}
-                    />
+                    <GalleryClient title={service.title} images={images} highlighted={service.highlighted} />
                   </div>
 
                   <div className={styles.heroContent}>
                     <h1 className={styles.title}>{service.title}</h1>
 
                     <div className={styles.ratingRow}>
-                      <span className={styles.ratingValue}>
-                        ⭐ {ratingValue.toFixed(1)}
-                      </span>
+                      <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
                       <span className={styles.ratingCount}>({ratingCount})</span>
                     </div>
 
@@ -117,16 +176,14 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <span className={styles.metaChip}>📅 {created}</span>
                     </div>
 
-                    <div className={styles.quickInfo}>
-                      ⚡ Dažniausiai atsako per 1 val.
-                    </div>
+                    <div className={styles.quickInfo}>⚡ Dažniausiai atsako per 1 val.</div>
                   </div>
                 </div>
               </div>
 
-              {/* CONTENT */}
               <div className={styles.contentCard}>
                 <div className={styles.tabs}>
+                  {/* čia OK naudoti <a>, nes tai #anchor, ne Next route */}
                   <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
                     Apie paslaugą
                   </a>
@@ -140,12 +197,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                   <p className={styles.desc}>{service.description}</p>
                 </div>
 
-                {/*  RODYTI TIK JEI YRA */}
                 {hasHighlights && (
                   <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>
-                      Kodėl verta rinktis šią paslaugą?
-                    </h2>
+                    <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
                     <ul className={styles.bullets}>
                       {highlights.map((h, i) => (
                         <li key={i}>✅ {h}</li>
@@ -183,9 +237,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                     <div className={styles.sellerNameRow}>
                       <span className={styles.sellerName}>{sellerName}</span>
-                      {isVerified && (
-                        <span className={styles.verified}>✔ Patvirtintas</span>
-                      )}
+                      {isVerified && <span className={styles.verified}>✔ Patvirtintas</span>}
                     </div>
                   </div>
                 </div>
