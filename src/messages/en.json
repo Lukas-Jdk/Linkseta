@@ -48,5 +48,49 @@
     "rights3": "Opt out of marketing messages (if used).",
     "contactTitle": "Contact",
     "contactText": "Privacy questions: info@linkseta.com"
+  },
+  "header": {
+    "brandAria": "Linkseta – back to home",
+    "brandAlt": "Linkseta – services in Norway",
+    "openMenu": "Open mobile menu",
+    "closeMenu": "Close menu",
+    "welcome": "Welcome to Linkseta"
+  },
+  "nav": {
+    "aria": "Main navigation",
+    "mobileAria": "Mobile menu",
+    "home": "Home",
+    "services": "Services",
+    "contact": "Contact",
+    "admin": "Admin",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
+  "auth": {
+    "account": "Account",
+    "accountMenuAria": "Open account menu",
+    "myAccount": "My account",
+    "viewAccount": "View account",
+    "logout": "Log out",
+    "login": "Log in",
+    "register": "Register",
+    "signedInUser": "Signed-in user"
+  },
+  "footer": {
+    "brandAria": "Linkseta – back to home",
+    "brandAlt": "Linkseta – services in Norway",
+    "brandDesc": "A trusted bridge between customers and specialists in Norway.",
+    "navAria": "Navigation",
+    "navTitle": "Navigation",
+    "legalAria": "Legal",
+    "legalTitle": "Legal",
+    "offerServices": "Offer services",
+    "about": "About",
+    "contactTitle": "Contact",
+    "contactSubtitle": "Questions or suggestions?",
+    "emailAria": "Email",
+    "emailTitle": "Email",
+    "rights": "All rights reserved.",
+    "createdBy": "Created by"
   }
 }

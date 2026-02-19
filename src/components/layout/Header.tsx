@@ -2,9 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./Header.module.css";
 import type { User } from "@supabase/supabase-js";
@@ -17,6 +15,8 @@ import {
   LogOut,
 } from "lucide-react";
 import Avatar from "@/components/ui/Avatar";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
+import { useTranslations } from "next-intl";
 
 type Role = "USER" | "ADMIN" | null;
 
@@ -29,8 +29,9 @@ type MeUser = {
 };
 
 export default function Header() {
-  const params = useParams();
-  const locale = (params?.locale as string) || "lt"; // ✅ default jei kažkur be locale
+  const tHeader = useTranslations("header");
+  const tNav = useTranslations("nav");
+  const tAuth = useTranslations("auth");
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
@@ -85,7 +86,6 @@ export default function Header() {
 
       setIsLoggedIn(true);
       setUserEmail(user.email ?? null);
-      // vardą ir avatarą trauksim iš DB per /api/auth/me
     },
     [resetAuthUi]
   );
@@ -130,7 +130,7 @@ export default function Header() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    window.location.href = `/${locale}`; // ✅ atgal į locale home
+    window.location.href = "/";
   }
 
   function toggleMobileMenu() {
@@ -142,32 +142,33 @@ export default function Header() {
       <header className={styles.header}>
         <div className={`container ${styles.row}`}>
           <div className={styles.brand}>
-            <Link
-              href={`/${locale}`}
-              aria-label="Linkseta – grįžti į pradžią"
+            <LocalizedLink
+              href="/"
+              aria-label={tHeader("brandAria")}
               className={styles.logoLink}
             >
               <Image
                 src="/logo.webp"
-                alt="Linkseta – paslaugos Norvegijoje"
+                alt={tHeader("brandAlt")}
                 width={80}
                 height={60}
                 priority
               />
               <span className={styles.logoText}>Linkseta</span>
-            </Link>
+            </LocalizedLink>
           </div>
 
           <div className={styles.right}>
-            <nav className={styles.nav} aria-label="Pagrindinė navigacija">
+            <nav className={styles.nav} aria-label={tNav("aria")}>
               <div className={styles.navLinks}>
-                <Link href={`/${locale}`}>Pagrindinis</Link>
-                <Link href={`/${locale}/services`}>Paslaugos</Link>
-                <Link href={`/${locale}/susisiekite`}>Susisiekite</Link>
+                <LocalizedLink href="/">{tNav("home")}</LocalizedLink>
+                <LocalizedLink href="/services">{tNav("services")}</LocalizedLink>
+                <LocalizedLink href="/susisiekite">{tNav("contact")}</LocalizedLink>
+
                 {isAdmin && (
-                  <Link href={`/${locale}/admin`} className={styles.adminLink}>
-                    Admin
-                  </Link>
+                  <LocalizedLink href="/admin" className={styles.adminLink}>
+                    {tNav("admin")}
+                  </LocalizedLink>
                 )}
               </div>
             </nav>
@@ -179,7 +180,7 @@ export default function Header() {
                     type="button"
                     className={styles.profileButton}
                     onClick={() => setIsProfileOpen((v) => !v)}
-                    aria-label="Atidaryti paskyros meniu"
+                    aria-label={tAuth("accountMenuAria")}
                   >
                     <Avatar
                       name={userName}
@@ -192,37 +193,39 @@ export default function Header() {
 
                   {isProfileOpen && (
                     <div className={styles.profileMenu}>
-                      <Link
-                        href={`/${locale}/dashboard`}
+                      <LocalizedLink
+                        href="/dashboard"
                         className={styles.profileItem}
                         onClick={closeAllMenus}
                       >
-                        Mano paskyra
-                      </Link>
+                        {tAuth("myAccount")}
+                      </LocalizedLink>
+
                       <button
                         type="button"
                         className={styles.profileItem}
                         onClick={handleLogout}
                       >
-                        Atsijungti
+                        {tAuth("logout")}
                       </button>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className={styles.authDesktop}>
-                  <Link
-                    href={`/${locale}/login`}
+                  <LocalizedLink
+                    href="/login"
                     className={`${styles.btn} ${styles.btnOutline}`}
                   >
-                    Prisijungti
-                  </Link>
-                  <Link
-                    href={`/${locale}/register`}
+                    {tAuth("login")}
+                  </LocalizedLink>
+
+                  <LocalizedLink
+                    href="/register"
                     className={`${styles.btn} ${styles.btnPrimary}`}
                   >
-                    Registracija
-                  </Link>
+                    {tAuth("register")}
+                  </LocalizedLink>
                 </div>
               )}
 
@@ -230,9 +233,7 @@ export default function Header() {
                 type="button"
                 className={styles.menuToggle}
                 onClick={toggleMobileMenu}
-                aria-label={
-                  isMobileMenuOpen ? "Uždaryti meniu" : "Atidaryti mobilų meniu"
-                }
+                aria-label={isMobileMenuOpen ? tHeader("closeMenu") : tHeader("openMenu")}
               >
                 {isMobileMenuOpen ? (
                   <span className={styles.menuX}>×</span>
@@ -276,41 +277,37 @@ export default function Header() {
 
                   <div className={styles.drawerProfileText}>
                     <div className={styles.drawerName}>
-                      {userName || "Prisijungęs vartotojas"}
+                      {userName || tAuth("signedInUser")}
                     </div>
-                    {userEmail && (
-                      <div className={styles.drawerEmail}>{userEmail}</div>
-                    )}
+                    {userEmail && <div className={styles.drawerEmail}>{userEmail}</div>}
 
-                    <Link
-                      href={`/${locale}/dashboard`}
+                    <LocalizedLink
+                      href="/dashboard"
                       onClick={closeAllMenus}
                       className={styles.drawerProfileLink}
                     >
-                      Peržiūrėti paskyrą
-                    </Link>
+                      {tAuth("viewAccount")}
+                    </LocalizedLink>
                   </div>
                 </>
               ) : (
                 <div className={styles.drawerAuthBlock}>
-                  <p className={styles.drawerAuthTitle}>
-                    Sveiki atvykę į Linkseta
-                  </p>
+                  <p className={styles.drawerAuthTitle}>{tHeader("welcome")}</p>
                   <div className={styles.drawerAuthButtons}>
-                    <Link
-                      href={`/${locale}/login`}
+                    <LocalizedLink
+                      href="/login"
                       onClick={closeAllMenus}
                       className={styles.drawerPrimaryBtn}
                     >
-                      Prisijungti
-                    </Link>
-                    <Link
-                      href={`/${locale}/register`}
+                      {tAuth("login")}
+                    </LocalizedLink>
+                    <LocalizedLink
+                      href="/register"
                       onClick={closeAllMenus}
                       className={styles.drawerSecondaryBtn}
                     >
-                      Registracija
-                    </Link>
+                      {tAuth("register")}
+                    </LocalizedLink>
                   </div>
                 </div>
               )}
@@ -318,54 +315,54 @@ export default function Header() {
 
             <hr className={styles.drawerDivider} />
 
-            <nav className={styles.drawerNav} aria-label="Mobilus meniu">
-              <Link
-                href={`/${locale}`}
+            <nav className={styles.drawerNav} aria-label={tNav("mobileAria")}>
+              <LocalizedLink
+                href="/"
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
                 <Home className={styles.drawerNavIcon} />
-                <span>Pagrindinis</span>
-              </Link>
+                <span>{tNav("home")}</span>
+              </LocalizedLink>
 
-              <Link
-                href={`/${locale}/services`}
+              <LocalizedLink
+                href="/services"
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
                 <Wrench className={styles.drawerNavIcon} />
-                <span>Paslaugos</span>
-              </Link>
+                <span>{tNav("services")}</span>
+              </LocalizedLink>
 
-              <Link
-                href={`/${locale}/susisiekite`}
+              <LocalizedLink
+                href="/susisiekite"
                 onClick={closeAllMenus}
                 className={styles.drawerNavItem}
               >
                 <MessageCircle className={styles.drawerNavIcon} />
-                <span>Susisiekite</span>
-              </Link>
+                <span>{tNav("contact")}</span>
+              </LocalizedLink>
 
               {isLoggedIn && (
-                <Link
-                  href={`/${locale}/dashboard`}
+                <LocalizedLink
+                  href="/dashboard"
                   onClick={closeAllMenus}
                   className={styles.drawerNavItem}
                 >
                   <LayoutDashboard className={styles.drawerNavIcon} />
-                  <span>Mano paskyra</span>
-                </Link>
+                  <span>{tAuth("myAccount")}</span>
+                </LocalizedLink>
               )}
 
               {isAdmin && (
-                <Link
-                  href={`/${locale}/admin`}
+                <LocalizedLink
+                  href="/admin"
                   onClick={closeAllMenus}
                   className={styles.drawerNavItem}
                 >
                   <ShieldCheck className={styles.drawerNavIcon} />
-                  <span>Admin</span>
-                </Link>
+                  <span>{tNav("admin")}</span>
+                </LocalizedLink>
               )}
             </nav>
 
@@ -373,14 +370,14 @@ export default function Header() {
 
             {isLoggedIn && (
               <div className={styles.drawerSection}>
-                <div className={styles.drawerSectionTitle}>Paskyra</div>
+                <div className={styles.drawerSectionTitle}>{tAuth("account")}</div>
                 <button
                   type="button"
                   onClick={handleLogout}
                   className={styles.drawerNavItem}
                 >
                   <LogOut className={styles.drawerNavIcon} />
-                  <span>Atsijungti</span>
+                  <span>{tAuth("logout")}</span>
                 </button>
               </div>
             )}
@@ -388,13 +385,13 @@ export default function Header() {
             <div className={styles.drawerFooter}>
               <span>© {new Date().getFullYear()} Linkseta</span>
               <div className={styles.drawerFooterLinks}>
-                <Link href={`/${locale}/terms`} onClick={closeAllMenus}>
-                  Taisyklės
-                </Link>
+                <LocalizedLink href="/terms" onClick={closeAllMenus}>
+                  {tNav("terms")}
+                </LocalizedLink>
                 <span>•</span>
-                <Link href={`/${locale}/privacy`} onClick={closeAllMenus}>
-                  Privatumas
-                </Link>
+                <LocalizedLink href="/privacy" onClick={closeAllMenus}>
+                  {tNav("privacy")}
+                </LocalizedLink>
               </div>
             </div>
           </div>

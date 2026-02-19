@@ -64,7 +64,7 @@ async function countByDay(params: {
 }
 
 export default async function AdminHomePage() {
-  // ✅ bendri skaičiai (su soft-delete)
+  //  bendri skaičiai (su soft-delete)
   const [usersCount, providersCount, servicesCount, activeServices] =
     await Promise.all([
       prisma.user.count(),
@@ -73,7 +73,7 @@ export default async function AdminHomePage() {
       prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
     ]);
 
-  // ✅ 7 dienų grafikas
+  //  7 dienų grafikas
   const today = startOfDay(new Date());
   const from = addDays(today, -6); // 7 dienos: from..today
 

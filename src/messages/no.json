@@ -49,5 +49,49 @@
     "rights3": "Reservere deg mot markedsføring (hvis brukt).",
     "contactTitle": "Kontakt",
     "contactText": "Personvern: info@linkseta.com"
+  },
+  "header": {
+    "brandAria": "Linkseta – tilbake til forsiden",
+    "brandAlt": "Linkseta – tjenester i Norge",
+    "openMenu": "Åpne mobilmeny",
+    "closeMenu": "Lukk meny",
+    "welcome": "Velkommen til Linkseta"
+  },
+  "nav": {
+    "aria": "Hovednavigasjon",
+    "mobileAria": "Mobilmeny",
+    "home": "Hjem",
+    "services": "Tjenester",
+    "contact": "Kontakt",
+    "admin": "Admin",
+    "terms": "Vilkår",
+    "privacy": "Personvern"
+  },
+  "auth": {
+    "account": "Konto",
+    "accountMenuAria": "Åpne kontomeny",
+    "myAccount": "Min konto",
+    "viewAccount": "Se konto",
+    "logout": "Logg ut",
+    "login": "Logg inn",
+    "register": "Registrer",
+    "signedInUser": "Innlogget bruker"
+  },
+  "footer": {
+    "brandAria": "Linkseta – tilbake til forsiden",
+    "brandAlt": "Linkseta – tjenester i Norge",
+    "brandDesc": "En trygg bro mellom kunder og fagfolk i Norge.",
+    "navAria": "Navigasjon",
+    "navTitle": "Navigasjon",
+    "legalAria": "Juridisk",
+    "legalTitle": "Juridisk",
+    "offerServices": "Tilby tjenester",
+    "about": "Om oss",
+    "contactTitle": "Kontakt",
+    "contactSubtitle": "Spørsmål eller forslag?",
+    "emailAria": "E-post",
+    "emailTitle": "E-post",
+    "rights": "Alle rettigheter forbeholdt.",
+    "createdBy": "Created by"
   }
 }

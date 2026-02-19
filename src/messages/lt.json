@@ -48,5 +48,49 @@
     "rights3": "Atsisakyti rinkodaros pranešimų (jei bus siunčiami).",
     "contactTitle": "Kontaktai",
     "contactText": "Privatumo klausimais: info@linkseta.com"
+  },
+   "header": {
+    "brandAria": "Linkseta – grįžti į pradžią",
+    "brandAlt": "Linkseta – paslaugos Norvegijoje",
+    "openMenu": "Atidaryti mobilų meniu",
+    "closeMenu": "Uždaryti meniu",
+    "welcome": "Sveiki atvykę į Linkseta"
+  },
+  "nav": {
+    "aria": "Pagrindinė navigacija",
+    "mobileAria": "Mobilus meniu",
+    "home": "Pagrindinis",
+    "services": "Paslaugos",
+    "contact": "Susisiekite",
+    "admin": "Admin",
+    "terms": "Taisyklės",
+    "privacy": "Privatumas"
+  },
+  "auth": {
+    "account": "Paskyra",
+    "accountMenuAria": "Atidaryti paskyros meniu",
+    "myAccount": "Mano paskyra",
+    "viewAccount": "Peržiūrėti paskyrą",
+    "logout": "Atsijungti",
+    "login": "Prisijungti",
+    "register": "Registracija",
+    "signedInUser": "Prisijungęs vartotojas"
+  },
+  "footer": {
+    "brandAria": "Linkseta – grįžti į pradžią",
+    "brandAlt": "Linkseta – paslaugos Norvegijoje",
+    "brandDesc": "Jūsų patikimas tiltas tarp klientų ir specialistų Norvegijoje.",
+    "navAria": "Navigacija",
+    "navTitle": "Navigacija",
+    "legalAria": "Teisinė informacija",
+    "legalTitle": "Teisinė informacija",
+    "offerServices": "Pasiūlyti paslaugas",
+    "about": "Apie mus",
+    "contactTitle": "Susisiekite",
+    "contactSubtitle": "Klausimai ar pasiūlymai?",
+    "emailAria": "El. paštas",
+    "emailTitle": "El. paštas",
+    "rights": "Visos teisės saugomos.",
+    "createdBy": "Created by"
   }
 }

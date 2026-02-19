@@ -1,20 +1,14 @@
 /* src/components/layout/Footer.tsx */
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import styles from "./Footer.module.css";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
-  const params = useParams();
-  const locale =
-    typeof params?.locale === "string" && params.locale ? params.locale : "lt";
-
-  const href = (path: string) => {
-    const clean = path.startsWith("/") ? path : `/${path}`;
-    return `/${locale}${clean}`;
-  };
+  const t = useTranslations("footer");
+  const tNav = useTranslations("nav");
 
   return (
     <footer className={styles.footer}>
@@ -22,82 +16,79 @@ export default function Footer() {
         <div className={styles.grid}>
           {/* BRAND */}
           <div className={styles.brand}>
-            <Link
-              href={href("/")}
-              aria-label="Linkseta – grįžti į pradžią"
+            <LocalizedLink
+              href="/"
+              aria-label={t("brandAria")}
               className={styles.brandLink}
             >
               <Image
                 src="/logo.webp"
-                alt="Linkseta – paslaugos Norvegijoje"
+                alt={t("brandAlt")}
                 width={64}
                 height={48}
                 priority={false}
               />
               <span className={styles.logoText}>Linkseta</span>
-            </Link>
+            </LocalizedLink>
 
-            <p className={styles.brandDesc}>
-              Jūsų patikimas tiltas tarp klientų ir specialistų Norvegijoje.
-            </p>
+            <p className={styles.brandDesc}>{t("brandDesc")}</p>
           </div>
 
           {/* NAV */}
-          <nav className={styles.col} aria-label="Navigacija">
-            <h3 className={styles.colTitle}>Navigacija</h3>
+          <nav className={styles.col} aria-label={t("navAria")}>
+            <h3 className={styles.colTitle}>{t("navTitle")}</h3>
             <ul className={styles.list}>
               <li>
-                <Link className={styles.link} href={href("/")}>
-                  Pagrindinis
-                </Link>
+                <LocalizedLink className={styles.link} href="/">
+                  {tNav("home")}
+                </LocalizedLink>
               </li>
               <li>
-                <Link className={styles.link} href={href("/services")}>
-                  Paslaugos
-                </Link>
+                <LocalizedLink className={styles.link} href="/services">
+                  {tNav("services")}
+                </LocalizedLink>
               </li>
               <li>
-                <Link className={styles.link} href={href("/tapti-teikeju")}>
-                  Pasiūlyti paslaugas
-                </Link>
+                <LocalizedLink className={styles.link} href="/tapti-teikeju">
+                  {t("offerServices")}
+                </LocalizedLink>
               </li>
               <li>
-                <Link className={styles.link} href={href("/susisiekite")}>
-                  Apie mus
-                </Link>
+                <LocalizedLink className={styles.link} href="/susisiekite">
+                  {t("about")}
+                </LocalizedLink>
               </li>
             </ul>
           </nav>
 
           {/* LEGAL */}
-          <nav className={styles.col} aria-label="Teisinė informacija">
-            <h3 className={styles.colTitle}>Teisinė informacija</h3>
+          <nav className={styles.col} aria-label={t("legalAria")}>
+            <h3 className={styles.colTitle}>{t("legalTitle")}</h3>
             <ul className={styles.list}>
               <li>
-                <Link className={styles.link} href={href("/terms")}>
-                  Naudojimosi sąlygos
-                </Link>
+                <LocalizedLink className={styles.link} href="/terms">
+                  {tNav("terms")}
+                </LocalizedLink>
               </li>
               <li>
-                <Link className={styles.link} href={href("/privacy")}>
-                  Privatumo politika
-                </Link>
+                <LocalizedLink className={styles.link} href="/privacy">
+                  {tNav("privacy")}
+                </LocalizedLink>
               </li>
               <li>
-                <Link className={styles.link} href={href("/susisiekite")}>
-                  Kontaktai
-                </Link>
+                <LocalizedLink className={styles.link} href="/susisiekite">
+                  {tNav("contact")}
+                </LocalizedLink>
               </li>
             </ul>
           </nav>
 
           {/* CONTACT */}
           <div className={styles.col}>
-            <h3 className={styles.colTitle}>Susisiekite</h3>
-            <p className={styles.smallText}>Klausimai ar pasiūlymai?</p>
+            <h3 className={styles.colTitle}>{t("contactTitle")}</h3>
+            <p className={styles.smallText}>{t("contactSubtitle")}</p>
 
             <div className={styles.socialRow}>
-              {/* Facebook (placeholder) */}
               <a
                 className={styles.iconBtn}
                 href="#"
@@ -112,12 +103,11 @@ export default function Footer() {
                 </svg>
               </a>
 
-              {/* Email */}
               <a
                 className={styles.iconBtn}
                 href="mailto:info@linkseta.com"
-                aria-label="El. paštas"
-                title="El. paštas"
+                aria-label={t("emailAria")}
+                title={t("emailTitle")}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -131,10 +121,12 @@ export default function Footer() {
         </div>
 
         <div className={styles.bottom}>
-          <p className={styles.copy}>© {new Date().getFullYear()} Linkseta. Visos teisės saugomos.</p>
+          <p className={styles.copy}>
+            © {new Date().getFullYear()} Linkseta. {t("rights")}
+          </p>
 
           <p className={styles.copy}>
-            Created by{" "}
+            {t("createdBy")}{" "}
             <a
               href="https://lukas-juodeikis-portfolio.vercel.app/"
               target="_blank"

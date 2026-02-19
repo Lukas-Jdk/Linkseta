@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
+import { setRequestLocale } from "next-intl/server";
+
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
 
@@ -12,6 +14,16 @@ export const dynamic = "force-dynamic";
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
+
+function stripHtml(input: string) {
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function truncate(input: string, max = 160) {
+  const s = input.trim();
+  if (s.length <= max) return s;
+  return s.slice(0, max - 1).trimEnd() + "…";
+}
 
 function formatDateLT(date: Date) {
   return new Intl.DateTimeFormat("lt-LT", {
@@ -30,25 +42,18 @@ function initialLetter(name: string | null, email: string) {
   return src.slice(0, 1).toUpperCase() || "U";
 }
 
-function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function truncate(input: string, max = 160) {
-  const s = input.trim();
-  if (s.length <= max) return s;
-  return s.slice(0, max - 1).trimEnd() + "…";
-}
-
-function absUrl(pathOrUrl: string) {
-  if (!pathOrUrl) return `${siteUrl}/og.png`;
-  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) return pathOrUrl;
-  const clean = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
-  return `${siteUrl}${clean}`;
+function buildLanguageAlternates(slug: string) {
+  const path = `/services/${slug}`;
+  return {
+    lt: `${siteUrl}/lt${path}`,
+    en: `${siteUrl}/en${path}`,
+    no: `${siteUrl}/no${path}`,
+  };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
+  setRequestLocale(locale);
 
   const service = await prisma.serviceListing.findUnique({
     where: { slug },
@@ -57,61 +62,69 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: true,
       imageUrl: true,
       isActive: true,
-      updatedAt: true,
-      createdAt: true,
+      city: { select: { name: true } },
+      category: { select: { name: true } },
     },
   });
 
   if (!service || !service.isActive) {
-    return {
-      title: "Paslauga nerasta | Linkseta",
-      robots: { index: false, follow: false },
-    };
+    return { robots: { index: false, follow: false } };
   }
 
   const title = `${service.title} | Linkseta`;
-  const description = truncate(stripHtml(service.description || ""), 170);
+  const description = truncate(
+    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
+    160
+  );
 
   const canonical = `${siteUrl}/${locale}/services/${slug}`;
+
+  const ogImage =
+    service.imageUrl && service.imageUrl.startsWith("http")
+      ? service.imageUrl
+      : `${siteUrl}/og.png`;
 
   return {
     title,
     description,
     alternates: {
       canonical,
-      languages: {
-        lt: `${siteUrl}/lt/services/${slug}`,
-        en: `${siteUrl}/en/services/${slug}`,
-        no: `${siteUrl}/no/services/${slug}`,
-      },
+      languages: buildLanguageAlternates(slug),
     },
     openGraph: {
+      url: canonical,
       title,
       description,
-      url: canonical,
+      siteName: "Linkseta",
       type: "article",
-      images: [{ url: absUrl(service.imageUrl || "/og.png"), width: 1200, height: 630 }],
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: service.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [absUrl(service.imageUrl || "/og.png")],
+      images: [ogImage],
     },
   };
 }
 
 export default async function ServiceDetailsPage({ params }: Props) {
   const { locale, slug } = await params;
+  setRequestLocale(locale);
 
   const service = await prisma.serviceListing.findUnique({
     where: { slug },
     include: {
       city: true,
       category: true,
-      user: {
-        include: { profile: true },
-      },
+      user: { include: { profile: true } },
     },
   });
 
@@ -134,7 +147,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
   const priceLabel = service.priceFrom != null ? "Kaina nuo" : "Kaina";
   const priceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "Kaina sutartinė";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "Kaina sutartinė";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`
@@ -143,9 +158,38 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
 
+  // JSON-LD (Service schema)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.title,
+    description: service.description,
+    areaServed: {
+      "@type": "AdministrativeArea",
+      name: city !== "—" ? city : "Norway",
+    },
+    provider: {
+      "@type": "Person",
+      name: sellerName,
+    },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "NOK",
+      price: service.priceFrom ?? undefined,
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/${locale}/services/${service.slug}`,
+    },
+  };
+
   return (
     <main className={styles.page}>
       <div className="container">
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+
         <div className={styles.topBar}>
           <Link href={`/${locale}/services`} className={styles.backLink}>
             ← Grįžti į sąrašą
@@ -156,17 +200,24 @@ export default async function ServiceDetailsPage({ params }: Props) {
           {/* LEFT */}
           <section className={styles.left}>
             <div className={styles.stackCard}>
+              {/* HERO */}
               <div className={styles.heroCard}>
                 <div className={styles.heroTop}>
                   <div className={styles.heroMedia}>
-                    <GalleryClient title={service.title} images={images} highlighted={service.highlighted} />
+                    <GalleryClient
+                      title={service.title}
+                      images={images}
+                      highlighted={service.highlighted}
+                    />
                   </div>
 
                   <div className={styles.heroContent}>
                     <h1 className={styles.title}>{service.title}</h1>
 
                     <div className={styles.ratingRow}>
-                      <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
+                      <span className={styles.ratingValue}>
+                        ⭐ {ratingValue.toFixed(1)}
+                      </span>
                       <span className={styles.ratingCount}>({ratingCount})</span>
                     </div>
 
@@ -176,14 +227,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <span className={styles.metaChip}>📅 {created}</span>
                     </div>
 
-                    <div className={styles.quickInfo}>⚡ Dažniausiai atsako per 1 val.</div>
+                    <div className={styles.quickInfo}>
+                      ⚡ Dažniausiai atsako per 1 val.
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* CONTENT */}
               <div className={styles.contentCard}>
                 <div className={styles.tabs}>
-                  {/* čia OK naudoti <a>, nes tai #anchor, ne Next route */}
                   <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
                     Apie paslaugą
                   </a>
@@ -199,7 +252,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                 {hasHighlights && (
                   <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+                    <h2 className={styles.sectionTitle}>
+                      Kodėl verta rinktis šią paslaugą?
+                    </h2>
                     <ul className={styles.bullets}>
                       {highlights.map((h, i) => (
                         <li key={i}>✅ {h}</li>
@@ -237,7 +292,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                     <div className={styles.sellerNameRow}>
                       <span className={styles.sellerName}>{sellerName}</span>
-                      {isVerified && <span className={styles.verified}>✔ Patvirtintas</span>}
+                      {isVerified && (
+                        <span className={styles.verified}>✔ Patvirtintas</span>
+                      )}
                     </div>
                   </div>
                 </div>

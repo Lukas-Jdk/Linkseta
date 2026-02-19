@@ -1,42 +1,50 @@
 // src/app/[locale]/tapti-teikeju/layout.tsx
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
-  description:
-    "Tapk paslaugų teikėju Norvegijoje su Linkseta: susikurk profilį, įkelk paslaugas, gauk užklausas ir būk lengvai randamas. Paprastas valdymas ir greitas startas.",
-  keywords: [
-    "tapti paslaugų teikėju",
-    "paslaugų teikėjas norvegijoje",
-    "skelbti paslaugas norvegijoje",
-    "gauti klientų norvegijoje",
-    "meistrai norvegijoje",
-    "valymo paslaugos norvegijoje",
-    "remontas norvegijoje",
-  ],
-  openGraph: {
-    title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
-    description:
-      "Prisijunk prie Linkseta ir tapk paslaugų teikėju Norvegijoje. Sukurk paslaugų skelbimus, gauk užklausas ir augink savo veiklą.",
-    url: "https://www.linkseta.com/tapti-teikeju",
-    siteName: "Linkseta",
-    type: "website",
-  },
-  twitter: {
-    card: "summary",
-    title: "Tapk paslaugų teikėju Norvegijoje | Linkseta",
-    description:
-      "Sukurk paslaugų skelbimus ir būk randamas Norvegijoje: remontas, valymas, statybos, servisas ir daugiau.",
-  },
-  alternates: {
-    canonical: "https://www.linkseta.com/tapti-teikeju",
-  },
+const siteUrl = "https://www.linkseta.com";
+
+type Props = {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 };
 
-export default function TaptiTeikejuLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations({ locale, namespace: "meta" });
+
+  const canonical = `${siteUrl}/${locale}/tapti-teikeju`;
+
+  return {
+    title: t("becomeTitle"),
+    description: t("becomeDesc"),
+    alternates: {
+      canonical,
+      languages: {
+        lt: `${siteUrl}/lt/tapti-teikeju`,
+        en: `${siteUrl}/en/tapti-teikeju`,
+        no: `${siteUrl}/no/tapti-teikeju`,
+      },
+    },
+    openGraph: {
+      title: t("becomeTitle"),
+      description: t("becomeDesc"),
+      url: canonical,
+      siteName: "Linkseta",
+      type: "website",
+      images: [{ url: "/og.png", width: 1200, height: 630, alt: "Linkseta" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("becomeTitle"),
+      description: t("becomeDesc"),
+      images: ["/og.png"],
+    },
+  };
+}
+
+export default function BecomeProviderLayout({ children }: Props) {
   return <>{children}</>;
 }

@@ -1,6 +1,10 @@
 // src/app/[locale]/services/page.tsx
+import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/lib/seo";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+
 import ServicesHero from "@/components/hero/ServicesHero";
 import CardGrid from "@/components/cards/CardGrid";
 import styles from "./services.module.css";
@@ -12,12 +16,56 @@ type SearchParams = {
 };
 
 type Props = {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<SearchParams>;
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function ServicesPage({ searchParams }: Props) {
+function buildLanguageAlternates(path: string) {
+  return {
+    lt: `${siteUrl}/lt${path}`,
+    en: `${siteUrl}/en${path}`,
+    no: `${siteUrl}/no${path}`,
+  };
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations({ locale, namespace: "meta" });
+
+  const title = t("servicesTitle");
+  const description = t("servicesDesc");
+  const canonicalPath = `/${locale}/services`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalPath,
+      languages: buildLanguageAlternates("/services"),
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}${canonicalPath}`,
+      siteName: "Linkseta",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
+
+export default async function ServicesPage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const resolved = await searchParams;
 
   const q = resolved.q?.trim() ?? "";
@@ -26,7 +74,7 @@ export default async function ServicesPage({ searchParams }: Props) {
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
-    deletedAt: null, // ✅ soft-delete filtras
+    deletedAt: null,
   };
 
   if (q) {
@@ -57,15 +105,15 @@ export default async function ServicesPage({ searchParams }: Props) {
     ? categories.find((cat) => cat.id === category)?.name ?? ""
     : "";
 
-  
-  let heading = "Paslaugos Norvegijoje";
+  // (čia tekstą vėliau persikelsi į translations; kol kas palieku kaip buvo)
+  let heading = "Services in Norway";
 
   if (activeCityName && activeCategoryName) {
-    heading = `${activeCategoryName} – paslaugos ${activeCityName}`;
+    heading = `${activeCategoryName} – ${activeCityName}`;
   } else if (activeCityName) {
-    heading = `Paslaugos ${activeCityName}`;
+    heading = `Services in ${activeCityName}`;
   } else if (activeCategoryName) {
-    heading = `${activeCategoryName} – paslaugos Norvegijoje`;
+    heading = `${activeCategoryName} – Services in Norway`;
   }
 
   const items = services.map((service) => ({
@@ -87,20 +135,20 @@ export default async function ServicesPage({ searchParams }: Props) {
       <section className={styles.results}>
         <div className="container">
           <p className={styles.meta}>
-            {heading} · Rasta paslaugų: <strong>{services.length}</strong>
+            {heading} · Found: <strong>{services.length}</strong>
             {q && (
               <>
                 {" "}
-                pagal paiešką <strong>&quot;{q}&quot;</strong>
+                for <strong>&quot;{q}&quot;</strong>
               </>
             )}
           </p>
 
           {services.length === 0 ? (
             <p className={styles.emptyState}>
-              Šiuo metu pagal pasirinktus filtrus paslaugų nerasta.
+              No services found for your filters.
               <br />
-              Pabandykite pakoreguoti paiešką arba pasirinkti kitą miestą / kategoriją.
+              Try changing city/category or search terms.
             </p>
           ) : (
             <div className={styles.gridWrap}>

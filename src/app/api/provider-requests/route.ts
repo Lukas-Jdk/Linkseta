@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       website, // honeypot laukas (turi būti tuščias)
     } = body || {};
 
-    // ✅ honeypot: jei užpildė — botas
+    //  honeypot: jei užpildė — botas
     if (typeof website === "string" && website.trim().length > 0) {
       // tyčia grąžinam generinį atsakymą (nepasakom kad pagavom botą)
       return NextResponse.json({ error: "Užklausa atmesta." }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ reCAPTCHA privalomas
+    // reCAPTCHA privalomas
     if (!recaptchaToken || typeof recaptchaToken !== "string") {
       return NextResponse.json(
         { error: "Nepavyko patvirtinti, kad esate žmogus. Bandykite dar kartą." },

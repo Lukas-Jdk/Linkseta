@@ -71,7 +71,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     try {
       const recaptchaToken = await getRecaptchaToken();
 
-      // ✅ jei nepavyko gauti tokeno – stabdom, kad useris suprastų
+      //  jei nepavyko gauti tokeno – stabdom, kad useris suprastų
       if (!recaptchaToken) {
         setError(
           "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą."
@@ -89,8 +89,8 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
           cityId: cityId || null,
           categoryId: categoryId || null,
           message,
-          website, // ✅ honeypot
-          recaptchaToken, // ✅ v3 token
+          website, 
+          recaptchaToken, 
         }),
       });
 
@@ -120,7 +120,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
   return (
     <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
-      {/* ✅ honeypot (geriau ne display:none, o “off-screen”) */}
+      {/*  honeypot (geriau ne display:none, o “off-screen”) */}
       <div
         aria-hidden="true"
         style={{
