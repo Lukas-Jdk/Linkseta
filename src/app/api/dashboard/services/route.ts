@@ -24,14 +24,15 @@ export async function POST(req: Request) {
 
   try {
     // rate limit
-    rateLimitOrThrow({
+    await rateLimitOrThrow({
       key: `dashboard:createService:${ip}`,
       limit: 15,
       windowMs: 60_000,
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -59,7 +60,10 @@ export async function POST(req: Request) {
     const imagePath: string | null = body.imagePath ?? null;
 
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
       : [];
 
     const baseSlug = slugify(title);

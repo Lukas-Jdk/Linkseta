@@ -23,21 +23,22 @@ async function removeFromStorage(path: string) {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
 
   try {
-    rateLimitOrThrow({
+    await rateLimitOrThrow({
       key: `dashboard:patchService:${ip}`,
       limit: 60,
       windowMs: 60_000,
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
 
@@ -45,8 +46,10 @@ export async function PATCH(
       where: { id, deletedAt: null },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (service.userId !== user.id)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
 
@@ -57,15 +60,20 @@ export async function PATCH(
       body.imagePath === undefined ? service.imagePath : body.imagePath;
 
     const highlights: string[] = Array.isArray(body.highlights)
-      ? body.highlights.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 6)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
       : service.highlights;
 
     const oldPath = service.imagePath;
     const safePrefix = `${user.id}/`;
 
     const isPathChanged = oldPath && nextImagePath && oldPath !== nextImagePath;
-    const isRemoved = oldPath && (nextImagePath === null || nextImagePath === "");
-    const shouldDelete = (isPathChanged || isRemoved) && oldPath.startsWith(safePrefix);
+    const isRemoved =
+      oldPath && (nextImagePath === null || nextImagePath === "");
+    const shouldDelete =
+      (isPathChanged || isRemoved) && oldPath.startsWith(safePrefix);
 
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
@@ -121,21 +129,22 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
 
   try {
-    rateLimitOrThrow({
+    await rateLimitOrThrow({
       key: `dashboard:deleteService:${ip}`,
       limit: 20,
       windowMs: 60_000,
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
 
@@ -143,8 +152,10 @@ export async function DELETE(
       where: { id, deletedAt: null },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (service.userId !== user.id)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     if (service.imagePath && service.imagePath.startsWith(`${user.id}/`)) {
       await removeFromStorage(service.imagePath);

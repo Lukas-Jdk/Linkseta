@@ -19,39 +19,61 @@ export async function GET(req: Request) {
         const category = searchParams.get("category") || undefined;
         const q = searchParams.get("q") || undefined;
 
-        const services = await prisma.serviceListing.findMany({
-          where: {
-            deletedAt: null,
-            isActive: true,
-            city: city ? { slug: city } : undefined,
-            category: category ? { slug: category } : undefined,
-            OR: q
-              ? [
-                  { title: { contains: q, mode: "insensitive" } },
-                  { description: { contains: q, mode: "insensitive" } },
-                ]
-              : undefined,
-          },
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            priceFrom: true,
-            imageUrl: true,
-            highlighted: true,
-            createdAt: true,
-            city: { select: { name: true, slug: true } },
-            category: { select: { name: true, slug: true } },
-            user: { select: { id: true, name: true } },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 50, 
-        });
+        // Pagination
+        const pageNum = Math.max(
+          1,
+          parseInt(searchParams.get("page") || "1", 10),
+        );
+        const pageSize = 24;
+        const skip = (pageNum - 1) * pageSize;
 
-        return NextResponse.json(services);
+        const where = {
+          deletedAt: null,
+          isActive: true,
+          ...(city && { city: { slug: city } }),
+          ...(category && { category: { slug: category } }),
+          ...(q && {
+            OR: [
+              { title: { contains: q, mode: "insensitive" as const } },
+              { description: { contains: q, mode: "insensitive" as const } },
+            ],
+          }),
+        };
+
+        const [services, total] = await Promise.all([
+          prisma.serviceListing.findMany({
+            where,
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              description: true,
+              priceFrom: true,
+              imageUrl: true,
+              highlighted: true,
+              createdAt: true,
+              city: { select: { name: true, slug: true } },
+              category: { select: { name: true, slug: true } },
+              user: { select: { id: true, name: true } },
+            },
+            orderBy: { createdAt: "desc" },
+            skip,
+            take: pageSize,
+          }),
+          prisma.serviceListing.count({ where }),
+        ]);
+
+        const totalPages = Math.ceil(total / pageSize);
+
+        return NextResponse.json({
+          data: services,
+          total,
+          page: pageNum,
+          pageSize,
+          totalPages,
+        });
       },
-      { name: "services_get", limit: 120, windowMs: 60_000 }
+      { name: "services_get", limit: 120, windowMs: 60_000 },
     );
   });
 }
@@ -67,13 +89,19 @@ export async function POST(req: Request) {
       async () => {
         const { user, response } = await requireAdmin();
         if (response || !user) {
-          return response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 });
+          return (
+            response ??
+            NextResponse.json({ error: "Forbidden" }, { status: 403 })
+          );
         }
 
         const body = await req.json();
 
         if (!body.userId || !body.title || !body.slug || !body.description) {
-          return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+          return NextResponse.json(
+            { error: "Missing fields" },
+            { status: 400 },
+          );
         }
 
         let highlights: string[] = [];
@@ -108,7 +136,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(service);
       },
-      { name: "services_admin_post", limit: 30, windowMs: 60_000 }
+      { name: "services_admin_post", limit: 30, windowMs: 60_000 },
     );
   });
 }

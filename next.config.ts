@@ -16,29 +16,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          { key: "Cross-Origin-Resource-Policy", value: "same-site" },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains; preload",
-          },
-          {
-            key: "Permissions-Policy",
-            value:
-              "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
-          }
-        ],
-      },
-    ];
-  },
+  // Security headers moved to middleware.ts to avoid duplicate handling and to
+  // ensure headers are applied only to HTML/page routes while leaving
+  // static assets and API routes untouched.
 };
 
 const withNextIntl = createNextIntlPlugin(); // naudos src/i18n/request.ts automatiškai

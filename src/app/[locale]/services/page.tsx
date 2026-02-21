@@ -13,6 +13,7 @@ type SearchParams = {
   q?: string;
   city?: string;
   category?: string;
+  page?: string;
 };
 
 type Props = {
@@ -71,6 +72,9 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   const q = resolved.q?.trim() ?? "";
   const city = resolved.city ?? "";
   const category = resolved.category ?? "";
+  const pageNum = Math.max(1, parseInt(resolved.page ?? "1", 10));
+  const pageSize = 24;
+  const skip = (pageNum - 1) * pageSize;
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
@@ -87,12 +91,15 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const [services, cities, categories] = await Promise.all([
+  const [services, total, cities, categories] = await Promise.all([
     prisma.serviceListing.findMany({
       where,
       include: { city: true, category: true },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
+      skip,
+      take: pageSize,
     }),
+    prisma.serviceListing.count({ where }),
     prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
       where: { type: "SERVICE" },
@@ -100,9 +107,12 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     }),
   ]);
 
-  const activeCityName = city ? cities.find((c) => c.id === city)?.name ?? "" : "";
+  const totalPages = Math.ceil(total / pageSize);
+  const activeCityName = city
+    ? (cities.find((c) => c.id === city)?.name ?? "")
+    : "";
   const activeCategoryName = category
-    ? categories.find((cat) => cat.id === category)?.name ?? ""
+    ? (categories.find((cat) => cat.id === category)?.name ?? "")
     : "";
 
   // (čia tekstą vėliau persikelsi į translations; kol kas palieku kaip buvo)
@@ -128,6 +138,18 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     imageUrl: service.imageUrl,
   }));
 
+  // Build query string for pagination links
+  const queryParams = new URLSearchParams();
+  if (q) queryParams.set("q", q);
+  if (city) queryParams.set("city", city);
+  if (category) queryParams.set("category", category);
+  const baseUrl = `/${locale}/services?${queryParams.toString()}`;
+  const getPageUrl = (p: number) => {
+    const params = new URLSearchParams(queryParams);
+    params.set("page", String(p));
+    return `/${locale}/services?${params.toString()}`;
+  };
+
   return (
     <main className={styles.page}>
       <ServicesHero />
@@ -135,7 +157,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
       <section className={styles.results}>
         <div className="container">
           <p className={styles.meta}>
-            {heading} · Found: <strong>{services.length}</strong>
+            {heading} · Found: <strong>{total}</strong>
             {q && (
               <>
                 {" "}
@@ -151,9 +173,74 @@ export default async function ServicesPage({ params, searchParams }: Props) {
               Try changing city/category or search terms.
             </p>
           ) : (
-            <div className={styles.gridWrap}>
-              <CardGrid items={items} variant="compact" />
-            </div>
+            <>
+              <div className={styles.gridWrap}>
+                <CardGrid items={items} variant="compact" />
+              </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div className={styles.pagination}>
+                  <div className={styles.paginationInfo}>
+                    Page {pageNum} of {totalPages}
+                  </div>
+                  <div className={styles.paginationControls}>
+                    {pageNum > 1 && (
+                      <a
+                        href={getPageUrl(pageNum - 1)}
+                        className={styles.paginationButton}
+                      >
+                        ← Previous
+                      </a>
+                    )}
+
+                    {/* Page numbers */}
+                    <div className={styles.pageNumbers}>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (p) =>
+                            p === 1 ||
+                            p === totalPages ||
+                            (p >= pageNum - 1 && p <= pageNum + 1),
+                        )
+                        .map((p, idx, arr) => {
+                          const prevPage = arr[idx - 1];
+                          const showEllipsis = prevPage && p - prevPage > 1;
+
+                          return (
+                            <div key={p}>
+                              {showEllipsis && (
+                                <span className={styles.ellipsis}>...</span>
+                              )}
+                              {p === pageNum ? (
+                                <span className={styles.pageNumberActive}>
+                                  {p}
+                                </span>
+                              ) : (
+                                <a
+                                  href={getPageUrl(p)}
+                                  className={styles.pageNumber}
+                                >
+                                  {p}
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {pageNum < totalPages && (
+                      <a
+                        href={getPageUrl(pageNum + 1)}
+                        className={styles.paginationButton}
+                      >
+                        Next →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

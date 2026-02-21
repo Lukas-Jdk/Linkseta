@@ -7,20 +7,23 @@ import Metrics7Days from "./Metrics7Days";
 
 export const dynamic = "force-dynamic";
 
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+// Use UTC-based day helpers for timezone-stable aggregation
+function startOfDayUTC(d: Date) {
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+  );
 }
 
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
+function addDaysUTC(d: Date, days: number) {
+  const x = new Date(d.getTime());
+  x.setUTCDate(x.getUTCDate() + days);
   return x;
 }
 
-function fmtDay(d: Date) {
-  // "MM-DD" (pakanka grafike)
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
+function fmtDayUTC(d: Date) {
+  // "MM-DD" (sufficient for chart)
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
   return `${mm}-${dd}`;
 }
 
@@ -29,35 +32,64 @@ async function countByDay(params: {
   days: number; // 7
   model: "user" | "service" | "providerRequest";
 }) {
+  // Build UTC range: [from, from + days)
+  const fromUtc = params.from; // expected to be UTC start
+  const toUtc = addDaysUTC(fromUtc, params.days);
+
+  let tableName = '"public"."User"';
+  let extraWhere = "";
+  if (params.model === "service") {
+    tableName = '"public"."ServiceListing"';
+    extraWhere = ' AND "deletedAt" IS NULL';
+  }
+  if (params.model === "providerRequest") {
+    tableName = '"public"."ProviderRequest"';
+  }
+
+  // Parameterized raw queries per-model. Table names are static (not user input).
+  // Dates are passed as parameters to avoid injection and let Prisma bind them safely.
+  let rows: Array<{ day: string; count: number }> = [];
+
+  if (params.model === "service") {
+    rows = (await prisma.$queryRaw`
+      SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
+             COUNT(*)::int AS count
+      FROM "ServiceListing"
+      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc} AND "deletedAt" IS NULL
+      GROUP BY day
+      ORDER BY day
+    `) as Array<{ day: string; count: number }>;
+  } else if (params.model === "providerRequest") {
+    rows = (await prisma.$queryRaw`
+      SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
+             COUNT(*)::int AS count
+      FROM "ProviderRequest"
+      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
+      GROUP BY day
+      ORDER BY day
+    `) as Array<{ day: string; count: number }>;
+  } else {
+    rows = (await prisma.$queryRaw`
+      SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
+             COUNT(*)::int AS count
+      FROM "User"
+      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
+      GROUP BY day
+      ORDER BY day
+    `) as Array<{ day: string; count: number }>;
+  }
+
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    // r.day is in 'YYYY-MM-DD' format
+    map.set(r.day, Number(r.count ?? 0));
+  }
+
   const buckets: number[] = Array(params.days).fill(0);
-  const dayStarts: Date[] = Array.from({ length: params.days }, (_, i) =>
-    addDays(params.from, i)
-  );
-
-  // 7 mažos užklausos – čia OK (adminui, kartą atsidarius)
-  // Jei vėliau norėsi – optimizuosim į raw SQL date_trunc.
   for (let i = 0; i < params.days; i++) {
-    const gte = dayStarts[i];
-    const lt = addDays(gte, 1);
-
-    if (params.model === "user") {
-      buckets[i] = await prisma.user.count({ where: { createdAt: { gte, lt } } });
-    }
-
-    if (params.model === "providerRequest") {
-      buckets[i] = await prisma.providerRequest.count({
-        where: { createdAt: { gte, lt } },
-      });
-    }
-
-    if (params.model === "service") {
-      buckets[i] = await prisma.serviceListing.count({
-        where: {
-          createdAt: { gte, lt },
-          deletedAt: null, 
-        },
-      });
-    }
+    const day = addDaysUTC(params.from, i);
+    const dayKey = day.toISOString().slice(0, 10); // YYYY-MM-DD
+    buckets[i] = map.get(dayKey) ?? 0;
   }
 
   return buckets;
@@ -70,14 +102,19 @@ export default async function AdminHomePage() {
       prisma.user.count(),
       prisma.providerProfile.count({ where: { isApproved: true } }),
       prisma.serviceListing.count({ where: { deletedAt: null } }),
-      prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
+      prisma.serviceListing.count({
+        where: { isActive: true, deletedAt: null },
+      }),
     ]);
 
   //  7 dienų grafikas
-  const today = startOfDay(new Date());
-  const from = addDays(today, -6); // 7 dienos: from..today
+  const now = new Date();
+  const today = startOfDayUTC(now);
+  const from = addDaysUTC(today, -6); // 7 days: from..today (UTC)
 
-  const days = Array.from({ length: 7 }, (_, i) => fmtDay(addDays(from, i)));
+  const days = Array.from({ length: 7 }, (_, i) =>
+    fmtDayUTC(addDaysUTC(from, i)),
+  );
 
   const [users7, services7, requests7] = await Promise.all([
     countByDay({ from, days: 7, model: "user" }),
@@ -89,7 +126,7 @@ export default async function AdminHomePage() {
     <AdminGuard>
       <main className={styles.wrapper}>
         <h1 className={styles.title}>Admin valdymo skydas</h1>
-        
+
         {/*  7 dienų grafikas */}
         <div style={{ marginBottom: "24px" }}>
           <Metrics7Days

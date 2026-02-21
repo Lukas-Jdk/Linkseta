@@ -8,9 +8,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    
     const ip = getClientIp(req) || "unknown";
-    rateLimitOrThrow({
+    await rateLimitOrThrow({
       key: `public:provider-requests:${ip}`,
       limit: 10,
       windowMs: 60_000,
@@ -38,15 +37,17 @@ export async function POST(req: Request) {
     if (!name || !email) {
       return NextResponse.json(
         { error: "Reikalingi bent vardas ir el. paštas." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // reCAPTCHA privalomas
     if (!recaptchaToken || typeof recaptchaToken !== "string") {
       return NextResponse.json(
-        { error: "Nepavyko patvirtinti, kad esate žmogus. Bandykite dar kartą." },
-        { status: 400 }
+        {
+          error: "Nepavyko patvirtinti, kad esate žmogus. Bandykite dar kartą.",
+        },
+        { status: 400 },
       );
     }
 
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
       // 429 tinka, nes realiai "anti-abuse" blokas
       return NextResponse.json(
         { error: "Apsauga suveikė. Bandykite dar kartą." },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
     console.error("POST /api/provider-requests error:", e);
     return NextResponse.json(
       { error: "Serverio klaida. Bandykite vėliau." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

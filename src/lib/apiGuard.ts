@@ -11,12 +11,16 @@ type GuardOptions = {
 export async function withRateLimit(
   req: Request,
   handler: () => Promise<NextResponse>,
-  opts: GuardOptions
+  opts: GuardOptions,
 ) {
   const ip = getClientIp(req);
   const key = `ip:${ip}:${opts.name ?? "api"}`;
 
-  const rl = rateLimit({ key, limit: opts.limit, windowMs: opts.windowMs });
+  const rl = await rateLimit({
+    key,
+    limit: opts.limit,
+    windowMs: opts.windowMs,
+  });
 
   if (!rl.allowed) {
     return NextResponse.json(
@@ -27,7 +31,7 @@ export async function withRateLimit(
           "X-RateLimit-Remaining": String(rl.remaining),
           "X-RateLimit-Reset": String(rl.resetAt),
         },
-      }
+      },
     );
   }
 

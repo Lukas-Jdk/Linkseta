@@ -2,20 +2,21 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
-import { routing } from "@/i18n/routing"; // jei turi routing.locales
+import { routing } from "@/i18n/routing";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const locales = routing.locales; // ["lt","en","no"]
+  const locales = routing.locales;
 
+  // fetch only active, not soft-deleted services
   const services = await prisma.serviceListing.findMany({
-    where: { isActive: true },
+    where: { isActive: true, deletedAt: null },
     select: { slug: true, updatedAt: true, createdAt: true },
   });
 
   const now = new Date();
 
   const staticPaths = [
-    "", // home
+    "", // home (/lt etc.)
     "/services",
     "/tapti-teikeju",
     "/susisiekite",
@@ -29,9 +30,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency:
         path === "" || path === "/services" ? "daily" : "monthly",
-      priority:
-        path === "" ? 1 : path === "/services" ? 0.9 : 0.6,
-    }))
+      priority: path === "" ? 1 : path === "/services" ? 0.9 : 0.6,
+    })),
   );
 
   const serviceRoutes: MetadataRoute.Sitemap = locales.flatMap((locale) =>
@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: s.updatedAt ?? s.createdAt ?? now,
       changeFrequency: "weekly",
       priority: 0.8,
-    }))
+    })),
   );
 
   return [...staticRoutes, ...serviceRoutes];

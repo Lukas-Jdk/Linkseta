@@ -1,50 +1,42 @@
 // src/app/robots.ts
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/seo";
+import { routing } from "@/i18n/routing";
 
 export default function robots(): MetadataRoute.Robots {
+  const locales = routing.locales;
+
+  const allow: string[] = [];
+  const disallow: string[] = [];
+
+  for (const locale of locales) {
+    allow.push(`/${locale}`);
+    allow.push(`/${locale}/`);
+    allow.push(`/${locale}/services`);
+    allow.push(`/${locale}/services/*`);
+    // public static pages
+    allow.push(`/${locale}/tapti-teikeju`);
+    allow.push(`/${locale}/susisiekite`);
+    allow.push(`/${locale}/terms`);
+    allow.push(`/${locale}/privacy`);
+
+    // protected pages to block
+    disallow.push(`/${locale}/login`);
+    disallow.push(`/${locale}/register`);
+    disallow.push(`/${locale}/dashboard`);
+    disallow.push(`/${locale}/admin`);
+  }
+
+  // block API routes
+  disallow.push("/api");
+  disallow.push("/api/*");
+
   return {
     rules: [
       {
         userAgent: "*",
-
-        // Leisk indeksuoti tik viešus puslapius (visom kalbom)
-        allow: [
-          "/lt/",
-          "/en/",
-          "/no/",
-          "/lt/services",
-          "/en/services",
-          "/no/services",
-          "/lt/services/*",
-          "/en/services/*",
-          "/no/services/*",
-          "/lt/tapti-teikeju",
-          "/en/tapti-teikeju",
-          "/no/tapti-teikeju",
-          "/lt/susisiekite",
-          "/en/susisiekite",
-          "/no/susisiekite",
-          "/lt/terms",
-          "/en/terms",
-          "/no/terms",
-          "/lt/privacy",
-          "/en/privacy",
-          "/no/privacy",
-        ],
-
-        // Užrakink auth/admin/api (visom kalbom)
-        disallow: [
-          "/*/login",
-          "/*/register",
-          "/*/forgot-password",
-          "/*/dashboard",
-          "/*/dashboard/*",
-          "/*/admin",
-          "/*/admin/*",
-          "/api",
-          "/api/*",
-        ],
+        allow,
+        disallow,
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
