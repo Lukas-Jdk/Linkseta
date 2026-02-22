@@ -1,7 +1,7 @@
 // src/app/[locale]/error.tsx
 "use client";
 
-import Link from "next/link";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 
 type GlobalErrorProps = {
   error: Error & { digest?: string };
@@ -70,9 +70,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             Perkrauti
           </button>
 
-          <Link href="/" className="btn btn-outline">
+          <LocalizedLink href="/" className="btn btn-outline">
             Grįžti į pradžią
-          </Link>
+          </LocalizedLink>
         </div>
       </div>
     </main>

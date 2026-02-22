@@ -3,12 +3,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
+import { withApi } from "@/lib/withApi";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  try {
+  return withApi(req, "GET /api/admin/metrics", async () => {
     const ip = getClientIp(req);
+
+    // rate limit: admin metrics neturi būti spaminamas
     await rateLimitOrThrow({
       key: `admin:metrics:${ip}`,
       limit: 30,
@@ -17,9 +20,7 @@ export async function GET(req: Request) {
 
     const { user, response } = await requireAdmin();
     if (response || !user) {
-      return (
-        response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 })
-      );
+      return response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const [
@@ -34,19 +35,15 @@ export async function GET(req: Request) {
       prisma.user.count(),
       prisma.providerProfile.count({ where: { isApproved: true } }),
       prisma.serviceListing.count({ where: { deletedAt: null } }),
-      prisma.serviceListing.count({
-        where: { deletedAt: null, isActive: true },
-      }),
+      prisma.serviceListing.count({ where: { deletedAt: null, isActive: true } }),
       prisma.serviceListing.count({ where: { deletedAt: { not: null } } }),
       prisma.providerRequest.count({ where: { status: "PENDING" } }),
       prisma.auditLog.count({
-        where: {
-          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        },
+        where: { createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
       }),
     ]);
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       usersTotal,
       providersApproved,
       servicesTotal,
@@ -55,9 +52,9 @@ export async function GET(req: Request) {
       providerRequestsPending,
       auditLast24h,
     });
-  } catch (e: any) {
-    if (e instanceof Response) return e;
-    console.error("GET /api/admin/metrics error:", e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
+
+    // no-store: admin metrics neturi būti cache’inami
+    res.headers.set("Cache-Control", "no-store");
+    return res;
+  });
 }

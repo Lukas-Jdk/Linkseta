@@ -20,9 +20,14 @@ export type CardGridItem = {
 type Props = {
   items: CardGridItem[];
   variant?: "premium" | "compact";
+  locale: string;
 };
 
-export default function CardGrid({ items, variant = "premium" }: Props) {
+export default function CardGrid({
+  items,
+  variant = "premium",
+  locale,
+}: Props) {
   if (!items.length) {
     return (
       <div className={styles.empty}>
@@ -53,6 +58,7 @@ export default function CardGrid({ items, variant = "premium" }: Props) {
               slug={item.slug}
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
+              locale={locale}
             />
           ) : (
             <ServiceCard
@@ -65,8 +71,9 @@ export default function CardGrid({ items, variant = "premium" }: Props) {
               slug={item.slug}
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
+              locale={locale}
             />
-          )
+          ),
         )}
       </div>
     </div>

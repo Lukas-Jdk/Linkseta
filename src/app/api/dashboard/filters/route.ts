@@ -2,23 +2,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
-    const cities = await prisma.city.findMany({
-      orderBy: { name: "asc" },
-    });
+    const [cities, categories] = await Promise.all([
+      prisma.city.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, slug: true },
+      }),
+      prisma.category.findMany({
+        where: { type: "SERVICE" },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, slug: true },
+      }),
+    ]);
 
-    const categories = await prisma.category.findMany({
-      where: { type: "SERVICE" },
-      orderBy: { name: "asc" },
-    });
-
-    return NextResponse.json({ cities, categories });
+    const res = NextResponse.json({ cities, categories });
+    // trumpas cache OK (tai nėra privati info)
+    res.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+    return res;
   } catch (error) {
-    console.error("filters error:", error);
-    return NextResponse.json(
-      { error: "Server error", details: String(error) },
-      { status: 500 }
-    );
+    console.error("dashboard/filters error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

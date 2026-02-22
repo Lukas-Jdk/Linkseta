@@ -121,7 +121,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       </Hero>
 
       <section className="container" style={{ padding: "40px 0 24px" }}>
-        <CardGrid items={items} />
+        <CardGrid items={items} locale={locale} />
       </section>
 
       <Features />

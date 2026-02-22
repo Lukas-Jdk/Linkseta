@@ -18,9 +18,14 @@ function formatDateLT(date: Date) {
   }).format(date);
 }
 
-export default async function DashboardPage() {
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function DashboardPage({ params }: Props) {
+  const { locale } = await params;
   const authUser = await getAuthUser();
-  if (!authUser) redirect("/login");
+  if (!authUser) redirect(`/${locale}/login`);
 
   const user = await prisma.user.findUnique({
     where: { id: authUser.id },
@@ -70,7 +75,10 @@ export default async function DashboardPage() {
 
           <div className={styles.topCardRight}>
             {isProviderApproved && (
-              <Link href="/dashboard/services/new" className={styles.newBtn}>
+              <Link
+                href={`/${locale}/dashboard/services/new`}
+                className={styles.newBtn}
+              >
                 <span className={styles.plus}>＋</span>
                 Nauja paslauga
               </Link>
@@ -93,7 +101,9 @@ export default async function DashboardPage() {
               <div>
                 <h2 className={styles.h2}>Mano paslaugos</h2>
               </div>
-              <div className={styles.servicesCount}>{activeServices} aktyvūs</div>
+              <div className={styles.servicesCount}>
+                {activeServices} aktyvūs
+              </div>
             </div>
 
             <div className={styles.servicesList}>
@@ -102,7 +112,7 @@ export default async function DashboardPage() {
                   Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.
                   <div className={styles.emptyActions}>
                     <Link
-                      href="/dashboard/services/new"
+                      href={`/${locale}/dashboard/services/new`}
                       className={styles.newBtnSmall}
                     >
                       ＋ Sukurti skelbimą
@@ -116,7 +126,10 @@ export default async function DashboardPage() {
                   Norint kurti paslaugas, reikia tapti patvirtintu paslaugų
                   teikėju.
                   <div className={styles.emptyActions}>
-                    <Link href="/tapti-teikeju" className={styles.newBtnSmall}>
+                    <Link
+                      href={`/${locale}/tapti-teikeju`}
+                      className={styles.newBtnSmall}
+                    >
                       Tapti teikėju
                     </Link>
                   </div>
@@ -178,7 +191,7 @@ export default async function DashboardPage() {
 
                         <div className={styles.serviceActions}>
                           <Link
-                            href={`/services/${s.slug}`}
+                            href={`/${locale}/services/${s.slug}`}
                             className={styles.actionLink}
                             aria-label="Peržiūrėti paslaugą"
                           >
@@ -187,7 +200,7 @@ export default async function DashboardPage() {
                           </Link>
 
                           <Link
-                            href={`/dashboard/services/${s.id}/edit`}
+                            href={`/${locale}/dashboard/services/${s.id}/edit`}
                             className={styles.actionLink}
                             aria-label="Redaguoti paslaugą"
                           >
@@ -203,7 +216,10 @@ export default async function DashboardPage() {
 
             {isProviderApproved && services.length > 0 && (
               <div className={styles.bottomAction}>
-                <Link href="/dashboard/services" className={styles.manageAllBtn}>
+                <Link
+                  href={`/${locale}/dashboard/services`}
+                  className={styles.manageAllBtn}
+                >
                   Valdyti visas paslaugas
                 </Link>
               </div>

@@ -11,6 +11,12 @@ export const dynamic = "force-dynamic";
 
 const BUCKET = "service-images";
 
+function clampText(x: unknown, max: number) {
+  if (typeof x !== "string") return null;
+  const t = x.trim();
+  return t ? t.slice(0, max) : null;
+}
+
 async function removeFromStorage(path: string) {
   if (!path) return;
   try {
@@ -21,10 +27,7 @@ async function removeFromStorage(path: string) {
   }
 }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
@@ -37,29 +40,67 @@ export async function PATCH(
     });
 
     const user = await getAuthUser();
-    if (!user)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
 
     const service = await prisma.serviceListing.findFirst({
       where: { id, deletedAt: null },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+        description: true,
+        cityId: true,
+        categoryId: true,
+        priceFrom: true,
+        isActive: true,
+        imageUrl: true,
+        imagePath: true,
+        highlights: true,
+      },
     });
 
-    if (!service)
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id)
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const body = await req.json();
+    const safePrefix = `${user.id}/`;
 
-    const nextImageUrl: string | null =
-      body.imageUrl === undefined ? service.imageUrl : body.imageUrl;
+    const body = await req.json().catch(() => ({} as any));
 
-    const nextImagePath: string | null =
-      body.imagePath === undefined ? service.imagePath : body.imagePath;
+    // Leisk tik šiuos laukus
+    const nextTitle = clampText(body?.title, 120) ?? service.title;
+    const nextDesc = clampText(body?.description, 4000) ?? service.description;
 
-    const highlights: string[] = Array.isArray(body.highlights)
+    const nextCityId = typeof body?.cityId === "string" ? body.cityId : service.cityId;
+    const nextCategoryId = typeof body?.categoryId === "string" ? body.categoryId : service.categoryId;
+
+    const nextPriceFrom =
+      body?.priceFrom === undefined
+        ? service.priceFrom
+        : body?.priceFrom === null
+          ? null
+          : Number.isFinite(Number(body.priceFrom))
+            ? Math.max(0, Math.min(10_000_000, Math.trunc(Number(body.priceFrom))))
+            : service.priceFrom;
+
+    const nextIsActive = typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
+
+    const nextImageUrl =
+      body?.imageUrl === undefined ? service.imageUrl : clampText(body?.imageUrl, 600);
+
+    const requestedPath =
+      body?.imagePath === undefined ? service.imagePath : clampText(body?.imagePath, 300);
+
+    // imagePath saugumas: jei nurodo path, jis privalo prasidėti user.id/
+    const nextImagePath =
+      requestedPath && requestedPath.length > 0 ? requestedPath : null;
+
+    if (nextImagePath && !nextImagePath.startsWith(safePrefix)) {
+      return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
+    }
+
+    const highlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
           .map((s: unknown) => String(s).trim())
           .filter(Boolean)
@@ -67,36 +108,28 @@ export async function PATCH(
       : service.highlights;
 
     const oldPath = service.imagePath;
-    const safePrefix = `${user.id}/`;
 
     const isPathChanged = oldPath && nextImagePath && oldPath !== nextImagePath;
-    const isRemoved =
-      oldPath && (nextImagePath === null || nextImagePath === "");
-    const shouldDelete =
-      (isPathChanged || isRemoved) && oldPath.startsWith(safePrefix);
+    const isRemoved = oldPath && !nextImagePath;
+    const shouldDeleteOld = (isPathChanged || isRemoved) && oldPath!.startsWith(safePrefix);
 
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
       data: {
-        title: body.title ?? service.title,
-        description: body.description ?? service.description,
-        cityId: body.cityId ?? service.cityId,
-        categoryId: body.categoryId ?? service.categoryId,
-        priceFrom: body.priceFrom ?? service.priceFrom,
-        isActive: body.isActive ?? service.isActive,
+        title: nextTitle,
+        description: nextDesc,
+        cityId: nextCityId ?? null,
+        categoryId: nextCategoryId ?? null,
+        priceFrom: nextPriceFrom,
+        isActive: nextIsActive,
         imageUrl: nextImageUrl,
-        imagePath: nextImagePath || null,
+        imagePath: nextImagePath,
         highlights,
       },
-      select: {
-        id: true,
-        title: true,
-        isActive: true,
-        imagePath: true,
-      },
+      select: { id: true, imagePath: true, isActive: true, title: true },
     });
 
-    if (shouldDelete) await removeFromStorage(oldPath!);
+    if (shouldDeleteOld) await removeFromStorage(oldPath!);
 
     await auditLog({
       action: "SERVICE_UPDATE",
@@ -106,8 +139,8 @@ export async function PATCH(
       ip,
       userAgent: ua,
       metadata: {
-        changed: Object.keys(body ?? {}),
-        removedOldImage: Boolean(shouldDelete),
+        changedKeys: Object.keys(body ?? {}),
+        removedOldImage: Boolean(shouldDeleteOld),
       },
     });
 
@@ -119,7 +152,6 @@ export async function PATCH(
       requestId,
       route: "/api/dashboard/services/[id]",
       ip,
-      userId: undefined,
       meta: { message: e?.message, stack: e?.stack },
     });
 
@@ -127,10 +159,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
@@ -143,21 +172,20 @@ export async function DELETE(
     });
 
     const user = await getAuthUser();
-    if (!user)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
 
     const service = await prisma.serviceListing.findFirst({
       where: { id, deletedAt: null },
+      select: { id: true, userId: true, imagePath: true },
     });
 
-    if (!service)
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id)
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    if (service.imagePath && service.imagePath.startsWith(`${user.id}/`)) {
+    const safePrefix = `${user.id}/`;
+    if (service.imagePath && service.imagePath.startsWith(safePrefix)) {
       await removeFromStorage(service.imagePath);
     }
 

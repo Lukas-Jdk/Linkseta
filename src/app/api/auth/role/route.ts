@@ -1,43 +1,23 @@
 // src/app/api/auth/role/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { getAuthUser } from "@/lib/auth";
 
 type Role = "GUEST" | "USER" | "ADMIN";
+type RoleResponse = { role: Role };
 
-type RoleResponse = {
-  role: Role;
-};
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = await createSupabaseServerClient();
+    const user = await getAuthUser();
 
-    const { data, error } = await supabase.auth.getUser();
+    const role: Role = !user ? "GUEST" : user.role === "ADMIN" ? "ADMIN" : "USER";
 
-    // jei nėra prisijungusio – GUEST
-    if (error || !data?.user?.email) {
-      const json: RoleResponse = { role: "GUEST" };
-      return NextResponse.json(json, { status: 200 });
-    }
-
-    const email = data.user.email;
-
-    const dbUser = await prisma.user.findUnique({
-      where: { email },
-      select: { role: true },
-    });
-
-    const role: Role =
-      dbUser?.role === "ADMIN" ? "ADMIN" : "USER";
-
-    const json: RoleResponse = { role };
-    return NextResponse.json(json, { status: 200 });
+    const res = NextResponse.json({ role } satisfies RoleResponse, { status: 200 });
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   } catch (err) {
     console.error("/api/auth/role server error:", err);
-    return NextResponse.json(
-      { error: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ role: "GUEST" } satisfies RoleResponse, { status: 200 });
   }
 }

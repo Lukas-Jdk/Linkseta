@@ -15,6 +15,7 @@ type Props = {
   slug: string;
   highlighted?: boolean;
   imageUrl?: string;
+  locale: string;
 };
 
 function formatPriceNOK(value: number) {
@@ -30,6 +31,7 @@ export default function ServiceCard({
   slug,
   highlighted = false,
   imageUrl,
+  locale,
 }: Props) {
   const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
 
@@ -42,7 +44,7 @@ export default function ServiceCard({
   const defaultArt = "/logo.webp";
 
   return (
-    <Link href={`/services/${slug}`} className={styles.card}>
+    <Link href={`/${locale}/services/${slug}`} className={styles.card}>
       {/* TOP HALF */}
       <div className={styles.imageWrap}>
         {hasCover ? (

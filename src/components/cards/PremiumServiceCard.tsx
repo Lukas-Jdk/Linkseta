@@ -17,6 +17,7 @@ export interface PremiumServiceCardProps {
   slug: string;
   highlighted?: boolean;
   imageUrl?: string;
+  locale: string;
 }
 
 export default function PremiumServiceCard({
@@ -29,6 +30,7 @@ export default function PremiumServiceCard({
   slug,
   highlighted = false,
   imageUrl,
+  locale,
 }: PremiumServiceCardProps) {
   const formattedPrice =
     priceFrom != null
@@ -38,13 +40,12 @@ export default function PremiumServiceCard({
   const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultCenterImg = "/logo.webp";
 
-  const serviceHref = `/services/${slug}`;
-  const contactHref = `/services/${slug}#kontaktai`;
+  const serviceHref = `/${locale}/services/${slug}`;
+  const contactHref = `/${locale}/services/${slug}#kontaktai`;
 
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
-       
         <Link
           href={serviceHref}
           className={styles.cardLinkOverlay}
@@ -133,7 +134,10 @@ export default function PremiumServiceCard({
               </div>
 
               <div className={styles.actions}>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
                   <Link
                     href={contactHref}
                     className={`${styles.contactButton} ${

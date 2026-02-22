@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
-import Link from "next/link";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { Mail, Lock } from "lucide-react";
 
 function mapLoginErrorMessage(raw: string | null | undefined): string {
@@ -104,9 +104,9 @@ export default function LoginPage() {
 
           <p className={styles.helperText}>
             Pamiršote slaptažodį?{" "}
-            <Link href="/forgot-password" className={styles.link}>
+            <LocalizedLink href="/forgot-password" className={styles.link}>
               Atstatyti
-            </Link>
+            </LocalizedLink>
           </p>
         </form>
       </div>

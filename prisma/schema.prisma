@@ -10,7 +10,7 @@ datasource db {
 
 model User {
   id         String  @id @default(cuid())
-  email      String  @unique
+  email      String  @unique @db.Citext
   supabaseId String? @unique
 
   name  String?
@@ -74,9 +74,14 @@ model ServiceListing {
   category Category? @relation(fields: [categoryId], references: [id])
   plan     Plan?     @relation(fields: [planId], references: [id])
 
-  @@index([isActive, cityId, categoryId])
-  @@index([createdAt])
-  @@index([deletedAt])
+  // Composite indexes for filtering + sorting
+  @@index([isActive, deletedAt, createdAt])
+  @@index([isActive, deletedAt, highlighted, createdAt])
+  // Single indexes for foreign key filters
+  @@index([cityId])
+  @@index([categoryId])
+  // Index for user lookups
+  @@index([userId])
 }
 
 model JobListing {

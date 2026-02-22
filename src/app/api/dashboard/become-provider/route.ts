@@ -2,15 +2,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
+import { auditLog } from "@/lib/audit";
+import { withApi } from "@/lib/withApi";
 
 type Body = {
   planSlug?: "demo" | "basic" | "premium";
 };
 
-// DEMO versija: be Stripe/Vipps.
-// Tiesiog sukuria / atnaujina ProviderProfile ir pažymi isApproved = true.
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
-  try {
+  return withApi(req, "POST /api/dashboard/become-provider", async () => {
+    const ip = getClientIp(req);
+
+    await rateLimitOrThrow({
+      key: `dashboard:become-provider:${ip}`,
+      limit: 15,
+      windowMs: 60_000,
+    });
+
     const { user, response } = await requireUser();
     if (response || !user) {
       return response ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +31,7 @@ export async function POST(req: Request) {
     try {
       body = await req.json();
     } catch {
-      // body gali būti tuščias – ok
+      body = {};
     }
 
     const planSlug = body.planSlug ?? "demo";
@@ -40,10 +51,16 @@ export async function POST(req: Request) {
       create: { userId: user.id, isApproved: true },
     });
 
-    return NextResponse.json({ success: true, planSlug: plan.slug });
-  } catch (err: unknown) {
-    console.error("POST /api/dashboard/become-provider error:", err);
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: "Serverio klaida", details: message }, { status: 500 });
-  }
+    await auditLog({
+      action: "PROVIDER_PROFILE_APPROVE_DEMO",
+      entity: "ProviderProfile",
+      entityId: user.id,
+      userId: user.id,
+      ip,
+      userAgent: req.headers.get("user-agent") ?? null,
+      metadata: { planSlug: plan.slug },
+    });
+
+    return NextResponse.json({ ok: true, planSlug: plan.slug });
+  });
 }

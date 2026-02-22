@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
@@ -50,7 +50,7 @@ export default function RegisterPage() {
       }
 
       setSuccess(
-        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą."
+        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą.",
       );
       setPassword("");
     } catch (e) {
@@ -66,7 +66,8 @@ export default function RegisterPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Registracija</h1>
         <p className={styles.subtitle}>
-          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir funkcijomis.
+          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir
+          funkcijomis.
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -120,7 +121,9 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
+          <div className={styles.hint}>
+            *Slaptažodis turi būti bent 8 simbolių ilgio
+          </div>
 
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}
@@ -131,20 +134,20 @@ export default function RegisterPage() {
 
           <div className={styles.bottomText}>
             Jau turite paskyrą?{" "}
-            <Link href="/login" className={styles.link}>
+            <LocalizedLink href="/login" className={styles.link}>
               Prisijunkite
-            </Link>
+            </LocalizedLink>
           </div>
 
           <div className={styles.legal}>
             Registruodamiesi sutinkate su mūsų{" "}
-            <Link href="/terms" className={styles.link}>
+            <LocalizedLink href="/terms" className={styles.link}>
               Naudojimosi sąlygomis
-            </Link>{" "}
+            </LocalizedLink>{" "}
             ir{" "}
-            <Link href="/privacy" className={styles.link}>
+            <LocalizedLink href="/privacy" className={styles.link}>
               Privatumo politika
-            </Link>
+            </LocalizedLink>
             .
           </div>
         </form>

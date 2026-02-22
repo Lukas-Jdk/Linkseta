@@ -1,7 +1,7 @@
 // src/app/[locale]/dashboard/ProfileCardClient.tsx
 "use client";
 
-import Link from "next/link";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./dashboard.module.css";
 import AvatarUploader from "@/components/profile/AvatarUploader";
 
@@ -35,7 +35,6 @@ export default function ProfileCardClient({
       <div className={styles.profileHeaderBg} />
 
       <div className={styles.profileBody}>
-    
         <div className={styles.avatarWrap}>
           <AvatarUploader
             avatarUrl={avatarUrl}
@@ -72,15 +71,17 @@ export default function ProfileCardClient({
           {isProviderApproved ? (
             <span className={styles.providerOk}>Patvirtintas teikėjas</span>
           ) : (
-            <span className={styles.providerPending}>Nepatvirtintas teikėjas</span>
+            <span className={styles.providerPending}>
+              Nepatvirtintas teikėjas
+            </span>
           )}
         </div>
 
         {!isProviderApproved && (
           <div className={styles.profileCta}>
-            <Link href="/tapti-teikeju" className={styles.ctaBtn}>
+            <LocalizedLink href="/tapti-teikeju" className={styles.ctaBtn}>
               Tapti paslaugų teikėju
-            </Link>
+            </LocalizedLink>
           </div>
         )}
       </div>

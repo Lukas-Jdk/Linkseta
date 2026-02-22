@@ -1,68 +1,172 @@
 // src/app/api/admin/provider-requests/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ProviderRequestStatus } from "@prisma/client";
+import { ProviderRequestStatus, Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
+import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
+import { auditLog } from "@/lib/audit";
+import { withApi } from "@/lib/withApi";
 
 type Params = { id: string };
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(req: Request, { params }: { params: Promise<Params> }) {
-  const { id } = await params;
+function isCuid(id: string) {
+  if (typeof id !== "string") return false;
+  if (id.length < 20 || id.length > 50) return false;
+  return /^[a-zA-Z0-9]+$/.test(id);
+}
 
-  const { response, user } = await requireAdmin();
-  if (response || !user) return response!;
+async function uniqueServiceSlug(tx: Prisma.TransactionClient, base: string) {
+  // DB turi slug UNIQUE globaliai → tikrinam globaliai, ne tik deletedAt:null
+  let slug = base;
+  let i = 2;
 
-  try {
-    const body = await req.json().catch(() => ({}));
-    const status = body.status as ProviderRequestStatus | undefined;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const exists = await tx.serviceListing.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (!exists) return slug;
+
+    slug = `${base}-${i}`;
+    i += 1;
+  }
+}
+
+/**
+ * Case-insensitive "get or create" by email.
+ * Why: Postgres unique index on TEXT is case-sensitive by default,
+ * so "Test@x.com" and "test@x.com" can exist as different strings.
+ * We want stable behavior.
+ */
+async function getOrCreateUserByEmail(tx: Prisma.TransactionClient, input: {
+  email: string;
+  name: string;
+  phone?: string | null;
+}) {
+  const email = input.email.trim().toLowerCase();
+  if (!email) throw new Error("Missing email");
+
+  // 1) Try exact match
+  const exact = await tx.user.findUnique({
+    where: { email },
+    select: { id: true, email: true },
+  });
+
+  if (exact) {
+    const updated = await tx.user.update({
+      where: { id: exact.id },
+      data: {
+        name: input.name,
+        phone: input.phone ?? undefined,
+        email, // normalize
+      },
+      select: { id: true, email: true },
+    });
+    return updated;
+  }
+
+  // 2) Try case-insensitive match (covers legacy mixed-case records)
+  const ci = await tx.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+    select: { id: true, email: true },
+  });
+
+  if (ci) {
+    const updated = await tx.user.update({
+      where: { id: ci.id },
+      data: {
+        name: input.name,
+        phone: input.phone ?? undefined,
+        email, // normalize stored value
+      },
+      select: { id: true, email: true },
+    });
+    return updated;
+  }
+
+  // 3) Create new
+  const created = await tx.user.create({
+    data: {
+      email,
+      name: input.name,
+      phone: input.phone ?? undefined,
+    },
+    select: { id: true, email: true },
+  });
+
+  return created;
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<Params> },
+) {
+  return withApi(req, "PATCH /api/admin/provider-requests/[id]", async () => {
+    const ip = getClientIp(req);
+
+    await rateLimitOrThrow({
+      key: `admin:providerRequests:patch:${ip}`,
+      limit: 60,
+      windowMs: 60_000,
+    });
+
+    const { response, user } = await requireAdmin();
+    if (response || !user) {
+      return response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    if (!isCuid(id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
+
+    const body = await req.json().catch(() => ({} as any));
+    const status = body?.status as ProviderRequestStatus | undefined;
 
     const allowed = Object.values(ProviderRequestStatus);
     if (!status || !allowed.includes(status)) {
       return NextResponse.json(
         { error: "Invalid status", allowed, received: status },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      // 1) paimam request
-      const existing = await tx.providerRequest.findUnique({ where: { id } });
-      if (!existing) {
-        return { kind: "NOT_FOUND" as const };
-      }
+    const ua = req.headers.get("user-agent") ?? null;
 
-      // 2) jei tiesiog keičiam į PENDING/REJECTED arba jau buvo APPROVED -> tik update
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.providerRequest.findUnique({ where: { id } });
+      if (!existing) return { kind: "NOT_FOUND" as const };
+
       const willApproveFirstTime =
         status === "APPROVED" && existing.status !== "APPROVED";
 
-      let createdUser = null;
-      let providerProfile = null;
-      let serviceListing = null;
+      let createdUser: { id: string; email: string } | null = null;
+      let providerProfile: { id: string; userId: string } | null = null;
+      let serviceListing: { id: string; slug: string } | null = null;
 
       if (willApproveFirstTime) {
-        if (!existing.email) {
-          return { kind: "BAD_REQUEST" as const, error: "ProviderRequest has no email" };
+        const email = (existing.email ?? "").trim();
+        if (!email) {
+          return {
+            kind: "BAD_REQUEST" as const,
+            error: "ProviderRequest has no email",
+          };
         }
 
-        // 2.1) user upsert
-        const userFromReq = await tx.user.upsert({
-          where: { email: existing.email },
-          update: {
-            name: existing.name,
-            phone: existing.phone ?? undefined,
-          },
-          create: {
-            email: existing.email,
-            name: existing.name,
-            phone: existing.phone ?? undefined,
-          },
+        // 1) user get/create (case-insensitive safe)
+        const userFromReq = await getOrCreateUserByEmail(tx, {
+          email,
+          name: existing.name,
+          phone: existing.phone ?? null,
         });
 
         createdUser = userFromReq;
 
-        // 2.2) provider profile upsert + patvirtinam
+        // 2) provider profile upsert + approved
         providerProfile = await tx.providerProfile.upsert({
           where: { userId: userFromReq.id },
           update: {
@@ -76,16 +180,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
             description: existing.message ?? undefined,
             isApproved: true,
           },
+          select: { id: true, userId: true },
         });
 
-        // 2.3) pirmas listing (jei dar nėra)
+        // 3) create first listing if user has no non-deleted listing
         const existingListing = await tx.serviceListing.findFirst({
-          where: { userId: userFromReq.id },
+          where: { userId: userFromReq.id, deletedAt: null },
+          select: { id: true, slug: true },
         });
 
         if (!existingListing) {
-          // slug – stabilus ir unikalus pagal request id
-          const slug = `service-${existing.id}`;
+          const base = `service-${existing.id}`;
+          const slug = await uniqueServiceSlug(tx, base);
 
           serviceListing = await tx.serviceListing.create({
             data: {
@@ -102,15 +208,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
               highlighted: false,
               priceFrom: null,
               imageUrl: null,
+              imagePath: null,
               highlights: [],
+              deletedAt: null,
             },
+            select: { id: true, slug: true },
           });
         } else {
           serviceListing = existingListing;
         }
       }
 
-      // 3) update request status
       const updated = await tx.providerRequest.update({
         where: { id },
         data: { status },
@@ -119,9 +227,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
       return {
         kind: "OK" as const,
         updated,
-        user: createdUser,
+        createdUser,
         providerProfile,
         serviceListing,
+        prevStatus: existing.status,
       };
     });
 
@@ -133,18 +242,28 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
+    // audit outside transaction
+    await auditLog({
+      action: "PROVIDER_REQUEST_STATUS_UPDATE",
+      entity: "ProviderRequest",
+      entityId: id,
+      userId: user.id,
+      ip,
+      userAgent: ua,
+      metadata: {
+        fromStatus: result.prevStatus,
+        toStatus: status,
+        createdUserId: result.createdUser?.id ?? null,
+        createdServiceId: result.serviceListing?.id ?? null,
+      },
+    });
+
     return NextResponse.json({
       ok: true,
       updated: result.updated,
-      user: result.user,
+      createdUser: result.createdUser,
       providerProfile: result.providerProfile,
       serviceListing: result.serviceListing,
     });
-  } catch (error) {
-    console.error("PATCH /api/admin/provider-requests/:id error:", error);
-    return NextResponse.json(
-      { error: "Server error", details: String(error) },
-      { status: 500 }
-    );
-  }
+  });
 }

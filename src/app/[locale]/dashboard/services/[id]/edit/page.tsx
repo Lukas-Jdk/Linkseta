@@ -1,4 +1,3 @@
-
 // src/app/[locale]/dashboard/services/[id]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -7,26 +6,25 @@ import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";
 
 type PageProps = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function EditServicePage({ params }: PageProps) {
+  const { id, locale } = await params;
   const authUser = await getAuthUser();
-  if (!authUser) redirect("/login");
-
-  const { id } = await params;
+  if (!authUser) redirect(`/${locale}/login`);
 
   const service = await prisma.serviceListing.findUnique({
     where: { id },
     include: { city: true, category: true },
   });
 
-  if (!service) redirect("/dashboard/services");
+  if (!service) redirect(`/${locale}/dashboard/services`);
 
   if (service.userId !== authUser.id) {
-    redirect("/dashboard/services");
+    redirect(`/${locale}/dashboard/services`);
   }
 
   const [cities, categories] = await Promise.all([
@@ -38,17 +36,17 @@ export default async function EditServicePage({ params }: PageProps) {
   ]);
 
   const initial = {
-  id: service.id,
-  title: service.title,
-  description: service.description ?? "",
-  cityId: service.cityId ?? "",
-  categoryId: service.categoryId ?? "",
-  priceFrom: service.priceFrom ?? null,
-  imageUrl: service.imageUrl ?? null,
-  imagePath: service.imagePath ?? null, 
-  highlights: Array.isArray(service.highlights) ? service.highlights : [],
-  isActive: service.isActive, 
-};
+    id: service.id,
+    title: service.title,
+    description: service.description ?? "",
+    cityId: service.cityId ?? "",
+    categoryId: service.categoryId ?? "",
+    priceFrom: service.priceFrom ?? null,
+    imageUrl: service.imageUrl ?? null,
+    imagePath: service.imagePath ?? null,
+    highlights: Array.isArray(service.highlights) ? service.highlights : [],
+    isActive: service.isActive,
+  };
 
   return (
     <main className={styles.page}>

@@ -13,6 +13,8 @@ type MeResponse = {
   } | null;
 };
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const user = await getAuthUser();
@@ -30,9 +32,13 @@ export async function GET() {
         : null,
     };
 
-    return NextResponse.json(body, { status: 200 });
+    const res = NextResponse.json(body, { status: 200 });
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   } catch (err) {
     console.error("GET /api/auth/me error", err);
-    return NextResponse.json({ user: null } satisfies MeResponse, { status: 200 });
+    const res = NextResponse.json({ user: null } satisfies MeResponse, { status: 200 });
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 }

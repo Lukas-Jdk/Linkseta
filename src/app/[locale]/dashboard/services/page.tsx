@@ -7,18 +7,23 @@ import styles from "./services.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardServicesPage() {
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function DashboardServicesPage({ params }: Props) {
+  const { locale } = await params;
   const authUser = await getAuthUser();
 
   if (!authUser) {
-    redirect("/login");
+    redirect(`/${locale}/login`);
   }
 
-const services = await prisma.serviceListing.findMany({
-  where: { userId: authUser.id, deletedAt: null }, 
-  include: { city: true, category: true },
-  orderBy: { createdAt: "desc" },
-});
+  const services = await prisma.serviceListing.findMany({
+    where: { userId: authUser.id, deletedAt: null },
+    include: { city: true, category: true },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <main className={styles.wrapper}>
@@ -26,7 +31,10 @@ const services = await prisma.serviceListing.findMany({
         <div className={styles.headerRow}>
           <h1 className={styles.heading}>Mano paslaugos</h1>
 
-          <Link href="/dashboard/services/new" className={styles.newButton}>
+          <Link
+            href={`/${locale}/dashboard/services/new`}
+            className={styles.newButton}
+          >
             + Nauja paslauga
           </Link>
         </div>
@@ -53,12 +61,15 @@ const services = await prisma.serviceListing.findMany({
                 </div>
 
                 <div className={styles.actions}>
-                  <Link href={`/services/${s.slug}`} className={styles.linkButton}>
+                  <Link
+                    href={`/${locale}/services/${s.slug}`}
+                    className={styles.linkButton}
+                  >
                     Peržiūrėti
                   </Link>
 
                   <Link
-                    href={`/dashboard/services/${s.id}/edit`}
+                    href={`/${locale}/dashboard/services/${s.id}/edit`}
                     className={styles.linkButton}
                   >
                     Redaguoti

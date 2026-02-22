@@ -1,5 +1,7 @@
 // src/components/cta/BecomeProviderCTA.tsx
-import Link from "next/link";
+"use client";
+
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./BecomeProviderCTA.module.css";
 
 export default function BecomeProviderCTA() {
@@ -14,9 +16,9 @@ export default function BecomeProviderCTA() {
           užklausas.
         </p>
 
-        <Link href="/tapti-teikeju" className={styles.button}>
+        <LocalizedLink href="/tapti-teikeju" className={styles.button}>
           Tapti teikėju
-        </Link>
+        </LocalizedLink>
       </div>
     </section>
   );

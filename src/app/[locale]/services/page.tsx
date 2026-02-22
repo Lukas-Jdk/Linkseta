@@ -4,10 +4,33 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import {
+  validatePaginationParams,
+  sanitizeStringParam,
+} from "@/lib/validation";
 
 import ServicesHero from "@/components/hero/ServicesHero";
 import CardGrid from "@/components/cards/CardGrid";
+import PaginationLinks from "@/components/seo/PaginationLinks";
 import styles from "./services.module.css";
+
+// Helper to build pagination link
+function buildPaginationLink(
+  locale: string,
+  q?: string,
+  city?: string,
+  category?: string,
+  page?: number,
+): string {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (city) params.set("city", city);
+  if (category) params.set("category", category);
+  if (page && page > 1) params.set("page", String(page));
+
+  const queryString = params.toString();
+  return `${siteUrl}/${locale}/services${queryString ? `?${queryString}` : ""}`;
+}
 
 type SearchParams = {
   q?: string;
@@ -31,7 +54,10 @@ function buildLanguageAlternates(path: string) {
   };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: Props): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
 
@@ -39,7 +65,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = t("servicesTitle");
   const description = t("servicesDesc");
-  const canonicalPath = `/${locale}/services`;
+
+  const resolved = await searchParams;
+  const pageNum = Math.max(1, parseInt(resolved.page ?? "1", 10));
+
+  // Build query string without page param
+  const queryParams = new URLSearchParams();
+  if (resolved.q) queryParams.set("q", resolved.q);
+  if (resolved.city) queryParams.set("city", resolved.city);
+  if (resolved.category) queryParams.set("category", resolved.category);
+  const queryString = queryParams.toString();
+  const baseQueryString = queryString ? `?${queryString}&` : "?";
+
+  // Canonical: no page param for page 1, with page param for page > 1
+  const canonicalPath =
+    pageNum === 1
+      ? `${siteUrl}/${locale}/services${queryString ? `?${queryString}` : ""}`
+      : `${siteUrl}/${locale}/services${baseQueryString}page=${pageNum}`;
+
+  // Prev link (if not on page 1)
+  const prevLink =
+    pageNum > 1
+      ? {
+          rel: "prev" as const,
+          href:
+            pageNum === 2
+              ? `${siteUrl}/${locale}/services${queryString ? `?${queryString}` : ""}`
+              : `${siteUrl}/${locale}/services${baseQueryString}page=${pageNum - 1}`,
+        }
+      : null;
+
+  // Next link (we'll use a placeholder; totalPages will be available in the component)
+  // Note: We can't know totalPages here without querying the DB, so next link will be added in JSX
 
   return {
     title,
@@ -51,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `${siteUrl}${canonicalPath}`,
+      url: canonicalPath,
       siteName: "Linkseta",
       type: "website",
     },
@@ -60,6 +117,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
     },
+    ...(prevLink && {
+      other: {
+        prev: prevLink.href,
+      },
+    }),
   };
 }
 
@@ -69,11 +131,36 @@ export default async function ServicesPage({ params, searchParams }: Props) {
 
   const resolved = await searchParams;
 
-  const q = resolved.q?.trim() ?? "";
-  const city = resolved.city ?? "";
-  const category = resolved.category ?? "";
-  const pageNum = Math.max(1, parseInt(resolved.page ?? "1", 10));
-  const pageSize = 24;
+  // Validate and parse pagination params
+  const paginationResult = validatePaginationParams(
+    resolved.page,
+    undefined, // pageSize is not supported in this UI, use default
+  );
+
+  // Invalid pagination params - render error (can be improved with better UX)
+  if ("error" in paginationResult) {
+    return (
+      <main className={styles.page}>
+        <ServicesHero />
+        <section className={styles.results}>
+          <div className="container">
+            <p className={styles.emptyState}>
+              Invalid page number. Please try again.
+            </p>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const pageNum = paginationResult.page;
+  const pageSize = paginationResult.pageSize;
+
+  // Sanitize string params
+  const q = sanitizeStringParam(resolved.q);
+  const city = sanitizeStringParam(resolved.city);
+  const category = sanitizeStringParam(resolved.category);
+
   const skip = (pageNum - 1) * pageSize;
 
   const where: Prisma.ServiceListingWhereInput = {
@@ -91,14 +178,8 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const [services, total, cities, categories] = await Promise.all([
-    prisma.serviceListing.findMany({
-      where,
-      include: { city: true, category: true },
-      orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: pageSize,
-    }),
+  // Fetch total count and filter options in parallel
+  const [total, cities, categories] = await Promise.all([
     prisma.serviceListing.count({ where }),
     prisma.city.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({
@@ -108,6 +189,19 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   ]);
 
   const totalPages = Math.ceil(total / pageSize);
+
+  // If page is beyond totalPages, render empty results with correct metadata
+  let services: Array<any> = [];
+  if (pageNum <= totalPages || totalPages === 0) {
+    services = await prisma.serviceListing.findMany({
+      where,
+      include: { city: true, category: true },
+      orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
+      skip,
+      take: pageSize,
+    });
+  }
+
   const activeCityName = city
     ? (cities.find((c) => c.id === city)?.name ?? "")
     : "";
@@ -152,6 +246,11 @@ export default async function ServicesPage({ params, searchParams }: Props) {
 
   return (
     <main className={styles.page}>
+      <PaginationLinks
+        locale={locale}
+        pageNum={pageNum}
+        totalPages={totalPages}
+      />
       <ServicesHero />
 
       <section className={styles.results}>
@@ -175,7 +274,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
           ) : (
             <>
               <div className={styles.gridWrap}>
-                <CardGrid items={items} variant="compact" />
+                <CardGrid items={items} variant="compact" locale={locale} />
               </div>
 
               {/* Pagination controls */}

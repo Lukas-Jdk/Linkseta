@@ -1,5 +1,7 @@
 // src/app/[locale]/not-found.tsx
-import Link from "next/link";
+"use client";
+
+import LocalizedLink from "@/components/i18n/LocalizedLink";
 
 export default function NotFoundPage() {
   return (
@@ -55,7 +57,7 @@ export default function NotFoundPage() {
             flexWrap: "wrap",
           }}
         >
-          <Link
+          <LocalizedLink
             href="/"
             style={{
               padding: "10px 18px",
@@ -67,8 +69,8 @@ export default function NotFoundPage() {
             }}
           >
             Grįžti į pradžią
-          </Link>
-          <Link
+          </LocalizedLink>
+          <LocalizedLink
             href="/services"
             style={{
               padding: "10px 18px",
@@ -80,7 +82,7 @@ export default function NotFoundPage() {
             }}
           >
             Žiūrėti paslaugas
-          </Link>
+          </LocalizedLink>
         </div>
       </div>
     </main>

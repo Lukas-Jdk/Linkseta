@@ -25,9 +25,36 @@ function setSecurityHeaders(res: { headers: Headers }) {
 }
 
 export default async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  // Routes that require locale prefix for safety
+  const protectedPaths = [
+    "/services",
+    "/susisiekite",
+    "/tapti-teikeju",
+    "/terms",
+    "/privacy",
+  ];
+
+  // Check if pathname matches a protected path without a locale prefix
+  const matchesProtectedPath = protectedPaths.some(
+    (path) => pathname === path || pathname.startsWith(path + "/"),
+  );
+
+  // Check if path has locale prefix
+  const hasLocalePrefix = routing.locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+  );
+
+  // If matches protected path and no locale prefix, redirect to default locale
+  if (matchesProtectedPath && !hasLocalePrefix) {
+    return NextResponse.redirect(
+      new URL(`/${routing.defaultLocale}${pathname}`, req.url),
+    );
+  }
+
   // Await intl middleware so redirects/rewrites are respected.
   const maybeResponse = await intlMiddleware(req as any);
-
 
   if (maybeResponse && typeof (maybeResponse as any).headers !== "undefined") {
     setSecurityHeaders(maybeResponse as any);
