@@ -1,8 +1,7 @@
-// src/app/[locale]/dashboard/services/new/NewServiceForm.tsx
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./NewServiceForm.module.css";
 
@@ -28,6 +27,8 @@ function parseHighlights(text: string) {
 
 export default function NewServiceForm({ cities, categories }: Props) {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +42,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
     [highlightsText],
   );
 
-  //  naujas flow: laikom File state + preview
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
@@ -86,7 +86,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
       const ext = imageFile.name.split(".").pop() || "jpg";
       const userId = userData.user.id;
 
-      //  tvarkingas kelias: userId/services/serviceId/...
       const path = `${userId}/services/${serviceId}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
@@ -129,7 +128,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
     setIsSubmitting(true);
     try {
-      // 1) Sukuriam paslaugą be image
       const res = await fetch("/api/dashboard/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -157,10 +155,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       const serviceId = json.id as string;
 
-      // 2) Jei vartotojas pasirinko failą -> upload į tvarkingą path
       const uploaded = await uploadServiceImage(serviceId);
 
-      // 3) Jei įkėlėm, atnaujinam įrašą su imageUrl + imagePath
       if (uploaded) {
         await fetch(`/api/dashboard/services/${serviceId}`, {
           method: "PATCH",
@@ -172,7 +168,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         });
       }
 
-      router.push("/dashboard");
+      router.push(`/${locale}/dashboard`);
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -187,7 +183,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
       {error && <p className={styles.errorText}>{error}</p>}
       {success && <p className={styles.successText}>{success}</p>}
 
-      {/* PAGRINDINĖ INFORMACIJA */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
 
@@ -233,7 +228,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
             rows={5}
             value={highlightsText}
             onChange={(e) => setHighlightsText(e.target.value)}
-            placeholder={"Pvz:\nGreita komunikacija\nSutarti terminai\nGarantija darbams"}
+            placeholder={
+              "Pvz:\nGreita komunikacija\nSutarti terminai\nGarantija darbams"
+            }
           />
 
           <div className={styles.hintsRow}>
@@ -258,7 +255,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
       </section>
 
-      {/* DETALĖS IR KAINA */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Detalės ir kaina</h2>
 
@@ -313,7 +309,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
       </section>
 
-      {/* NUOTRAUKOS */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Nuotraukos</h2>
 
@@ -365,7 +360,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         <button
           type="button"
           className={styles.secondaryButton}
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push(`/${locale}/dashboard`)}
           disabled={isSubmitting || uploading}
         >
           Atšaukti

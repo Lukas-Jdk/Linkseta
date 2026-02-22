@@ -1,17 +1,15 @@
 // src/app/api/admin/metrics/route.ts
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { withApi } from "@/lib/withApi";
+import { jsonNoStore } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   return withApi(req, "GET /api/admin/metrics", async () => {
     const ip = getClientIp(req);
-
-    // rate limit: admin metrics neturi būti spaminamas
     await rateLimitOrThrow({
       key: `admin:metrics:${ip}`,
       limit: 30,
@@ -20,7 +18,7 @@ export async function GET(req: Request) {
 
     const { user, response } = await requireAdmin();
     if (response || !user) {
-      return response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return response ?? jsonNoStore({ error: "Forbidden" }, { status: 403 });
     }
 
     const [
@@ -43,18 +41,17 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const res = NextResponse.json({
-      usersTotal,
-      providersApproved,
-      servicesTotal,
-      servicesActive,
-      servicesDeleted,
-      providerRequestsPending,
-      auditLast24h,
-    });
-
-    // no-store: admin metrics neturi būti cache’inami
-    res.headers.set("Cache-Control", "no-store");
-    return res;
+    return jsonNoStore(
+      {
+        usersTotal,
+        providersApproved,
+        servicesTotal,
+        servicesActive,
+        servicesDeleted,
+        providerRequestsPending,
+        auditLast24h,
+      },
+      { status: 200 },
+    );
   });
 }

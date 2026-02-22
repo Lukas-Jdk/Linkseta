@@ -16,8 +16,8 @@ type SearchParams = {
 };
 
 type PageProps = {
-  params: { locale: string };
-  searchParams: SearchParams;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<SearchParams>;
 };
 
 function safeLocale(locale: string) {
@@ -32,17 +32,17 @@ function asString(v: string | string[] | undefined) {
   return undefined;
 }
 
-export default async function AdminServicesPage({
-  params,
-  searchParams,
-}: PageProps) {
-  const locale = safeLocale(params.locale);
+export default async function AdminServicesPage({ params, searchParams }: PageProps) {
+  const { locale: rawLocale } = await params;
+  const locale = safeLocale(rawLocale);
 
   const { response } = await requireAdmin();
   if (response) redirect(`/${locale}`);
 
-  const statusFilter = asString(searchParams.status) ?? "all";
-  const qRaw = asString(searchParams.q) ?? "";
+  const resolved = await searchParams;
+
+  const statusFilter = asString(resolved.status) ?? "all";
+  const qRaw = asString(resolved.q) ?? "";
   const q = sanitizeStringParam(qRaw, 120) ?? "";
 
   // Always hide soft-deleted rows in admin list

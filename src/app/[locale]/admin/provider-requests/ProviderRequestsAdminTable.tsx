@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./providerRequests.module.css";
+import { csrfFetch } from "@/lib/csrfClient";
 
 type Status = "PENDING" | "APPROVED" | "REJECTED";
 
@@ -55,20 +56,26 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
   const abortRef = useRef<AbortController | null>(null);
   const feedbackTimerRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    // cleanup on unmount
     return () => {
+      mountedRef.current = false;
       abortRef.current?.abort();
       if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
     };
   }, []);
 
   function setAutoClearFeedback(next: Feedback | null) {
+    if (!mountedRef.current) return;
+
     setFeedback(next);
     if (feedbackTimerRef.current) window.clearTimeout(feedbackTimerRef.current);
+
     if (next) {
-      feedbackTimerRef.current = window.setTimeout(() => setFeedback(null), 4000);
+      feedbackTimerRef.current = window.setTimeout(() => {
+        if (mountedRef.current) setFeedback(null);
+      }, 4000);
     }
   }
 
@@ -98,7 +105,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
   async function updateStatus(id: string, status: Status) {
     try {
-      // cancel previous in-flight request (defensive)
+      // cancel previous request
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -106,9 +113,8 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
       setUpdatingId(id);
       setAutoClearFeedback(null);
 
-      const res = await fetch(`/api/admin/provider-requests/${id}`, {
+      const res = await csrfFetch(`/api/admin/provider-requests/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
         signal: controller.signal,
       });
@@ -116,24 +122,35 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
       const json = await readJsonIfPossible(res);
 
       if (!res.ok) {
-        const msg = extractError(json, "Nepavyko atnaujinti statuso. Bandykite dar kartą.");
-        console.error("ProviderRequest status update failed:", { id, status, json });
+        const msg =
+          res.status === 403
+            ? "Saugumo patikra nepraėjo (CSRF / teisės). Perkrauk puslapį ir bandyk dar."
+            : res.status === 429
+              ? "Per daug veiksmų per trumpą laiką. Palauk minutę ir bandyk dar."
+              : extractError(json, "Nepavyko atnaujinti statuso. Bandykite dar kartą.");
+
+        console.error("ProviderRequest status update failed:", { id, status, res: res.status, json });
         setAutoClearFeedback({ type: "error", text: msg });
         return;
       }
 
-      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status } : r)),
+      );
 
       setAutoClearFeedback({
         type: "success",
         text: `Statusas atnaujintas į ${status}.`,
       });
     } catch (err: any) {
-      if (err?.name === "AbortError") return; // user clicked again, ignore
+      if (err?.name === "AbortError") return;
       console.error("updateStatus error", err);
-      setAutoClearFeedback({ type: "error", text: "Serverio klaida. Bandykite dar kartą." });
+      setAutoClearFeedback({
+        type: "error",
+        text: "Serverio klaida. Bandykite dar kartą.",
+      });
     } finally {
-      setUpdatingId(null);
+      if (mountedRef.current) setUpdatingId(null);
     }
   }
 
@@ -166,9 +183,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
       {feedback && (
         <p
-          className={
-            feedback.type === "error" ? styles.feedbackError : styles.feedbackSuccess
-          }
+          className={feedback.type === "error" ? styles.feedbackError : styles.feedbackSuccess}
           role={feedback.type === "error" ? "alert" : "status"}
         >
           {feedback.text}
@@ -211,6 +226,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
                       <div className={styles.actions}>
                         {r.status !== "APPROVED" && (
                           <button
+                            type="button"
                             className={styles.btnApprove}
                             onClick={() => updateStatus(r.id, "APPROVED")}
                             disabled={rowBusy}
@@ -221,6 +237,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
                         {r.status !== "REJECTED" && (
                           <button
+                            type="button"
                             className={styles.btnReject}
                             onClick={() => updateStatus(r.id, "REJECTED")}
                             disabled={rowBusy}
@@ -231,6 +248,7 @@ export default function ProviderRequestsAdminTable({ initialRequests }: Props) {
 
                         {r.status !== "PENDING" && (
                           <button
+                            type="button"
                             className={styles.btnReset}
                             onClick={() => updateStatus(r.id, "PENDING")}
                             disabled={rowBusy}

@@ -1,9 +1,10 @@
 // src/app/[locale]/admin/services/ActionButtons.tsx
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import styles from "../provider-requests/provider-requests.module.css";
+import styles from "../admin.module.css";
+import { csrfFetch } from "@/lib/csrfClient";
 
 type ActionProps = {
   id: string;
@@ -11,20 +12,7 @@ type ActionProps = {
   highlighted: boolean;
 };
 
-type ApiError = { error?: string; details?: string };
-
-async function readJsonIfPossible(res: Response): Promise<unknown | null> {
-  const ct = res.headers.get("content-type") ?? "";
-  if (!ct.includes("application/json")) {
-    // bandom paimt tekstą dėl debug, bet neversim į JSON
-    return null;
-  }
-  try {
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+type ApiError = { error?: string };
 
 function extractError(payload: unknown, fallback: string) {
   if (payload && typeof payload === "object" && "error" in payload) {
@@ -34,72 +22,60 @@ function extractError(payload: unknown, fallback: string) {
   return fallback;
 }
 
+async function readJsonIfPossible(res: Response): Promise<unknown | null> {
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) return null;
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export default function ActionButtons({ id, isActive, highlighted }: ActionProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-
-  const [busyAction, setBusyAction] = useState<"active" | "highlight" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
-  const disabled = pending || busyAction !== null;
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
-  const activeLabel = useMemo(() => (isActive ? "Išjungti" : "Įjungti"), [isActive]);
-  const topLabel = useMemo(
-    () => (highlighted ? "Nuimti TOP" : "Pažymėti TOP"),
-    [highlighted],
-  );
-
-  async function patch(data: { isActive?: boolean; highlighted?: boolean }) {
-    const res = await fetch(`/api/admin/services/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    const json = await readJsonIfPossible(res);
-    if (!res.ok) {
-      throw new Error(extractError(json, "Nepavyko atnaujinti paslaugos."));
-    }
-  }
-
-  async function toggleActive() {
+  async function doPatch(
+    payload: { isActive?: boolean; highlighted?: boolean },
+    fallbackMsg: string,
+  ) {
     try {
-      setError(null);
+      if (mountedRef.current) setError(null);
 
-      // optional: patvirtinimas prieš išjungimą
-      if (isActive) {
-        const ok = window.confirm("Tikrai išjungti paslaugą? Ji nebesimatys viešai.");
-        if (!ok) return;
+      const res = await csrfFetch(`/api/admin/services/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+
+      const json = await readJsonIfPossible(res);
+
+      if (!res.ok) {
+        const msg =
+          res.status === 403
+            ? "Saugumo patikra nepraėjo (CSRF / teisės). Perkrauk puslapį ir bandyk dar."
+            : res.status === 429
+              ? "Per daug veiksmų per trumpą laiką. Palauk minutę ir bandyk dar."
+              : extractError(json, fallbackMsg);
+
+        console.error("Admin service patch failed:", { status: res.status, json });
+
+        if (mountedRef.current) setError(msg);
+        return;
       }
 
-      setBusyAction("active");
-      await patch({ isActive: !isActive });
-
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e: any) {
-      console.error("toggleActive error:", e);
-      setError(e?.message ?? "Serverio klaida. Bandykite dar kartą.");
-    } finally {
-      setBusyAction(null);
-    }
-  }
-
-  async function toggleHighlight() {
-    try {
-      setError(null);
-      setBusyAction("highlight");
-      await patch({ highlighted: !highlighted });
-
-      startTransition(() => {
-        router.refresh();
-      });
-    } catch (e: any) {
-      console.error("toggleHighlight error:", e);
-      setError(e?.message ?? "Serverio klaida. Bandykite dar kartą.");
-    } finally {
-      setBusyAction(null);
+      startTransition(() => router.refresh());
+    } catch (e) {
+      console.error("Admin service patch error:", e);
+      if (mountedRef.current) setError("Serverio klaida. Bandykite dar kartą.");
     }
   }
 
@@ -107,22 +83,24 @@ export default function ActionButtons({ id, isActive, highlighted }: ActionProps
     <div className={styles.actionsCell}>
       <button
         type="button"
-        onClick={toggleActive}
-        disabled={disabled}
+        onClick={() =>
+          doPatch({ isActive: !isActive }, "Nepavyko atnaujinti paslaugos.")
+        }
+        disabled={pending}
         className={isActive ? styles.btnSecondary : styles.btnPrimary}
-        aria-busy={busyAction === "active" ? "true" : "false"}
       >
-        {busyAction === "active" ? "Vykdoma..." : activeLabel}
+        {isActive ? "Išjungti" : "Įjungti"}
       </button>
 
       <button
         type="button"
-        onClick={toggleHighlight}
-        disabled={disabled}
+        onClick={() =>
+          doPatch({ highlighted: !highlighted }, "Nepavyko atnaujinti TOP statuso.")
+        }
+        disabled={pending}
         className={highlighted ? styles.btnSecondary : styles.btnHighlight}
-        aria-busy={busyAction === "highlight" ? "true" : "false"}
       >
-        {busyAction === "highlight" ? "Vykdoma..." : topLabel}
+        {highlighted ? "Nuimti TOP" : "Pažymėti TOP"}
       </button>
 
       {error && <p className={styles.inlineError}>{error}</p>}

@@ -8,9 +8,9 @@ import ProviderRequestsAdminTable from "./ProviderRequestsAdminTable";
 
 export const dynamic = "force-dynamic";
 
-interface ProviderRequestsPageProps {
-  params: { locale: string };
-}
+type PageProps = {
+  params: Promise<{ locale: string }>;
+};
 
 function safeLocale(locale: string) {
   return (routing.locales as readonly string[]).includes(locale)
@@ -20,10 +20,9 @@ function safeLocale(locale: string) {
 
 type Status = "PENDING" | "APPROVED" | "REJECTED";
 
-export default async function ProviderRequestsAdminPage({
-  params,
-}: ProviderRequestsPageProps) {
-  const locale = safeLocale(params.locale);
+export default async function ProviderRequestsAdminPage({ params }: PageProps) {
+  const { locale: rawLocale } = await params;
+  const locale = safeLocale(rawLocale);
 
   const { response } = await requireAdmin();
   if (response) redirect(`/${locale}`);

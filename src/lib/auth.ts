@@ -13,23 +13,24 @@ export type AuthUser = {
   avatarUrl: string | null;
 };
 
-// 🔹 Pagrindinė funkcija – paimti userį iš Supabase + DB (ir pasisyncinti vardą/telefoną)
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+// Paimti userį iš Supabase + DB (sync name/phone)
 export async function getAuthUser(): Promise<AuthUser | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data.user || !data.user.email) {
-    return null;
-  }
+  if (error || !data?.user?.email) return null;
 
-  const email = data.user.email;
-  const supabaseId = data.user.id; // Supabase auth user id (stabilus)
+  const supabaseId = data.user.id;
+  const email = normalizeEmail(data.user.email);
 
   const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
   const metaName = typeof meta.name === "string" ? meta.name.trim() : null;
   const metaPhone = typeof meta.phone === "string" ? meta.phone.trim() : null;
 
-  // Upsertinam vartotoją DB pagal supabaseId (geriausia praktika)
   const dbUser = await prisma.user.upsert({
     where: { supabaseId },
     update: {
@@ -42,7 +43,6 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       email,
       ...(metaName ? { name: metaName } : {}),
       ...(metaPhone ? { phone: metaPhone } : {}),
-      // role default USER pagal schema
     },
     select: {
       id: true,
@@ -66,7 +66,6 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   };
 }
 
-// 🔹 Reikia prisijungusio USER
 export async function requireUser() {
   const user = await getAuthUser();
 
@@ -77,19 +76,12 @@ export async function requireUser() {
     };
   }
 
-  return {
-    response: null as NextResponse | null,
-    user,
-  };
+  return { response: null as NextResponse | null, user };
 }
 
-// 🔹 Reikia ADMIN
 export async function requireAdmin() {
   const { user, response } = await requireUser();
-
-  if (response || !user) {
-    return { response, user: null as AuthUser | null };
-  }
+  if (response || !user) return { response, user: null as AuthUser | null };
 
   if (user.role !== "ADMIN") {
     return {

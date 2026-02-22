@@ -1,8 +1,7 @@
-// src/app/[locale]/tapti-teikeju/page.tsx
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import styles from "./tapti.module.css";
 
 type Plan = {
@@ -53,6 +52,9 @@ const PLANS: Plan[] = [
 
 export default function TaptiTeikejuPage() {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
+
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +70,7 @@ export default function TaptiTeikejuPage() {
       });
 
       if (res.status === 401) {
-        router.push("/login");
+        router.push(`/${locale}/login`);
         return;
       }
 
@@ -79,7 +81,7 @@ export default function TaptiTeikejuPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(`/${locale}/dashboard`);
     } catch (e) {
       console.error(e);
       setError("Serverio klaida. Bandykite dar kartą.");

@@ -1,5 +1,6 @@
 // src/app/[locale]/admin/page.tsx
 import { redirect } from "next/navigation";
+import AdminGuard from "@/components/auth/AdminGuard";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -9,11 +10,17 @@ import Metrics7Days from "./Metrics7Days";
 
 export const dynamic = "force-dynamic";
 
-interface AdminPageProps {
-  params: { locale: string };
+type PageProps = {
+  params: Promise<{ locale: string }>;
+};
+
+function safeLocale(locale: string) {
+  return (routing.locales as readonly string[]).includes(locale)
+    ? locale
+    : routing.defaultLocale;
 }
 
-// UTC helpers
+// Use UTC-based day helpers for timezone-stable aggregation
 function startOfDayUTC(d: Date) {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
@@ -30,27 +37,26 @@ function fmtDayUTC(d: Date) {
   return `${mm}-${dd}`;
 }
 
-async function countByDay(params: {
+async function countByDay(args: {
   from: Date;
-  days: number;
+  days: number; // 7
   model: "user" | "service" | "providerRequest";
 }) {
-  const fromUtc = params.from;
-  const toUtc = addDaysUTC(fromUtc, params.days);
+  const fromUtc = args.from;
+  const toUtc = addDaysUTC(fromUtc, args.days);
 
   let rows: Array<{ day: string; count: number }> = [];
 
-  if (params.model === "service") {
+  if (args.model === "service") {
     rows = (await prisma.$queryRaw`
       SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
              COUNT(*)::int AS count
       FROM "ServiceListing"
-      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
-        AND "deletedAt" IS NULL
+      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc} AND "deletedAt" IS NULL
       GROUP BY day
       ORDER BY day
     `) as Array<{ day: string; count: number }>;
-  } else if (params.model === "providerRequest") {
+  } else if (args.model === "providerRequest") {
     rows = (await prisma.$queryRaw`
       SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
              COUNT(*)::int AS count
@@ -71,13 +77,11 @@ async function countByDay(params: {
   }
 
   const map = new Map<string, number>();
-  for (const r of rows) {
-    map.set(String(r.day), Number(r.count ?? 0)); // r.day: YYYY-MM-DD
-  }
+  for (const r of rows) map.set(r.day, Number(r.count ?? 0));
 
-  const buckets: number[] = Array(params.days).fill(0);
-  for (let i = 0; i < params.days; i++) {
-    const day = addDaysUTC(params.from, i);
+  const buckets: number[] = Array(args.days).fill(0);
+  for (let i = 0; i < args.days; i++) {
+    const day = addDaysUTC(args.from, i);
     const dayKey = day.toISOString().slice(0, 10); // YYYY-MM-DD
     buckets[i] = map.get(dayKey) ?? 0;
   }
@@ -85,16 +89,11 @@ async function countByDay(params: {
   return buckets;
 }
 
-function safeLocale(locale: string) {
-  return (routing.locales as readonly string[]).includes(locale)
-    ? locale
-    : routing.defaultLocale;
-}
+export default async function AdminHomePage({ params }: PageProps) {
+  const { locale: rawLocale } = await params;
+  const locale = safeLocale(rawLocale);
 
-export default async function AdminHomePage({ params }: AdminPageProps) {
-  const locale = safeLocale(params.locale);
-
-  // Server-side protection
+  // Server-side protection: block non-admin users before any queries
   const { response } = await requireAdmin();
   if (response) redirect(`/${locale}`);
 
@@ -119,49 +118,53 @@ export default async function AdminHomePage({ params }: AdminPageProps) {
   ]);
 
   return (
-    <main className={styles.wrapper}>
-      <h1 className={styles.title}>Admin valdymo skydas</h1>
+    <AdminGuard>
+      <main className={styles.wrapper}>
+        <h1 className={styles.title}>Admin valdymo skydas</h1>
 
-      <div style={{ marginBottom: "24px" }}>
-        <Metrics7Days
-          days={days}
-          series={[
-            { label: "Vartotojai", values: users7 },
-            { label: "Paslaugos", values: services7 },
-            { label: "Paraiškos", values: requests7 },
-          ]}
-        />
-      </div>
+        <div style={{ marginBottom: "24px" }}>
+          <Metrics7Days
+            days={days}
+            series={[
+              { label: "Vartotojai", values: users7 },
+              { label: "Paslaugos", values: services7 },
+              { label: "Paraiškos", values: requests7 },
+            ]}
+          />
+        </div>
 
-      <section className={styles.card} style={{ marginBottom: "24px" }}>
-        <h2 className={styles.subtitle}>Greita statistika</h2>
-        <p className={styles.text}>
-          Vartotojai: <strong>{usersCount}</strong> • Patvirtinti teikėjai:{" "}
-          <strong>{providersCount}</strong> • Paslaugos:{" "}
-          <strong>{servicesCount}</strong> (aktyvios: <strong>{activeServices}</strong>)
-        </p>
-      </section>
+        <section className={styles.card} style={{ marginBottom: "24px" }}>
+          <h2 className={styles.subtitle}>Greita statistika</h2>
+          <p className={styles.text}>
+            Vartotojai: <strong>{usersCount}</strong> • Patvirtinti teikėjai:{" "}
+            <strong>{providersCount}</strong> • Paslaugos:{" "}
+            <strong>{servicesCount}</strong> (aktyvios:{" "}
+            <strong>{activeServices}</strong>)
+          </p>
+        </section>
 
-      <section className={styles.card} style={{ marginBottom: "24px" }}>
-        <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
-        <p className={styles.text}>
-          Peržiūrėk visas paslaugas, jas įjunk / išjunk, pažymėk kaip TOP ir sutvarkyk
-          netinkamas.
-        </p>
-        <LocalizedLink href="/admin/services" className={styles.button}>
-          Eiti į paslaugų sąrašą
-        </LocalizedLink>
-      </section>
+        <section className={styles.card} style={{ marginBottom: "24px" }}>
+          <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
+          <p className={styles.text}>
+            Peržiūrėk visas paslaugas, jas įjunk / išjunk, pažymėk kaip TOP ir
+            sutvarkyk netinkamas.
+          </p>
+          <LocalizedLink href="/admin/services" className={styles.button}>
+            Eiti į paslaugų sąrašą
+          </LocalizedLink>
+        </section>
 
-      <section className={styles.card}>
-        <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
-        <p className={styles.text}>
-          Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų teikėjo profilį.
-        </p>
-        <LocalizedLink href="/admin/users" className={styles.button}>
-          Eiti į vartotojų sąrašą
-        </LocalizedLink>
-      </section>
-    </main>
+        <section className={styles.card}>
+          <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
+          <p className={styles.text}>
+            Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų
+            teikėjo profilį.
+          </p>
+          <LocalizedLink href="/admin/users" className={styles.button}>
+            Eiti į vartotojų sąrašą
+          </LocalizedLink>
+        </section>
+      </main>
+    </AdminGuard>
   );
 }
