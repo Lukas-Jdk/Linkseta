@@ -1,7 +1,8 @@
-// src/middleware.ts
+// middleware.ts (ROOT - ne src/)
 import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./src/i18n/routing";
+import { createServerClient } from "@supabase/ssr";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -24,47 +25,113 @@ function setSecurityHeaders(res: { headers: Headers }) {
   }
 }
 
+function getLocaleFromPath(pathname: string): string | null {
+  const seg = pathname.split("/").filter(Boolean);
+  const maybe = seg[0];
+  if (!maybe) return null;
+  return (routing.locales as readonly string[]).includes(maybe) ? maybe : null;
+}
+
+function isProtected(pathname: string, locale: string) {
+  return (
+    pathname === `/${locale}/dashboard` ||
+    pathname.startsWith(`/${locale}/dashboard/`) ||
+    pathname === `/${locale}/admin` ||
+    pathname.startsWith(`/${locale}/admin/`)
+  );
+}
+
+function isAdminPath(pathname: string, locale: string) {
+  return pathname === `/${locale}/admin` || pathname.startsWith(`/${locale}/admin/`);
+}
+
 export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
-  // Routes that require locale prefix for safety
-  const protectedPaths = [
-    "/services",
-    "/susisiekite",
-    "/tapti-teikeju",
-    "/terms",
-    "/privacy",
-  ];
+  // 1) Pirmiausia – next-intl (jis gali padaryti redirect/rewrites į /lt/...)
+  const intlRes = await intlMiddleware(req as any);
 
-  // Check if pathname matches a protected path without a locale prefix
-  const matchesProtectedPath = protectedPaths.some(
-    (path) => pathname === path || pathname.startsWith(path + "/"),
-  );
+  // next-intl visada grąžina Response/NextResponse. Mes jį panaudosim kaip bazę.
+  const res = intlRes ?? NextResponse.next();
 
-  // Check if path has locale prefix
-  const hasLocalePrefix = routing.locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
-  );
-
-  // If matches protected path and no locale prefix, redirect to default locale
-  if (matchesProtectedPath && !hasLocalePrefix) {
-    return NextResponse.redirect(
-      new URL(`/${routing.defaultLocale}${pathname}`, req.url),
-    );
+  // 2) Auth guard tik tada, kai kelias jau turi locale prefix (pvz /lt/..)
+  const locale = getLocaleFromPath(pathname);
+  if (!locale) {
+    setSecurityHeaders(res as any);
+    return res as any;
   }
 
-  // Await intl middleware so redirects/rewrites are respected.
-  const maybeResponse = await intlMiddleware(req as any);
-
-  if (maybeResponse && typeof (maybeResponse as any).headers !== "undefined") {
-    setSecurityHeaders(maybeResponse as any);
-    return maybeResponse as Response;
+  if (!isProtected(pathname, locale)) {
+    setSecurityHeaders(res as any);
+    return res as any;
   }
 
-  // Otherwise proceed with the normal NextResponse.
-  const res = NextResponse.next();
+  // 3) Supabase SSR auth patikra per cookies middleware kontekste
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name) {
+        return req.cookies.get(name)?.value;
+      },
+      set(name, value, options) {
+        // svarbu: naudoti tą patį "res", kad cookie update būtų išsaugotas
+        (res as any).cookies?.set?.({ name, value, ...options });
+      },
+      remove(name, options) {
+        (res as any).cookies?.set?.({ name, value: "", ...options });
+      },
+    },
+  });
+
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user ?? null;
+
+  // 4) Jei neprisijungęs – redirect į /{locale}/login?next=...
+  if (!user) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = `/${locale}/login`;
+    loginUrl.searchParams.set("next", pathname + (req.nextUrl.search ?? ""));
+    const redirectRes = NextResponse.redirect(loginUrl);
+    setSecurityHeaders(redirectRes as any);
+    return redirectRes;
+  }
+
+  // 5) Jei ADMIN route – tikrinam rolę per tavo API (/api/auth/me)
+  if (isAdminPath(pathname, locale)) {
+    try {
+      const roleRes = await fetch(`${req.nextUrl.origin}/api/auth/me`, {
+        headers: {
+          cookie: req.headers.get("cookie") ?? "",
+        },
+        cache: "no-store",
+      });
+
+      const json = await roleRes.json().catch(() => null);
+      const role = json?.user?.role;
+
+      if (role !== "ADMIN") {
+        const homeUrl = req.nextUrl.clone();
+        homeUrl.pathname = `/${locale}`;
+        homeUrl.search = "";
+        const redirectRes = NextResponse.redirect(homeUrl);
+        setSecurityHeaders(redirectRes as any);
+        return redirectRes;
+      }
+    } catch {
+      const homeUrl = req.nextUrl.clone();
+      homeUrl.pathname = `/${locale}`;
+      homeUrl.search = "";
+      const redirectRes = NextResponse.redirect(homeUrl);
+      setSecurityHeaders(redirectRes as any);
+      return redirectRes;
+    }
+  }
+
+  // 6) viskas ok – praleidžiam
   setSecurityHeaders(res as any);
-  return res;
+  return res as any;
 }
 
 export const config = {

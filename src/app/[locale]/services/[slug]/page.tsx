@@ -16,7 +16,10 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return input
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -73,8 +76,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
-    160
+    stripHtml(
+      service.description || "Find service providers in Norway on Linkseta.",
+    ),
+    160,
   );
 
   const canonical = `${siteUrl}/${locale}/services/${slug}`;
@@ -119,8 +124,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const service = await prisma.serviceListing.findUnique({
-    where: { slug },
+  const service = await prisma.serviceListing.findFirst({
+    where: {
+      slug,
+      isActive: true,
+      deletedAt: null,
+    },
     include: {
       city: true,
       category: true,
@@ -128,7 +137,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     },
   });
 
-  if (!service || !service.isActive) notFound();
+  if (!service) notFound();
 
   const cover = service.imageUrl || "/def.webp";
   const images = service.imageUrl ? [cover, cover, cover] : [cover];
@@ -141,7 +150,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName =
+    service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
@@ -152,10 +162,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
-    `Užklausa dėl paslaugos: ${service.title}`
+    `Užklausa dėl paslaugos: ${service.title}`,
   )}`;
 
-  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
+  const highlights = Array.isArray(service.highlights)
+    ? service.highlights
+    : [];
   const hasHighlights = highlights.length > 0;
 
   // JSON-LD (Service schema)
@@ -218,7 +230,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <span className={styles.ratingValue}>
                         ⭐ {ratingValue.toFixed(1)}
                       </span>
-                      <span className={styles.ratingCount}>({ratingCount})</span>
+                      <span className={styles.ratingCount}>
+                        ({ratingCount})
+                      </span>
                     </div>
 
                     <div className={styles.metaRow}>
@@ -237,7 +251,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
               {/* CONTENT */}
               <div className={styles.contentCard}>
                 <div className={styles.tabs}>
-                  <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
+                  <a
+                    className={`${styles.tab} ${styles.tabActive}`}
+                    href="#apie"
+                  >
                     Apie paslaugą
                   </a>
                   <a className={styles.tab} href="#atsiliepimai">

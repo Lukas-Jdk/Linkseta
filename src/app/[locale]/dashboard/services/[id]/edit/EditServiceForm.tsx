@@ -105,7 +105,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
       const userId = userData.user.id;
       const ext = getExt(file);
-      const random = crypto.randomUUID();
+      const random = window.crypto.randomUUID();
 
       // tvarkingas path: userId/services/random.ext
       const path = `${userId}/services/${random}.${ext}`;

@@ -17,6 +17,8 @@ import {
 import Avatar from "@/components/ui/Avatar";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
+import { csrfFetch } from "@/lib/csrfClient";
 
 type Role = "USER" | "ADMIN" | null;
 
@@ -32,6 +34,9 @@ export default function Header() {
   const tHeader = useTranslations("header");
   const tNav = useTranslations("nav");
   const tAuth = useTranslations("auth");
+
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
@@ -73,7 +78,8 @@ export default function Header() {
         setRole(null);
       }
     } catch {
-      setRole("USER");
+      // jei /me failina - nerodyk admin
+      setRole(null);
     }
   }, []);
 
@@ -129,8 +135,16 @@ export default function Header() {
   }, [applyUserToUi, loadMe]);
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = "/";
+    try {
+      // 1) server-side signOut (išvalo cookies)
+      await csrfFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+
+      // 2) client-side signOut (UI state/cache)
+      await supabase.auth.signOut().catch(() => null);
+    } finally {
+      // 3) redirect į locale home
+      window.location.href = `/${locale}`;
+    }
   }
 
   function toggleMobileMenu() {
@@ -233,7 +247,9 @@ export default function Header() {
                 type="button"
                 className={styles.menuToggle}
                 onClick={toggleMobileMenu}
-                aria-label={isMobileMenuOpen ? tHeader("closeMenu") : tHeader("openMenu")}
+                aria-label={
+                  isMobileMenuOpen ? tHeader("closeMenu") : tHeader("openMenu")
+                }
               >
                 {isMobileMenuOpen ? (
                   <span className={styles.menuX}>×</span>
@@ -279,7 +295,9 @@ export default function Header() {
                     <div className={styles.drawerName}>
                       {userName || tAuth("signedInUser")}
                     </div>
-                    {userEmail && <div className={styles.drawerEmail}>{userEmail}</div>}
+                    {userEmail && (
+                      <div className={styles.drawerEmail}>{userEmail}</div>
+                    )}
 
                     <LocalizedLink
                       href="/dashboard"
@@ -370,7 +388,9 @@ export default function Header() {
 
             {isLoggedIn && (
               <div className={styles.drawerSection}>
-                <div className={styles.drawerSectionTitle}>{tAuth("account")}</div>
+                <div className={styles.drawerSectionTitle}>
+                  {tAuth("account")}
+                </div>
                 <button
                   type="button"
                   onClick={handleLogout}

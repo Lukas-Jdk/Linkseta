@@ -25,6 +25,16 @@ type Feedback =
   | { type: "success"; text: string }
   | { type: "error"; text: string };
 
+type ApiError = { error?: string };
+
+function extractError(payload: unknown, fallback: string) {
+  if (payload && typeof payload === "object" && "error" in payload) {
+    const err = (payload as ApiError).error;
+    if (typeof err === "string" && err.trim()) return err;
+  }
+  return fallback;
+}
+
 export default function AdminServicesTable({ initialServices }: Props) {
   const [services, setServices] = useState<ServiceRow[]>(initialServices);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
@@ -44,13 +54,13 @@ export default function AdminServicesTable({ initialServices }: Props) {
         method: "DELETE",
       });
 
-      const json = await res.json().catch(() => ({} as any));
+      const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        console.error("Delete failed:", json);
+        console.error("Admin delete failed:", json);
         setFeedback({
           type: "error",
-          text: json?.error || "Nepavyko ištrinti paslaugos.",
+          text: extractError(json, "Nepavyko ištrinti paslaugos."),
         });
         return;
       }
@@ -61,7 +71,7 @@ export default function AdminServicesTable({ initialServices }: Props) {
         text: `Paslauga „${title}“ sėkmingai ištrinta.`,
       });
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("Admin delete error:", err);
       setFeedback({
         type: "error",
         text: "Įvyko klaida bandant ištrinti paslaugą.",
@@ -118,37 +128,41 @@ export default function AdminServicesTable({ initialServices }: Props) {
           </tr>
         </thead>
         <tbody>
-          {services.map((s) => (
-            <tr key={s.id}>
-              <td>{new Date(s.createdAt).toLocaleString("lt-LT")}</td>
-              <td>{s.title}</td>
-              <td>{s.cityName || "—"}</td>
-              <td>{s.categoryName || "—"}</td>
-              <td>{s.priceFrom != null ? `${s.priceFrom} NOK` : "—"}</td>
-              <td>
-                {s.userName
-                  ? `${s.userName} (${s.userEmail || "be el. pašto"})`
-                  : s.userEmail || "—"}
-              </td>
-              <td>
-                {s.isActive ? (
-                  <span className={styles.statusActive}>AKTYVI</span>
-                ) : (
-                  <span className={styles.statusInactive}>NEAKTYVI</span>
-                )}
-              </td>
-              <td>
-                <button
-                  type="button"
-                  className={styles.dangerButton}
-                  onClick={() => handleDelete(s.id)}
-                  disabled={loadingIds.includes(s.id)}
-                >
-                  {loadingIds.includes(s.id) ? "Šalinama..." : "Ištrinti"}
-                </button>
-              </td>
-            </tr>
-          ))}
+          {services.map((s) => {
+            const busy = loadingIds.includes(s.id);
+
+            return (
+              <tr key={s.id} aria-busy={busy ? "true" : "false"}>
+                <td>{new Date(s.createdAt).toLocaleString("lt-LT")}</td>
+                <td>{s.title}</td>
+                <td>{s.cityName || "—"}</td>
+                <td>{s.categoryName || "—"}</td>
+                <td>{s.priceFrom != null ? `${s.priceFrom} NOK` : "—"}</td>
+                <td>
+                  {s.userName
+                    ? `${s.userName} (${s.userEmail || "be el. pašto"})`
+                    : s.userEmail || "—"}
+                </td>
+                <td>
+                  {s.isActive ? (
+                    <span className={styles.statusActive}>AKTYVI</span>
+                  ) : (
+                    <span className={styles.statusInactive}>NEAKTYVI</span>
+                  )}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className={styles.dangerButton}
+                    onClick={() => handleDelete(s.id)}
+                    disabled={busy}
+                  >
+                    {busy ? "Šalinama..." : "Ištrinti"}
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
