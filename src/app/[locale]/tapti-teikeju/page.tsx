@@ -1,7 +1,9 @@
+// src/app/[locale]/tapti-teikeju/page.tsx
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./tapti.module.css";
 
 type Plan = {
@@ -19,11 +21,7 @@ const PLANS: Plan[] = [
     name: "Demo planas",
     priceLabel: "0 NOK",
     description: "Puikus variantas išbandyti Linksetą testavimo laikotarpiu.",
-    features: [
-      "1 aktyvus skelbimas",
-      "Rodomas paieškos rezultate",
-      "Galite bet kada atnaujinti informaciją",
-    ],
+    features: ["1 aktyvus skelbimas", "Rodomas paieškos rezultate", "Galite bet kada atnaujinti informaciją"],
     recommended: true,
   },
   {
@@ -31,28 +29,25 @@ const PLANS: Plan[] = [
     name: "Basic (paruoštas ateičiai)",
     priceLabel: "199 NOK / mėn (bus vėliau)",
     description: "Standartinis planas, kai įjungsim Stripe/Vipps apmokėjimus.",
-    features: [
-      "Iki 3 aktyvių skelbimų",
-      "Matomumas visoje Norvegijoje",
-      "Paprastas valdymas iš panelės",
-    ],
+    features: ["Iki 3 aktyvių skelbimų", "Matomumas visoje Norvegijoje", "Paprastas valdymas iš panelės"],
   },
   {
     slug: "premium",
     name: "Premium (paruoštas ateičiai)",
     priceLabel: "399 NOK / mėn (bus vėliau)",
     description: "Didesniam verslui, kai paleisim pilną versiją.",
-    features: [
-      "Iki 10 aktyvių skelbimų",
-      "Pažymėjimas kaip “Išskirtinis”",
-      "Daugiau vietos aprašymui ir nuotraukoms",
-    ],
+    features: ["Iki 10 aktyvių skelbimų", "Pažymėjimas kaip “Išskirtinis”", "Daugiau vietos aprašymui ir nuotraukoms"],
   },
 ];
+
+function loginUrl(locale: string, nextPath: string) {
+  return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
+}
 
 export default function TaptiTeikejuPage() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
+  const pathname = usePathname();
   const locale = params?.locale ?? "lt";
 
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
@@ -63,18 +58,17 @@ export default function TaptiTeikejuPage() {
     setLoadingSlug(planSlug);
 
     try {
-      const res = await fetch("/api/dashboard/become-provider", {
+      const res = await csrfFetch("/api/dashboard/become-provider", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planSlug }),
       });
 
       if (res.status === 401) {
-        router.push(`/${locale}/login`);
+        router.push(loginUrl(locale, pathname));
         return;
       }
 
-      const json = await res.json().catch(() => ({}));
+      const json = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
         setError(json?.error || "Nepavyko pasirinkti plano. Bandykite dar kartą.");
@@ -82,6 +76,7 @@ export default function TaptiTeikejuPage() {
       }
 
       router.push(`/${locale}/dashboard`);
+      router.refresh();
     } catch (e) {
       console.error(e);
       setError("Serverio klaida. Bandykite dar kartą.");
@@ -95,15 +90,12 @@ export default function TaptiTeikejuPage() {
       <div className={styles.wrapper}>
         <h1 className={styles.heading}>Tapk paslaugų teikėju Linksetoje</h1>
         <p className={styles.lead}>
-          Pasirink planą ir gauk galimybę sukurti savo paslaugų skelbimus, kad
-          lietuviai Norvegijoje lengvai tave rastų.
+          Pasirink planą ir gauk galimybę sukurti savo paslaugų skelbimus, kad lietuviai Norvegijoje lengvai tave rastų.
         </p>
 
         <p className={styles.demoNote}>
-          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Visi planai yra
-          nemokami, apmokėjimai (Stripe / Vipps) bus įjungti vėliau – dabar
-          tiesiog pasirink planą ir sistema automatiškai suteiks paslaugų
-          teikėjo statusą.
+          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Visi planai yra nemokami, apmokėjimai (Stripe / Vipps) bus
+          įjungti vėliau – dabar tiesiog pasirink planą ir sistema automatiškai suteiks paslaugų teikėjo statusą.
         </p>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -112,13 +104,9 @@ export default function TaptiTeikejuPage() {
           {PLANS.map((plan) => (
             <article
               key={plan.slug}
-              className={`${styles.planCard} ${
-                plan.recommended ? styles.planCardRecommended : ""
-              }`}
+              className={`${styles.planCard} ${plan.recommended ? styles.planCardRecommended : ""}`}
             >
-              {plan.recommended && (
-                <div className={styles.tag}>Rekomenduojamas DEMO</div>
-              )}
+              {plan.recommended && <div className={styles.tag}>Rekomenduojamas DEMO</div>}
 
               <h2 className={styles.planName}>{plan.name}</h2>
               <p className={styles.planPrice}>{plan.priceLabel}</p>
@@ -145,9 +133,8 @@ export default function TaptiTeikejuPage() {
         </div>
 
         <p className={styles.smallInfo}>
-          Po plano pasirinkimo būsite nukreiptas į savo paskyrą, kur galėsite
-          susikurti pilną paslaugų skelbimą (pavadinimas, aprašymas, kaina,
-          nuotrauka ir t.t.).
+          Po plano pasirinkimo būsite nukreiptas į savo paskyrą, kur galėsite susikurti pilną paslaugų skelbimą (pavadinimas,
+          aprašymas, kaina, nuotrauka ir t.t.).
         </p>
       </div>
     </main>

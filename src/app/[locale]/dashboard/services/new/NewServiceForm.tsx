@@ -1,8 +1,10 @@
+// src/app/[locale]/dashboard/services/new/NewServiceForm.tsx
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./NewServiceForm.module.css";
 
 type Option = {
@@ -25,9 +27,14 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
+function loginUrl(locale: string, nextPath: string) {
+  return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
+}
+
 export default function NewServiceForm({ cities, categories }: Props) {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
+  const pathname = usePathname();
   const locale = params?.locale ?? "lt";
 
   const [title, setTitle] = useState("");
@@ -49,11 +56,15 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
 
   function onPickFile(file: File) {
     setError(null);
-    setSuccess(null);
 
     if (!file.type.startsWith("image/")) {
       setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
@@ -65,6 +76,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
     }
 
     setImageFile(file);
+
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
     const url = URL.createObjectURL(file);
     setImagePreview(url);
   }
@@ -85,7 +98,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       const ext = imageFile.name.split(".").pop() || "jpg";
       const userId = userData.user.id;
-
       const path = `${userId}/services/${serviceId}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
@@ -117,9 +129,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
-    if (!title || !description) {
+    if (!title.trim() || !description.trim()) {
       setError("Pavadinimas ir aprašymas yra privalomi.");
       return;
     }
@@ -128,9 +139,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/dashboard/services", {
+      // 1) create service (mutating -> csrfFetch)
+      const res = await csrfFetch("/api/dashboard/services", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
           description,
@@ -143,29 +154,45 @@ export default function NewServiceForm({ cities, categories }: Props) {
         }),
       });
 
-      const json = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        router.push(loginUrl(locale, pathname));
+        return;
+      }
+      if (res.status === 403) {
+        setError("Neturite teikėjo statuso (DEMO planas / patvirtinimas).");
+        return;
+      }
+
+      const json = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
         setError(
-          json?.error ||
-            "Nepavyko sukurti paslaugos. Bandykite dar kartą vėliau.",
+          json?.error || "Nepavyko sukurti paslaugos. Bandykite dar kartą vėliau.",
         );
         return;
       }
 
       const serviceId = json.id as string;
 
+      // 2) upload (supabase storage)
       const uploaded = await uploadServiceImage(serviceId);
 
+      // 3) patch service with image (mutating -> csrfFetch)
       if (uploaded) {
-        await fetch(`/api/dashboard/services/${serviceId}`, {
+        const patchRes = await csrfFetch(`/api/dashboard/services/${serviceId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             imageUrl: uploaded.publicUrl,
             imagePath: uploaded.path,
           }),
         });
+
+        if (!patchRes.ok) {
+          console.warn(
+            "Image patch failed",
+            await patchRes.text().catch(() => ""),
+          );
+        }
       }
 
       router.push(`/${locale}/dashboard`);
@@ -181,7 +208,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       {error && <p className={styles.errorText}>{error}</p>}
-      {success && <p className={styles.successText}>{success}</p>}
 
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
@@ -207,39 +233,29 @@ export default function NewServiceForm({ cities, categories }: Props) {
             placeholder="Išsamiai aprašykite savo teikiamą paslaugą..."
             required
           />
-          <div className={styles.charHint}>
-            {description.length} / 2000 simbolių
-          </div>
+          <div className={styles.charHint}>{description.length} / 2000 simbolių</div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>
-          Kodėl verta rinktis šią paslaugą?
-        </h2>
+        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>
-            Privalumai (1 eilutė = 1 punktas, max 6)
-          </label>
+          <label className={styles.label}>Privalumai (1 eilutė = 1 punktas, max 6)</label>
 
           <textarea
             className={styles.textarea}
             rows={5}
             value={highlightsText}
             onChange={(e) => setHighlightsText(e.target.value)}
-            placeholder={
-              "Pvz:\nGreita komunikacija\nSutarti terminai\nGarantija darbams"
-            }
+            placeholder={"Pvz:\nGreita komunikacija\nSutarti terminai\nGarantija darbams"}
           />
 
           <div className={styles.hintsRow}>
             <span className={styles.smallHint}>
               Rodoma kaip „checklist“ tavo paslaugos puslapyje.
             </span>
-            <span className={styles.smallHint}>
-              Punktų: {highlightsPreview.length} / 6
-            </span>
+            <span className={styles.smallHint}>Punktų: {highlightsPreview.length} / 6</span>
           </div>
 
           {highlightsPreview.length > 0 && (
@@ -302,7 +318,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
               inputMode="numeric"
               value={priceFrom}
               onChange={(e) => setPriceFrom(e.target.value)}
-              placeholder="0.00"
+              placeholder="0"
             />
             <span>NOK</span>
           </div>
@@ -332,6 +348,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
             className={styles.secondaryButton}
             onClick={() => {
               setImageFile(null);
+              if (imagePreview) URL.revokeObjectURL(imagePreview);
               setImagePreview("");
             }}
             disabled={uploading || isSubmitting}
@@ -351,9 +368,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
           )}
         </div>
 
-        <p className={styles.helpText}>
-          Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.
-        </p>
+        <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.</p>
       </section>
 
       <div className={styles.actionsBar}>

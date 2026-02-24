@@ -6,6 +6,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
+import { requireCsrf } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const ua = req.headers.get("user-agent") ?? null;
 
   try {
+    const csrfErr = requireCsrf(req);
+    if (csrfErr) return csrfErr;
+
     await rateLimitOrThrow({
       key: `dashboard:patchService:${ip}`,
       limit: 60,
@@ -68,7 +72,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const body = await req.json().catch(() => ({} as any));
 
-    // Leisk tik šiuos laukus
     const nextTitle = clampText(body?.title, 120) ?? service.title;
     const nextDesc = clampText(body?.description, 4000) ?? service.description;
 
@@ -92,9 +95,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const requestedPath =
       body?.imagePath === undefined ? service.imagePath : clampText(body?.imagePath, 300);
 
-    // imagePath saugumas: jei nurodo path, jis privalo prasidėti user.id/
-    const nextImagePath =
-      requestedPath && requestedPath.length > 0 ? requestedPath : null;
+    const nextImagePath = requestedPath && requestedPath.length > 0 ? requestedPath : null;
 
     if (nextImagePath && !nextImagePath.startsWith(safePrefix)) {
       return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
@@ -165,6 +166,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const ua = req.headers.get("user-agent") ?? null;
 
   try {
+    const csrfErr = requireCsrf(req);
+    if (csrfErr) return csrfErr;
+
     await rateLimitOrThrow({
       key: `dashboard:deleteService:${ip}`,
       limit: 20,

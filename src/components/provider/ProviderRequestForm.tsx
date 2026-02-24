@@ -1,7 +1,7 @@
 // src/components/provider/ProviderRequestForm.tsx
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import styles from "./ProviderRequestForm.module.css";
 
 type Option = {
@@ -31,12 +31,18 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
   const [categoryId, setCategoryId] = useState("");
   const [message, setMessage] = useState("");
 
-  
+  // honeypot
   const [website, setWebsite] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   async function getRecaptchaToken() {
     const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
@@ -62,19 +68,39 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     setError(null);
     setSuccess(null);
 
-    if (!name || !email) {
+    // honeypot: jeigu užpildyta - laikom botu, bet atsakom "ok"
+    if (website.trim()) {
+      setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCityId("");
+      setCategoryId("");
+      setMessage("");
+      setWebsite("");
+      return;
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone.trim();
+    const cleanMsg = message.trim();
+
+    if (!cleanName || !cleanEmail) {
       setError("Vardas ir el. paštas yra privalomi.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const recaptchaToken = await getRecaptchaToken();
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-      //  jei nepavyko gauti tokeno – stabdom, kad useris suprastų
+      const recaptchaToken = await getRecaptchaToken();
       if (!recaptchaToken) {
         setError(
-          "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą."
+          "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą.",
         );
         return;
       }
@@ -82,35 +108,36 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       const res = await fetch("/api/provider-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
-          name,
-          email,
-          phone,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone || null,
           cityId: cityId || null,
           categoryId: categoryId || null,
-          message,
-          website, 
-          recaptchaToken, 
+          message: cleanMsg || null,
+          website: "", // honeypot neperduodam (arba perduodam tuščią)
+          recaptchaToken,
         }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
-        setError(
-          data?.error || "Įvyko klaida siunčiant paraišką. Bandykite vėliau."
-        );
-      } else {
-        setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
-        setName("");
-        setEmail("");
-        setPhone("");
-        setCityId("");
-        setCategoryId("");
-        setMessage("");
-        setWebsite("");
+        setError(data?.error || "Įvyko klaida siunčiant paraišką. Bandykite vėliau.");
+        return;
       }
-    } catch (err) {
+
+      setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
+      setName("");
+      setEmail("");
+      setPhone("");
+      setCityId("");
+      setCategoryId("");
+      setMessage("");
+      setWebsite("");
+    } catch (err: any) {
+      if (err?.name === "AbortError") return;
       console.error(err);
       setError("Serverio klaida. Bandykite dar kartą vėliau.");
     } finally {
@@ -120,7 +147,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
   return (
     <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
-      {/*  honeypot (geriau ne display:none, o “off-screen”) */}
+      {/* honeypot off-screen */}
       <div
         aria-hidden="true"
         style={{
@@ -148,12 +175,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       <div className={styles.row}>
         <label className={styles.label}>
           Vardas / įmonės pavadinimas*
-          <input
-            className={styles.input}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
 
         <label className={styles.label}>
@@ -171,20 +193,12 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       <div className={styles.row}>
         <label className={styles.label}>
           Telefonas
-          <input
-            className={styles.input}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+          <input className={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
         </label>
 
         <label className={styles.label}>
           Miestas
-          <select
-            className={styles.input}
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-          >
+          <select className={styles.input} value={cityId} onChange={(e) => setCityId(e.target.value)}>
             <option value="">Pasirinkti...</option>
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
@@ -198,11 +212,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       <div className={styles.row}>
         <label className={styles.label}>
           Kategorija
-          <select
-            className={styles.input}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
+          <select className={styles.input} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">Pasirinkti...</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -227,11 +237,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
 
-      <button
-        className={`btn btn-primary ${styles.submitButton}`}
-        type="submit"
-        disabled={isSubmitting}
-      >
+      <button className={`btn btn-primary ${styles.submitButton}`} type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Siunčiama..." : "Siųsti paraišką"}
       </button>
     </form>

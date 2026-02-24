@@ -31,24 +31,28 @@ export async function getCsrfToken(): Promise<string> {
   return cachedToken;
 }
 
-export async function withCsrfHeaders(
-  headers?: HeadersInit,
-): Promise<Headers> {
+export async function withCsrfHeaders(headers?: HeadersInit): Promise<Headers> {
   const token = await getCsrfToken();
   const h = new Headers(headers);
-
-  // don’t overwrite content-type if caller set something else
-  if (!h.has("Content-Type")) h.set("Content-Type", "application/json");
-
   h.set(CSRF_HEADER, token);
   return h;
 }
 
+// universal fetch: prideda CSRF headerį, o Content-Type parenka saugiai
 export async function csrfFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
 ): Promise<Response> {
   const h = await withCsrfHeaders(init.headers);
+
+  // Jei body yra FormData – NEGALIMA nustatinėti Content-Type (boundary turi uždėti browseris)
+  const isFormData =
+    typeof FormData !== "undefined" && init.body instanceof FormData;
+
+  // Jei body yra string/undefined ir nėra content-type – uždedam JSON default
+  if (!isFormData && !h.has("Content-Type")) {
+    h.set("Content-Type", "application/json");
+  }
 
   return fetch(input, {
     ...init,

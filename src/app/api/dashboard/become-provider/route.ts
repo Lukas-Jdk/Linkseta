@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { withApi } from "@/lib/withApi";
+import { requireCsrf } from "@/lib/csrf";
 
 type Body = {
   planSlug?: "demo" | "basic" | "premium";
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   return withApi(req, "POST /api/dashboard/become-provider", async () => {
+    const csrfErr = requireCsrf(req);
+    if (csrfErr) return csrfErr;
+
     const ip = getClientIp(req);
 
     await rateLimitOrThrow({

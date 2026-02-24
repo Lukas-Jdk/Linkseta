@@ -6,6 +6,8 @@ import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
+import { csrfFetch } from "@/lib/csrfClient";
+
 
 function mapRegisterError(raw: string | null | undefined) {
   const msg = (raw || "").toLowerCase();
@@ -46,7 +48,7 @@ export default function RegisterPage() {
 
       // jei email confirmation įjungtas — session dažnai bus null (čia ok)
       if (data.session) {
-        await fetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
+        await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
       }
 
       setSuccess(

@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
+import { requireCsrf } from "@/lib/csrf";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
   const ua = req.headers.get("user-agent") ?? null;
 
   try {
+    const csrfErr = requireCsrf(req);
+    if (csrfErr) return csrfErr;
+
     await rateLimitOrThrow({
       key: `dashboard:createService:${ip}`,
       limit: 15,
@@ -53,7 +57,6 @@ export async function POST(req: Request) {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // tik approved provideriai gali kurti
     const profile = await prisma.providerProfile.findUnique({
       where: { userId: user.id },
       select: { isApproved: true },
@@ -82,8 +85,10 @@ export async function POST(req: Request) {
           ? Math.max(0, Math.min(10_000_000, Math.trunc(Number(body.priceFrom))))
           : null;
 
-    const imageUrl = typeof body?.imageUrl === "string" ? body.imageUrl.trim().slice(0, 600) : null;
-    const imagePath = typeof body?.imagePath === "string" ? body.imagePath.trim().slice(0, 300) : null;
+    const imageUrl =
+      typeof body?.imageUrl === "string" ? body.imageUrl.trim().slice(0, 600) : null;
+    const imagePath =
+      typeof body?.imagePath === "string" ? body.imagePath.trim().slice(0, 300) : null;
 
     const highlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights

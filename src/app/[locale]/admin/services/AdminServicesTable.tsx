@@ -1,8 +1,9 @@
-//  src/app/[locale]/admin/services/AdminServicesTable.tsx
+// src/app/[locale]/admin/services/AdminServicesTable.tsx
 "use client";
 
 import { useState } from "react";
 import styles from "../admin.module.css";
+import { csrfFetch } from "@/lib/csrfClient";
 
 type ServiceRow = {
   id: string;
@@ -39,17 +40,17 @@ export default function AdminServicesTable({ initialServices }: Props) {
     setLoadingIds((prev) => [...prev, id]);
 
     try {
-      const res = await fetch(`/api/admin/services/${id}`, {
+      const res = await csrfFetch(`/api/admin/services/${id}`, {
         method: "DELETE",
       });
 
-      const json = await res.json().catch(() => ({}));
+      const json = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
         console.error("Delete failed:", json);
         setFeedback({
           type: "error",
-          text: json.error || "Nepavyko ištrinti paslaugos.",
+          text: json?.error || "Nepavyko ištrinti paslaugos.",
         });
         return;
       }

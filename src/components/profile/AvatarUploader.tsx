@@ -5,11 +5,10 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import styles from "./AvatarUploader.module.css";
 import { Pencil } from "lucide-react";
+import { withCsrfHeaders } from "@/lib/csrfClient";
 
 type Props = {
-  /** jei turi url iš DB, paduok čia */
   avatarUrl?: string | null;
-  /** raidė fallback’ui (pvz. "T") */
   initial: string;
   onUploaded?: (url: string) => void;
 };
@@ -28,8 +27,19 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
       const fd = new FormData();
       fd.append("file", file);
 
-      const res = await fetch("/api/profile/avatar", { method: "POST", body: fd });
-      const json = await res.json().catch(() => ({}));
+      // ✅ CSRF header, bet FormData turi pats nustatyti Content-Type su boundary
+      const headers = await withCsrfHeaders();
+      headers.delete("Content-Type");
+
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers,
+        body: fd,
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+
+      const json = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
         setError(json?.error || "Nepavyko įkelti.");
@@ -38,7 +48,8 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
 
       const url = json.publicUrl as string;
       onUploaded?.(url);
-    } catch {
+    } catch (e) {
+      console.error(e);
       setError("Nepavyko įkelti.");
     } finally {
       setLoading(false);
@@ -54,8 +65,7 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
         className={styles.hiddenInput}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) upload(f);
-          // kad galima būtų įkelti tą patį failą iš naujo
+          if (f) void upload(f);
           e.currentTarget.value = "";
         }}
       />
@@ -81,7 +91,6 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
           )}
         </div>
 
-        {/* overlay rodomas per CSS: hover/focus */}
         <div className={styles.overlay} aria-hidden="true">
           <div className={styles.overlayInner}>
             <Pencil className={styles.icon} />
@@ -92,7 +101,6 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
           </div>
         </div>
 
-        {/* mobile ikonėlė (rodoma tik mažam ekrane) */}
         <span className={styles.mobilePill} aria-hidden="true">
           <Pencil className={styles.mobileIcon} />
         </span>

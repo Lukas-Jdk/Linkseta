@@ -2,8 +2,9 @@
 "use client";
 
 import { useMemo, useState, FormEvent, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./edit.module.css";
 
 type Option = {
@@ -19,9 +20,9 @@ type InitialData = {
   categoryId: string;
   priceFrom: number | null;
   imageUrl: string | null;
-  imagePath: string | null; 
+  imagePath: string | null;
   highlights: string[];
-  isActive?: boolean; 
+  isActive?: boolean;
 };
 
 type Props = {
@@ -48,6 +49,9 @@ function getExt(file: File) {
 
 export default function EditServiceForm({ initial, cities, categories }: Props) {
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
+
   const [pending, startTransition] = useTransition();
 
   const [title, setTitle] = useState(initial.title);
@@ -55,23 +59,23 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
   const [cityId, setCityId] = useState(initial.cityId || "");
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [priceFrom, setPriceFrom] = useState(
-    initial.priceFrom != null ? String(initial.priceFrom) : ""
+    initial.priceFrom != null ? String(initial.priceFrom) : "",
   );
 
   const [highlightsText, setHighlightsText] = useState(
-    (initial.highlights ?? []).join("\n")
+    (initial.highlights ?? []).join("\n"),
   );
 
   const highlightsPreview = useMemo(
     () => parseHighlights(highlightsText),
-    [highlightsText]
+    [highlightsText],
   );
 
   const [imageUrl, setImageUrl] = useState<string>(initial.imageUrl || "");
-  const [imagePath, setImagePath] = useState<string>(initial.imagePath || ""); 
+  const [imagePath, setImagePath] = useState<string>(initial.imagePath || "");
   const [uploading, setUploading] = useState(false);
 
-  const [isActive, setIsActive] = useState<boolean>(initial.isActive ?? true); 
+  const [isActive, setIsActive] = useState<boolean>(initial.isActive ?? true);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -103,7 +107,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       const ext = getExt(file);
       const random = crypto.randomUUID();
 
-      //  tvarkingas path: userId/services/random.ext
+      // tvarkingas path: userId/services/random.ext
       const path = `${userId}/services/${random}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
@@ -122,7 +126,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         return;
       }
 
-      //  išsaugom abu: url + path
       setImageUrl(data.publicUrl);
       setImagePath(path);
 
@@ -143,9 +146,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
     const highlights = parseHighlights(highlightsText);
 
     try {
-      const res = await fetch(`/api/dashboard/services/${initial.id}`, {
+      const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
           description,
@@ -153,22 +155,22 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
           imageUrl: imageUrl || null,
-          imagePath: imagePath || null, 
+          imagePath: imagePath || null,
           highlights,
-          isActive, 
+          isActive,
         }),
       });
 
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(json?.error || "Nepavyko išsaugoti paslaugos.");
+        setError((json as any)?.error || "Nepavyko išsaugoti paslaugos.");
         return;
       }
 
       setSuccess("Paslauga sėkmingai atnaujinta.");
       startTransition(() => {
-        router.push("/dashboard/services");
+        router.push(`/${locale}/dashboard/services`);
         router.refresh();
       });
     } catch (e) {
@@ -179,7 +181,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
   async function handleDelete() {
     const ok = window.confirm(
-      "Ar tikrai nori ištrinti šią paslaugą? (Soft delete: paslauga dings iš sąrašo.)"
+      "Ar tikrai nori ištrinti šią paslaugą? (Soft delete: paslauga dings iš sąrašo.)",
     );
     if (!ok) return;
 
@@ -187,19 +189,19 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
     setSuccess(null);
 
     try {
-      const res = await fetch(`/api/dashboard/services/${initial.id}`, {
+      const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "DELETE",
       });
 
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(json?.error || "Nepavyko ištrinti paslaugos.");
+        setError((json as any)?.error || "Nepavyko ištrinti paslaugos.");
         return;
       }
 
       startTransition(() => {
-        router.push("/dashboard/services");
+        router.push(`/${locale}/dashboard/services`);
         router.refresh();
       });
     } catch (e) {
@@ -216,17 +218,16 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
     setIsActive(next);
 
     try {
-      const res = await fetch(`/api/dashboard/services/${initial.id}`, {
+      const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: next }),
       });
 
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setIsActive(!next); // rollback
-        setError(json?.error || "Nepavyko pakeisti aktyvumo.");
+        setIsActive(!next);
+        setError((json as any)?.error || "Nepavyko pakeisti aktyvumo.");
         return;
       }
 
@@ -265,12 +266,16 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-          <div className={styles.charHint}>{description.length} / 2000 simbolių</div>
+          <div className={styles.charHint}>
+            {description.length} / 2000 simbolių
+          </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+        <h2 className={styles.sectionTitle}>
+          Kodėl verta rinktis šią paslaugą?
+        </h2>
 
         <div className={styles.formGroup}>
           <label className={styles.label}>Privalumai (1 eilutė = 1 punktas)</label>
@@ -281,7 +286,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setHighlightsText(e.target.value)}
             placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
           />
-          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
+          <div className={styles.charHint}>
+            Punktų: {highlightsPreview.length} / 6
+          </div>
         </div>
       </section>
 
@@ -360,7 +367,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             className={styles.secondaryButton}
             onClick={() => {
               setImageUrl("");
-              setImagePath(""); 
+              setImagePath("");
             }}
             disabled={uploading || pending}
           >
@@ -384,7 +391,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         </p>
       </section>
 
-      {/* ACTIVE TOGGLE */}
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Aktyvumas</h2>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
