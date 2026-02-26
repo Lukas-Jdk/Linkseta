@@ -19,6 +19,10 @@ model User {
 
   avatarUrl String?
 
+  betaAccess   Boolean @default(false)
+  lifetimeFree Boolean @default(false)
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -43,6 +47,9 @@ model ProviderProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  planId String?
+  plan   Plan?   @relation(fields: [planId], references: [id])
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -142,7 +149,8 @@ model Plan {
   maxListings Int?
   highlight   Boolean    @default(false)
 
-  services ServiceListing[]
+  services  ServiceListing[]
+  profiles  ProviderProfile[]
 }
 
 enum PlanPeriod {

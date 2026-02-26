@@ -2,16 +2,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import {
-  getMessages,
-  setRequestLocale,
-  getTranslations,
-} from "next-intl/server";
+import { getMessages, setRequestLocale, getTranslations } from "next-intl/server";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/seo";
-import { absOg } from "@/lib//seo-118n";
+import { absOg } from "@/lib/seo-118n";
 import { Poppins, Roboto } from "next/font/google";
 
 const poppins = Poppins({
@@ -35,7 +31,6 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-// ✅ global metadata per locale (default)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -66,9 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: t("siteName"),
       title: t("homeTitle"),
       description: t("homeDesc"),
-      images: [
-        { url: absOg("/og.png"), width: 1200, height: 630, alt: t("siteName") },
-      ],
+      images: [{ url: absOg("/og.png"), width: 1200, height: 630, alt: t("siteName") }],
       locale: locale === "lt" ? "lt_LT" : locale === "no" ? "nb_NO" : "en_US",
     },
     twitter: {
@@ -89,14 +82,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body className={`${poppins.variable} ${roboto.variable}`}>
-        <NextIntlClientProvider messages={messages}>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <div className={`${poppins.variable} ${roboto.variable}`} data-locale={locale}>
+      <NextIntlClientProvider messages={messages}>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+      </NextIntlClientProvider>
+    </div>
   );
 }

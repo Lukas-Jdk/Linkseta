@@ -8,12 +8,9 @@ export async function GET() {
   const token = newCsrfToken();
 
   const res = NextResponse.json({ token }, { status: 200 });
+  res.headers.set("Cache-Control", "no-store");
 
-  // CSRF cookie MUST be readable by browser (not HttpOnly),
-  // because we also send it in header from JS.
-  res.cookies.set({
-    name: CSRF_COOKIE,
-    value: token,
+  res.cookies.set(CSRF_COOKIE, token, {
     httpOnly: false,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

@@ -1,5 +1,4 @@
 // src/prisma/seed.cjs
-
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -29,7 +28,6 @@ async function upsertCities() {
     { name: "Bærum", slug: "baerum" },
     { name: "Fornebu", slug: "fornebu" },
     { name: "Drammen", slug: "drammen" },
-
     { name: "Bergen", slug: "bergen" },
     { name: "Trondheim", slug: "trondheim" },
     { name: "Stavanger", slug: "stavanger" },
@@ -39,7 +37,6 @@ async function upsertCities() {
     { name: "Ålesund", slug: "alesund" },
     { name: "Bodø", slug: "bodo" },
     { name: "Haugesund", slug: "haugesund" },
-
     { name: "Fredrikstad", slug: "fredrikstad" },
     { name: "Sarpsborg", slug: "sarpsborg" },
     { name: "Tønsberg", slug: "tonsberg" },
@@ -47,7 +44,7 @@ async function upsertCities() {
     { name: "Skien", slug: "skien" },
     { name: "Arendal", slug: "arendal" },
     { name: "Hamar", slug: "hamar" },
-    { name: "Lillehammer", slug: "lillehammer" }
+    { name: "Lillehammer", slug: "lillehammer" },
   ];
 
   for (const city of cities) {
@@ -55,7 +52,7 @@ async function upsertCities() {
     await prisma.city.upsert({
       where: { slug },
       update: { name: city.name },
-      create: { name: city.name, slug }
+      create: { name: city.name, slug },
     });
   }
 }
@@ -81,7 +78,7 @@ async function upsertCategories() {
     "Gyvūnų priežiūra",
     "Maistas / Kateris",
     "Namų ūkis",
-    "Kita"
+    "Kita",
   ];
 
   for (const name of names) {
@@ -89,7 +86,7 @@ async function upsertCategories() {
     await prisma.category.upsert({
       where: { slug },
       update: { name, type: "SERVICE" },
-      create: { name, slug, type: "SERVICE" }
+      create: { name, slug, type: "SERVICE" },
     });
   }
 }
@@ -97,8 +94,13 @@ async function upsertCategories() {
 async function upsertPlans() {
   const plans = [
     { name: "Demo planas", slug: "demo", priceNok: 0, period: "MONTHLY", maxListings: 1, highlight: false },
+
+    // ✅ planas “pirmiem testuotojam” (prieinamas tik per betaAccess)
+    { name: "Beta (tester)", slug: "beta", priceNok: 0, period: "MONTHLY", maxListings: 10, highlight: false },
+
+    // ateičiai (mokėjimai)
     { name: "Basic", slug: "basic", priceNok: 199, period: "MONTHLY", maxListings: 3, highlight: false },
-    { name: "Premium", slug: "premium", priceNok: 399, period: "MONTHLY", maxListings: 10, highlight: true }
+    { name: "Premium", slug: "premium", priceNok: 399, period: "MONTHLY", maxListings: 10, highlight: true },
   ];
 
   for (const plan of plans) {
@@ -109,9 +111,9 @@ async function upsertPlans() {
         priceNok: plan.priceNok,
         period: plan.period,
         maxListings: plan.maxListings,
-        highlight: plan.highlight
+        highlight: plan.highlight,
       },
-      create: plan
+      create: plan,
     });
   }
 }

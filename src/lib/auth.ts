@@ -11,6 +11,10 @@ export type AuthUser = {
   name: string | null;
   phone: string | null;
   avatarUrl: string | null;
+
+  // ✅ BETA kontrolė (iš DB)
+  betaAccess: boolean;
+  lifetimeFree: boolean;
 };
 
 function normalizeEmail(email: string) {
@@ -43,6 +47,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       email,
       ...(metaName ? { name: metaName } : {}),
       ...(metaPhone ? { phone: metaPhone } : {}),
+      // betaAccess/lifetimeFree paliekam default iš schemos
     },
     select: {
       id: true,
@@ -52,6 +57,8 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       name: true,
       phone: true,
       avatarUrl: true,
+      betaAccess: true,
+      lifetimeFree: true,
     },
   });
 
@@ -63,6 +70,8 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     name: dbUser.name,
     phone: dbUser.phone,
     avatarUrl: dbUser.avatarUrl,
+    betaAccess: dbUser.betaAccess,
+    lifetimeFree: dbUser.lifetimeFree,
   };
 }
 
