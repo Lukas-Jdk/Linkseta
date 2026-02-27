@@ -26,12 +26,6 @@ const ContentSecurityPolicy = `
 `.replace(/\s{2,}/g, " ").trim();
 
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: isProd
-      ? ContentSecurityPolicy
-      : "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;",
-  },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
