@@ -14,9 +14,12 @@ const ContentSecurityPolicy = `
   img-src 'self' data: blob: https:;
   font-src 'self' data: https:;
   style-src 'self' 'unsafe-inline' https:;
-  script-src 'self' https:;
 
-  connect-src 'self' https:;
+  /*  FIX: Next.js hydration reikia inline scriptų */
+  script-src 'self' 'unsafe-inline' https:;
+
+  /* Supabase + (jei reikia) reCAPTCHA */
+  connect-src 'self' https: wss:;
   frame-src 'self' https:;
 
   upgrade-insecure-requests;
