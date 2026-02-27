@@ -95,7 +95,7 @@ async function upsertPlans() {
   const plans = [
     { name: "Demo planas", slug: "demo", priceNok: 0, period: "MONTHLY", maxListings: 1, highlight: false },
 
-    // ✅ planas “pirmiem testuotojam” (prieinamas tik per betaAccess)
+    //  planas “pirmiem testuotojam” (prieinamas tik per betaAccess)
     { name: "Beta (tester)", slug: "beta", priceNok: 0, period: "MONTHLY", maxListings: 10, highlight: false },
 
     // ateičiai (mokėjimai)

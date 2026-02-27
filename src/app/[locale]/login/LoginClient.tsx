@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { Mail, Lock } from "lucide-react";
@@ -26,15 +26,12 @@ export default function LoginClient() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
-
   const searchParams = useSearchParams();
 
-  // jei turi redirect logiką: /login?next=/dashboard/services
   const nextPath = useMemo(() => {
     const next = searchParams.get("next");
     if (!next) return `/${locale}/dashboard`;
 
-    // saugumas: leidžiam tik vidinius kelius
     if (!next.startsWith("/")) return `/${locale}/dashboard`;
     if (next.startsWith("//")) return `/${locale}/dashboard`;
     if (next.includes("://")) return `/${locale}/dashboard`;
@@ -58,6 +55,8 @@ export default function LoginClient() {
     setError(null);
 
     try {
+      const supabase = getSupabaseBrowserClient();
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -69,7 +68,6 @@ export default function LoginClient() {
         return;
       }
 
-      // ✅ labai svarbu: po login iš karto refresh, kad server components pamatytų cookies
       router.replace(nextPath);
       router.refresh();
     } catch (err) {

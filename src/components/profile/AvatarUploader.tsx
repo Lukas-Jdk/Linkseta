@@ -27,7 +27,7 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
       const fd = new FormData();
       fd.append("file", file);
 
-      // ✅ CSRF header, bet FormData turi pats nustatyti Content-Type su boundary
+      //  CSRF header, bet FormData turi pats nustatyti Content-Type su boundary
       const headers = await withCsrfHeaders();
       headers.delete("Content-Type");
 

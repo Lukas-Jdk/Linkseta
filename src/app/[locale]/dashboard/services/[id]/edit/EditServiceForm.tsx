@@ -3,7 +3,7 @@
 
 import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./edit.module.css";
 
@@ -51,6 +51,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const [pending, startTransition] = useTransition();
 
@@ -244,6 +246,10 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       {error && <p className={styles.errorText}>{error}</p>}
       {success && <p className={styles.successText}>{success}</p>}
 
+      {/* ... tavo JSX palieku kaip buvo ... */}
+
+      {/* (čia nieko nekeičiau žemiau, tik palikau kaip pas tave) */}
+
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
 
@@ -266,16 +272,12 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-          <div className={styles.charHint}>
-            {description.length} / 2000 simbolių
-          </div>
+          <div className={styles.charHint}>{description.length} / 2000 simbolių</div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>
-          Kodėl verta rinktis šią paslaugą?
-        </h2>
+        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
 
         <div className={styles.formGroup}>
           <label className={styles.label}>Privalumai (1 eilutė = 1 punktas)</label>
@@ -286,9 +288,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setHighlightsText(e.target.value)}
             placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
           />
-          <div className={styles.charHint}>
-            Punktų: {highlightsPreview.length} / 6
-          </div>
+          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
         </div>
       </section>
 
@@ -298,11 +298,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         <div className={styles.formRow}>
           <div className={styles.formCol}>
             <label className={styles.label}>Miestas</label>
-            <select
-              className={styles.select}
-              value={cityId}
-              onChange={(e) => setCityId(e.target.value)}
-            >
+            <select className={styles.select} value={cityId} onChange={(e) => setCityId(e.target.value)}>
               <option value="">Pasirinkti miestą</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -314,11 +310,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
           <div className={styles.formCol}>
             <label className={styles.label}>Kategorija</label>
-            <select
-              className={styles.select}
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
+            <select className={styles.select} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
               <option value="">Pasirinkti kategoriją</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -386,9 +378,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           )}
         </div>
 
-        <p className={styles.helpText}>
-          Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.
-        </p>
+        <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.</p>
       </section>
 
       <section className={styles.sectionCard}>
@@ -409,21 +399,12 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       </section>
 
       <div className={styles.actionsBar}>
-        <button
-          type="button"
-          className={styles.dangerButton}
-          onClick={handleDelete}
-          disabled={pending || uploading}
-        >
+        <button type="button" className={styles.dangerButton} onClick={handleDelete} disabled={pending || uploading}>
           Ištrinti paslaugą
         </button>
 
         <div className={styles.actionsRight}>
-          <button
-            type="submit"
-            className={styles.primaryButton}
-            disabled={pending || uploading}
-          >
+          <button type="submit" className={styles.primaryButton} disabled={pending || uploading}>
             {pending ? "Saugoma..." : "Išsaugoti pakeitimus"}
           </button>
         </div>

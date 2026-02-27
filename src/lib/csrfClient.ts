@@ -35,6 +35,19 @@ export async function fetchCsrfToken(): Promise<string> {
   return json.token;
 }
 
+/**
+ *  Helper: return Headers with CSRF token added.
+ * This is useful for upload flows (Supabase storage, multipart, etc.)
+ */
+export async function withCsrfHeaders(
+  initHeaders?: HeadersInit,
+): Promise<Headers> {
+  const headers = new Headers(initHeaders ?? {});
+  const token = cachedToken ?? (await fetchCsrfToken());
+  headers.set(CSRF_HEADER, token);
+  return headers;
+}
+
 export async function csrfFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const method = (init.method ?? "GET").toUpperCase();
   const safe = method === "GET" || method === "HEAD" || method === "OPTIONS";

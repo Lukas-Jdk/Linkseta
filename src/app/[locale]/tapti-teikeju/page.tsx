@@ -63,7 +63,6 @@ export default function TaptiTeikejuPage() {
   const [error, setError] = useState<string | null>(null);
 
   const canChoose = useMemo(() => {
-    // jei vėliau norėsi čia dar logikos – pvz. pagal env rodyti kitaip
     return true;
   }, []);
 
@@ -75,7 +74,6 @@ export default function TaptiTeikejuPage() {
     setLoadingSlug(planSlug);
 
     try {
-      // tavo backend'e dabar yra /api/plans/choose — naudokim jį tiesiai
       const res = await csrfFetch("/api/plans/choose", {
         method: "POST",
         body: JSON.stringify({ planSlug }),
@@ -127,7 +125,7 @@ export default function TaptiTeikejuPage() {
               <article
                 key={plan.slug}
                 className={`${styles.planCard} ${plan.recommended ? styles.planCardRecommended : ""}`}
-                aria-disabled={disabled ? "true" : "false"}
+                data-disabled={disabled ? "true" : "false"}
                 style={disabled ? { opacity: 0.75 } : undefined}
               >
                 {plan.recommended && <div className={styles.tag}>Rekomenduojamas DEMO</div>}
@@ -150,6 +148,7 @@ export default function TaptiTeikejuPage() {
                   className={`btn btn-primary ${styles.planButton}`}
                   onClick={() => handleChoose(plan.slug)}
                   disabled={disabled || busy}
+                  aria-disabled={disabled || busy}
                   title={disabled ? "Šis planas dar neaktyvus (coming soon)" : undefined}
                 >
                   {busy ? "Vykdoma..." : disabled ? "Netrukus" : "Pasirinkti šį planą"}

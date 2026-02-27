@@ -3,18 +3,22 @@
 
 import { useState } from "react";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
-import { supabase } from "@/lib/supabaseClient";
 import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
 import { csrfFetch } from "@/lib/csrfClient";
-
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 
 function mapRegisterError(raw: string | null | undefined) {
   const msg = (raw || "").toLowerCase();
-  if (msg.includes("already registered"))
+
+  if (msg.includes("already registered")) {
     return "Toks el. paštas jau naudojamas. Bandykite prisijungti.";
-  if (msg.includes("password"))
+  }
+
+  if (msg.includes("password")) {
     return "Slaptažodis per silpnas. Naudokite bent 8 simbolius.";
+  }
+
   return "Nepavyko užregistruoti paskyros. Bandykite dar kartą.";
 }
 
@@ -35,10 +39,14 @@ export default function RegisterPage() {
     setSuccess(null);
 
     try {
+      const supabase = getSupabaseBrowserClient();
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, phone } },
+        options: {
+          data: { name, phone },
+        },
       });
 
       if (error) {
@@ -51,9 +59,7 @@ export default function RegisterPage() {
         await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
       }
 
-      setSuccess(
-        "Registracija pavyko! Patikrinkite savo el. paštą ir patvirtinkite paskyrą.",
-      );
+      setSuccess("Registracija pavyko! Patikrinkite el. paštą ir patvirtinkite paskyrą.");
       setPassword("");
     } catch (e) {
       console.error(e);
@@ -68,8 +74,7 @@ export default function RegisterPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Registracija</h1>
         <p className={styles.subtitle}>
-          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir
-          funkcijomis.
+          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir funkcijomis.
         </p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -123,9 +128,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className={styles.hint}>
-            *Slaptažodis turi būti bent 8 simbolių ilgio
-          </div>
+          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
 
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}

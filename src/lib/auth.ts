@@ -12,7 +12,7 @@ export type AuthUser = {
   phone: string | null;
   avatarUrl: string | null;
 
-  // ✅ BETA kontrolė (iš DB)
+  //  BETA kontrolė (iš DB)
   betaAccess: boolean;
   lifetimeFree: boolean;
 };

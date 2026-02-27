@@ -17,25 +17,11 @@ function jsonNoStore(data: any, init?: ResponseInit) {
   return res;
 }
 
-function isAllowedInBeta(params: {
-  betaOnly: boolean;
-  planSlug: string;
-  user: { role: "USER" | "ADMIN"; betaAccess?: boolean };
-}) {
-  const { betaOnly, planSlug, user } = params;
-
-  if (!betaOnly) return true; // jei ne beta režimas – ateity galėsi leist visus
-
+function isAllowedPlanInBetaMode(user: { role: "USER" | "ADMIN"; betaAccess: boolean }, planSlug: string) {
   if (user.role === "ADMIN") return true;
-
-  // ✅ visiems leidžiam demo
   if (planSlug === "demo") return true;
-
-  // ✅ beta planas tik betaAccess
   if (planSlug === "beta") return Boolean(user.betaAccess);
-
-  // ❌ basic/premium ir pan – užblokuoti beta režime
-  return false;
+  return false; // basic/premium blocked in beta mode
 }
 
 export async function POST(req: Request) {
@@ -59,16 +45,20 @@ export async function POST(req: Request) {
 
     const betaOnly = process.env.BETA_ONLY === "true";
 
-    if (!isAllowedInBeta({ betaOnly, planSlug, user })) {
-      return jsonNoStore(
-        {
-          error:
-            planSlug === "beta"
-              ? "Beta planas prieinamas tik atrinktiems testuotojams."
-              : "Šiuo metu galimas tik Demo planas (testavimas).",
-        },
-        { status: 409 },
-      );
+    //  BETA režimas: demo visiems, beta tik betaAccess, basic/premium coming soon
+    if (betaOnly) {
+      if (!isAllowedPlanInBetaMode(user, planSlug)) {
+        return jsonNoStore(
+          { error: "Šiuo metu galimas tik Demo planas. Beta planas – tik pakviestiems testuotojams." },
+          { status: 409 },
+        );
+      }
+    } else {
+      // Ateity: jei lifetimeFree -> galima duoti beta (arba demo)
+      // Kol kas basic/premium vistiek gali būti išjungti UI
+      if (planSlug === "basic" || planSlug === "premium") {
+        return jsonNoStore({ error: "Apmokėjimai dar neįjungti (coming soon)." }, { status: 409 });
+      }
     }
 
     const plan = await prisma.plan.findUnique({
@@ -78,15 +68,14 @@ export async function POST(req: Request) {
 
     if (!plan) return jsonNoStore({ error: "Plan not found" }, { status: 404 });
 
-    // ✅ užtikrinam, kad ProviderProfile egzistuoja
+    //  ensure ProviderProfile exists
     const profile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
       update: {},
-      create: { userId: user.id, planId: plan.id },
+      create: { userId: user.id },
       select: { id: true },
     });
 
-    // jei jau egzistuoja – atnaujinam planą
     await prisma.providerProfile.update({
       where: { id: profile.id },
       data: { planId: plan.id },
@@ -102,9 +91,6 @@ export async function POST(req: Request) {
       metadata: { planSlug: plan.slug, planName: plan.name, betaOnly },
     });
 
-    return jsonNoStore(
-      { ok: true, plan: { slug: plan.slug, name: plan.name } },
-      { status: 200 },
-    );
+    return jsonNoStore({ ok: true, plan: { slug: plan.slug, name: plan.name } }, { status: 200 });
   });
 }

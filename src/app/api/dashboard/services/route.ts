@@ -39,6 +39,12 @@ async function uniqueSlugGlobal(base: string) {
   }
 }
 
+function jsonNoStore(data: any, init?: ResponseInit) {
+  const res = NextResponse.json(data, init);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
+}
+
 export async function POST(req: Request) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
@@ -55,15 +61,50 @@ export async function POST(req: Request) {
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
 
+    //  pasiimam profilį + planą (maxListings)
     const profile = await prisma.providerProfile.findUnique({
       where: { userId: user.id },
-      select: { isApproved: true },
+      select: {
+        id: true,
+        isApproved: true,
+        planId: true,
+        plan: { select: { slug: true, name: true, maxListings: true } },
+      },
     });
 
     if (!profile?.isApproved) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return jsonNoStore({ error: "Forbidden" }, { status: 403 });
+    }
+
+    //  maxListings enforcement
+    // Jei planas null -> traktuojam kaip demo (1) arba gali pakeist į "no plan"
+    const planSlug = profile.plan?.slug ?? "demo";
+    const planName = profile.plan?.name ?? "Demo";
+    const maxListings =
+      typeof profile.plan?.maxListings === "number" ? profile.plan.maxListings : 1;
+
+    if (Number.isFinite(maxListings) && maxListings > 0) {
+      const activeCount = await prisma.serviceListing.count({
+        where: {
+          userId: user.id,
+          isActive: true,
+          deletedAt: null,
+        },
+      });
+
+      if (activeCount >= maxListings) {
+        return jsonNoStore(
+          {
+            error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
+            code: "PLAN_LIMIT",
+            plan: { slug: planSlug, name: planName, maxListings },
+            activeCount,
+          },
+          { status: 409 },
+        );
+      }
     }
 
     const body = await req.json().catch(() => ({} as any));
@@ -72,7 +113,7 @@ export async function POST(req: Request) {
     const description = clampText(body?.description, 4000);
 
     if (!title || !description) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      return jsonNoStore({ error: "Missing fields" }, { status: 400 });
     }
 
     const cityId = typeof body?.cityId === "string" ? body.cityId : null;
@@ -126,10 +167,14 @@ export async function POST(req: Request) {
       userId: user.id,
       ip,
       userAgent: ua,
-      metadata: { slug: created.slug, title },
+      metadata: {
+        slug: created.slug,
+        title,
+        plan: { slug: planSlug, name: planName, maxListings },
+      },
     });
 
-    return NextResponse.json({ ok: true, id: created.id, slug: created.slug });
+    return jsonNoStore({ ok: true, id: created.id, slug: created.slug }, { status: 200 });
   } catch (e: any) {
     if (e instanceof Response) return e;
 
@@ -140,6 +185,6 @@ export async function POST(req: Request) {
       meta: { message: e?.message, stack: e?.stack },
     });
 
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return jsonNoStore({ error: "Server error" }, { status: 500 });
   }
 }
