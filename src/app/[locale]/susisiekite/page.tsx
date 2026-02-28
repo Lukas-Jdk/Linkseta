@@ -1,6 +1,7 @@
 // src/app/[locale]/susisiekite/page.tsx
 import type { Metadata } from "next";
 import Script from "next/script";
+import { headers } from "next/headers";
 import styles from "./susisiekite.module.css";
 import ContactForm from "./ContactForm";
 
@@ -10,14 +11,18 @@ export const metadata: Metadata = {
     "Turite klausimų apie Linkseta platformą, paslaugų skelbimus ar bendradarbiavimą? Parašykite mums.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  // ✅ Next 15 – headers() yra async
+  const headersList = await headers();
+  const nonce = headersList.get("x-nonce") ?? undefined;
 
   return (
     <main className={styles.wrapper}>
-      {/* reCAPTCHA v3 script (kraunamas tik jei turi siteKey) */}
       {siteKey ? (
         <Script
+          nonce={nonce}
           src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
           strategy="afterInteractive"
         />
@@ -33,12 +38,10 @@ export default function ContactPage() {
         </section>
 
         <section className={styles.grid}>
-          {/* Kontaktinė informacija */}
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Kontaktai</h2>
             <p className={styles.text}>
-              Kol kas geriausias būdas susisiekti – el. paštu. Vėliau čia atsiras
-              ir oficiali užklausų forma.
+              Kol kas geriausias būdas susisiekti – el. paštu.
             </p>
 
             <div className={styles.infoRow}>
@@ -47,28 +50,10 @@ export default function ContactPage() {
                 info@linkseta.com
               </a>
             </div>
-
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Socialiniai tinklai</span>
-              <span className={styles.infoValue}>
-                (bus pridėta vėliau – Facebook / Instagram)
-              </span>
-            </div>
-
-            <p className={styles.small}>
-              Rašydami trumpai aprašykite, ko ieškote – paslaugų, reklamos ar
-              bendradarbiavimo. Taip galėsiu atsakyti greičiau ir konkrečiau.
-            </p>
           </div>
 
-          {/* Forma – atskiras klientinis komponentas */}
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Trumpa žinutė</h2>
-            <p className={styles.text}>
-              Ši forma kol kas niekur nesiunčiama – ji tik paruošta ateičiai.
-              Realias užklausas rašykite tiesiai el. paštu.
-            </p>
-
             <ContactForm />
           </div>
         </section>

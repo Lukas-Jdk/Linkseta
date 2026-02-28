@@ -1,12 +1,45 @@
 // middleware.ts (ROOT - ne src/)
 import { NextResponse, type NextRequest } from "next/server";
-import createMiddleware from "next-intl/middleware";
 import { routing } from "./src/i18n/routing";
 import { createServerClient } from "@supabase/ssr";
 
-const intlMiddleware = createMiddleware(routing);
+function genNonce() {
+  // Edge runtime friendly
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  // base64
+  return btoa(String.fromCharCode(...bytes));
+}
 
-function setSecurityHeaders(res: { headers: Headers }) {
+function getLocaleFromPath(pathname: string): string | null {
+  const seg = pathname.split("/").filter(Boolean);
+  const maybe = seg[0];
+  if (!maybe) return null;
+  return (routing.locales as readonly string[]).includes(maybe) ? maybe : null;
+}
+
+function setSecurityHeaders(res: NextResponse, nonce: string) {
+  // ✅ CSP su nonce (scriptams be unsafe-inline)
+  const csp = [
+    `default-src 'self'`,
+    `base-uri 'self'`,
+    `object-src 'none'`,
+    `frame-ancestors 'none'`,
+    `form-action 'self'`,
+    `img-src 'self' data: blob: https:`,
+    `font-src 'self' data: https:`,
+    // 👇 styles: jei nori 100% be unsafe-inline, turi nebeturėti style={{}} kode.
+    // Jei paliksi style={{}} (pvz EditServiceForm turi), tada reikės leisti style-src-attr.
+    `style-src 'self' https:`,
+    `script-src 'self' 'nonce-${nonce}' https://www.google.com https://www.gstatic.com https://www.recaptcha.net`,
+    `connect-src 'self' https: wss:`,
+    `frame-src 'self' https://www.google.com https://www.recaptcha.net`,
+    `upgrade-insecure-requests`,
+  ].join("; ");
+
+  res.headers.set("Content-Security-Policy", csp);
+
+  // Kiti headeriai
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -14,7 +47,7 @@ function setSecurityHeaders(res: { headers: Headers }) {
   res.headers.set("Cross-Origin-Resource-Policy", "same-site");
   res.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   );
 
   if (process.env.NODE_ENV === "production") {
@@ -23,13 +56,6 @@ function setSecurityHeaders(res: { headers: Headers }) {
       "max-age=31536000; includeSubDomains; preload",
     );
   }
-}
-
-function getLocaleFromPath(pathname: string): string | null {
-  const seg = pathname.split("/").filter(Boolean);
-  const maybe = seg[0];
-  if (!maybe) return null;
-  return (routing.locales as readonly string[]).includes(maybe) ? maybe : null;
 }
 
 function isProtected(pathname: string, locale: string) {
@@ -48,90 +74,89 @@ function isAdminPath(pathname: string, locale: string) {
 export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
-  // 1) Pirmiausia – next-intl (jis gali padaryti redirect/rewrites į /lt/...)
-  const intlRes = await intlMiddleware(req as any);
+  // 0) nonce + perduodam jį į request headers (kad server components galėtų perskaityti)
+  const nonce = genNonce();
+  const reqHeaders = new Headers(req.headers);
+  reqHeaders.set("x-nonce", nonce);
 
-  // next-intl visada grąžina Response/NextResponse. Mes jį panaudosim kaip bazę.
-  const res = intlRes ?? NextResponse.next();
-
-  // 2) Auth guard tik tada, kai kelias jau turi locale prefix (pvz /lt/..)
+  // 1) Locale: jei nėra /lt /en /no — redirect į /lt (ar tavo default)
   const locale = getLocaleFromPath(pathname);
+
   if (!locale) {
-    setSecurityHeaders(res as any);
-    return res as any;
+    // ignoruojam root assetus etc (pagal matcher bus atfiltruota)
+    const url = req.nextUrl.clone();
+    url.pathname = `/lt${pathname === "/" ? "" : pathname}`;
+    const res = NextResponse.redirect(url, { headers: reqHeaders });
+    setSecurityHeaders(res, nonce);
+    return res;
   }
 
-  if (!isProtected(pathname, locale)) {
-    setSecurityHeaders(res as any);
-    return res as any;
-  }
-
-  // 3) Supabase SSR auth patikra per cookies middleware kontekste
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name) {
-        return req.cookies.get(name)?.value;
-      },
-      set(name, value, options) {
-        // svarbu: naudoti tą patį "res", kad cookie update būtų išsaugotas
-        (res as any).cookies?.set?.({ name, value, ...options });
-      },
-      remove(name, options) {
-        (res as any).cookies?.set?.({ name, value: "", ...options });
-      },
-    },
+  // 2) bazinis res su request override headers
+  const res = NextResponse.next({
+    request: { headers: reqHeaders },
   });
 
-  const { data } = await supabase.auth.getUser();
-  const user = data?.user ?? null;
+  // 3) Auth guard tik protected keliams
+  if (isProtected(pathname, locale)) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // 4) Jei neprisijungęs – redirect į /{locale}/login?next=...
-  if (!user) {
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = `/${locale}/login`;
-    loginUrl.searchParams.set("next", pathname + (req.nextUrl.search ?? ""));
-    const redirectRes = NextResponse.redirect(loginUrl);
-    setSecurityHeaders(redirectRes as any);
-    return redirectRes;
-  }
-
-  // 5) Jei ADMIN route – tikrinam rolę per tavo API (/api/auth/me)
-  if (isAdminPath(pathname, locale)) {
-    try {
-      const roleRes = await fetch(`${req.nextUrl.origin}/api/auth/me`, {
-        headers: {
-          cookie: req.headers.get("cookie") ?? "",
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name) {
+          return req.cookies.get(name)?.value;
         },
-        cache: "no-store",
-      });
+        set(name, value, options) {
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name, options) {
+          res.cookies.set({ name, value: "", ...options });
+        },
+      },
+    });
 
-      const json = await roleRes.json().catch(() => null);
-      const role = json?.user?.role;
+    const { data } = await supabase.auth.getUser();
+    const user = data?.user ?? null;
 
-      if (role !== "ADMIN") {
+    if (!user) {
+      const loginUrl = req.nextUrl.clone();
+      loginUrl.pathname = `/${locale}/login`;
+      loginUrl.searchParams.set("next", pathname + (req.nextUrl.search ?? ""));
+      const redirectRes = NextResponse.redirect(loginUrl, { headers: reqHeaders });
+      setSecurityHeaders(redirectRes, nonce);
+      return redirectRes;
+    }
+
+    if (isAdminPath(pathname, locale)) {
+      try {
+        const roleRes = await fetch(`${req.nextUrl.origin}/api/auth/me`, {
+          headers: { cookie: req.headers.get("cookie") ?? "" },
+          cache: "no-store",
+        });
+        const json = await roleRes.json().catch(() => null);
+        const role = json?.user?.role;
+
+        if (role !== "ADMIN") {
+          const homeUrl = req.nextUrl.clone();
+          homeUrl.pathname = `/${locale}`;
+          homeUrl.search = "";
+          const redirectRes = NextResponse.redirect(homeUrl, { headers: reqHeaders });
+          setSecurityHeaders(redirectRes, nonce);
+          return redirectRes;
+        }
+      } catch {
         const homeUrl = req.nextUrl.clone();
         homeUrl.pathname = `/${locale}`;
         homeUrl.search = "";
-        const redirectRes = NextResponse.redirect(homeUrl);
-        setSecurityHeaders(redirectRes as any);
+        const redirectRes = NextResponse.redirect(homeUrl, { headers: reqHeaders });
+        setSecurityHeaders(redirectRes, nonce);
         return redirectRes;
       }
-    } catch {
-      const homeUrl = req.nextUrl.clone();
-      homeUrl.pathname = `/${locale}`;
-      homeUrl.search = "";
-      const redirectRes = NextResponse.redirect(homeUrl);
-      setSecurityHeaders(redirectRes as any);
-      return redirectRes;
     }
   }
 
-  // 6) viskas ok – praleidžiam
-  setSecurityHeaders(res as any);
-  return res as any;
+  setSecurityHeaders(res, nonce);
+  return res;
 }
 
 export const config = {

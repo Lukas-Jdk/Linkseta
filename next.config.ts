@@ -23,7 +23,9 @@ const ContentSecurityPolicy = `
   frame-src 'self' https:;
 
   upgrade-insecure-requests;
-`.replace(/\s{2,}/g, " ").trim();
+`
+  .replace(/\s{2,}/g, " ")
+  .trim();
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -31,14 +33,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: [
-      "camera=()",
-      "microphone=()",
-      "geolocation=()",
-      "payment=()",
-      "usb=()",
-      "interest-cohort=()",
-    ].join(", "),
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   },
   ...(isProd
     ? [
