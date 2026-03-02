@@ -75,17 +75,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
-
   if (!hasLocale(routing.locales, locale)) notFound();
 
   setRequestLocale(locale);
   const messages = await getMessages();
 
   return (
-    <div className={`${poppins.variable} ${roboto.variable}`} data-locale={locale}>
+    <div
+      className={`${poppins.variable} ${roboto.variable} app-shell`}
+      data-locale={locale}
+    >
       <NextIntlClientProvider messages={messages}>
         <Header />
-        <main>{children}</main>
+        <main className="app-main">{children}</main>
         <Footer />
       </NextIntlClientProvider>
     </div>

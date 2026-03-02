@@ -1,5 +1,3 @@
-/* src/components/layout/Header.module.css */
-
 /* HEADER – FIXED viršuje */
 .header {
   position: fixed;
@@ -43,6 +41,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
 
 .logoText {
@@ -252,13 +251,15 @@
   color: #e5fbff;
 }
 
+
+
 /* MOBILE OVERLAY + DRAWER */
 .mobileOverlay {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  top: var(--header-height);
+  top: var(--header-height, 72px);
   z-index: 55;
   background: rgba(15, 23, 42, 0.6);
   display: flex;
@@ -269,8 +270,8 @@
   width: 100%;
   max-width: 360px;
   height: 100%;
-  background: var(--card-bg);
-  color: var(--text-main);
+  background: var(--card-bg, #ffffff);
+  color: var(--text-main, #0f172a);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.6);
   padding: 14px 18px 18px;
   display: flex;
@@ -290,11 +291,30 @@
   }
 }
 
+/* ✅ TOP ROW + CLOSE BTN (fix tavo X) */
 .drawerTopRow {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.drawerCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  cursor: pointer;
+}
+
+.drawerCloseX {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #e5fbff;
 }
 
 /* PROFILE BLOCK */
@@ -425,26 +445,11 @@
   background: rgba(148, 163, 184, 0.12);
 }
 
-.drawerNavIcon {
-  width: 18px;
-  height: 18px;
-  color: #4b5563;
-}
-
-/* Sections */
 .drawerSection {
   margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.drawerSectionTitle {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9ca3af;
-  margin-bottom: 4px;
 }
 
 /* FOOTER */
@@ -472,9 +477,6 @@
   text-decoration: underline;
 }
 
-
-
-
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .navLinks {
@@ -500,7 +502,7 @@
   }
 }
 
-/* desktop'e mobile drawer overlay neaktyvus jei mes jo nenaudojam */
+/* desktop'e mobile drawer overlay neaktyvus */
 @media (min-width: 901px) {
   .mobileOverlay {
     display: none;

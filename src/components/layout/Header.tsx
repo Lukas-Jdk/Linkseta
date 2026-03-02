@@ -3,15 +3,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
-import styles from "./Header.module.css";
-import type { User } from "@supabase/supabase-js";
-import { Home, Wrench, MessageCircle, LayoutDashboard, ShieldCheck, LogOut } from "lucide-react";
-import Avatar from "@/components/ui/Avatar";
-import LocalizedLink from "@/components/i18n/LocalizedLink";
+import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
+import LocalizedLink from "@/components/i18n/LocalizedLink";
+import Avatar from "@/components/ui/Avatar";
+
+import styles from "./Header.module.css";
 
 type Role = "USER" | "ADMIN" | null;
 
@@ -32,6 +33,7 @@ export default function Header() {
 
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+  const pathname = usePathname();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
@@ -83,13 +85,13 @@ export default function Header() {
         resetAuthUi();
         return;
       }
-
       setIsLoggedIn(true);
       setUserEmail(user.email ?? null);
     },
     [resetAuthUi],
   );
 
+  // Init + auth state listener
   useEffect(() => {
     let alive = true;
 
@@ -126,6 +128,31 @@ export default function Header() {
     };
   }, [applyUserToUi, loadMe, supabase]);
 
+  // Close menus on route change
+  useEffect(() => {
+    closeAllMenus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // ESC to close
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeAllMenus();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [closeAllMenus]);
+
+  // lock body scroll when drawer open
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
+
   async function handleLogout() {
     try {
       await csrfFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
@@ -137,11 +164,11 @@ export default function Header() {
 
   function toggleMobileMenu() {
     setIsMobileMenuOpen((v) => !v);
+    setIsProfileOpen(false);
   }
 
   return (
     <>
-      {/* tavo JSX palieku kaip buvo */}
       <header className={styles.header}>
         <div className={`container ${styles.row}`}>
           <div className={styles.brand}>
@@ -167,6 +194,7 @@ export default function Header() {
             </nav>
 
             <div className={styles.iconGroup}>
+              {/* Desktop auth/profile */}
               {isLoggedIn ? (
                 <div className={styles.profileWrapper}>
                   <button
@@ -208,6 +236,7 @@ export default function Header() {
                 </div>
               )}
 
+              {/* Burger */}
               <button
                 type="button"
                 className={styles.menuToggle}
@@ -229,8 +258,101 @@ export default function Header() {
         </div>
       </header>
 
-      {/* likusi JSX dalis pas tave ok – gali palikti nekeičiant */}
       <div className={styles.headerSpacer} aria-hidden="true" />
+
+      {/* MOBILE OVERLAY + DRAWER */}
+      {isMobileMenuOpen && (
+        <div className={styles.mobileOverlay} onClick={closeAllMenus} role="presentation">
+          <div className={styles.mobileDrawer} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className={styles.drawerTopRow}>
+              <button
+                type="button"
+                className={styles.drawerCloseBtn}
+                onClick={closeAllMenus}
+                aria-label={tHeader("closeMenu")}
+              >
+                <span className={styles.drawerCloseX}>×</span>
+              </button>
+            </div>
+
+            {isLoggedIn ? (
+              <div className={styles.drawerProfile}>
+                <div className={styles.drawerAvatar}>
+                  <Avatar
+                    name={userName}
+                    email={userEmail}
+                    avatarUrl={avatarUrl}
+                    size={44}
+                    className={styles.drawerAvatarImg}
+                  />
+                </div>
+
+                <div className={styles.drawerProfileText}>
+                  <div className={styles.drawerName}>{userName || userEmail || "—"}</div>
+                  {userEmail && <div className={styles.drawerEmail}>{userEmail}</div>}
+                  <LocalizedLink href="/dashboard" className={styles.drawerProfileLink} onClick={closeAllMenus}>
+                    {tAuth("myAccount")}
+                  </LocalizedLink>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.drawerAuthBlock}>
+                <div className={styles.drawerAuthTitle}>{tAuth("login")}</div>
+
+                <div className={styles.drawerAuthButtons}>
+                  <LocalizedLink href="/login" className={styles.drawerPrimaryBtn} onClick={closeAllMenus}>
+                    {tAuth("login")}
+                  </LocalizedLink>
+                  <LocalizedLink href="/register" className={styles.drawerSecondaryBtn} onClick={closeAllMenus}>
+                    {tAuth("register")}
+                  </LocalizedLink>
+                </div>
+              </div>
+            )}
+
+            <hr className={styles.drawerDivider} />
+
+            <nav className={styles.drawerNav} aria-label={tNav("aria")}>
+              <LocalizedLink href="/" className={styles.drawerNavItem} onClick={closeAllMenus}>
+                {tNav("home")}
+              </LocalizedLink>
+              <LocalizedLink href="/services" className={styles.drawerNavItem} onClick={closeAllMenus}>
+                {tNav("services")}
+              </LocalizedLink>
+              <LocalizedLink href="/susisiekite" className={styles.drawerNavItem} onClick={closeAllMenus}>
+                {tNav("contact")}
+              </LocalizedLink>
+
+              {isAdmin && (
+                <LocalizedLink href="/admin" className={styles.drawerNavItem} onClick={closeAllMenus}>
+                  {tNav("admin")}
+                </LocalizedLink>
+              )}
+            </nav>
+
+            {isLoggedIn && (
+              <div className={styles.drawerSection}>
+                <button type="button" className={styles.drawerNavItem} onClick={handleLogout}>
+                  {tAuth("logout")}
+                </button>
+              </div>
+            )}
+
+            <div className={styles.drawerFooter}>
+              <div>© {new Date().getFullYear()} Linkseta</div>
+              <div className={styles.drawerFooterLinks}>
+                <LocalizedLink href="/privacy" onClick={closeAllMenus}>
+                  Privacy
+                </LocalizedLink>
+                <span>·</span>
+                <LocalizedLink href="/terms" onClick={closeAllMenus}>
+                  Terms
+                </LocalizedLink>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

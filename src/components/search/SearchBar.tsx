@@ -2,23 +2,24 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import styles from "./SearchBar.module.css";
 import { Search, ChevronDown } from "lucide-react";
 import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
+import { useParams, useRouter } from "next/navigation";
 
 type CityOption = { id: string; name: string };
 type CategoryOption = { id: string; name: string; slug: string };
 
 function useOnClickOutside<T extends HTMLElement>(
-  refs: React.RefObject<T | null>[],
+  ref: React.RefObject<T | null>,
   handler: () => void,
 ) {
   useEffect(() => {
     function onDown(e: MouseEvent | TouchEvent) {
+      const el = ref.current;
+      if (!el) return;
       const target = e.target as Node;
-      const clickedInside = refs.some((r) => r.current?.contains(target));
-      if (!clickedInside) handler();
+      if (!el.contains(target)) handler();
     }
 
     document.addEventListener("mousedown", onDown);
@@ -28,7 +29,7 @@ function useOnClickOutside<T extends HTMLElement>(
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("touchstart", onDown);
     };
-  }, [refs, handler]);
+  }, [ref, handler]);
 }
 
 function normalize(s: string) {
@@ -36,6 +37,10 @@ function normalize(s: string) {
 }
 
 export default function SearchBar() {
+  const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
+
   const [cities, setCities] = useState<CityOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
 
@@ -51,22 +56,14 @@ export default function SearchBar() {
 
   const cityWrapRef = useRef<HTMLDivElement>(null);
   const catWrapRef = useRef<HTMLDivElement>(null);
-  const cityBtnRef = useRef<HTMLButtonElement | null>(null);
-  const catBtnRef = useRef<HTMLButtonElement | null>(null);
 
-  const [cityPanelStyle, setCityPanelStyle] =
-    useState<React.CSSProperties | null>(null);
-  const [catPanelStyle, setCatPanelStyle] =
-    useState<React.CSSProperties | null>(null);
-
-  useOnClickOutside([cityWrapRef], () => setOpenCity(false));
-  useOnClickOutside([catWrapRef], () => setOpenCategory(false));
+  useOnClickOutside(cityWrapRef, () => setOpenCity(false));
+  useOnClickOutside(catWrapRef, () => setOpenCategory(false));
 
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/public/filters", { cache: "no-store" });
-      const data = await res.json();
-
+      const data = await res.json().catch(() => ({} as any));
       setCities(data.cities ?? []);
       setCategories(data.categories ?? []);
     }
@@ -80,9 +77,7 @@ export default function SearchBar() {
 
   const categoryName = useMemo(() => {
     if (!categoryId) return "Pasirinkite...";
-    return (
-      categories.find((c) => c.id === categoryId)?.name ?? "Pasirinkite..."
-    );
+    return categories.find((c) => c.id === categoryId)?.name ?? "Pasirinkite...";
   }, [categoryId, categories]);
 
   const filteredCities = useMemo(() => {
@@ -119,53 +114,25 @@ export default function SearchBar() {
     });
   }
 
-  // compute portal panel positions when opened
-  useEffect(() => {
-    function update() {
-      const el = cityBtnRef.current;
-      if (el && openCity) {
-        const r = el.getBoundingClientRect();
-        setCityPanelStyle({
-          position: "absolute",
-          top: `${r.bottom + 10 + window.scrollY}px`,
-          left: `${r.left + window.scrollX}px`,
-          width: `${r.width}px`,
-          zIndex: 99999,
-        });
-      } else {
-        setCityPanelStyle(null);
-      }
+  function goSearch() {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (cityId) params.set("city", cityId);
+    if (categoryId) params.set("category", categoryId);
 
-      const el2 = catBtnRef.current;
-      if (el2 && openCategory) {
-        const r2 = el2.getBoundingClientRect();
-        setCatPanelStyle({
-          position: "absolute",
-          top: `${r2.bottom + 10 + window.scrollY}px`,
-          left: `${r2.left + window.scrollX}px`,
-          width: `${r2.width}px`,
-          zIndex: 99999,
-        });
-      } else {
-        setCatPanelStyle(null);
-      }
-    }
-
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [openCity, openCategory]);
+    const qs = params.toString();
+    router.push(`/${locale}/services${qs ? `?${qs}` : ""}`);
+  }
 
   return (
-    <form className={styles.wrap} role="search" action="/services" method="get">
-      {/* hidden inputai, kad /services filtrai veiktų kaip dabar */}
-      <input type="hidden" name="city" value={cityId} />
-      <input type="hidden" name="category" value={categoryId} />
-
+    <form
+      className={styles.wrap}
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        goSearch();
+      }}
+    >
       <div className={styles.bar}>
         {/* RAKTINIS */}
         <div className={styles.segment}>
@@ -173,11 +140,11 @@ export default function SearchBar() {
             <div className={styles.labelText}>Raktinis žodis</div>
             <input
               className={styles.input}
-              name="q"
               placeholder="Neprivaloma..."
               autoComplete="off"
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              name="q"
             />
           </div>
         </div>
@@ -191,7 +158,6 @@ export default function SearchBar() {
               type="button"
               className={styles.dropdownBtn}
               onClick={toggleCity}
-              ref={cityBtnRef}
               aria-haspopup="listbox"
               aria-expanded={openCity}
             >
@@ -201,75 +167,66 @@ export default function SearchBar() {
               <ChevronDown className={styles.chev} />
             </button>
 
-            {openCity &&
-              cityPanelStyle &&
-              createPortal(
-                <div
-                  className={styles.dropdown}
-                  role="listbox"
-                  style={cityPanelStyle}
-                >
-                  <div className={styles.dropdownTop}>
-                    <input
-                      className={styles.dropdownSearch}
-                      placeholder="Ieškoti miesto..."
-                      value={cityQuery}
-                      onChange={(e) => setCityQuery(e.target.value)}
-                      autoFocus
-                    />
-                    {cityId && (
-                      <button
-                        type="button"
-                        className={styles.clearBtn}
-                        onClick={() => {
-                          setCityId("");
-                          setOpenCity(false);
-                        }}
-                      >
-                        Išvalyti
-                      </button>
-                    )}
-                  </div>
-
-                  <div className={styles.dropdownList}>
+            {openCity && (
+              <div className={styles.dropdown} role="listbox">
+                <div className={styles.dropdownTop}>
+                  <input
+                    className={styles.dropdownSearch}
+                    placeholder="Ieškoti miesto..."
+                    value={cityQuery}
+                    onChange={(e) => setCityQuery(e.target.value)}
+                    autoFocus
+                  />
+                  {cityId && (
                     <button
                       type="button"
-                      className={`${styles.option} ${!cityId ? styles.optionActive : ""}`}
+                      className={styles.clearBtn}
                       onClick={() => {
                         setCityId("");
                         setOpenCity(false);
                       }}
                     >
-                      <span className={styles.optionName}>Visi miestai</span>
+                      Išvalyti
                     </button>
+                  )}
+                </div>
 
-                    {filteredCities.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className={`${styles.option} ${
-                          cityId === c.id ? styles.optionActive : ""
-                        }`}
-                        onClick={() => {
-                          setCityId(c.id);
-                          setOpenCity(false);
-                        }}
-                      >
-                        <span className={styles.optionName}>{c.name}</span>
-                      </button>
-                    ))}
+                <div className={styles.dropdownList}>
+                  <button
+                    type="button"
+                    className={`${styles.option} ${!cityId ? styles.optionActive : ""}`}
+                    onClick={() => {
+                      setCityId("");
+                      setOpenCity(false);
+                    }}
+                  >
+                    <span className={styles.optionName}>Visi miestai</span>
+                  </button>
 
-                    {filteredCities.length === 0 && (
-                      <div className={styles.noResults}>Nieko nerasta.</div>
-                    )}
-                  </div>
-                </div>,
-                document.body,
-              )}
+                  {filteredCities.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`${styles.option} ${cityId === c.id ? styles.optionActive : ""}`}
+                      onClick={() => {
+                        setCityId(c.id);
+                        setOpenCity(false);
+                      }}
+                    >
+                      <span className={styles.optionName}>{c.name}</span>
+                    </button>
+                  ))}
+
+                  {filteredCities.length === 0 && (
+                    <div className={styles.noResults}>Nieko nerasta.</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* KATEGORIJA (su ikonėlėm) */}
+        {/* KATEGORIJA */}
         <div className={styles.segment} ref={catWrapRef}>
           <div className={styles.label}>
             <div className={styles.labelText}>Kategorija</div>
@@ -278,7 +235,6 @@ export default function SearchBar() {
               type="button"
               className={styles.dropdownBtn}
               onClick={toggleCategory}
-              ref={catBtnRef}
               aria-haspopup="listbox"
               aria-expanded={openCategory}
             >
@@ -288,93 +244,71 @@ export default function SearchBar() {
               <ChevronDown className={styles.chev} />
             </button>
 
-            {openCategory &&
-              catPanelStyle &&
-              createPortal(
-                <div
-                  className={styles.dropdown}
-                  role="listbox"
-                  style={catPanelStyle}
-                >
-                  <div className={styles.dropdownTop}>
-                    <input
-                      className={styles.dropdownSearch}
-                      placeholder="Ieškoti kategorijos..."
-                      value={categoryQuery}
-                      onChange={(e) => setCategoryQuery(e.target.value)}
-                      autoFocus
-                    />
-                    {categoryId && (
-                      <button
-                        type="button"
-                        className={styles.clearBtn}
-                        onClick={() => {
-                          setCategoryId("");
-                          setOpenCategory(false);
-                        }}
-                      >
-                        Išvalyti
-                      </button>
-                    )}
-                  </div>
-
-                  <div className={styles.dropdownList}>
+            {openCategory && (
+              <div className={styles.dropdown} role="listbox">
+                <div className={styles.dropdownTop}>
+                  <input
+                    className={styles.dropdownSearch}
+                    placeholder="Ieškoti kategorijos..."
+                    value={categoryQuery}
+                    onChange={(e) => setCategoryQuery(e.target.value)}
+                    autoFocus
+                  />
+                  {categoryId && (
                     <button
                       type="button"
-                      className={`${styles.option} ${
-                        !categoryId ? styles.optionActive : ""
-                      }`}
+                      className={styles.clearBtn}
                       onClick={() => {
                         setCategoryId("");
                         setOpenCategory(false);
                       }}
                     >
-                      <span className={styles.optionName}>
-                        Visos kategorijos
-                      </span>
+                      Išvalyti
                     </button>
+                  )}
+                </div>
 
-                    {filteredCategories.map((c) => {
-                      const Icon =
-                        categoryIconMap[c.slug] ?? DefaultCategoryIcon;
+                <div className={styles.dropdownList}>
+                  <button
+                    type="button"
+                    className={`${styles.option} ${!categoryId ? styles.optionActive : ""}`}
+                    onClick={() => {
+                      setCategoryId("");
+                      setOpenCategory(false);
+                    }}
+                  >
+                    <span className={styles.optionName}>Visos kategorijos</span>
+                  </button>
 
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          className={`${styles.option} ${
-                            categoryId === c.id ? styles.optionActive : ""
-                          }`}
-                          onClick={() => {
-                            setCategoryId(c.id);
-                            setOpenCategory(false);
-                          }}
-                        >
-                          <Icon
-                            className={styles.optionIcon}
-                            aria-hidden="true"
-                          />
-                          <span className={styles.optionName}>{c.name}</span>
-                        </button>
-                      );
-                    })}
+                  {filteredCategories.map((c) => {
+                    const Icon = categoryIconMap[c.slug] ?? DefaultCategoryIcon;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`${styles.option} ${categoryId === c.id ? styles.optionActive : ""}`}
+                        onClick={() => {
+                          setCategoryId(c.id);
+                          setOpenCategory(false);
+                        }}
+                      >
+                        <Icon className={styles.optionIcon} aria-hidden="true" />
+                        <span className={styles.optionName}>{c.name}</span>
+                      </button>
+                    );
+                  })}
 
-                    {filteredCategories.length === 0 && (
-                      <div className={styles.noResults}>Nieko nerasta.</div>
-                    )}
-                  </div>
-                </div>,
-                document.body,
-              )}
+                  {filteredCategories.length === 0 && (
+                    <div className={styles.noResults}>Nieko nerasta.</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* SEARCH */}
-        <button
-          type="submit"
-          className={styles.searchButton}
-          aria-label="Ieškoti paslaugų"
-        >
+        <button type="submit" className={styles.searchButton} aria-label="Ieškoti paslaugų">
           <Search className={styles.searchIcon} strokeWidth={2} />
         </button>
       </div>

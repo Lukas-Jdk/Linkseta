@@ -37,7 +37,8 @@ export async function GET() {
     return res;
   } catch (err) {
     console.error("GET /api/auth/me error", err);
-    const res = NextResponse.json({ user: null } satisfies MeResponse, { status: 200 });
+
+    const res = NextResponse.json<MeResponse>({ user: null }, { status: 200 });
     res.headers.set("Cache-Control", "no-store");
     return res;
   }
