@@ -91,5 +91,6 @@ export default async function LocaleLayout({ children, params }: Props) {
         <Footer />
       </NextIntlClientProvider>
     </div>
+    
   );
 }
