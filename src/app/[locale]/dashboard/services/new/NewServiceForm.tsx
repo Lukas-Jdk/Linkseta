@@ -2,125 +2,133 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./NewServiceForm.module.css";
 
-type CityOption = { id: string; name: string };
-type CategoryOption = { id: string; name: string; slug: string };
+type Option = { id: string; name: string };
 
 type Props = {
-  cities: CityOption[];
-  categories: CategoryOption[];
-  locale: string;
+  cities: Option[];
+  categories: Option[];
 };
 
-export default function NewServiceForm({ cities, categories, locale }: Props) {
-  const [error, setError] = useState<string | null>(null);
+export default function NewServiceForm({ cities, categories }: Props) {
+  const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [cityId, setCityId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [cityId, setCityId] = useState(cities?.[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState(categories?.[0]?.id ?? "");
   const [priceFrom, setPriceFrom] = useState<string>("");
+  const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const canSubmit = useMemo(() => {
-    return title.trim().length >= 3 && description.trim().length >= 10 && cityId && categoryId;
-  }, [title, description, cityId, categoryId]);
+    return (
+      title.trim().length >= 3 &&
+      description.trim().length >= 10 &&
+      Boolean(cityId) &&
+      Boolean(categoryId) &&
+      !submitting
+    );
+  }, [title, description, cityId, categoryId, submitting]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSubmit) return;
-
     setError(null);
 
-    const payload = {
-      title: title.trim(),
-      description: description.trim(),
-      cityId,
-      categoryId,
-      priceFrom: priceFrom ? Number(priceFrom) : null,
-      imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
-    };
+    if (!canSubmit) return;
 
+    setSubmitting(true);
     try {
-      // ⚠️ jei tavo endpointas vadinasi kitaip – pakeisk tik šitą URL
-      const res = await fetch("/api/dashboard/services", {
+      const payload = {
+        title: title.trim(),
+        cityId,
+        categoryId,
+        priceFrom: priceFrom.trim() ? Number(priceFrom) : null,
+        description: description.trim(),
+        imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
+      };
+
+      const res = await csrfFetch("/api/dashboard/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // jei tavo csrfFetch nededa pats – tada būtina:
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json().catch(() => null);
-
       if (!res.ok) {
-        throw new Error(json?.error ?? `Create failed (${res.status})`);
+        // serveris pas tave dažniausiai grąžina JSON { error: "..."}
+        const data = await res.json().catch(() => null);
+        const msg =
+          data?.error ??
+          (res.status === 403 ? "CSRF check failed" : "Nepavyko sukurti paslaugos");
+        throw new Error(msg);
       }
 
-      // jei backend grąžina slug arba id – redirectinam
-      const slug = json?.slug as string | undefined;
-      const id = json?.id as string | undefined;
-
-      if (slug) {
-        window.location.href = `/${locale}/dashboard/services/${slug}`;
-        return;
-      }
-      if (id) {
-        window.location.href = `/${locale}/dashboard/services/${id}`;
-        return;
-      }
-
-      window.location.href = `/${locale}/dashboard/services`;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Nepavyko sukurti paslaugos.");
+      // jei serveris grąžina { id } ar { slug } – pasiimk ir redirectink gražiau.
+      // dabar tiesiog grįžtam į dashboard services listą:
+      router.push(`/${locale}/dashboard/services`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Įvyko klaida");
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <form className={styles.card} onSubmit={onSubmit}>
+    <form className={styles.form} onSubmit={onSubmit}>
       <div className={styles.grid}>
-        <label className={styles.field}>
-          <span className={styles.label}>Pavadinimas</span>
+        <div className={styles.field}>
+          <label className={styles.label}>Pavadinimas</label>
           <input
             className={styles.input}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Pvz. Elektriko paslaugos Osle"
-            minLength={3}
-            required
+            placeholder="Pvz. Elektrikas Osle"
+            autoComplete="off"
           />
-        </label>
+        </div>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Miestas</span>
-          <select className={styles.input} value={cityId} onChange={(e) => setCityId(e.target.value)} required>
-            <option value="">Pasirinkite...</option>
+        <div className={styles.field}>
+          <label className={styles.label}>Miestas</label>
+          <select
+            className={styles.select}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
+          >
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Kategorija</span>
+        <div className={styles.field}>
+          <label className={styles.label}>Kategorija</label>
           <select
-            className={styles.input}
+            className={styles.select}
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            required
           >
-            <option value="">Pasirinkite...</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Kaina nuo (NOK)</span>
+        <div className={styles.field}>
+          <label className={styles.label}>Kaina nuo (NOK)</label>
           <input
             className={styles.input}
             value={priceFrom}
@@ -128,35 +136,35 @@ export default function NewServiceForm({ cities, categories, locale }: Props) {
             placeholder="Pvz. 500"
             inputMode="numeric"
           />
-        </label>
+        </div>
 
-        <label className={styles.fieldFull}>
-          <span className={styles.label}>Aprašymas</span>
+        <div className={styles.fieldFull}>
+          <label className={styles.label}>Aprašymas</label>
           <textarea
             className={styles.textarea}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Trumpai aprašyk paslaugą, miestą, kainą, terminus ir pan."
-            minLength={10}
-            required
+            placeholder="Parašyk kuo aiškiau, ką siūlai."
+            rows={6}
           />
-        </label>
+        </div>
 
-        <label className={styles.fieldFull}>
-          <span className={styles.label}>Nuotraukos URL (nebūtina)</span>
+        <div className={styles.fieldFull}>
+          <label className={styles.label}>Nuotraukos URL (nebūtina)</label>
           <input
             className={styles.input}
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
             placeholder="https://..."
+            autoComplete="off"
           />
-        </label>
+        </div>
       </div>
 
-      {error && <div className={styles.errorInline}>{error}</div>}
+      {error && <div className={styles.error}>{error}</div>}
 
       <button className={styles.submit} type="submit" disabled={!canSubmit}>
-        Sukurti paslaugą
+        {submitting ? "Kuriama..." : "Sukurti paslaugą"}
       </button>
     </form>
   );
