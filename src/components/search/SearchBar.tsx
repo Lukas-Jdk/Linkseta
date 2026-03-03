@@ -134,21 +134,7 @@ export default function SearchBar() {
       }}
     >
       <div className={styles.bar}>
-        {/* RAKTINIS */}
-        <div className={styles.segment}>
-          <div className={styles.label}>
-            <div className={styles.labelText}>Raktinis žodis</div>
-            <input
-              className={styles.input}
-              placeholder="Neprivaloma..."
-              autoComplete="off"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              name="q"
-            />
-          </div>
-        </div>
-
+        
         {/* MIESTAS */}
         <div className={styles.segment} ref={cityWrapRef}>
           <div className={styles.label}>
