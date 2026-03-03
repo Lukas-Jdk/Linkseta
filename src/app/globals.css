@@ -14,12 +14,33 @@ body {
   height: 100%;
 }
 
+/* ✅ FIX: neleisti horizontal “page drag” visame projekte */
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  /* iOS: mažiau “guminių” šoninių tampymų */
+  overscroll-behavior-x: none;
+}
+
+/* ✅ FIX: visiems blokams – niekas neturi išlįsti už viewport */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
 /* ------------------ Theme variables (LIGHT ONLY) ------------------ */
 :root {
   color-scheme: light;
 
   /* =======================
-     Layout 
+     Layout
   ======================= */
   --container: 1180px;
   --header-height: 76px;
@@ -145,11 +166,16 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+
+  /* ✅ FIX: jei kažkur viduj išlenda 1px – nukerpa be dizaino griovimo */
+  overflow-x: clip;
 }
 
 /* ✅ main turi “stumti” footerį žemyn */
 .app-main {
   flex: 1;
+  /* ✅ FIX: apsauga nuo vaikų overflow (pvz. marquee/hero) */
+  overflow-x: clip;
 }
 
 /* ------------------ Links / images ------------------ */
@@ -290,3 +316,10 @@ img {
   border-top: 1px solid var(--card-border);
   background: #ffffff10;
 }
+
+/* Hide Google reCAPTCHA badge  */
+/* .grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+} */
