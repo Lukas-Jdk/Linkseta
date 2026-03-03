@@ -1,84 +1,45 @@
 // src/app/[locale]/dashboard/services/new/page.tsx
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/auth";
-import { CategoryType } from "@prisma/client";
 import NewServiceForm from "./NewServiceForm";
-import styles from "./NewServiceForm.module.css";
+import styles from "./newService.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewServicePage({
-  params,
-}: {
+type Props = {
   params: Promise<{ locale: string }>;
-}) {
+};
+
+export default async function NewServicePage({ params }: Props) {
   const { locale } = await params;
+  setRequestLocale(locale);
 
-  const authUser = await getAuthUser();
-  if (!authUser) redirect(`/${locale}/login`);
-
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    include: { profile: true },
-  });
-
-  if (!user) redirect(`/${locale}/login`);
-
-  const isProvider = !!user.profile?.isApproved;
-
+  // ✅ užkraunam filtrus server-side (greita + patikima)
   const [cities, categories] = await Promise.all([
-    prisma.city.findMany({ orderBy: { name: "asc" } }),
+    prisma.city.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.category.findMany({
-      where: { type: CategoryType.SERVICE },
+      where: { type: "SERVICE" as Prisma.CategoryWhereInput["type"] },
+      select: { id: true, name: true, slug: true },
       orderBy: { name: "asc" },
     }),
   ]);
 
-  if (!isProvider) {
-    return (
-      <main className={styles.wrapper}>
-        <div className={styles.shell}>
-          <header className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Sukurti paslaugą</h1>
-            <p className={styles.pageSubtitle}>
-              Norėdami sukurti paslaugos skelbimą, pirmiausia turite tapti
-              patvirtintu paslaugų teikėju.
-            </p>
-          </header>
-
-          <div className={styles.sectionCard}>
-            <p className={styles.infoText}>
-              Pasirinkite planą puslapyje{" "}
-              <strong>„Tapti paslaugų teikėju“</strong>, tada grįžkite čia ir
-              galėsite sukurti skelbimą.
-            </p>
-
-            <Link href={`/${locale}/tapti-teikeju`} className="btn">
-              Tapti teikėju
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className={styles.wrapper}>
-      <div className={styles.shell}>
-        <header className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>Nauja paslauga</h1>
-          <p className={styles.pageSubtitle}>
-            Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau
-            galėsite jį redaguoti per savo paskyrą.
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Nauja paslauga</h1>
+          <p className={styles.subtitle}>
+            Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą.
           </p>
         </header>
 
-        <NewServiceForm
-          cities={cities.map((c) => ({ id: c.id, name: c.name }))}
-          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
-        />
+        {/* ✅ DABAR props yra legalūs, nes forma juos priima */}
+        <NewServiceForm cities={cities} categories={categories} locale={locale} />
       </div>
     </main>
   );

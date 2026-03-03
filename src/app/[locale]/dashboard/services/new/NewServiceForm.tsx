@@ -1,206 +1,162 @@
 // src/app/[locale]/dashboard/services/new/NewServiceForm.tsx
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
-import { csrfFetch } from "@/lib/csrfClient";
+import { useMemo, useState } from "react";
 import styles from "./NewServiceForm.module.css";
 
-type Option = {
-  id: string;
-  name: string;
-};
+type CityOption = { id: string; name: string };
+type CategoryOption = { id: string; name: string; slug: string };
 
 type Props = {
-  cities: Option[];
-  categories: Option[];
+  cities: CityOption[];
+  categories: CategoryOption[];
+  locale: string;
 };
 
-const BUCKET = "service-images";
-
-function parseHighlights(text: string) {
-  return text
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 6);
-}
-
-function loginUrl(locale: string, nextPath: string) {
-  return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
-}
-
-export default function NewServiceForm({ cities, categories }: Props) {
-  const router = useRouter();
-  const params = useParams<{ locale: string }>();
-  const pathname = usePathname();
-  const locale = params?.locale ?? "lt";
-
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+export default function NewServiceForm({ cities, categories, locale }: Props) {
+  const [error, setError] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cityId, setCityId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [priceFrom, setPriceFrom] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState("");
 
-  const [highlightsText, setHighlightsText] = useState("");
-  const highlightsPreview = useMemo(() => parseHighlights(highlightsText), [highlightsText]);
+  const canSubmit = useMemo(() => {
+    return title.trim().length >= 3 && description.trim().length >= 10 && cityId && categoryId;
+  }, [title, description, cityId, categoryId]);
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
-
-  const [uploading, setUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (imagePreview) URL.revokeObjectURL(imagePreview);
-    };
-  }, [imagePreview]);
-
-  function onPickFile(file: File) {
-    setError(null);
-
-    if (!file.type.startsWith("image/")) {
-      setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Nuotrauka per didelė. Maksimaliai 5MB.");
-      return;
-    }
-
-    setImageFile(file);
-
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
-  }
-
-  async function uploadServiceImage(serviceId: string): Promise<{ publicUrl: string; path: string } | null> {
-    if (!imageFile) return null;
-
-    setUploading(true);
-    try {
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData.user) {
-        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
-        return null;
-      }
-
-      const ext = imageFile.name.split(".").pop() || "jpg";
-      const userId = userData.user.id;
-      const path = `${userId}/services/${serviceId}/${Date.now()}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, imageFile, { cacheControl: "3600", upsert: false });
-
-      if (uploadError) {
-        console.error(uploadError);
-        setError("Nepavyko įkelti nuotraukos.");
-        return null;
-      }
-
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      if (!data?.publicUrl) {
-        setError("Nepavyko gauti nuotraukos URL.");
-        return null;
-      }
-
-      return { publicUrl: data.publicUrl, path };
-    } catch (e) {
-      console.error(e);
-      setError("Įvyko klaida įkeliant nuotrauką.");
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function handleSubmit(e: FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canSubmit) return;
+
     setError(null);
 
-    if (!title.trim() || !description.trim()) {
-      setError("Pavadinimas ir aprašymas yra privalomi.");
-      return;
-    }
+    const payload = {
+      title: title.trim(),
+      description: description.trim(),
+      cityId,
+      categoryId,
+      priceFrom: priceFrom ? Number(priceFrom) : null,
+      imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
+    };
 
-    const highlights = parseHighlights(highlightsText);
-
-    setIsSubmitting(true);
     try {
-      const res = await csrfFetch("/api/dashboard/services", {
+      // ⚠️ jei tavo endpointas vadinasi kitaip – pakeisk tik šitą URL
+      const res = await fetch("/api/dashboard/services", {
         method: "POST",
-        body: JSON.stringify({
-          title,
-          description,
-          cityId: cityId || null,
-          categoryId: categoryId || null,
-          priceFrom: priceFrom ? Number(priceFrom) : null,
-          imageUrl: null,
-          imagePath: null,
-          highlights,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (res.status === 401) {
-        router.push(loginUrl(locale, pathname));
-        return;
-      }
-      if (res.status === 403) {
-        setError("Neturite teikėjo statuso (DEMO planas / patvirtinimas).");
-        return;
-      }
-
-      const json = await res.json().catch(() => ({} as any));
+      const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(json?.error || "Nepavyko sukurti paslaugos. Bandykite dar kartą vėliau.");
+        throw new Error(json?.error ?? `Create failed (${res.status})`);
+      }
+
+      // jei backend grąžina slug arba id – redirectinam
+      const slug = json?.slug as string | undefined;
+      const id = json?.id as string | undefined;
+
+      if (slug) {
+        window.location.href = `/${locale}/dashboard/services/${slug}`;
+        return;
+      }
+      if (id) {
+        window.location.href = `/${locale}/dashboard/services/${id}`;
         return;
       }
 
-      const serviceId = json.id as string;
-
-      const uploaded = await uploadServiceImage(serviceId);
-
-      if (uploaded) {
-        const patchRes = await csrfFetch(`/api/dashboard/services/${serviceId}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            imageUrl: uploaded.publicUrl,
-            imagePath: uploaded.path,
-          }),
-        });
-
-        if (!patchRes.ok) {
-          console.warn("Image patch failed", await patchRes.text().catch(() => ""));
-        }
-      }
-
-      router.push(`/${locale}/dashboard`);
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-      setError("Serverio klaida. Bandykite dar kartą.");
-    } finally {
-      setIsSubmitting(false);
+      window.location.href = `/${locale}/dashboard/services`;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Nepavyko sukurti paslaugos.");
     }
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      {error && <p className={styles.errorText}>{error}</p>}
+    <form className={styles.card} onSubmit={onSubmit}>
+      <div className={styles.grid}>
+        <label className={styles.field}>
+          <span className={styles.label}>Pavadinimas</span>
+          <input
+            className={styles.input}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Pvz. Elektriko paslaugos Osle"
+            minLength={3}
+            required
+          />
+        </label>
 
-      {/* tavo JSX palieku kaip buvo */}
-      {/* ... */}
-      <button type="submit" className={styles.primaryButton} disabled={isSubmitting || uploading}>
-        {isSubmitting ? "Kuriama..." : "Sukurti paslaugą"}
+        <label className={styles.field}>
+          <span className={styles.label}>Miestas</span>
+          <select className={styles.input} value={cityId} onChange={(e) => setCityId(e.target.value)} required>
+            <option value="">Pasirinkite...</option>
+            {cities.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Kategorija</span>
+          <select
+            className={styles.input}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            required
+          >
+            <option value="">Pasirinkite...</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Kaina nuo (NOK)</span>
+          <input
+            className={styles.input}
+            value={priceFrom}
+            onChange={(e) => setPriceFrom(e.target.value)}
+            placeholder="Pvz. 500"
+            inputMode="numeric"
+          />
+        </label>
+
+        <label className={styles.fieldFull}>
+          <span className={styles.label}>Aprašymas</span>
+          <textarea
+            className={styles.textarea}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Trumpai aprašyk paslaugą, miestą, kainą, terminus ir pan."
+            minLength={10}
+            required
+          />
+        </label>
+
+        <label className={styles.fieldFull}>
+          <span className={styles.label}>Nuotraukos URL (nebūtina)</span>
+          <input
+            className={styles.input}
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://..."
+          />
+        </label>
+      </div>
+
+      {error && <div className={styles.errorInline}>{error}</div>}
+
+      <button className={styles.submit} type="submit" disabled={!canSubmit}>
+        Sukurti paslaugą
       </button>
     </form>
   );
