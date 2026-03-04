@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/seo";
 import { absOg } from "@/lib/seo-118n";
-import { Poppins, Roboto } from "next/font/google";
+import { Poppins, Roboto, Fira_Code } from "next/font/google";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,6 +20,12 @@ const roboto = Roboto({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-second",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-mono",
 });
 
 type Props = {
@@ -82,7 +88,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <div
-      className={`${poppins.variable} ${roboto.variable} app-shell`}
+      className={`${poppins.variable} ${roboto.variable} ${firaCode.variable} app-shell`}
       data-locale={locale}
     >
       <NextIntlClientProvider messages={messages}>

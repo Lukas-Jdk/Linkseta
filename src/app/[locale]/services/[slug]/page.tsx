@@ -16,10 +16,7 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -54,6 +51,14 @@ function buildLanguageAlternates(slug: string) {
   };
 }
 
+function isSafeAvatarUrl(url: string | null | undefined) {
+  if (!url) return false;
+  const s = url.trim();
+  if (!s) return false;
+  // leiskim tik http(s) arba local path (/...)
+  return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/");
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -76,9 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(
-      service.description || "Find service providers in Norway on Linkseta.",
-    ),
+    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
     160,
   );
 
@@ -150,24 +153,24 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName =
-    service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
+  // ✅ AVATAR (nuotrauka jei yra, kitaip initial)
+  const sellerAvatarUrl = isSafeAvatarUrl((service.user as any)?.avatarUrl)
+    ? String((service.user as any)?.avatarUrl).trim()
+    : null;
+
   const priceLabel = service.priceFrom != null ? "Kaina nuo" : "Kaina";
   const priceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "Kaina sutartinė";
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "Kaina sutartinė";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
   )}`;
 
-  const highlights = Array.isArray(service.highlights)
-    ? service.highlights
-    : [];
+  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
 
   // JSON-LD (Service schema)
@@ -227,12 +230,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
                     <h1 className={styles.title}>{service.title}</h1>
 
                     <div className={styles.ratingRow}>
-                      <span className={styles.ratingValue}>
-                        ⭐ {ratingValue.toFixed(1)}
-                      </span>
-                      <span className={styles.ratingCount}>
-                        ({ratingCount})
-                      </span>
+                      <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
+                      <span className={styles.ratingCount}>({ratingCount})</span>
                     </div>
 
                     <div className={styles.metaRow}>
@@ -241,9 +240,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <span className={styles.metaChip}>📅 {created}</span>
                     </div>
 
-                    <div className={styles.quickInfo}>
-                      ⚡ Dažniausiai atsako per 1 val.
-                    </div>
+                    <div className={styles.quickInfo}>⚡ Dažniausiai atsako per 1 val.</div>
                   </div>
                 </div>
               </div>
@@ -251,10 +248,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
               {/* CONTENT */}
               <div className={styles.contentCard}>
                 <div className={styles.tabs}>
-                  <a
-                    className={`${styles.tab} ${styles.tabActive}`}
-                    href="#apie"
-                  >
+                  <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
                     Apie paslaugą
                   </a>
                   <a className={styles.tab} href="#atsiliepimai">
@@ -269,9 +263,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                 {hasHighlights && (
                   <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>
-                      Kodėl verta rinktis šią paslaugą?
-                    </h2>
+                    <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
                     <ul className={styles.bullets}>
                       {highlights.map((h, i) => (
                         <li key={i}>✅ {h}</li>
@@ -301,7 +293,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
               <div className={styles.sellerBlock}>
                 <div className={styles.sellerRow}>
                   <div className={styles.sellerAvatar} aria-hidden="true">
-                    {sellerInitial}
+                    {sellerAvatarUrl ? (
+                      <img
+                        className={styles.sellerAvatarImg}
+                        src={sellerAvatarUrl}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      sellerInitial
+                    )}
                   </div>
 
                   <div className={styles.sellerInfo}>
@@ -309,9 +310,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                     <div className={styles.sellerNameRow}>
                       <span className={styles.sellerName}>{sellerName}</span>
-                      {isVerified && (
-                        <span className={styles.verified}>✔ Patvirtintas</span>
-                      )}
+                      {isVerified && <span className={styles.verified}>✔ Patvirtintas</span>}
                     </div>
                   </div>
                 </div>

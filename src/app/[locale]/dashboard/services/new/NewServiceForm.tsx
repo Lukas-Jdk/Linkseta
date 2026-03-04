@@ -4,29 +4,53 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { csrfFetch } from "@/lib/csrfClient";
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "./NewServiceForm.module.css";
 
-type Option = { id: string; name: string };
+type Option = { id: string; name: string; slug?: string };
 
 type Props = {
   cities: Option[];
   categories: Option[];
 };
 
+function trimOrEmpty(v: string) {
+  return v.trim();
+}
+
+function publicStorageUrl(baseUrl: string, bucket: string, path: string) {
+  return `${baseUrl}/storage/v1/object/public/${bucket}/${path}`;
+}
+
 export default function NewServiceForm({ cities, categories }: Props) {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const [title, setTitle] = useState("");
   const [cityId, setCityId] = useState(cities?.[0]?.id ?? "");
   const [categoryId, setCategoryId] = useState(categories?.[0]?.id ?? "");
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+
+  // ✅ optional highlights (3 punktai su varnelėm)
+  const [h1, setH1] = useState("");
+  const [h2, setH2] = useState("");
+  const [h3, setH3] = useState("");
+
+  // ✅ image upload (gallery)
+  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imagePath, setImagePath] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const highlights = useMemo(() => {
+    return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
+  }, [h1, h2, h3]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -34,9 +58,54 @@ export default function NewServiceForm({ cities, categories }: Props) {
       description.trim().length >= 10 &&
       Boolean(cityId) &&
       Boolean(categoryId) &&
-      !submitting
+      !submitting &&
+      !uploading
     );
-  }, [title, description, cityId, categoryId, submitting]);
+  }, [title, description, cityId, categoryId, submitting, uploading]);
+
+  async function handlePickImage(file: File | null) {
+    if (!file) return;
+
+    setError(null);
+
+    if (!file.type.startsWith("image/")) {
+      setError("Failas turi būti nuotrauka.");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      setError("Nuotrauka per didelė (max ~6MB).");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const bucket = "service-images";
+
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const fileName = `${crypto.randomUUID()}.${ext}`;
+      const path = `services/${fileName}`;
+
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+      if (upErr) throw new Error(upErr.message || "Nepavyko įkelti nuotraukos.");
+
+      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const publicUrl = publicStorageUrl(baseUrl, bucket, path);
+
+      setImagePath(path);
+      setImageUrl(publicUrl);
+    } catch (e) {
+      setImagePath(null);
+      setImageUrl(null);
+      setError(e instanceof Error ? e.message : "Įvyko klaida keliant nuotrauką.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,28 +121,30 @@ export default function NewServiceForm({ cities, categories }: Props) {
         categoryId,
         priceFrom: priceFrom.trim() ? Number(priceFrom) : null,
         description: description.trim(),
-        imageUrl: imageUrl.trim() ? imageUrl.trim() : null,
+
+        // ✅ siunčiam highlightus (API pas tave jau palaiko)
+        highlights,
+
+        // ✅ nuotrauka iš galerijos (API pas tave jau palaiko)
+        imageUrl,
+        imagePath,
       };
 
       const res = await csrfFetch("/api/dashboard/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // jei tavo csrfFetch nededa pats – tada būtina:
         credentials: "include",
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        // serveris pas tave dažniausiai grąžina JSON { error: "..."}
         const data = await res.json().catch(() => null);
         const msg =
           data?.error ??
-          (res.status === 403 ? "CSRF check failed" : "Nepavyko sukurti paslaugos");
+          (res.status === 403 ? "Forbidden / CSRF check failed" : "Nepavyko sukurti paslaugos");
         throw new Error(msg);
       }
 
-      // jei serveris grąžina { id } ar { slug } – pasiimk ir redirectink gražiau.
-      // dabar tiesiog grįžtam į dashboard services listą:
       router.push(`/${locale}/dashboard/services`);
       router.refresh();
     } catch (err) {
@@ -99,11 +170,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         <div className={styles.field}>
           <label className={styles.label}>Miestas</label>
-          <select
-            className={styles.select}
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-          >
+          <select className={styles.select} value={cityId} onChange={(e) => setCityId(e.target.value)}>
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -114,11 +181,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         <div className={styles.field}>
           <label className={styles.label}>Kategorija</label>
-          <select
-            className={styles.select}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
+          <select className={styles.select} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -149,19 +212,81 @@ export default function NewServiceForm({ cities, categories }: Props) {
           />
         </div>
 
+        {/* ✅ Highlights */}
         <div className={styles.fieldFull}>
-          <label className={styles.label}>Nuotraukos URL (nebūtina)</label>
+          <div className={styles.highHeader}>
+            <div className={styles.highTitle}>Kodėl rinktis mane? (nebūtina)</div>
+            <div className={styles.highHint}>Gali įrašyti 1–3 punktus su ✅</div>
+          </div>
+
+          <div className={styles.highList}>
+            <div className={styles.highRow}>
+              <span className={styles.tick}>✅</span>
+              <input
+                className={styles.input}
+                value={h1}
+                onChange={(e) => setH1(e.target.value)}
+                placeholder="Pvz. Greitas atvykimas"
+                autoComplete="off"
+              />
+            </div>
+
+            <div className={styles.highRow}>
+              <span className={styles.tick}>✅</span>
+              <input
+                className={styles.input}
+                value={h2}
+                onChange={(e) => setH2(e.target.value)}
+                placeholder="Pvz. 5 metų patirtis"
+                autoComplete="off"
+              />
+            </div>
+
+            <div className={styles.highRow}>
+              <span className={styles.tick}>✅</span>
+              <input
+                className={styles.input}
+                value={h3}
+                onChange={(e) => setH3(e.target.value)}
+                placeholder="Pvz. Garantija darbams"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ✅ Image upload */}
+        <div className={styles.fieldFull}>
+          <label className={styles.label}>Nuotrauka iš galerijos (nebūtina)</label>
+
           <input
-            className={styles.input}
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://..."
-            autoComplete="off"
+            className={styles.file}
+            type="file"
+            accept="image/*"
+            onChange={(e) => handlePickImage(e.target.files?.[0] ?? null)}
           />
+
+          {uploading && <div className={styles.muted}>Įkeliama nuotrauka...</div>}
+
+          {imageUrl && (
+            <div className={styles.preview}>
+              <img src={imageUrl} alt="Preview" className={styles.previewImg} />
+              <button
+                type="button"
+                className={styles.removeBtn}
+                onClick={() => {
+                  setImageUrl(null);
+                  setImagePath(null);
+                }}
+              >
+                Pašalinti
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.errorInline}>{error}</div>}
 
       <button className={styles.submit} type="submit" disabled={!canSubmit}>
         {submitting ? "Kuriama..." : "Sukurti paslaugą"}

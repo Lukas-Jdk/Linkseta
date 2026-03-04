@@ -23,17 +23,19 @@ export default async function NewServicePage({ params }: Props) {
   ]);
 
   return (
-    <main className={styles.wrapper}>
-      <div className={styles.shell}>
-        <h1 className={styles.title}>Nauja paslauga</h1>
-        <p className={styles.subtitle}>
-          Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą.
-        </p>
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1 className={styles.title}>Nauja paslauga</h1>
+          <p className={styles.subtitle}>
+            Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą.
+          </p>
+        </header>
 
         <div className={styles.card}>
           <NewServiceForm
             cities={cities.map((c) => ({ id: c.id, name: c.name }))}
-            categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+            categories={categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
           />
         </div>
       </div>

@@ -75,11 +75,6 @@ export default function Footer() {
                   {tNav("privacy")}
                 </LocalizedLink>
               </li>
-              <li>
-                <LocalizedLink className={styles.link} href="/susisiekite">
-                  {tNav("contact")}
-                </LocalizedLink>
-              </li>
             </ul>
           </nav>
 
@@ -133,7 +128,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className={styles.createdByLink}
             >
-              LjD
+              Lj<span className={styles.createdBySpan}>D</span>
             </a>
           </p>
         </div>

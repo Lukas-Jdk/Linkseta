@@ -66,6 +66,9 @@ model ServiceListing {
   highlighted Boolean  @default(false)
   highlights  String[] @default([])
   imageUrl    String?
+  why1        String?
+  why2        String?
+  why3        String?
   imagePath   String?
   cityId      String?
   categoryId  String?

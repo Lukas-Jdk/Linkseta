@@ -17,9 +17,19 @@
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 6px;
+  color: #0f172a;
 }
 
 .subtitle {
   margin: 0;
   opacity: 0.85;
+  color: #334155;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.08);
 }

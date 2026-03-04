@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     const user = await getAuthUser();
     if (!user) return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
 
-    //  pasiimam profilį + planą (maxListings)
+    // ✅ patikrinam provider profilį ir limitus (palieku tavo logiką)
     const profile = await prisma.providerProfile.findUnique({
       where: { userId: user.id },
       select: {
@@ -78,8 +78,6 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Forbidden" }, { status: 403 });
     }
 
-    //  maxListings enforcement
-    // Jei planas null -> traktuojam kaip demo (1) arba gali pakeist į "no plan"
     const planSlug = profile.plan?.slug ?? "demo";
     const planName = profile.plan?.name ?? "Demo";
     const maxListings =
@@ -87,11 +85,7 @@ export async function POST(req: Request) {
 
     if (Number.isFinite(maxListings) && maxListings > 0) {
       const activeCount = await prisma.serviceListing.count({
-        where: {
-          userId: user.id,
-          isActive: true,
-          deletedAt: null,
-        },
+        where: { userId: user.id, isActive: true, deletedAt: null },
       });
 
       if (activeCount >= maxListings) {
@@ -128,6 +122,7 @@ export async function POST(req: Request) {
 
     const imageUrl =
       typeof body?.imageUrl === "string" ? body.imageUrl.trim().slice(0, 600) : null;
+
     const imagePath =
       typeof body?.imagePath === "string" ? body.imagePath.trim().slice(0, 300) : null;
 
@@ -138,6 +133,7 @@ export async function POST(req: Request) {
           .slice(0, 6)
       : [];
 
+    // ✅ PRIEŽASTIS tavo klaidos: čia sugeneruojam slug + pridedam userId
     const baseSlug = slugify(title) || "service";
     const slug = await uniqueSlugGlobal(baseSlug);
 

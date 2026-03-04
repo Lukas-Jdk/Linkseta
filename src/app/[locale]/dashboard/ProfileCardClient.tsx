@@ -30,6 +30,11 @@ export default function ProfileCardClient({
   const displayName = name?.trim() || email.split("@")[0];
   const initial = getInitialLetter(name, email);
 
+  // ✅ teisingas labelis
+  const accountTypeLabel = isProviderApproved
+    ? "Paslaugų teikėjas"
+    : "Vartotojas";
+
   return (
     <aside className={styles.profileCard}>
       <div className={styles.profileHeaderBg} />
@@ -45,7 +50,7 @@ export default function ProfileCardClient({
 
         <div className={styles.profileIdentity}>
           <div className={styles.profileName}>{displayName}</div>
-          <div className={styles.profileType}>Paslaugų teikėjas</div>
+          <div className={styles.profileType}>{accountTypeLabel}</div>
         </div>
 
         <div className={styles.profileInfoList}>

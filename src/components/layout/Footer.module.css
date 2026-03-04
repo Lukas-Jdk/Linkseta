@@ -137,14 +137,17 @@
 }
 
 .createdByLink {
-  text-decoration: underline;
-  font-weight: 400;
-  color: #0ea5e9;
+ 
+  font-weight:700;
+
+  font-family: var(--font-mono);
 }
 .createdByLink:hover {
   opacity: 0.85;
 }
-
+.createdBySpan {
+  color:#00CCFF
+}
 
 @media (max-width: 920px) {
   .grid {
