@@ -6,6 +6,16 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
 
+import {
+  MapPin,
+  Folder,
+  CalendarDays,
+  Zap,
+  Mail,
+  Phone,
+  BadgeCheck,
+} from "lucide-react";
+
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
 
@@ -55,7 +65,6 @@ function isSafeAvatarUrl(url: string | null | undefined) {
   if (!url) return false;
   const s = url.trim();
   if (!s) return false;
-  // leiskim tik http(s) arba local path (/...)
   return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/");
 }
 
@@ -149,7 +158,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const category = service.category?.name ?? "—";
   const created = formatDateLT(service.createdAt);
 
-  // DEMO rating
   const ratingValue = 5.0;
   const ratingCount = 1;
 
@@ -157,14 +165,23 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
-  // ✅ AVATAR (nuotrauka jei yra, kitaip initial)
   const sellerAvatarUrl = isSafeAvatarUrl((service.user as any)?.avatarUrl)
     ? String((service.user as any)?.avatarUrl).trim()
     : null;
 
-  const priceLabel = service.priceFrom != null ? "Kaina nuo" : "Kaina";
+  const phoneRaw = (service.user as any)?.phone
+    ? String((service.user as any).phone).trim()
+    : "";
+  const phone = phoneRaw || null;
+  const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+
   const priceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "Kaina sutartinė";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "Kaina sutartinė";
+
+  const mobileCompactPriceValue =
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)}€` : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
@@ -173,7 +190,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
 
-  // JSON-LD (Service schema)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -196,6 +212,157 @@ export default async function ServiceDetailsPage({ params }: Props) {
     },
   };
 
+  const SellerCard = (
+    <div className={styles.sideCard}>
+      <div className={styles.sellerHeader}>
+        <div className={styles.sellerAvatarWrap}>
+          <div className={styles.sellerAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
+
+          <span className={styles.onlineDot} aria-hidden="true" />
+        </div>
+
+        <div className={styles.sellerName}>{sellerName}</div>
+
+        <div className={styles.sellerSubtitle}>
+          {isVerified ? "Sertifikuotas specialistas" : "Paslaugos teikėjas"}
+        </div>
+
+        {isVerified && (
+          <div className={styles.verifiedBadge}>
+            <BadgeCheck size={16} />
+            Patvirtintas
+          </div>
+        )}
+      </div>
+
+      <div className={styles.priceBox}>
+        <div className={styles.priceBoxLabel}>PASLAUGOS KAINA</div>
+        <div className={styles.priceBoxValue}>{priceValue}</div>
+      </div>
+
+      <div className={styles.sideActions}>
+        <a className={styles.primaryBtn} href={mailto}>
+          <Mail size={18} />
+          Rašyti el. paštu
+        </a>
+
+        {telHref ? (
+          <a className={styles.secondaryBtn} href={telHref}>
+            <Phone size={18} />
+            Skambinti dabar
+          </a>
+        ) : (
+          <button className={styles.secondaryBtn} type="button" disabled>
+            <Phone size={18} />
+            Skambinti (nėra tel.)
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const MobileSellerCompact = (
+    <div className={styles.mobileCompactSellerCard}>
+      <div className={styles.mobileCompactSeller}>
+        <div className={styles.mobileCompactLeft}>
+          <div className={styles.mobileCompactAvatarWrap}>
+            <div className={styles.mobileCompactAvatar} aria-hidden="true">
+              {sellerAvatarUrl ? (
+                <img
+                  className={styles.sellerAvatarImg}
+                  src={sellerAvatarUrl}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                sellerInitial
+              )}
+            </div>
+          </div>
+
+          <div className={styles.mobileCompactInfo}>
+            <div className={styles.mobileCompactName}>{sellerName}</div>
+            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
+          </div>
+        </div>
+
+        <div className={styles.mobileCompactPrice}>
+          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
+          <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const MobileBottomSellerCard = (
+    <div className={styles.mobileBottomSellerCard}>
+      <div className={styles.mobileBottomSellerHeader}>
+        <div className={styles.mobileBottomAvatarWrap}>
+          <div className={styles.mobileBottomAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
+          <span className={styles.onlineDot} aria-hidden="true" />
+        </div>
+
+        <div className={styles.mobileBottomSellerName}>{sellerName}</div>
+        <div className={styles.mobileBottomSellerSubtitle}>
+          {isVerified ? "Sertifikuotas specialistas" : "Paslaugos teikėjas"}
+        </div>
+
+        {isVerified && (
+          <div className={styles.mobileBottomVerified}>
+            <BadgeCheck size={16} />
+            Patvirtintas
+          </div>
+        )}
+      </div>
+
+      <div className={styles.mobileBottomPriceBox}>
+        <div className={styles.mobileBottomPriceLabel}>PASLAUGOS KAINA</div>
+        <div className={styles.mobileBottomPriceValue}>{priceValue}</div>
+      </div>
+
+      <div className={styles.mobileBottomActions}>
+        <a className={styles.primaryBtn} href={mailto}>
+          <Mail size={18} />
+          Rašyti el. paštu
+        </a>
+
+        {telHref ? (
+          <a className={styles.secondaryBtn} href={telHref}>
+            <Phone size={18} />
+            Skambinti dabar
+          </a>
+        ) : (
+          <button className={styles.secondaryBtn} type="button" disabled>
+            <Phone size={18} />
+            Skambinti (nėra tel.)
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <main className={styles.page}>
       <div className="container">
@@ -212,118 +379,101 @@ export default async function ServiceDetailsPage({ params }: Props) {
         </div>
 
         <div className={styles.layout}>
-          {/* LEFT */}
           <section className={styles.left}>
-            <div className={styles.stackCard}>
-              {/* HERO */}
-              <div className={styles.heroCard}>
-                <div className={styles.heroTop}>
-                  <div className={styles.heroMedia}>
-                    <GalleryClient
-                      title={service.title}
-                      images={images}
-                      highlighted={service.highlighted}
-                    />
-                  </div>
+            <div className={styles.mobileCards}>
+              <div className={styles.heroCardWrap}>
+                <div className={styles.heroCard}>
+                  <div className={styles.heroTop}>
+                    <div className={styles.heroMedia}>
+                      <GalleryClient
+                        title={service.title}
+                        images={images}
+                        highlighted={service.highlighted}
+                      />
 
-                  <div className={styles.heroContent}>
-                    <h1 className={styles.title}>{service.title}</h1>
-
-                    <div className={styles.ratingRow}>
-                      <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
-                      <span className={styles.ratingCount}>({ratingCount})</span>
+                      <div className={styles.categoryPillOnImage}>
+                        {category !== "—" ? category : "Paslauga"}
+                      </div>
                     </div>
 
-                    <div className={styles.metaRow}>
-                      <span className={styles.metaChip}>📍 {city}</span>
-                      <span className={styles.metaChip}>📁 {category}</span>
-                      <span className={styles.metaChip}>📅 {created}</span>
-                    </div>
+                    <div className={styles.heroContent}>
+                      <h1 className={styles.title}>{service.title}</h1>
 
-                    <div className={styles.quickInfo}>⚡ Dažniausiai atsako per 1 val.</div>
+                      <div className={styles.ratingRow}>
+                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
+                        <span className={styles.ratingCount}>({ratingCount})</span>
+                      </div>
+
+                      <div className={styles.metaRow}>
+                        <span className={styles.metaChip}>
+                          <MapPin size={16} />
+                          {city}
+                        </span>
+                        <span className={styles.metaChip}>
+                          <Folder size={16} />
+                          {category}
+                        </span>
+                        <span className={styles.metaChip}>
+                          <CalendarDays size={16} />
+                          {created}
+                        </span>
+                      </div>
+
+                      <div className={styles.quickInfo}>
+                        <Zap size={16} />
+                        Dažniausiai atsako per 1 val.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* CONTENT */}
-              <div className={styles.contentCard}>
-                <div className={styles.tabs}>
-                  <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
-                    Apie paslaugą
-                  </a>
-                  <a className={styles.tab} href="#atsiliepimai">
-                    Atsiliepimai
-                  </a>
-                </div>
+              <div className={styles.mobileSeller}>{MobileSellerCompact}</div>
 
-                <div id="apie" className={styles.section}>
-                  <h2 className={styles.sectionTitle}>Aprašymas</h2>
-                  <p className={styles.desc}>{service.description}</p>
-                </div>
-
-                {hasHighlights && (
-                  <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
-                    <ul className={styles.bullets}>
-                      {highlights.map((h, i) => (
-                        <li key={i}>✅ {h}</li>
-                      ))}
-                    </ul>
+              <div className={styles.contentCardWrap}>
+                <div className={styles.contentCard}>
+                  <div className={styles.tabs}>
+                    <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
+                      Apie paslaugą
+                    </a>
+                    <a className={styles.tab} href="#atsiliepimai">
+                      Atsiliepimai
+                    </a>
                   </div>
-                )}
 
-                <div id="atsiliepimai" className={styles.section}>
-                  <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
-                  <p className={styles.descSmall}>
-                    DEMO: atsiliepimai bus vėliau (kai pridėsiu review sistemą).
-                  </p>
+                  <div id="apie" className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Aprašymas</h2>
+                    <p className={styles.desc}>{service.description}</p>
+                  </div>
+
+                  {hasHighlights && (
+                    <div className={styles.section}>
+                      <h2 className={styles.sectionTitle}>
+                        Kodėl verta rinktis šią paslaugą?
+                      </h2>
+                      <ul className={styles.bullets}>
+                        {highlights.map((h, i) => (
+                          <li key={i}>✅ {h}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div id="atsiliepimai" className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
+                    <p className={styles.descSmall}>
+                      DEMO: atsiliepimai bus vėliau (kai pridėsiu review sistemą).
+                    </p>
+                  </div>
                 </div>
               </div>
+
+              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
             </div>
           </section>
 
-          {/* RIGHT */}
           <aside className={styles.right}>
-            <div className={styles.sideCard}>
-              <div className={styles.priceBlock}>
-                <div className={styles.sideLabel}>{priceLabel}</div>
-                <div className={styles.sidePrice}>{priceValue}</div>
-              </div>
-
-              <div className={styles.sellerBlock}>
-                <div className={styles.sellerRow}>
-                  <div className={styles.sellerAvatar} aria-hidden="true">
-                    {sellerAvatarUrl ? (
-                      <img
-                        className={styles.sellerAvatarImg}
-                        src={sellerAvatarUrl}
-                        alt=""
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      sellerInitial
-                    )}
-                  </div>
-
-                  <div className={styles.sellerInfo}>
-                    <div className={styles.sellerLabel}>Skelbėjas</div>
-
-                    <div className={styles.sellerNameRow}>
-                      <span className={styles.sellerName}>{sellerName}</span>
-                      {isVerified && <span className={styles.verified}>✔ Patvirtintas</span>}
-                    </div>
-                  </div>
-                </div>
-
-                <a className={styles.primaryBtn} href={mailto}>
-                  ✉ Rašyti el. paštu
-                </a>
-
-                <button className={styles.secondaryBtn} type="button" disabled>
-                  💬 Siųsti žinutę (bus vėliau)
-                </button>
-              </div>
-            </div>
+            <div className={styles.desktopSeller}>{SellerCard}</div>
           </aside>
         </div>
       </div>
