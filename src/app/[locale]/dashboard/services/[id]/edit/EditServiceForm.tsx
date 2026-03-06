@@ -243,8 +243,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      {error && <p className={styles.errorText}>{error}</p>}
-      {success && <p className={styles.successText}>{success}</p>}
+      
 
       {/* ... tavo JSX palieku kaip buvo ... */}
 
@@ -379,6 +378,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         </div>
 
         <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.</p>
+        {error && <p className={styles.errorText}>{error}</p>}
+      {success && <p className={styles.successText}>{success}</p>}
       </section>
 
       <section className={styles.sectionCard}>
@@ -409,6 +410,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           </button>
         </div>
       </div>
+    
     </form>
   );
 }

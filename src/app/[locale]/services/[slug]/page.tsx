@@ -272,6 +272,37 @@ export default async function ServiceDetailsPage({ params }: Props) {
     </div>
   );
 
+  const TabletInlineSeller = (
+    <div className={styles.tabletInlineSeller}>
+      <div className={styles.tabletInlineSellerLeft}>
+        <div className={styles.tabletInlineAvatarWrap}>
+          <div className={styles.tabletInlineAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
+        </div>
+
+        <div className={styles.tabletInlineInfo}>
+          <div className={styles.tabletInlineName}>{sellerName}</div>
+          <div className={styles.tabletInlineSubtitle}>Paslaugos teikėjas</div>
+        </div>
+      </div>
+
+      <div className={styles.tabletInlinePrice}>
+        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
+        <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
+      </div>
+    </div>
+  );
+
   const MobileSellerCompact = (
     <div className={styles.mobileCompactSellerCard}>
       <div className={styles.mobileCompactSeller}>
@@ -423,6 +454,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
                         <Zap size={16} />
                         Dažniausiai atsako per 1 val.
                       </div>
+
+                      {TabletInlineSeller}
                     </div>
                   </div>
                 </div>
