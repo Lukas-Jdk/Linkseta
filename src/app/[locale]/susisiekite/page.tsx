@@ -33,16 +33,14 @@ export default async function ContactPage() {
           <h1 className={styles.title}>Susisiekite</h1>
           <p className={styles.subtitle}>
             Turite klausimų apie platformą, paslaugas ar norite pasiūlyti idėją?
-            Parašykite – atsakysiu kuo greičiau.
+            Parašykite – atsakysime kuo greičiau.
           </p>
         </section>
 
         <section className={styles.grid}>
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Kontaktai</h2>
-            <p className={styles.text}>
-              Kol kas geriausias būdas susisiekti – el. paštu.
-            </p>
+            
 
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>El. paštas</span>

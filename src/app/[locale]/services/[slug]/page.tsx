@@ -495,7 +495,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                   <div id="atsiliepimai" className={styles.section}>
                     <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
                     <p className={styles.descSmall}>
-                      DEMO: atsiliepimai bus vėliau (kai pridėsiu review sistemą).
+                      Atsiliepimai bus vėliau (kai pridėsiu review sistemą).
                     </p>
                   </div>
                 </div>

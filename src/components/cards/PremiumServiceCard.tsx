@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star, MapPin, ShieldCheck } from "lucide-react";
+import { Star, MapPin, CalendarDays, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
 export interface PremiumServiceCardProps {
@@ -20,10 +20,21 @@ export interface PremiumServiceCardProps {
   locale: string;
 }
 
+function formatPriceNOK(value: number) {
+  return new Intl.NumberFormat("nb-NO").format(value);
+}
+
+function formatTodayLikeCard() {
+  return new Intl.DateTimeFormat("lt-LT", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export default function PremiumServiceCard({
   id,
   title,
-  description,
   city,
   category,
   priceFrom,
@@ -32,16 +43,18 @@ export default function PremiumServiceCard({
   imageUrl,
   locale,
 }: PremiumServiceCardProps) {
-  const formattedPrice =
-    priceFrom != null
-      ? `${new Intl.NumberFormat("nb-NO").format(priceFrom)} NOK`
-      : "Kaina sutartinė";
-
   const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultCenterImg = "/logo.webp";
 
   const serviceHref = `/${locale}/services/${slug}`;
   const contactHref = `/${locale}/services/${slug}#kontaktai`;
+
+  const formattedPrice =
+    priceFrom != null
+      ? `nuo ${formatPriceNOK(priceFrom)} NOK`
+      : "Kaina sutartinė";
+
+  const ratingValue = highlighted ? 5.0 : 4.9;
 
   return (
     <div className={styles.cardContainer} data-id={id}>
@@ -52,8 +65,8 @@ export default function PremiumServiceCard({
           aria-label={`Atidaryti paslaugą: ${title}`}
         />
 
-        {/* Background */}
-        <div className={styles.backgroundContainer} aria-hidden="true">
+        {/* TOP IMAGE AREA */}
+        <div className={styles.imageWrap} aria-hidden="true">
           {hasUserImage ? (
             <>
               <Image
@@ -64,20 +77,19 @@ export default function PremiumServiceCard({
                 className={styles.coverImage}
                 priority={highlighted}
               />
-              <div className={styles.coverOverlay} />
+              <div className={styles.imageShade} />
             </>
           ) : (
             <>
               <div className={styles.heroBg} />
               <div className={styles.heroShine} />
               <div className={styles.heroNoise} />
-
               <div className={styles.centerArt}>
                 <Image
                   src={defaultCenterImg}
                   alt=""
-                  width={220}
-                  height={220}
+                  width={200}
+                  height={200}
                   className={styles.centerArtImg}
                   priority={false}
                 />
@@ -85,76 +97,62 @@ export default function PremiumServiceCard({
             </>
           )}
 
-          {highlighted && <div className={styles.premiumGlow} />}
+          {priceFrom != null && (
+            <div className={styles.priceBadge}>{formattedPrice}</div>
+          )}
+
+          {highlighted && (
+            <div className={styles.topBadge}>
+              <ShieldCheck className={styles.topBadgeIcon} />
+              TOP
+            </div>
+          )}
         </div>
 
-        {/* Content */}
-        <div className={styles.content}>
-          {/* Header */}
-          <div className={styles.header}>
-            <div className={styles.badges}>
-              <span className={styles.categoryBadge}>{category}</span>
+        {/* BOTTOM INFO */}
+        <div className={styles.body}>
+          <div className={styles.topRow}>
+            <span className={styles.category}>{category || "Kategorija"}</span>
 
-              {highlighted && (
-                <span className={styles.premiumBadge}>
-                  <ShieldCheck className={styles.premiumIcon} />
-                  TOP
-                </span>
-              )}
-            </div>
-
-            <div className={styles.ratingContainer} aria-label="Atsiliepimai">
-              <div className={styles.ratingBadge}>
-                <Star className={styles.starIcon} />
-                <span className={styles.ratingText}>Nėra įvertinimų</span>
-              </div>
-            </div>
+            <span className={styles.rating}>
+              <Star className={styles.ratingIcon} />
+              {ratingValue.toFixed(1)}
+            </span>
           </div>
 
-          {/* Info */}
-          <div className={styles.info}>
-            <div>
-              <div className={styles.location}>
-                <MapPin className={styles.locationIcon} />
-                {city}
-              </div>
+          <h3 className={styles.title}>{title}</h3>
 
-              <h3 className={styles.title}>{title}</h3>
-              <p className={styles.description}>{description}</p>
-            </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoItem}>
+              <MapPin className={styles.infoIcon} />
+              {city || "—"}
+            </span>
 
-            <div className={styles.footer}>
-              <div className={styles.priceContainer}>
-                <span className={styles.priceLabel}>
-                  {priceFrom != null ? "Kaina nuo" : "Kaina"}
-                </span>
-                <span className={styles.priceValue} title={formattedPrice}>
-                  {formattedPrice}
-                </span>
-              </div>
-
-              <div className={styles.actions}>
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <Link
-                    href={contactHref}
-                    className={`${styles.contactButton} ${
-                      highlighted
-                        ? styles.contactButtonPremium
-                        : styles.contactButtonStandard
-                    }`}
-                  >
-                    Susisiekti
-                  </Link>
-                </motion.div>
-              </div>
-            </div>
+            <span className={styles.infoItem}>
+              <CalendarDays className={styles.infoIcon} />
+              {formatTodayLikeCard()}
+            </span>
           </div>
-          {/* /info */}
+
+          <div className={styles.footer}>
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={styles.buttonWrap}
+            >
+              <Link
+                href={contactHref}
+                className={`${styles.contactButton} ${
+                  highlighted
+                    ? styles.contactButtonPremium
+                    : styles.contactButtonStandard
+                }`}
+              >
+                Susisiekti
+              </Link>
+            </motion.div>
+          </div>
         </div>
-        {/* /content */}
       </div>
     </div>
   );

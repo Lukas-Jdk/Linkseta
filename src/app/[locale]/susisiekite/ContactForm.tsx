@@ -41,7 +41,7 @@ export default function ContactForm() {
       </div>
 
       <button type="submit" className={styles.submitButton}>
-        Siųsti žinutę (demo)
+        Siųsti žinutę
       </button>
     </form>
   );

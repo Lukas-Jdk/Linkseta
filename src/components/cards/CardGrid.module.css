@@ -13,10 +13,11 @@
 }
 
 .heading {
-  font-size: 2rem;
+  font-size:2.5rem;
   font-weight: 700;
   color: var(--text-heading);
-  padding-bottom: 0.5rem;
+  padding-bottom: 2rem;
+  text-align: center;
 }
 
 .subheading {
@@ -56,6 +57,6 @@
   }
 
   .heading {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 }

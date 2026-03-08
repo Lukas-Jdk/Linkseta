@@ -28,7 +28,10 @@ async function removeFromStorage(path: string) {
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
@@ -44,7 +47,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { id } = await params;
 
@@ -65,18 +70,34 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
-    const safePrefix = `${user.id}/`;
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
+    if (!safePrefix) {
+      return NextResponse.json(
+        { error: "Missing supabaseId" },
+        { status: 400 },
+      );
+    }
 
     const body = await req.json().catch(() => ({} as any));
 
     const nextTitle = clampText(body?.title, 120) ?? service.title;
     const nextDesc = clampText(body?.description, 4000) ?? service.description;
 
-    const nextCityId = typeof body?.cityId === "string" ? body.cityId : service.cityId;
-    const nextCategoryId = typeof body?.categoryId === "string" ? body.categoryId : service.categoryId;
+    const nextCityId =
+      typeof body?.cityId === "string" ? body.cityId : service.cityId;
+
+    const nextCategoryId =
+      typeof body?.categoryId === "string"
+        ? body.categoryId
+        : service.categoryId;
 
     const nextPriceFrom =
       body?.priceFrom === undefined
@@ -84,18 +105,27 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         : body?.priceFrom === null
           ? null
           : Number.isFinite(Number(body.priceFrom))
-            ? Math.max(0, Math.min(10_000_000, Math.trunc(Number(body.priceFrom))))
+            ? Math.max(
+                0,
+                Math.min(10_000_000, Math.trunc(Number(body.priceFrom))),
+              )
             : service.priceFrom;
 
-    const nextIsActive = typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
+    const nextIsActive =
+      typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
 
     const nextImageUrl =
-      body?.imageUrl === undefined ? service.imageUrl : clampText(body?.imageUrl, 600);
+      body?.imageUrl === undefined
+        ? service.imageUrl
+        : clampText(body?.imageUrl, 600);
 
     const requestedPath =
-      body?.imagePath === undefined ? service.imagePath : clampText(body?.imagePath, 300);
+      body?.imagePath === undefined
+        ? service.imagePath
+        : clampText(body?.imagePath, 300);
 
-    const nextImagePath = requestedPath && requestedPath.length > 0 ? requestedPath : null;
+    const nextImagePath =
+      requestedPath && requestedPath.length > 0 ? requestedPath : null;
 
     if (nextImagePath && !nextImagePath.startsWith(safePrefix)) {
       return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
@@ -112,7 +142,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const isPathChanged = oldPath && nextImagePath && oldPath !== nextImagePath;
     const isRemoved = oldPath && !nextImagePath;
-    const shouldDeleteOld = (isPathChanged || isRemoved) && oldPath!.startsWith(safePrefix);
+    const shouldDeleteOld =
+      (isPathChanged || isRemoved) && oldPath!.startsWith(safePrefix);
 
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
@@ -127,10 +158,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         imagePath: nextImagePath,
         highlights,
       },
-      select: { id: true, imagePath: true, isActive: true, title: true },
+      select: {
+        id: true,
+        imagePath: true,
+        isActive: true,
+        title: true,
+      },
     });
 
-    if (shouldDeleteOld) await removeFromStorage(oldPath!);
+    if (shouldDeleteOld) {
+      await removeFromStorage(oldPath!);
+    }
 
     await auditLog({
       action: "SERVICE_UPDATE",
@@ -160,7 +198,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
   const ua = req.headers.get("user-agent") ?? null;
@@ -176,7 +217,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     });
 
     const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const { id } = await params;
 
@@ -185,10 +228,22 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       select: { id: true, userId: true, imagePath: true },
     });
 
-    if (!service) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (service.userId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!service) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
-    const safePrefix = `${user.id}/`;
+    if (service.userId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
+    if (!safePrefix) {
+      return NextResponse.json(
+        { error: "Missing supabaseId" },
+        { status: 400 },
+      );
+    }
+
     if (service.imagePath && service.imagePath.startsWith(safePrefix)) {
       await removeFromStorage(service.imagePath);
     }

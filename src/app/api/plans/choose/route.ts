@@ -45,11 +45,11 @@ export async function POST(req: Request) {
 
     const betaOnly = process.env.BETA_ONLY === "true";
 
-    //  BETA režimas: demo visiems, beta tik betaAccess, basic/premium coming soon
+    //  BETA režimas: demo visiems, beta tik betaAccess, 
     if (betaOnly) {
       if (!isAllowedPlanInBetaMode(user, planSlug)) {
         return jsonNoStore(
-          { error: "Šiuo metu galimas tik Demo planas. Beta planas – tik pakviestiems testuotojams." },
+          { error: "Šiuo metu galimas tik Demo planas." },
           { status: 409 },
         );
       }

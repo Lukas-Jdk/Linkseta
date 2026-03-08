@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./ServiceCard.module.css";
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, CalendarDays } from "lucide-react";
 
 type Props = {
   title: string;
@@ -22,9 +22,16 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
+function formatTodayLikeCard() {
+  return new Intl.DateTimeFormat("lt-LT", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export default function ServiceCard({
   title,
-  description,
   city,
   category,
   priceFrom,
@@ -35,40 +42,35 @@ export default function ServiceCard({
 }: Props) {
   const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
 
-  const priceLabel = priceFrom != null ? "Kaina nuo" : "Kaina";
   const priceValue =
-    priceFrom != null ? `${formatPriceNOK(priceFrom)} NOK` : "Kaina sutartinė";
+    priceFrom != null ? `nuo ${formatPriceNOK(priceFrom)} NOK` : "Kaina sutartinė";
 
-  // 👇 default “center art” kai nėra cover nuotraukos
-  // įdėk į public/ tokį failą (arba pakeisk pavadinimą)
   const defaultArt = "/logo.webp";
+
+  // kol nera realaus ratingo sistemos – paliekam demo
+  const ratingValue = 4.9;
 
   return (
     <Link href={`/${locale}/services/${slug}`} className={styles.card}>
-      {/* TOP HALF */}
       <div className={styles.imageWrap}>
         {hasCover ? (
-          <>
-            <Image
-              src={imageUrl as string}
-              alt={title}
-              fill
-              className={styles.image}
-              sizes="(max-width: 768px) 100vw, 420px"
-              priority={highlighted}
-            />
-            <div className={styles.imageOverlay} />
-          </>
+          <Image
+            src={imageUrl as string}
+            alt={title}
+            fill
+            className={styles.image}
+            sizes="(max-width: 768px) 100vw, 420px"
+            priority={highlighted}
+          />
         ) : (
           <>
             <div className={styles.heroBg} />
-            <div className={styles.imageOverlay} />
             <div className={styles.centerArt}>
               <Image
                 src={defaultArt}
                 alt=""
-                width={200}
-                height={200}
+                width={180}
+                height={180}
                 className={styles.centerArtImg}
                 priority={highlighted}
               />
@@ -76,39 +78,41 @@ export default function ServiceCard({
           </>
         )}
 
-        {highlighted && (
-          <div className={styles.topBadge}>
-            <Star className={styles.topIcon} />
-            TOP
-          </div>
+        <div className={styles.imageShade} />
+
+        {priceFrom != null && (
+          <div className={styles.priceBadge}>{priceValue}</div>
         )}
       </div>
 
-      {/* BOTTOM HALF */}
       <div className={styles.body}>
-        <div className={styles.metaRow}>
-          <span className={styles.category} title={category || ""}>
-            {category || "—"}
-          </span>
+        <div className={styles.topRow}>
+          <span className={styles.category}>{category || "Kategorija"}</span>
 
-          <span className={styles.location}>
-            <MapPin className={styles.pin} />
-            <span className={styles.locationText}>{city || "—"}</span>
+          <span className={styles.rating}>
+            <Star className={styles.ratingIcon} />
+            {ratingValue.toFixed(1)}
           </span>
         </div>
 
         <h3 className={styles.title}>{title}</h3>
-        <p className={styles.desc}>{description}</p>
+
+        <div className={styles.infoRow}>
+          <span className={styles.infoItem}>
+            <MapPin className={styles.infoIcon} />
+            {city || "—"}
+          </span>
+
+          <span className={styles.infoItem}>
+            <CalendarDays className={styles.infoIcon} />
+            {formatTodayLikeCard()}
+          </span>
+        </div>
 
         <div className={styles.footer}>
-          <div className={styles.priceContainer}>
-            <span className={styles.priceLabel}>{priceLabel}</span>
-            <span className={styles.priceValue} title={priceValue}>
-              {priceValue}
-            </span>
-          </div>
-
-          <span className={styles.cta}>Žiūrėti</span>
+          <span className={styles.cta}>
+            Žiūrėti
+          </span>
         </div>
       </div>
     </Link>

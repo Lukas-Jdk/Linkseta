@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./SearchBar.module.css";
 import { Search, ChevronDown } from "lucide-react";
 import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
@@ -10,16 +11,15 @@ import { useParams, useRouter } from "next/navigation";
 type CityOption = { id: string; name: string };
 type CategoryOption = { id: string; name: string; slug: string };
 
-function useOnClickOutside<T extends HTMLElement>(
-  ref: React.RefObject<T | null>,
+function useOnClickOutside(
+  refs: Array<React.RefObject<HTMLElement | null>>,
   handler: () => void,
 ) {
   useEffect(() => {
     function onDown(e: MouseEvent | TouchEvent) {
-      const el = ref.current;
-      if (!el) return;
       const target = e.target as Node;
-      if (!el.contains(target)) handler();
+      const clickedInside = refs.some((r) => r.current?.contains(target));
+      if (!clickedInside) handler();
     }
 
     document.addEventListener("mousedown", onDown);
@@ -29,7 +29,7 @@ function useOnClickOutside<T extends HTMLElement>(
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("touchstart", onDown);
     };
-  }, [ref, handler]);
+  }, [refs, handler]);
 }
 
 function normalize(s: string) {
@@ -40,6 +40,8 @@ export default function SearchBar() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+
+  const [mounted, setMounted] = useState(false);
 
   const [cities, setCities] = useState<CityOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -57,8 +59,30 @@ export default function SearchBar() {
   const cityWrapRef = useRef<HTMLDivElement>(null);
   const catWrapRef = useRef<HTMLDivElement>(null);
 
-  useOnClickOutside(cityWrapRef, () => setOpenCity(false));
-  useOnClickOutside(catWrapRef, () => setOpenCategory(false));
+  const cityBtnRef = useRef<HTMLButtonElement>(null);
+  const catBtnRef = useRef<HTMLButtonElement>(null);
+
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  const cityInputRef = useRef<HTMLInputElement>(null);
+  const categoryInputRef = useRef<HTMLInputElement>(null);
+
+  const [cityPanelStyle, setCityPanelStyle] = useState<React.CSSProperties>({});
+  const [categoryPanelStyle, setCategoryPanelStyle] =
+    useState<React.CSSProperties>({});
+
+  useOnClickOutside(
+    [cityWrapRef, cityDropdownRef, catWrapRef, categoryDropdownRef],
+    () => {
+      setOpenCity(false);
+      setOpenCategory(false);
+    },
+  );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -92,76 +116,236 @@ export default function SearchBar() {
     return categories.filter((c) => normalize(c.name).includes(nq));
   }, [categories, categoryQuery]);
 
-  function toggleCity() {
-    setOpenCity((v) => {
-      const next = !v;
-      if (next) {
-        setOpenCategory(false);
-        setCityQuery("");
-      }
-      return next;
+  const anyDropdownOpen = openCity || openCategory;
+
+  function closeAll() {
+    setOpenCity(false);
+    setOpenCategory(false);
+  }
+
+  function calcPanelStyle(el: HTMLButtonElement): React.CSSProperties {
+    const rect = el.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const gap = 12;
+
+    const desiredWidth =
+      viewportWidth <= 640
+        ? viewportWidth - gap * 2
+        : Math.max(rect.width, 280);
+
+    const maxWidth = viewportWidth - gap * 2;
+    const width = Math.min(desiredWidth, maxWidth);
+
+    let left = rect.left;
+
+    if (left + width > viewportWidth - gap) {
+      left = viewportWidth - gap - width;
+    }
+
+    if (left < gap) left = gap;
+
+    return {
+      position: "fixed",
+      top: `${rect.bottom + 10}px`,
+      left: `${left}px`,
+      width: `${width}px`,
+      zIndex: 100001,
+    };
+  }
+
+  function updateCityPanelPosition() {
+    const el = cityBtnRef.current;
+    if (!el) return;
+    setCityPanelStyle(calcPanelStyle(el));
+  }
+
+  function updateCategoryPanelPosition() {
+    const el = catBtnRef.current;
+    if (!el) return;
+    setCategoryPanelStyle(calcPanelStyle(el));
+  }
+
+  useEffect(() => {
+    if (!openCity) return;
+
+    function onRecalc() {
+      updateCityPanelPosition();
+    }
+
+    window.addEventListener("resize", onRecalc);
+    window.addEventListener("scroll", onRecalc, true);
+
+    return () => {
+      window.removeEventListener("resize", onRecalc);
+      window.removeEventListener("scroll", onRecalc, true);
+    };
+  }, [openCity]);
+
+  useEffect(() => {
+    if (!openCategory) return;
+
+    function onRecalc() {
+      updateCategoryPanelPosition();
+    }
+
+    window.addEventListener("resize", onRecalc);
+    window.addEventListener("scroll", onRecalc, true);
+
+    return () => {
+      window.removeEventListener("resize", onRecalc);
+      window.removeEventListener("scroll", onRecalc, true);
+    };
+  }, [openCategory]);
+
+  useEffect(() => {
+    if (!openCity) return;
+
+    const id = window.requestAnimationFrame(() => {
+      cityInputRef.current?.focus({ preventScroll: true });
     });
+
+    return () => window.cancelAnimationFrame(id);
+  }, [openCity]);
+
+  useEffect(() => {
+    if (!openCategory) return;
+
+    const id = window.requestAnimationFrame(() => {
+      categoryInputRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(id);
+  }, [openCategory]);
+
+  function toggleCity() {
+    const btn = cityBtnRef.current;
+
+    if (openCity) {
+      setOpenCity(false);
+      return;
+    }
+
+    if (btn) {
+      setCityPanelStyle(calcPanelStyle(btn));
+    }
+
+    setOpenCategory(false);
+    setCityQuery("");
+    setOpenCity(true);
   }
 
   function toggleCategory() {
-    setOpenCategory((v) => {
-      const next = !v;
-      if (next) {
-        setOpenCity(false);
-        setCategoryQuery("");
-      }
-      return next;
-    });
+    const btn = catBtnRef.current;
+
+    if (openCategory) {
+      setOpenCategory(false);
+      return;
+    }
+
+    if (btn) {
+      setCategoryPanelStyle(calcPanelStyle(btn));
+    }
+
+    setOpenCity(false);
+    setCategoryQuery("");
+    setOpenCategory(true);
   }
 
   function goSearch() {
-    const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
-    if (cityId) params.set("city", cityId);
-    if (categoryId) params.set("category", categoryId);
+    const searchParams = new URLSearchParams();
+    if (q.trim()) searchParams.set("q", q.trim());
+    if (cityId) searchParams.set("city", cityId);
+    if (categoryId) searchParams.set("category", categoryId);
 
-    const qs = params.toString();
+    const qs = searchParams.toString();
     router.push(`/${locale}/services${qs ? `?${qs}` : ""}`);
   }
 
   return (
-    <form
-      className={styles.wrap}
-      role="search"
-      onSubmit={(e) => {
-        e.preventDefault();
-        goSearch();
-      }}
-    >
-      <div className={styles.bar}>
-        
-        {/* MIESTAS */}
-        <div className={styles.segment} ref={cityWrapRef}>
-          <div className={styles.label}>
-            <div className={styles.labelText}>Miestas</div>
+    <>
+      <form
+        className={styles.wrap}
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          goSearch();
+        }}
+      >
+        <div className={styles.bar}>
+          <div className={styles.segment} ref={cityWrapRef}>
+            <div className={styles.label}>
+              <div className={styles.labelText}>Miestas</div>
 
-            <button
-              type="button"
-              className={styles.dropdownBtn}
-              onClick={toggleCity}
-              aria-haspopup="listbox"
-              aria-expanded={openCity}
-            >
-              <span className={styles.dropdownLeft}>
-                <span className={styles.fakeValue}>{cityName}</span>
-              </span>
-              <ChevronDown className={styles.chev} />
-            </button>
+              <button
+                type="button"
+                className={styles.dropdownBtn}
+                onClick={toggleCity}
+                ref={cityBtnRef}
+                aria-haspopup="listbox"
+                aria-expanded={openCity}
+              >
+                <span className={styles.dropdownLeft}>
+                  <span className={styles.fakeValue}>{cityName}</span>
+                </span>
+                <ChevronDown className={styles.chev} />
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.segment} ref={catWrapRef}>
+            <div className={styles.label}>
+              <div className={styles.labelText}>Kategorija</div>
+
+              <button
+                type="button"
+                className={styles.dropdownBtn}
+                onClick={toggleCategory}
+                ref={catBtnRef}
+                aria-haspopup="listbox"
+                aria-expanded={openCategory}
+              >
+                <span className={styles.dropdownLeft}>
+                  <span className={styles.fakeValue}>{categoryName}</span>
+                </span>
+                <ChevronDown className={styles.chev} />
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className={styles.searchButton}
+            aria-label="Ieškoti paslaugų"
+          >
+            <Search className={styles.searchIcon} strokeWidth={2} />
+          </button>
+        </div>
+      </form>
+
+      {mounted &&
+        anyDropdownOpen &&
+        createPortal(
+          <>
+            <div
+              className={styles.dropdownBackdrop}
+              onClick={closeAll}
+              aria-hidden="true"
+            />
 
             {openCity && (
-              <div className={styles.dropdown} role="listbox">
+              <div
+                ref={cityDropdownRef}
+                className={styles.dropdown}
+                style={cityPanelStyle}
+                role="listbox"
+              >
                 <div className={styles.dropdownTop}>
                   <input
+                    ref={cityInputRef}
                     className={styles.dropdownSearch}
                     placeholder="Ieškoti miesto..."
                     value={cityQuery}
                     onChange={(e) => setCityQuery(e.target.value)}
-                    autoFocus
                   />
                   {cityId && (
                     <button
@@ -209,36 +393,21 @@ export default function SearchBar() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* KATEGORIJA */}
-        <div className={styles.segment} ref={catWrapRef}>
-          <div className={styles.label}>
-            <div className={styles.labelText}>Kategorija</div>
-
-            <button
-              type="button"
-              className={styles.dropdownBtn}
-              onClick={toggleCategory}
-              aria-haspopup="listbox"
-              aria-expanded={openCategory}
-            >
-              <span className={styles.dropdownLeft}>
-                <span className={styles.fakeValue}>{categoryName}</span>
-              </span>
-              <ChevronDown className={styles.chev} />
-            </button>
 
             {openCategory && (
-              <div className={styles.dropdown} role="listbox">
+              <div
+                ref={categoryDropdownRef}
+                className={styles.dropdown}
+                style={categoryPanelStyle}
+                role="listbox"
+              >
                 <div className={styles.dropdownTop}>
                   <input
+                    ref={categoryInputRef}
                     className={styles.dropdownSearch}
                     placeholder="Ieškoti kategorijos..."
                     value={categoryQuery}
                     onChange={(e) => setCategoryQuery(e.target.value)}
-                    autoFocus
                   />
                   {categoryId && (
                     <button
@@ -268,6 +437,7 @@ export default function SearchBar() {
 
                   {filteredCategories.map((c) => {
                     const Icon = categoryIconMap[c.slug] ?? DefaultCategoryIcon;
+
                     return (
                       <button
                         key={c.id}
@@ -290,14 +460,9 @@ export default function SearchBar() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* SEARCH */}
-        <button type="submit" className={styles.searchButton} aria-label="Ieškoti paslaugų">
-          <Search className={styles.searchIcon} strokeWidth={2} />
-        </button>
-      </div>
-    </form>
+          </>,
+          document.body,
+        )}
+    </>
   );
 }

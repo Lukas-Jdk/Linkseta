@@ -4,7 +4,6 @@
   max-width: 900px;
   margin: 18px auto;
   padding: 0 12px;
-
   position: relative;
   overflow: visible;
   z-index: 50;
@@ -18,9 +17,7 @@
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   box-shadow: var(--shadow-soft);
-
   overflow: visible;
-
   flex-wrap: nowrap;
   min-width: 0;
   position: relative;
@@ -76,40 +73,17 @@
   text-overflow: ellipsis;
 }
 
-/* Input */
-.input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: clamp(0.85rem, 1.4vw, 0.95rem);
-  font-weight: 400;
-  font-family: var(--font-second);
-  color: var(--text-main);
-  padding: 0;
-  cursor: text;
-  min-width: 0;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Dropdown button */
 .dropdownBtn {
   width: 100%;
   border: none;
   background: transparent;
   padding: 0;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-
   min-width: 0;
-
-  /* ❌ inset removed – buvo bug šaltinis */
 }
 
 .dropdownLeft {
@@ -119,20 +93,12 @@
   min-width: 0;
 }
 
-.ddIcon {
-  width: 16px;
-  height: 16px;
-  color: rgba(2, 132, 199, 0.95);
-  flex: 0 0 auto;
-}
-
 .fakeValue {
   font-size: clamp(0.85rem, 1.4vw, 0.95rem);
   font-weight: 500;
   font-family: var(--font-second);
   color: var(--text-search-selector);
   min-width: 0;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -145,19 +111,23 @@
   flex: 0 0 auto;
 }
 
-/* Dropdown panel (portal friendly – positioning ateina iš inline style) */
-.dropdown {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  right: 0;
-  z-index: 9999;
+.dropdownBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
 
+.dropdown {
   border-radius: 16px;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.12);
   box-shadow: 0 20px 60px rgba(2, 6, 23, 0.18);
   overflow: hidden;
+  isolation: isolate;
+  max-height: min(70vh, 420px);
 }
 
 .dropdownTop {
@@ -165,7 +135,7 @@
   gap: 8px;
   padding: 10px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(248, 250, 252, 0.8);
+  background: #f8fafc;
 }
 
 .dropdownSearch {
@@ -189,10 +159,10 @@
 }
 
 .dropdownList {
-  max-height: 260px;
+  max-height: min(52vh, 260px);
   overflow: auto;
   padding: 8px;
-
+  background: #ffffff;
 }
 
 .option {
@@ -203,7 +173,6 @@
   border: none;
   background: transparent;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   gap: 12px;
@@ -238,7 +207,6 @@
   font-weight: 700;
 }
 
-/* Search button */
 .searchButton {
   flex: 0 0 auto;
   margin-right: clamp(6px, 1vw, 8px);
@@ -249,11 +217,9 @@
   border: none;
   cursor: pointer;
   background: var(--accent-soft);
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   box-shadow: 0 18px 40px rgba(37, 99, 235, 0.45);
   transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.12s ease;
 }
