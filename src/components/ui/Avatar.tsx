@@ -1,6 +1,4 @@
 // src/components/ui/Avatar.tsx
-"use client";
-
 import Image from "next/image";
 import styles from "./Avatar.module.css";
 
@@ -8,12 +6,12 @@ type Props = {
   name?: string | null;
   email?: string | null;
   avatarUrl?: string | null;
-  size?: number; // px
+  size?: number;
   className?: string;
 };
 
 function initialLetter(name?: string | null, email?: string | null) {
-  const src = name?.trim() ? name.trim() : (email || "");
+  const src = name?.trim() ? name.trim() : email || "";
   return src.slice(0, 1).toUpperCase() || "U";
 }
 
@@ -39,7 +37,6 @@ export default function Avatar({
           fill
           sizes={`${size}px`}
           className={styles.img}
-          priority
         />
       ) : (
         <span className={styles.initial} aria-hidden="true">
