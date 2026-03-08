@@ -155,3 +155,14 @@
     padding-top: 24px;
   }
 }
+ .successText {
+  font-size: 14px;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.errorText {
+  font-size: 14px;
+  color: #dc2626;
+  font-weight: 600;
+}
