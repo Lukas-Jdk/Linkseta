@@ -4,9 +4,18 @@
 import { FormEvent, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "../[locale]/login/login.module.css";
+import { usePathname } from "next/navigation";
+
+function detectLocaleFromPath(pathname: string) {
+  const part = pathname.split("/").filter(Boolean)[0];
+  if (part === "lt" || part === "en" || part === "no") return part;
+  return "lt";
+}
 
 export default function ForgotPasswordPage() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const pathname = usePathname();
+  const locale = detectLocaleFromPath(pathname);
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -25,7 +34,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      const redirectTo = `${window.location.origin}/reset-password`;
+      const redirectTo = `${window.location.origin}/${locale}/reset-password`;
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,

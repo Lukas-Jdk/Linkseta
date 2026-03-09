@@ -7,6 +7,7 @@ import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
 import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { useParams } from "next/navigation";
 
 function mapRegisterError(raw: string | null | undefined) {
   const msg = (raw || "").toLowerCase();
@@ -23,6 +24,9 @@ function mapRegisterError(raw: string | null | undefined) {
 }
 
 export default function RegisterPage() {
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -41,10 +45,13 @@ export default function RegisterPage() {
     try {
       const supabase = getSupabaseBrowserClient();
 
+      const emailRedirectTo = `${window.location.origin}/${locale}/auth/callback?flow=signup-confirmed`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo,
           data: { name, phone },
         },
       });
@@ -54,7 +61,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // jei email confirmation įjungtas — session dažnai bus null (čia ok)
       if (data.session) {
         await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
       }

@@ -24,10 +24,13 @@ export default function ContactForm() {
 
   async function getRecaptchaToken() {
     const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    if (!siteKey) return null;
+
+    if (!siteKey) {
+      return null;
+    }
 
     if (!window.grecaptcha) {
-      throw new Error("reCAPTCHA nepasikrovė. Pabandykite dar kartą.");
+      throw new Error("reCAPTCHA dar neužsikrovė. Palaukite kelias sekundes ir bandykite dar kartą.");
     }
 
     return await new Promise<string>((resolve, reject) => {

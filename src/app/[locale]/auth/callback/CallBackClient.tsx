@@ -1,85 +1,72 @@
+// src/app/[locale]/auth/callback/CallBackClient.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-
-function safeNext(next: string | null, locale: string) {
-  if (!next) return `/${locale}/login`;
-  if (!next.startsWith("/")) return `/${locale}/login`;
-  if (next.startsWith("//")) return `/${locale}/login`;
-  if (next.includes("://")) return `/${locale}/login`;
-  return next;
-}
+import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { csrfFetch } from "@/lib/csrfClient";
 
 export default function CallbackClient() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
+  const searchParams = useSearchParams();
   const locale = params?.locale ?? "lt";
-  const sp = useSearchParams();
 
-  const next = safeNext(sp.get("next") || sp.get("redirect"), locale);
+  const [message, setMessage] = useState("Tvirtinama...");
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      router.replace(next);
-      router.refresh();
-    }, 1200);
+    let cancelled = false;
 
-    return () => clearTimeout(t);
-  }, [router, next]);
+    async function run() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+
+        const code = searchParams.get("code");
+        const flow = searchParams.get("flow");
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            setMessage("Nepavyko patvirtinti el. pašto. Bandykite dar kartą.");
+            return;
+          }
+        }
+
+        await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
+
+        if (cancelled) return;
+
+        if (flow === "signup-confirmed") {
+          setMessage("El. paštas sėkmingai patvirtintas. Po 5 sekundžių būsite nukreipti į prisijungimą.");
+
+          setTimeout(() => {
+            router.replace(`/${locale}/login?confirmed=1`);
+          }, 5000);
+
+          return;
+        }
+
+        setMessage("Prisijungimas sėkmingas. Nukreipiame...");
+        setTimeout(() => {
+          router.replace(`/${locale}/dashboard`);
+        }, 1000);
+      } catch (e) {
+        console.error(e);
+        setMessage("Įvyko klaida. Bandykite dar kartą.");
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, router, searchParams]);
 
   return (
-    <main
-      style={{
-        minHeight: "60vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 16px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 560,
-          width: "100%",
-          textAlign: "center",
-          background: "#ffffff",
-          borderRadius: 16,
-          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.12)",
-          padding: "32px 24px",
-        }}
-      >
-        <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 10, color: "#111827" }}>
-          El. paštas patvirtintas ✅
-        </h1>
-        <p style={{ fontSize: 15, color: "#4b5563", marginBottom: 18 }}>
-          Tuoj nukreipsime tave į prisijungimą…
-        </p>
-
-        <button
-          type="button"
-          onClick={() => {
-            router.replace(next);
-            router.refresh();
-          }}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 999,
-            background: "#0c7bdc",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 600,
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Eiti į prisijungimą
-        </button>
-
-        <p style={{ fontSize: 12, color: "#9ca3af", marginTop: 14 }}>
-          Jei nenukreipė automatiškai – spausk mygtuką.
-        </p>
-      </div>
+    <main style={{ padding: 40, textAlign: "center" }}>
+      <h1 style={{ fontSize: 28, marginBottom: 12 }}>Linkseta</h1>
+      <p>{message}</p>
     </main>
   );
 }

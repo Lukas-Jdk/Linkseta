@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { verifyRecaptchaV3 } from "@/lib/recaptcha";
 
 export const dynamic = "force-dynamic";
 
@@ -14,47 +15,13 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-async function verifyRecaptcha(token: string | null) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-
-  if (!secret) {
-    return { ok: true };
-  }
-
-  if (!token) {
-    return { ok: false, error: "Trūksta reCAPTCHA token." };
-  }
-
-  const form = new URLSearchParams();
-  form.set("secret", secret);
-  form.set("response", token);
-
-  const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: form.toString(),
-    cache: "no-store",
-  });
-
-  const json = (await res.json().catch(() => null)) as
-    | {
-        success?: boolean;
-        score?: number;
-        action?: string;
-      }
-    | null;
-
-  if (!json?.success) {
-    return { ok: false, error: "reCAPTCHA patikra nepavyko." };
-  }
-
-  if (typeof json.score === "number" && json.score < 0.4) {
-    return { ok: false, error: "Žinutė atmesta kaip įtartina." };
-  }
-
-  return { ok: true };
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 export async function POST(req: Request) {
@@ -88,12 +55,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const captcha = await verifyRecaptcha(recaptchaToken);
-    if (!captcha.ok) {
-      return NextResponse.json(
-        { error: captcha.error || "reCAPTCHA klaida." },
-        { status: 400 },
-      );
+    if (process.env.RECAPTCHA_SECRET_KEY) {
+      if (!recaptchaToken) {
+        return NextResponse.json(
+          { error: "Trūksta reCAPTCHA token." },
+          { status: 400 },
+        );
+      }
+
+      const captcha = await verifyRecaptchaV3({
+        token: recaptchaToken,
+        expectedAction: "contact_form",
+      });
+
+      if (!captcha.ok) {
+        return NextResponse.json(
+          { error: "reCAPTCHA patikra nepavyko." },
+          { status: 400 },
+        );
+      }
     }
 
     const host = process.env.EMAIL_SMTP_HOST;
@@ -153,13 +133,4 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
