@@ -1,12 +1,13 @@
 // src/components/search/SearchBar.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import styles from "./SearchBar.module.css";
 import { Search, ChevronDown } from "lucide-react";
-import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
 import { useParams, useRouter } from "next/navigation";
+
+import styles from "./SearchBar.module.css";
+import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
 
 type CityOption = { id: string; name: string };
 type CategoryOption = { id: string; name: string; slug: string };
@@ -46,7 +47,9 @@ export default function SearchBar() {
   const [cities, setCities] = useState<CityOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
 
-  const [q, setQ] = useState("");
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
+  const [filtersLoading, setFiltersLoading] = useState(false);
+
   const [cityId, setCityId] = useState("");
   const [categoryId, setCategoryId] = useState("");
 
@@ -72,27 +75,36 @@ export default function SearchBar() {
   const [categoryPanelStyle, setCategoryPanelStyle] =
     useState<React.CSSProperties>({});
 
+  const anyDropdownOpen = openCity || openCategory;
+
+  const closeAll = useCallback(() => {
+    setOpenCity(false);
+    setOpenCategory(false);
+  }, []);
+
   useOnClickOutside(
     [cityWrapRef, cityDropdownRef, catWrapRef, categoryDropdownRef],
-    () => {
-      setOpenCity(false);
-      setOpenCategory(false);
-    },
+    closeAll,
   );
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/public/filters", { cache: "no-store" });
+  const ensureFiltersLoaded = useCallback(async () => {
+    if (filtersLoaded || filtersLoading) return;
+
+    setFiltersLoading(true);
+    try {
+      const res = await fetch("/api/public/filters", { cache: "force-cache" });
       const data = await res.json().catch(() => ({} as any));
       setCities(data.cities ?? []);
       setCategories(data.categories ?? []);
+      setFiltersLoaded(true);
+    } finally {
+      setFiltersLoading(false);
     }
-    load();
-  }, []);
+  }, [filtersLoaded, filtersLoading]);
 
   const cityName = useMemo(() => {
     if (!cityId) return "Pasirinkite...";
@@ -116,54 +128,50 @@ export default function SearchBar() {
     return categories.filter((c) => normalize(c.name).includes(nq));
   }, [categories, categoryQuery]);
 
-  const anyDropdownOpen = openCity || openCategory;
+  const calcPanelStyle = useCallback(
+    (el: HTMLButtonElement): React.CSSProperties => {
+      const rect = el.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const gap = 12;
 
-  function closeAll() {
-    setOpenCity(false);
-    setOpenCategory(false);
-  }
+      const desiredWidth =
+        viewportWidth <= 640
+          ? viewportWidth - gap * 2
+          : Math.max(rect.width, 280);
 
-  function calcPanelStyle(el: HTMLButtonElement): React.CSSProperties {
-    const rect = el.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const gap = 12;
+      const maxWidth = viewportWidth - gap * 2;
+      const width = Math.min(desiredWidth, maxWidth);
 
-    const desiredWidth =
-      viewportWidth <= 640
-        ? viewportWidth - gap * 2
-        : Math.max(rect.width, 280);
+      let left = rect.left;
 
-    const maxWidth = viewportWidth - gap * 2;
-    const width = Math.min(desiredWidth, maxWidth);
+      if (left + width > viewportWidth - gap) {
+        left = viewportWidth - gap - width;
+      }
 
-    let left = rect.left;
+      if (left < gap) left = gap;
 
-    if (left + width > viewportWidth - gap) {
-      left = viewportWidth - gap - width;
-    }
+      return {
+        position: "fixed",
+        top: `${rect.bottom + 10}px`,
+        left: `${left}px`,
+        width: `${width}px`,
+        zIndex: 100001,
+      };
+    },
+    [],
+  );
 
-    if (left < gap) left = gap;
-
-    return {
-      position: "fixed",
-      top: `${rect.bottom + 10}px`,
-      left: `${left}px`,
-      width: `${width}px`,
-      zIndex: 100001,
-    };
-  }
-
-  function updateCityPanelPosition() {
+  const updateCityPanelPosition = useCallback(() => {
     const el = cityBtnRef.current;
     if (!el) return;
     setCityPanelStyle(calcPanelStyle(el));
-  }
+  }, [calcPanelStyle]);
 
-  function updateCategoryPanelPosition() {
+  const updateCategoryPanelPosition = useCallback(() => {
     const el = catBtnRef.current;
     if (!el) return;
     setCategoryPanelStyle(calcPanelStyle(el));
-  }
+  }, [calcPanelStyle]);
 
   useEffect(() => {
     if (!openCity) return;
@@ -179,7 +187,7 @@ export default function SearchBar() {
       window.removeEventListener("resize", onRecalc);
       window.removeEventListener("scroll", onRecalc, true);
     };
-  }, [openCity]);
+  }, [openCity, updateCityPanelPosition]);
 
   useEffect(() => {
     if (!openCategory) return;
@@ -195,7 +203,7 @@ export default function SearchBar() {
       window.removeEventListener("resize", onRecalc);
       window.removeEventListener("scroll", onRecalc, true);
     };
-  }, [openCategory]);
+  }, [openCategory, updateCategoryPanelPosition]);
 
   useEffect(() => {
     if (!openCity) return;
@@ -217,34 +225,32 @@ export default function SearchBar() {
     return () => window.cancelAnimationFrame(id);
   }, [openCategory]);
 
-  function toggleCity() {
-    const btn = cityBtnRef.current;
-
+  async function toggleCity() {
     if (openCity) {
       setOpenCity(false);
       return;
     }
 
-    if (btn) {
-      setCityPanelStyle(calcPanelStyle(btn));
-    }
+    await ensureFiltersLoaded();
+
+    const btn = cityBtnRef.current;
+    if (btn) setCityPanelStyle(calcPanelStyle(btn));
 
     setOpenCategory(false);
     setCityQuery("");
     setOpenCity(true);
   }
 
-  function toggleCategory() {
-    const btn = catBtnRef.current;
-
+  async function toggleCategory() {
     if (openCategory) {
       setOpenCategory(false);
       return;
     }
 
-    if (btn) {
-      setCategoryPanelStyle(calcPanelStyle(btn));
-    }
+    await ensureFiltersLoaded();
+
+    const btn = catBtnRef.current;
+    if (btn) setCategoryPanelStyle(calcPanelStyle(btn));
 
     setOpenCity(false);
     setCategoryQuery("");
@@ -253,7 +259,6 @@ export default function SearchBar() {
 
   function goSearch() {
     const searchParams = new URLSearchParams();
-    if (q.trim()) searchParams.set("q", q.trim());
     if (cityId) searchParams.set("city", cityId);
     if (categoryId) searchParams.set("category", categoryId);
 
@@ -373,21 +378,26 @@ export default function SearchBar() {
                     <span className={styles.optionName}>Visi miestai</span>
                   </button>
 
-                  {filteredCities.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={`${styles.option} ${cityId === c.id ? styles.optionActive : ""}`}
-                      onClick={() => {
-                        setCityId(c.id);
-                        setOpenCity(false);
-                      }}
-                    >
-                      <span className={styles.optionName}>{c.name}</span>
-                    </button>
-                  ))}
+                  {filtersLoading && (
+                    <div className={styles.noResults}>Kraunama...</div>
+                  )}
 
-                  {filteredCities.length === 0 && (
+                  {!filtersLoading &&
+                    filteredCities.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`${styles.option} ${cityId === c.id ? styles.optionActive : ""}`}
+                        onClick={() => {
+                          setCityId(c.id);
+                          setOpenCity(false);
+                        }}
+                      >
+                        <span className={styles.optionName}>{c.name}</span>
+                      </button>
+                    ))}
+
+                  {!filtersLoading && filteredCities.length === 0 && (
                     <div className={styles.noResults}>Nieko nerasta.</div>
                   )}
                 </div>
@@ -435,26 +445,35 @@ export default function SearchBar() {
                     <span className={styles.optionName}>Visos kategorijos</span>
                   </button>
 
-                  {filteredCategories.map((c) => {
-                    const Icon = categoryIconMap[c.slug] ?? DefaultCategoryIcon;
+                  {filtersLoading && (
+                    <div className={styles.noResults}>Kraunama...</div>
+                  )}
 
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className={`${styles.option} ${categoryId === c.id ? styles.optionActive : ""}`}
-                        onClick={() => {
-                          setCategoryId(c.id);
-                          setOpenCategory(false);
-                        }}
-                      >
-                        <Icon className={styles.optionIcon} aria-hidden="true" />
-                        <span className={styles.optionName}>{c.name}</span>
-                      </button>
-                    );
-                  })}
+                  {!filtersLoading &&
+                    filteredCategories.map((c) => {
+                      const Icon =
+                        categoryIconMap[c.slug] ?? DefaultCategoryIcon;
 
-                  {filteredCategories.length === 0 && (
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={`${styles.option} ${categoryId === c.id ? styles.optionActive : ""}`}
+                          onClick={() => {
+                            setCategoryId(c.id);
+                            setOpenCategory(false);
+                          }}
+                        >
+                          <Icon
+                            className={styles.optionIcon}
+                            aria-hidden="true"
+                          />
+                          <span className={styles.optionName}>{c.name}</span>
+                        </button>
+                      );
+                    })}
+
+                  {!filtersLoading && filteredCategories.length === 0 && (
                     <div className={styles.noResults}>Nieko nerasta.</div>
                   )}
                 </div>

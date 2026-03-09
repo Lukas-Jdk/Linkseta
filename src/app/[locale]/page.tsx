@@ -3,11 +3,12 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+
 import Hero from "@/components/hero/Hero";
-import SearchBar from "@/components/search/SearchBar";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
 import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
+import SearchBarLazy from "@/components/search/SearchBarLazy";
 
 export const dynamic = "force-dynamic";
 
@@ -114,9 +115,10 @@ export default async function HomePage({ params, searchParams }: Props) {
   return (
     <>
       <ServiceMarquee />
+
       <Hero>
         <div className="container">
-          <SearchBar />
+          <SearchBarLazy />
         </div>
       </Hero>
 
