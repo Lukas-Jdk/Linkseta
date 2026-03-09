@@ -22,7 +22,7 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
-function formatTodayLikeCard() {
+function formatCardDate() {
   return new Intl.DateTimeFormat("lt-LT", {
     year: "numeric",
     month: "2-digit",
@@ -41,30 +41,31 @@ export default function ServiceCard({
   locale,
 }: Props) {
   const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
+  const defaultArt = "/logo.webp";
 
   const priceValue =
     priceFrom != null ? `nuo ${formatPriceNOK(priceFrom)} NOK` : "Kaina sutartinė";
 
-  const defaultArt = "/logo.webp";
-
-  // kol nera realaus ratingo sistemos – paliekam demo
-  const ratingValue = 4.9;
+  const ratingValue = highlighted ? 5.0 : 4.9;
 
   return (
     <Link href={`/${locale}/services/${slug}`} className={styles.card}>
       <div className={styles.imageWrap}>
         {hasCover ? (
-          <Image
-            src={imageUrl as string}
-            alt={title}
-            fill
-            className={styles.image}
-            sizes="(max-width: 768px) 100vw, 420px"
-            priority={highlighted}
-          />
+          <>
+            <Image
+              src={imageUrl as string}
+              alt={title}
+              fill
+              className={styles.image}
+              sizes="(max-width: 640px) 92vw, (max-width: 1024px) 48vw, 380px"
+            />
+            <div className={styles.imageOverlay} />
+          </>
         ) : (
           <>
             <div className={styles.heroBg} />
+            <div className={styles.imageOverlay} />
             <div className={styles.centerArt}>
               <Image
                 src={defaultArt}
@@ -72,22 +73,28 @@ export default function ServiceCard({
                 width={180}
                 height={180}
                 className={styles.centerArtImg}
-                priority={highlighted}
               />
             </div>
           </>
         )}
 
-        <div className={styles.imageShade} />
-
         {priceFrom != null && (
           <div className={styles.priceBadge}>{priceValue}</div>
+        )}
+
+        {highlighted && (
+          <div className={styles.topBadge}>
+            <Star className={styles.topIcon} />
+            TOP
+          </div>
         )}
       </div>
 
       <div className={styles.body}>
         <div className={styles.topRow}>
-          <span className={styles.category}>{category || "Kategorija"}</span>
+          <span className={styles.category} title={category || ""}>
+            {category || "Kategorija"}
+          </span>
 
           <span className={styles.rating}>
             <Star className={styles.ratingIcon} />
@@ -100,19 +107,17 @@ export default function ServiceCard({
         <div className={styles.infoRow}>
           <span className={styles.infoItem}>
             <MapPin className={styles.infoIcon} />
-            {city || "—"}
+            <span className={styles.infoText}>{city || "—"}</span>
           </span>
 
           <span className={styles.infoItem}>
             <CalendarDays className={styles.infoIcon} />
-            {formatTodayLikeCard()}
+            <span className={styles.infoText}>{formatCardDate()}</span>
           </span>
         </div>
 
         <div className={styles.footer}>
-          <span className={styles.cta}>
-            Žiūrėti
-          </span>
+          <span className={styles.cta}>Susisiekti</span>
         </div>
       </div>
     </Link>
