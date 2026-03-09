@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
+import { compressImageFile } from "@/lib/imageCompress";
 import styles from "./NewServiceForm.module.css";
 
 type Option = { id: string; name: string; slug?: string };
@@ -35,12 +36,10 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [priceFrom, setPriceFrom] = useState<string>("");
   const [description, setDescription] = useState("");
 
-  // ✅ optional highlights (3 punktai su varnelėm)
   const [h1, setH1] = useState("");
   const [h2, setH2] = useState("");
   const [h3, setH3] = useState("");
 
-  // ✅ image upload (gallery)
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imagePath, setImagePath] = useState<string | null>(null);
@@ -72,8 +71,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
       setError("Failas turi būti nuotrauka.");
       return;
     }
-    if (file.size > 6 * 1024 * 1024) {
-      setError("Nuotrauka per didelė (max ~6MB).");
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Nuotrauka per didelė (max ~10MB prieš suspaudimą).");
       return;
     }
 
@@ -82,16 +82,30 @@ export default function NewServiceForm({ cities, categories }: Props) {
     try {
       const bucket = "service-images";
 
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const fileName = `${crypto.randomUUID()}.${ext}`;
-      const path = `services/${fileName}`;
-
-      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
+      const compressed = await compressImageFile(file, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        quality: 0.82,
+        mimeType: "image/jpeg",
       });
 
-      if (upErr) throw new Error(upErr.message || "Nepavyko įkelti nuotraukos.");
+      if (compressed.size > 3 * 1024 * 1024) {
+        setError("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
+        return;
+      }
+
+      const fileName = `${crypto.randomUUID()}.jpg`;
+      const path = `services/${fileName}`;
+
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, compressed, {
+        cacheControl: "31536000",
+        upsert: false,
+        contentType: "image/jpeg",
+      });
+
+      if (upErr) {
+        throw new Error(upErr.message || "Nepavyko įkelti nuotraukos.");
+      }
 
       const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const publicUrl = publicStorageUrl(baseUrl, bucket, path);
@@ -121,11 +135,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         categoryId,
         priceFrom: priceFrom.trim() ? Number(priceFrom) : null,
         description: description.trim(),
-
-        // ✅ siunčiam highlightus (API pas tave jau palaiko)
         highlights,
-
-        // ✅ nuotrauka iš galerijos (API pas tave jau palaiko)
         imageUrl,
         imagePath,
       };
@@ -212,7 +222,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
           />
         </div>
 
-        {/* ✅ Highlights */}
         <div className={styles.fieldFull}>
           <div className={styles.highHeader}>
             <div className={styles.highTitle}>Kodėl rinktis mane? (nebūtina)</div>
@@ -255,7 +264,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
           </div>
         </div>
 
-        {/* ✅ Image upload */}
         <div className={styles.fieldFull}>
           <label className={styles.label}>Nuotrauka iš galerijos (nebūtina)</label>
 
@@ -266,7 +274,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
             onChange={(e) => handlePickImage(e.target.files?.[0] ?? null)}
           />
 
-          {uploading && <div className={styles.muted}>Įkeliama nuotrauka...</div>}
+          {uploading && <div className={styles.muted}>Nuotrauka mažinama ir įkeliama...</div>}
 
           {imageUrl && (
             <div className={styles.preview}>

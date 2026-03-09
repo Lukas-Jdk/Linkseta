@@ -5,6 +5,7 @@ import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
+import { compressImageFile } from "@/lib/imageCompress";
 import styles from "./edit.module.css";
 
 type Option = {
@@ -39,12 +40,6 @@ function parseHighlights(text: string) {
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 6);
-}
-
-function getExt(file: File) {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
 }
 
 export default function EditServiceForm({ initial, cities, categories }: Props) {
@@ -91,8 +86,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Nuotrauka per didelė. Maksimaliai 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.");
       return;
     }
 
@@ -106,15 +101,29 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       }
 
       const userId = userData.user.id;
-      const ext = getExt(file);
       const random = window.crypto.randomUUID();
 
-      // tvarkingas path: userId/services/random.ext
-      const path = `${userId}/services/${random}.${ext}`;
+      const compressed = await compressImageFile(file, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        quality: 0.82,
+        mimeType: "image/jpeg",
+      });
+
+      if (compressed.size > 3 * 1024 * 1024) {
+        setError("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
+        return;
+      }
+
+      const path = `${userId}/services/${random}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, { cacheControl: "3600", upsert: false });
+        .upload(path, compressed, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: "image/jpeg",
+        });
 
       if (uploadError) {
         console.error(uploadError);
@@ -130,7 +139,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
       setImageUrl(data.publicUrl);
       setImagePath(path);
-
       setSuccess("Nuotrauka įkelta. Nepamirškite išsaugoti pakeitimų.");
     } catch (e) {
       console.error(e);
@@ -243,12 +251,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      
-
-      {/* ... tavo JSX palieku kaip buvo ... */}
-
-      {/* (čia nieko nekeičiau žemiau, tik palikau kaip pas tave) */}
-
       <section className={styles.sectionCard}>
         <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
 
@@ -368,7 +370,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
         <div className={styles.imagePreview}>
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={imageUrl} alt="Nuotraukos peržiūra" />
           ) : (
             <div className={styles.emptyState}>
@@ -377,9 +378,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           )}
         </div>
 
-        <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 5MB.</p>
+        <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 10MB prieš suspaudimą.</p>
         {error && <p className={styles.errorText}>{error}</p>}
-      {success && <p className={styles.successText}>{success}</p>}
+        {success && <p className={styles.successText}>{success}</p>}
       </section>
 
       <section className={styles.sectionCard}>
@@ -410,7 +411,6 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           </button>
         </div>
       </div>
-    
     </form>
   );
 }

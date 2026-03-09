@@ -6,6 +6,7 @@ import Image from "next/image";
 import styles from "./AvatarUploader.module.css";
 import { Pencil } from "lucide-react";
 import { withCsrfHeaders } from "@/lib/csrfClient";
+import { compressImageFile } from "@/lib/imageCompress";
 
 type Props = {
   avatarUrl?: string | null;
@@ -24,10 +25,32 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
     setError(null);
 
     try {
-      const fd = new FormData();
-      fd.append("file", file);
+      if (!file.type.startsWith("image/")) {
+        setError("Failas turi būti paveikslėlis.");
+        return;
+      }
 
-      //  CSRF header, bet FormData turi pats nustatyti Content-Type su boundary
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Failas per didelis (max 10MB prieš suspaudimą).");
+        return;
+      }
+
+      // 👇 suspaudžiam avatarą
+      const compressed = await compressImageFile(file, {
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.82,
+        mimeType: "image/jpeg",
+      });
+
+      if (compressed.size > 1 * 1024 * 1024) {
+        setError("Avataras vis dar per didelis po suspaudimo.");
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append("file", compressed);
+
       const headers = await withCsrfHeaders();
       headers.delete("Content-Type");
 
@@ -97,7 +120,9 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
             <span className={styles.overlayText}>
               {loading ? "Įkeliama..." : "Keisti nuotrauką"}
             </span>
-            <span className={styles.overlaySub}>JPG / PNG / WEBP · iki 5MB</span>
+            <span className={styles.overlaySub}>
+              JPG / PNG / WEBP · automatiškai optimizuojama
+            </span>
           </div>
         </div>
 
