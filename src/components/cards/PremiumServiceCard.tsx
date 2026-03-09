@@ -1,9 +1,6 @@
 // src/components/cards/PremiumServiceCard.tsx
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Star, MapPin, CalendarDays, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
@@ -65,7 +62,6 @@ export default function PremiumServiceCard({
           aria-label={`Atidaryti paslaugą: ${title}`}
         />
 
-        {/* TOP IMAGE AREA */}
         <div className={styles.imageWrap} aria-hidden="true">
           {hasUserImage ? (
             <>
@@ -109,7 +105,6 @@ export default function PremiumServiceCard({
           )}
         </div>
 
-        {/* BOTTOM INFO */}
         <div className={styles.body}>
           <div className={styles.topRow}>
             <span className={styles.category}>{category || "Kategorija"}</span>
@@ -135,11 +130,7 @@ export default function PremiumServiceCard({
           </div>
 
           <div className={styles.footer}>
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className={styles.buttonWrap}
-            >
+            <div className={styles.buttonWrap}>
               <Link
                 href={contactHref}
                 className={`${styles.contactButton} ${
@@ -150,7 +141,7 @@ export default function PremiumServiceCard({
               >
                 Susisiekti
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

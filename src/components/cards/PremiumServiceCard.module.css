@@ -246,8 +246,15 @@
 }
 
 .buttonWrap {
-  position: relative;
-  z-index: 20;
+  display: inline-flex;
+  transition: transform 0.16s ease;
+}
+.buttonWrap:hover {
+  transform: scale(1.03);
+}
+
+.buttonWrap:active {
+  transform: scale(0.98);
 }
 
 .contactButton {

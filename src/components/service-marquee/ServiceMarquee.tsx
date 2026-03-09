@@ -1,7 +1,4 @@
 // src/components/service-marquee/ServiceMarquee.tsx
-"use client";
-
-import React from "react";
 import styles from "./ServiceMarquee.module.css";
 import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
 
@@ -32,34 +29,30 @@ const ITEMS: Item[] = [
   { label: "Kita", slug: "kita" },
 ];
 
+function MarqueeGroup({ suffix = "" }: { suffix?: string }) {
+  return (
+    <div className={styles.group} aria-hidden={suffix ? "true" : undefined}>
+      {ITEMS.map((item) => {
+        const Icon = categoryIconMap[item.slug] ?? DefaultCategoryIcon;
+
+        return (
+          <div className={styles.pill} key={`${item.slug}${suffix}`}>
+            <Icon className={styles.icon} aria-hidden="true" />
+            <span className={styles.text}>{item.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ServiceMarquee() {
   return (
     <section className={styles.wrap} aria-label="Paslaugų kategorijos">
       <div className={styles.viewport}>
         <div className={styles.track}>
-          <div className={styles.group}>
-            {ITEMS.map((item) => {
-              const Icon = categoryIconMap[item.slug] ?? DefaultCategoryIcon;
-              return (
-                <div className={styles.pill} key={item.slug}>
-                  <Icon className={styles.icon} aria-hidden="true" />
-                  <span className={styles.text}>{item.label}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className={styles.group} aria-hidden="true">
-            {ITEMS.map((item) => {
-              const Icon = categoryIconMap[item.slug] ?? DefaultCategoryIcon;
-              return (
-                <div className={styles.pill} key={`${item.slug}-clone`}>
-                  <Icon className={styles.icon} aria-hidden="true" />
-                  <span className={styles.text}>{item.label}</span>
-                </div>
-              );
-            })}
-          </div>
+          <MarqueeGroup />
+          <MarqueeGroup suffix="-clone" />
         </div>
       </div>
 

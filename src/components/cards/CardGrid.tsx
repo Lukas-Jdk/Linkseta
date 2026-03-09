@@ -1,6 +1,4 @@
 // src/components/cards/CardGrid.tsx
-"use client";
-
 import PremiumServiceCard from "./PremiumServiceCard";
 import ServiceCard from "./ServiceCard";
 import styles from "./CardGrid.module.css";
