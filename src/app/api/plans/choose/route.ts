@@ -17,11 +17,14 @@ function jsonNoStore(data: any, init?: ResponseInit) {
   return res;
 }
 
-function isAllowedPlanInBetaMode(user: { role: "USER" | "ADMIN"; betaAccess: boolean }, planSlug: string) {
+function isAllowedPlanInBetaMode(
+  user: { role: "USER" | "ADMIN"; betaAccess: boolean },
+  planSlug: string,
+) {
   if (user.role === "ADMIN") return true;
   if (planSlug === "demo") return true;
   if (planSlug === "beta") return Boolean(user.betaAccess);
-  return false; // basic/premium blocked in beta mode
+  return false;
 }
 
 export async function POST(req: Request) {
@@ -37,15 +40,20 @@ export async function POST(req: Request) {
     });
 
     const user = await getAuthUser();
-    if (!user) return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = (await req.json().catch(() => ({}))) as Body;
-    const planSlug = typeof body.planSlug === "string" ? body.planSlug.trim() : "";
-    if (!planSlug) return jsonNoStore({ error: "Missing planSlug" }, { status: 400 });
+    const planSlug =
+      typeof body.planSlug === "string" ? body.planSlug.trim() : "";
+
+    if (!planSlug) {
+      return jsonNoStore({ error: "Missing planSlug" }, { status: 400 });
+    }
 
     const betaOnly = process.env.BETA_ONLY === "true";
 
-    //  BETA režimas: demo visiems, beta tik betaAccess, 
     if (betaOnly) {
       if (!isAllowedPlanInBetaMode(user, planSlug)) {
         return jsonNoStore(
@@ -54,10 +62,11 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      // Ateity: jei lifetimeFree -> galima duoti beta (arba demo)
-      // Kol kas basic/premium vistiek gali būti išjungti UI
       if (planSlug === "basic" || planSlug === "premium") {
-        return jsonNoStore({ error: "Apmokėjimai dar neįjungti (coming soon)." }, { status: 409 });
+        return jsonNoStore(
+          { error: "Apmokėjimai dar neįjungti (coming soon)." },
+          { status: 409 },
+        );
       }
     }
 
@@ -66,31 +75,53 @@ export async function POST(req: Request) {
       select: { id: true, slug: true, name: true },
     });
 
-    if (!plan) return jsonNoStore({ error: "Plan not found" }, { status: 404 });
+    if (!plan) {
+      return jsonNoStore({ error: "Plan not found" }, { status: 404 });
+    }
 
-    //  ensure ProviderProfile exists
-    const profile = await prisma.providerProfile.upsert({
+    const providerProfile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
-      update: {},
-      create: { userId: user.id },
-      select: { id: true },
-    });
-
-    await prisma.providerProfile.update({
-      where: { id: profile.id },
-      data: { planId: plan.id },
+      update: {
+        planId: plan.id,
+        isApproved: true,
+      },
+      create: {
+        userId: user.id,
+        planId: plan.id,
+        isApproved: true,
+      },
+      select: {
+        id: true,
+        isApproved: true,
+        planId: true,
+      },
     });
 
     await auditLog({
       action: "PLAN_CHOOSE",
       entity: "ProviderProfile",
-      entityId: profile.id,
+      entityId: providerProfile.id,
       userId: user.id,
       ip,
       userAgent: req.headers.get("user-agent") ?? null,
-      metadata: { planSlug: plan.slug, planName: plan.name, betaOnly },
+      metadata: {
+        planSlug: plan.slug,
+        planName: plan.name,
+        betaOnly,
+        autoApproved: true,
+      },
     });
 
-    return jsonNoStore({ ok: true, plan: { slug: plan.slug, name: plan.name } }, { status: 200 });
+    return jsonNoStore(
+      {
+        ok: true,
+        plan: { slug: plan.slug, name: plan.name },
+        providerProfile: {
+          id: providerProfile.id,
+          isApproved: providerProfile.isApproved,
+        },
+      },
+      { status: 200 },
+    );
   });
 }

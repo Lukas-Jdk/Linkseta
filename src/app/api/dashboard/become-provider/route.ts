@@ -28,7 +28,10 @@ export async function POST(req: Request) {
 
     const { user, response } = await requireUser();
     if (response || !user) {
-      return response ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return (
+        response ??
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      );
     }
 
     let body: Body = {};
@@ -42,29 +45,51 @@ export async function POST(req: Request) {
 
     const plan = await prisma.plan.findUnique({
       where: { slug: planSlug },
-      select: { id: true, slug: true },
+      select: { id: true, slug: true, name: true },
     });
 
     if (!plan) {
       return NextResponse.json({ error: "Nerastas planas" }, { status: 400 });
     }
 
-    await prisma.providerProfile.upsert({
+    const profile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
-      update: { isApproved: true },
-      create: { userId: user.id, isApproved: true },
+      update: {
+        planId: plan.id,
+        isApproved: true,
+      },
+      create: {
+        userId: user.id,
+        planId: plan.id,
+        isApproved: true,
+      },
+      select: {
+        id: true,
+        isApproved: true,
+        planId: true,
+      },
     });
 
     await auditLog({
       action: "PROVIDER_PROFILE_APPROVE_DEMO",
       entity: "ProviderProfile",
-      entityId: user.id,
+      entityId: profile.id,
       userId: user.id,
       ip,
       userAgent: req.headers.get("user-agent") ?? null,
-      metadata: { planSlug: plan.slug },
+      metadata: {
+        planSlug: plan.slug,
+        planName: plan.name,
+      },
     });
 
-    return NextResponse.json({ ok: true, planSlug: plan.slug });
+    return NextResponse.json({
+      ok: true,
+      planSlug: plan.slug,
+      providerProfile: {
+        id: profile.id,
+        isApproved: profile.isApproved,
+      },
+    });
   });
 }
