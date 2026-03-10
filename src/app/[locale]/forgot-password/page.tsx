@@ -1,21 +1,14 @@
-// src/app/forgot-password/page.tsx
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
-import styles from "../[locale]/login/login.module.css";
-import { usePathname } from "next/navigation";
-
-function detectLocaleFromPath(pathname: string) {
-  const part = pathname.split("/").filter(Boolean)[0];
-  if (part === "lt" || part === "en" || part === "no") return part;
-  return "lt";
-}
+import styles from "../login/login.module.css";
 
 export default function ForgotPasswordPage() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const pathname = usePathname();
-  const locale = detectLocaleFromPath(pathname);
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
