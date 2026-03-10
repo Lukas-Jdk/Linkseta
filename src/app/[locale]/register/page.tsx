@@ -30,6 +30,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
   const [phone, setPhone] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,8 @@ export default function RegisterPage() {
     try {
       const supabase = getSupabaseBrowserClient();
 
+      const fullName = [name.trim(), surname.trim()].filter(Boolean).join(" ");
+
       const emailRedirectTo = `${window.location.origin}/${locale}/auth/callback?flow=signup-confirmed`;
 
       const { data, error } = await supabase.auth.signUp({
@@ -52,7 +55,10 @@ export default function RegisterPage() {
         password,
         options: {
           emailRedirectTo,
-          data: { name, phone },
+          data: {
+            name: fullName,
+            phone,
+          },
         },
       });
 
@@ -92,7 +98,19 @@ export default function RegisterPage() {
               placeholder="Vardas"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
+              autoComplete="given-name"
+            />
+          </div>
+
+          <div className={styles.inputRow}>
+            <User className={styles.icon} aria-hidden="true" />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="Pavardė"
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+              autoComplete="family-name"
             />
           </div>
 
