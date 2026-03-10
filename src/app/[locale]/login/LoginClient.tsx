@@ -12,7 +12,7 @@ function mapLoginErrorMessage(raw: string | null | undefined): string {
   const msg = (raw || "").toLowerCase();
 
   if (msg.includes("invalid login credentials")) {
-    return "Neteisingas el. pašto ir slaptažodžio derinys.";
+    return "Neteisingas el. paštas arba slaptažodis.";
   }
 
   if (msg.includes("email not confirmed")) {
