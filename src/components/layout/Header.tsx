@@ -10,9 +10,11 @@ type Props = {
 };
 
 export default async function Header({ locale }: Props) {
-  const tHeader = await getTranslations({ locale, namespace: "header" });
-  const tNav = await getTranslations({ locale, namespace: "nav" });
-  const tAuth = await getTranslations({ locale, namespace: "auth" });
+  const [tHeader, tNav, tAuth] = await Promise.all([
+    getTranslations({ locale, namespace: "header" }),
+    getTranslations({ locale, namespace: "nav" }),
+    getTranslations({ locale, namespace: "auth" }),
+  ]);
 
   return (
     <>

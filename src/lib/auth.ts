@@ -1,4 +1,5 @@
 // src/lib/auth.ts
+import { cache } from "react";
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { createSupabaseServerClient } from "./supabaseServer";
@@ -12,7 +13,6 @@ export type AuthUser = {
   phone: string | null;
   avatarUrl: string | null;
 
-  //  BETA kontrolė (iš DB)
   betaAccess: boolean;
   lifetimeFree: boolean;
 };
@@ -21,8 +21,7 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-// Paimti userį iš Supabase + DB (sync name/phone)
-export async function getAuthUser(): Promise<AuthUser | null> {
+export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
 
@@ -35,20 +34,8 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const metaName = typeof meta.name === "string" ? meta.name.trim() : null;
   const metaPhone = typeof meta.phone === "string" ? meta.phone.trim() : null;
 
-  const dbUser = await prisma.user.upsert({
+  let dbUser = await prisma.user.findUnique({
     where: { supabaseId },
-    update: {
-      email,
-      ...(metaName ? { name: metaName } : {}),
-      ...(metaPhone ? { phone: metaPhone } : {}),
-    },
-    create: {
-      supabaseId,
-      email,
-      ...(metaName ? { name: metaName } : {}),
-      ...(metaPhone ? { phone: metaPhone } : {}),
-      // betaAccess/lifetimeFree paliekam default iš schemos
-    },
     select: {
       id: true,
       supabaseId: true,
@@ -62,6 +49,54 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     },
   });
 
+  if (!dbUser) {
+    dbUser = await prisma.user.create({
+      data: {
+        supabaseId,
+        email,
+        ...(metaName ? { name: metaName } : {}),
+        ...(metaPhone ? { phone: metaPhone } : {}),
+      },
+      select: {
+        id: true,
+        supabaseId: true,
+        email: true,
+        role: true,
+        name: true,
+        phone: true,
+        avatarUrl: true,
+        betaAccess: true,
+        lifetimeFree: true,
+      },
+    });
+  } else {
+    const needsEmailUpdate = dbUser.email !== email;
+    const needsNameUpdate = metaName && dbUser.name !== metaName;
+    const needsPhoneUpdate = metaPhone && dbUser.phone !== metaPhone;
+
+    if (needsEmailUpdate || needsNameUpdate || needsPhoneUpdate) {
+      dbUser = await prisma.user.update({
+        where: { id: dbUser.id },
+        data: {
+          ...(needsEmailUpdate ? { email } : {}),
+          ...(needsNameUpdate ? { name: metaName } : {}),
+          ...(needsPhoneUpdate ? { phone: metaPhone } : {}),
+        },
+        select: {
+          id: true,
+          supabaseId: true,
+          email: true,
+          role: true,
+          name: true,
+          phone: true,
+          avatarUrl: true,
+          betaAccess: true,
+          lifetimeFree: true,
+        },
+      });
+    }
+  }
+
   return {
     id: dbUser.id,
     supabaseId: dbUser.supabaseId ?? null,
@@ -73,7 +108,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     betaAccess: dbUser.betaAccess,
     lifetimeFree: dbUser.lifetimeFree,
   };
-}
+});
 
 export async function requireUser() {
   const user = await getAuthUser();
