@@ -3,26 +3,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import type { EmailOtpType } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
-
-const ALLOWED_OTP_TYPES: EmailOtpType[] = [
-  "signup",
-  "invite",
-  "magiclink",
-  "recovery",
-  "email_change",
-  "email",
-];
-
-function isOtpType(value: string | null): value is EmailOtpType {
-  return Boolean(value && ALLOWED_OTP_TYPES.includes(value as EmailOtpType));
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
 
 export default function CallbackClient() {
   const router = useRouter();
@@ -39,106 +21,64 @@ export default function CallbackClient() {
 
     let cancelled = false;
 
-    async function waitForSession() {
-  const supabase = getSupabaseBrowserClient();
-
-  for (let i = 0; i < 20; i++) {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) return session;
-
-    await new Promise((r) => setTimeout(r, 300));
-  }
-
-  return null;
-}
-
     async function run() {
       try {
-        const supabase = getSupabaseBrowserClient();
-
         const flow = searchParams.get("flow");
         const tokenHash = searchParams.get("token_hash");
         const type = searchParams.get("type");
         const code = searchParams.get("code");
 
-        let authOk = false;
-
-        // 1) PIRMENYBĖ: token_hash flow (stabiliausias email patvirtinimui)
-        if (tokenHash && isOtpType(type)) {
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type,
-          });
-
-          if (error) {
-            console.error("verifyOtp error:", error);
-            setMessage("Patvirtinimo nuoroda nebegalioja arba jau buvo panaudota.");
-            return;
-          }
-
-          authOk = true;
+        // 1) Jei yra token_hash + type -> perleidžiam į vieną pagrindinį flow
+        if (tokenHash && type) {
+          const url = new URL(window.location.href);
+          url.pathname = `/${locale}/auth/confirm`;
+          window.location.replace(url.toString());
+          return;
         }
 
-        // 2) Tik jei nėra token_hash, tada bandome code flow
-        else if (code) {
+        // 2) Compatibility fallback senam code flow
+        if (code) {
+          const supabase = getSupabaseBrowserClient();
+
           const { error } = await supabase.auth.exchangeCodeForSession(code);
 
           if (error) {
             console.error("exchangeCodeForSession error:", error);
-            setMessage("Nepavyko patvirtinti el. pašto. Bandykite dar kartą.");
+            if (!cancelled) {
+              setMessage("Nepavyko patvirtinti prisijungimo. Bandykite dar kartą.");
+            }
             return;
           }
 
-          authOk = true;
-        }
+          await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch((err) => {
+            console.error("sync-user error:", err);
+          });
 
-        const session = await waitForSession();
+          if (cancelled) return;
 
-        if (!authOk && !session) {
-          setMessage(
-            "Patvirtinimo nuoroda neteisinga arba pasibaigusi. Bandykite registruotis dar kartą.",
-          );
-          return;
-        }
+          if (flow === "signup-confirmed") {
+            setMessage("El. paštas sėkmingai patvirtintas. Nukreipiame į prisijungimą...");
+            window.setTimeout(() => {
+              router.replace(`/${locale}/login?confirmed=1`);
+            }, 1200);
+            return;
+          }
 
-        await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch((err) => {
-          console.error("sync-user error:", err);
-        });
-
-        if (cancelled) return;
-
-        if (typeof window !== "undefined") {
-          const cleanUrl =
-            flow === "signup-confirmed"
-              ? `/${locale}/auth/callback?flow=signup-confirmed`
-              : `/${locale}/auth/callback`;
-
-          window.history.replaceState({}, "", cleanUrl);
-        }
-
-        if (flow === "signup-confirmed") {
-          setMessage(
-            "El. paštas sėkmingai patvirtintas. Po 5 sekundžių būsite nukreipti į prisijungimą.",
-          );
-
+          setMessage("Prisijungimas sėkmingas. Nukreipiame...");
           window.setTimeout(() => {
-            router.replace(`/${locale}/login?confirmed=1`);
-          }, 5000);
-
+            router.replace(`/${locale}/dashboard`);
+          }, 1200);
           return;
         }
 
-        setMessage("Prisijungimas sėkmingas. Nukreipiame...");
-
-        window.setTimeout(() => {
-          router.replace(`/${locale}/dashboard`);
-        }, 1200);
+        if (!cancelled) {
+          setMessage("Nuoroda neteisinga arba pasibaigusi.");
+        }
       } catch (e) {
         console.error("CallbackClient fatal error:", e);
-        setMessage("Įvyko klaida. Bandykite dar kartą.");
+        if (!cancelled) {
+          setMessage("Įvyko klaida. Bandykite dar kartą.");
+        }
       }
     }
 

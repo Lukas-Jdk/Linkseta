@@ -26,7 +26,7 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function buildLanguageAlternates(path: string) {
   return {
@@ -107,10 +107,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
 
   const resolved = await searchParams;
 
-  const paginationResult = validatePaginationParams(
-    resolved.page,
-    undefined,
-  );
+  const paginationResult = validatePaginationParams(resolved.page, undefined);
 
   if ("error" in paginationResult) {
     return (
@@ -151,13 +148,8 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const [total, cities, categories, services] = await Promise.all([
+  const [total, services, activeCity, activeCategory] = await Promise.all([
     prisma.serviceListing.count({ where }),
-    prisma.city.findMany({ orderBy: { name: "asc" } }),
-    prisma.category.findMany({
-      where: { type: "SERVICE" },
-      orderBy: { name: "asc" },
-    }),
     prisma.serviceListing.findMany({
       where,
       include: { city: true, category: true },
@@ -165,16 +157,24 @@ export default async function ServicesPage({ params, searchParams }: Props) {
       skip,
       take: pageSize,
     }),
+    city
+      ? prisma.city.findUnique({
+          where: { id: city },
+          select: { name: true },
+        })
+      : Promise.resolve(null),
+    category
+      ? prisma.category.findUnique({
+          where: { id: category },
+          select: { name: true },
+        })
+      : Promise.resolve(null),
   ]);
 
   const totalPages = Math.ceil(total / pageSize);
 
-  const activeCityName = city
-    ? (cities.find((c) => c.id === city)?.name ?? "")
-    : "";
-  const activeCategoryName = category
-    ? (categories.find((cat) => cat.id === category)?.name ?? "")
-    : "";
+  const activeCityName = activeCity?.name ?? "";
+  const activeCategoryName = activeCategory?.name ?? "";
 
   let heading = "Services in Norway";
 

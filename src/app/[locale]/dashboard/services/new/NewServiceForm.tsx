@@ -82,6 +82,14 @@ export default function NewServiceForm({ cities, categories }: Props) {
     try {
       const bucket = "service-images";
 
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
+        return;
+      }
+
+      const userId = userData.user.id;
+
       const compressed = await compressImageFile(file, {
         maxWidth: 1600,
         maxHeight: 1600,
@@ -95,7 +103,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
       }
 
       const fileName = `${crypto.randomUUID()}.jpg`;
-      const path = `services/${fileName}`;
+      const path = `${userId}/services/${fileName}`;
 
       const { error: upErr } = await supabase.storage.from(bucket).upload(path, compressed, {
         cacheControl: "31536000",

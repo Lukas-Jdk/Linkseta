@@ -27,13 +27,15 @@ function clampText(x: unknown, max: number) {
 async function uniqueSlugGlobal(base: string) {
   let slug = base;
   let i = 2;
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const exists = await prisma.serviceListing.findUnique({
       where: { slug },
       select: { id: true },
     });
+
     if (!exists) return slug;
+
     slug = `${base}-${i}`;
     i += 1;
   }
@@ -63,7 +65,6 @@ export async function POST(req: Request) {
     const user = await getAuthUser();
     if (!user) return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
 
-    // ✅ patikrinam provider profilį ir limitus (palieku tavo logiką)
     const profile = await prisma.providerProfile.findUnique({
       where: { userId: user.id },
       select: {
@@ -133,7 +134,15 @@ export async function POST(req: Request) {
           .slice(0, 6)
       : [];
 
-    // ✅ PRIEŽASTIS tavo klaidos: čia sugeneruojam slug + pridedam userId
+    const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
+    if (!safePrefix) {
+      return jsonNoStore({ error: "Missing supabaseId" }, { status: 400 });
+    }
+
+    if (imagePath && !imagePath.startsWith(safePrefix)) {
+      return jsonNoStore({ error: "Invalid imagePath" }, { status: 400 });
+    }
+
     const baseSlug = slugify(title) || "service";
     const slug = await uniqueSlugGlobal(baseSlug);
 

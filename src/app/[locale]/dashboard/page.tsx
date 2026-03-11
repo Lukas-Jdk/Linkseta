@@ -24,6 +24,7 @@ interface Props {
 
 export default async function DashboardPage({ params }: Props) {
   const { locale } = await params;
+
   const authUser = await getAuthUser();
   if (!authUser) redirect(`/${locale}/login`);
 
@@ -50,11 +51,12 @@ export default async function DashboardPage({ params }: Props) {
           category: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" },
+        take: 12,
       },
     },
   });
 
-  if (!user) redirect("/login");
+  if (!user) redirect(`/${locale}/login`);
 
   const isProviderApproved = Boolean(user.profile?.isApproved);
   const services = user.services ?? [];

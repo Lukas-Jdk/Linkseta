@@ -19,7 +19,7 @@ import {
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -79,12 +79,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: true,
       imageUrl: true,
       isActive: true,
-      city: { select: { name: true } },
-      category: { select: { name: true } },
+      deletedAt: true,
     },
   });
 
-  if (!service || !service.isActive) {
+  if (!service || !service.isActive || service.deletedAt) {
     return { robots: { index: false, follow: false } };
   }
 
@@ -152,7 +151,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
   if (!service) notFound();
 
   const cover = service.imageUrl || "/def.webp";
-  const images = service.imageUrl ? [cover, cover, cover] : [cover];
+  const images = service.imageUrl ? [cover] : [cover];
 
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
@@ -181,7 +180,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)}€` : "—";
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
