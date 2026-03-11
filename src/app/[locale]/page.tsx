@@ -10,7 +10,7 @@ import CardGrid from "@/components/cards/CardGrid";
 import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
 import SearchBarLazy from "@/components/search/SearchBarLazy";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const siteUrl = "https://www.linkseta.com";
 
