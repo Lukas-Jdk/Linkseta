@@ -25,6 +25,10 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
+function cleanParam(value?: string) {
+  return value?.trim() ?? "";
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -69,14 +73,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function HomePage({ params, searchParams }: Props) {
-  const { locale } = await params;
+  const [{ locale }, resolved] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
-  const resolved = await searchParams;
-
-  const q = resolved.q ?? "";
-  const city = resolved.city ?? "";
-  const category = resolved.category ?? "";
+  const q = cleanParam(resolved.q);
+  const city = cleanParam(resolved.city);
+  const category = cleanParam(resolved.category);
 
   const where: Prisma.ServiceListingWhereInput = {
     isActive: true,
@@ -95,7 +97,25 @@ export default async function HomePage({ params, searchParams }: Props) {
 
   const services = await prisma.serviceListing.findMany({
     where,
-    include: { city: true, category: true },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      priceFrom: true,
+      slug: true,
+      highlighted: true,
+      imageUrl: true,
+      city: {
+        select: {
+          name: true,
+        },
+      },
+      category: {
+        select: {
+          name: true,
+        },
+      },
+    },
     orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
     take: 6,
   });

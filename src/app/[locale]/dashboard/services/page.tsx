@@ -12,8 +12,7 @@ interface Props {
 }
 
 export default async function DashboardServicesPage({ params }: Props) {
-  const { locale } = await params;
-  const authUser = await getAuthUser();
+  const [{ locale }, authUser] = await Promise.all([params, getAuthUser()]);
 
   if (!authUser) {
     redirect(`/${locale}/login`);
@@ -21,7 +20,15 @@ export default async function DashboardServicesPage({ params }: Props) {
 
   const services = await prisma.serviceListing.findMany({
     where: { userId: authUser.id, deletedAt: null },
-    include: { city: true, category: true },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      priceFrom: true,
+      isActive: true,
+      city: { select: { name: true } },
+      category: { select: { name: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -74,15 +81,6 @@ export default async function DashboardServicesPage({ params }: Props) {
                   >
                     Redaguoti
                   </Link>
-
-                  {/*  ACTIVE TOGGLE */}
-                  <form
-                    action={async () => {
-                      "use server";
-                      // server action nenaudoju čia, nes  turi API.
-                      // todėl paliekam paprastą linką į edit (toggle ten).
-                    }}
-                  />
                 </div>
               </li>
             ))}

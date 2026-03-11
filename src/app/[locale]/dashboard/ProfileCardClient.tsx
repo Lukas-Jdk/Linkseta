@@ -1,6 +1,7 @@
 // src/app/[locale]/dashboard/ProfileCardClient.tsx
 "use client";
 
+import { useState } from "react";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./dashboard.module.css";
 import AvatarUploader from "@/components/profile/AvatarUploader";
@@ -30,7 +31,10 @@ export default function ProfileCardClient({
   const displayName = name?.trim() || email.split("@")[0];
   const initial = getInitialLetter(name, email);
 
-  // ✅ teisingas labelis
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(
+    avatarUrl ?? null,
+  );
+
   const accountTypeLabel = isProviderApproved
     ? "Paslaugų teikėjas"
     : "Vartotojas";
@@ -42,9 +46,9 @@ export default function ProfileCardClient({
       <div className={styles.profileBody}>
         <div className={styles.avatarWrap}>
           <AvatarUploader
-            avatarUrl={avatarUrl}
+            avatarUrl={localAvatarUrl}
             initial={initial}
-            onUploaded={() => window.location.reload()}
+            onUploaded={(url) => setLocalAvatarUrl(url)}
           />
         </div>
 

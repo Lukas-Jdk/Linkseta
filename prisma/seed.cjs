@@ -76,7 +76,7 @@ async function upsertCategories() {
     "Mokymai",
     "Vaikų priežiūra",
     "Gyvūnų priežiūra",
-    "Maistas / Kateris",
+    "Maistas",
     "Namų ūkis",
     "Kita",
   ];

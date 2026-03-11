@@ -10,17 +10,67 @@ import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 
 function mapRegisterError(raw: string | null | undefined) {
-  const msg = (raw || "").toLowerCase();
+  const msg = (raw || "").toLowerCase().trim();
 
-  if (msg.includes("already registered")) {
-    return "Toks el. paštas jau naudojamas. Bandykite prisijungti.";
+  if (!msg) {
+    return "Nepavyko užregistruoti paskyros. Bandykite dar kartą.";
   }
 
-  if (msg.includes("password")) {
-    return "Slaptažodis per silpnas. Naudokite bent 8 simbolius.";
+  if (
+    msg.includes("already registered") ||
+    msg.includes("user already registered") ||
+    msg.includes("already exists")
+  ) {
+    return "Toks el. paštas jau naudojamas. Bandykite prisijungti arba atstatyti slaptažodį.";
   }
 
-  return "Nepavyko užregistruoti paskyros. Bandykite dar kartą.";
+  if (
+    msg.includes("email address is invalid") ||
+    msg.includes("invalid email") ||
+    msg.includes("unable to validate email address")
+  ) {
+    return "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("password should be at least") ||
+    msg.includes("password") ||
+    msg.includes("weak password")
+  ) {
+    return "Slaptažodis per silpnas. Naudokite bent 8 simbolius, geriausia su raidėmis ir skaičiais.";
+  }
+
+  if (
+    msg.includes("signup is disabled") ||
+    msg.includes("signups not allowed")
+  ) {
+    return "Registracija šiuo metu laikinai išjungta. Bandykite vėliau.";
+  }
+
+  if (
+    msg.includes("email rate limit exceeded") ||
+    msg.includes("rate limit") ||
+    msg.includes("too many requests") ||
+    msg.includes("over_email_send_rate_limit")
+  ) {
+    return "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("network") ||
+    msg.includes("failed to fetch") ||
+    msg.includes("fetch")
+  ) {
+    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("email not confirmed")
+  ) {
+    return "Šis el. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.";
+  }
+
+  return `Registracija nepavyko: ${raw}`;
 }
 
 export default function RegisterPage() {
@@ -51,18 +101,19 @@ export default function RegisterPage() {
       const emailRedirectTo = `${window.location.origin}/${locale}/auth/confirm?flow=signup-confirmed`;
 
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo,
           data: {
             name: fullName,
-            phone,
+            phone: phone.trim(),
           },
         },
       });
 
       if (error) {
+        console.error("register error:", error);
         setError(mapRegisterError(error.message));
         return;
       }
@@ -71,10 +122,12 @@ export default function RegisterPage() {
         await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
       }
 
-      setSuccess("Registracija pavyko! Patikrinkite el. paštą ir patvirtinkite paskyrą.");
+      setSuccess(
+        "Registracija pavyko! Išsiuntėme patvirtinimo laišką. Patikrinkite el. paštą, taip pat „Spam“ ar „Promotions“ skiltis."
+      );
       setPassword("");
     } catch (e) {
-      console.error(e);
+      console.error("register unexpected error:", e);
       setError("Įvyko serverio klaida. Bandykite dar kartą.");
     } finally {
       setLoading(false);
@@ -152,7 +205,9 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
+          <div className={styles.hint}>
+            *Slaptažodis turi būti bent 8 simbolių ilgio
+          </div>
 
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}

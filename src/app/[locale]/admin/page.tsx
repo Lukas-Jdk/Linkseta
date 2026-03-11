@@ -20,7 +20,6 @@ function safeLocale(locale: string) {
     : routing.defaultLocale;
 }
 
-// Use UTC-based day helpers for timezone-stable aggregation
 function startOfDayUTC(d: Date) {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
@@ -39,7 +38,7 @@ function fmtDayUTC(d: Date) {
 
 async function countByDay(args: {
   from: Date;
-  days: number; // 7
+  days: number;
   model: "user" | "service" | "providerRequest";
 }) {
   const fromUtc = args.from;
@@ -52,7 +51,9 @@ async function countByDay(args: {
       SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
              COUNT(*)::int AS count
       FROM "ServiceListing"
-      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc} AND "deletedAt" IS NULL
+      WHERE "createdAt" >= ${fromUtc}
+        AND "createdAt" < ${toUtc}
+        AND "deletedAt" IS NULL
       GROUP BY day
       ORDER BY day
     `) as Array<{ day: string; count: number }>;
@@ -61,7 +62,8 @@ async function countByDay(args: {
       SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
              COUNT(*)::int AS count
       FROM "ProviderRequest"
-      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
+      WHERE "createdAt" >= ${fromUtc}
+        AND "createdAt" < ${toUtc}
       GROUP BY day
       ORDER BY day
     `) as Array<{ day: string; count: number }>;
@@ -70,48 +72,52 @@ async function countByDay(args: {
       SELECT (date_trunc('day', "createdAt" AT TIME ZONE 'UTC'))::date AS day,
              COUNT(*)::int AS count
       FROM "User"
-      WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
+      WHERE "createdAt" >= ${fromUtc}
+        AND "createdAt" < ${toUtc}
       GROUP BY day
       ORDER BY day
     `) as Array<{ day: string; count: number }>;
   }
 
   const map = new Map<string, number>();
-  for (const r of rows) map.set(r.day, Number(r.count ?? 0));
-
-  const buckets: number[] = Array(args.days).fill(0);
-  for (let i = 0; i < args.days; i++) {
-    const day = addDaysUTC(args.from, i);
-    const dayKey = day.toISOString().slice(0, 10); // YYYY-MM-DD
-    buckets[i] = map.get(dayKey) ?? 0;
+  for (const r of rows) {
+    map.set(String(r.day), Number(r.count ?? 0));
   }
 
-  return buckets;
+  return Array.from({ length: args.days }, (_, i) => {
+    const day = addDaysUTC(args.from, i).toISOString().slice(0, 10);
+    return map.get(day) ?? 0;
+  });
 }
 
 export default async function AdminHomePage({ params }: PageProps) {
   const { locale: rawLocale } = await params;
   const locale = safeLocale(rawLocale);
 
-  // Server-side protection: block non-admin users before any queries
   const { response } = await requireAdmin();
   if (response) redirect(`/${locale}`);
-
-  const [usersCount, providersCount, servicesCount, activeServices] =
-    await Promise.all([
-      prisma.user.count(),
-      prisma.providerProfile.count({ where: { isApproved: true } }),
-      prisma.serviceListing.count({ where: { deletedAt: null } }),
-      prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
-    ]);
 
   const now = new Date();
   const today = startOfDayUTC(now);
   const from = addDaysUTC(today, -6);
 
-  const days = Array.from({ length: 7 }, (_, i) => fmtDayUTC(addDaysUTC(from, i)));
+  const days = Array.from({ length: 7 }, (_, i) =>
+    fmtDayUTC(addDaysUTC(from, i)),
+  );
 
-  const [users7, services7, requests7] = await Promise.all([
+  const [
+    usersCount,
+    providersCount,
+    servicesCount,
+    activeServices,
+    users7,
+    services7,
+    requests7,
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.providerProfile.count({ where: { isApproved: true } }),
+    prisma.serviceListing.count({ where: { deletedAt: null } }),
+    prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
     countByDay({ from, days: 7, model: "user" }),
     countByDay({ from, days: 7, model: "service" }),
     countByDay({ from, days: 7, model: "providerRequest" }),

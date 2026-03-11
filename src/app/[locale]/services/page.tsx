@@ -26,7 +26,7 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function buildLanguageAlternates(path: string) {
   return {
@@ -102,12 +102,13 @@ export async function generateMetadata({
 }
 
 export default async function ServicesPage({ params, searchParams }: Props) {
-  const { locale } = await params;
+  const [{ locale }, resolved] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
-  const resolved = await searchParams;
-
-  const paginationResult = validatePaginationParams(resolved.page, undefined);
+  const paginationResult = validatePaginationParams(
+    resolved.page,
+    undefined,
+  );
 
   if ("error" in paginationResult) {
     return (
@@ -148,33 +149,44 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const [total, services, activeCity, activeCategory] = await Promise.all([
+  const [total, cities, categories, services] = await Promise.all([
     prisma.serviceListing.count({ where }),
+    prisma.city.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.category.findMany({
+      where: { type: "SERVICE" },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
     prisma.serviceListing.findMany({
       where,
-      include: { city: true, category: true },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priceFrom: true,
+        slug: true,
+        highlighted: true,
+        imageUrl: true,
+        city: { select: { name: true } },
+        category: { select: { name: true } },
+      },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
       skip,
       take: pageSize,
     }),
-    city
-      ? prisma.city.findUnique({
-          where: { id: city },
-          select: { name: true },
-        })
-      : Promise.resolve(null),
-    category
-      ? prisma.category.findUnique({
-          where: { id: category },
-          select: { name: true },
-        })
-      : Promise.resolve(null),
   ]);
 
-  const totalPages = Math.ceil(total / pageSize);
+const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const activeCityName = activeCity?.name ?? "";
-  const activeCategoryName = activeCategory?.name ?? "";
+  const activeCityName = city
+    ? (cities.find((c) => c.id === city)?.name ?? "")
+    : "";
+  const activeCategoryName = category
+    ? (categories.find((cat) => cat.id === category)?.name ?? "")
+    : "";
 
   let heading = "Services in Norway";
 

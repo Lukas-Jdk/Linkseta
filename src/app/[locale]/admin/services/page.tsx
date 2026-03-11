@@ -40,7 +40,10 @@ function parsePage(v: string | undefined) {
   return Math.floor(n);
 }
 
-export default async function AdminServicesPage({ params, searchParams }: PageProps) {
+export default async function AdminServicesPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { locale: rawLocale } = await params;
   const locale = safeLocale(rawLocale);
 
@@ -68,26 +71,39 @@ export default async function AdminServicesPage({ params, searchParams }: PagePr
     ];
   }
 
-  const [totalMatching, allCount, activeCount, inactiveCount, services] = await Promise.all([
-    prisma.serviceListing.count({ where }),
-    prisma.serviceListing.count({ where: { deletedAt: null } }),
-    prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
-    prisma.serviceListing.count({ where: { isActive: false, deletedAt: null } }),
-    prisma.serviceListing.findMany({
-      where,
-      include: {
-        city: true,
-        category: true,
-        user: { select: { email: true, name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-  ]);
+  const [totalMatching, allCount, activeCount, inactiveCount] =
+    await Promise.all([
+      prisma.serviceListing.count({ where }),
+      prisma.serviceListing.count({ where: { deletedAt: null } }),
+      prisma.serviceListing.count({
+        where: { isActive: true, deletedAt: null },
+      }),
+      prisma.serviceListing.count({
+        where: { isActive: false, deletedAt: null },
+      }),
+    ]);
 
   const totalPages = Math.max(1, Math.ceil(totalMatching / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
+
+  const services = await prisma.serviceListing.findMany({
+    where,
+    select: {
+      id: true,
+      title: true,
+      priceFrom: true,
+      isActive: true,
+      highlighted: true,
+      createdAt: true,
+      city: { select: { name: true } },
+      category: { select: { name: true } },
+      user: { select: { email: true, name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    skip: (currentPage - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+  });
+
   const shownCount = services.length;
   const actionPath = `/${locale}/admin/services`;
 
@@ -131,8 +147,9 @@ export default async function AdminServicesPage({ params, searchParams }: PagePr
       </form>
 
       <p className={styles.subheading} style={{ marginTop: 10 }}>
-        Rodoma: <strong>{shownCount}</strong> iš <strong>{totalMatching}</strong> • Puslapis{" "}
-        <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
+        Rodoma: <strong>{shownCount}</strong> iš <strong>{totalMatching}</strong>{" "}
+        • Puslapis <strong>{currentPage}</strong> /{" "}
+        <strong>{totalPages}</strong>
         {q ? (
           <>
             {" "}
@@ -142,7 +159,9 @@ export default async function AdminServicesPage({ params, searchParams }: PagePr
       </p>
 
       {services.length === 0 ? (
-        <p className={styles.empty}>Nėra rezultatų pagal pasirinktus filtrus.</p>
+        <p className={styles.empty}>
+          Nėra rezultatų pagal pasirinktus filtrus.
+        </p>
       ) : (
         <>
           <div className={styles.tableWrapper}>
@@ -195,7 +214,10 @@ export default async function AdminServicesPage({ params, searchParams }: PagePr
           {totalPages > 1 && (
             <div className={styles.filtersRow} style={{ marginTop: 14 }}>
               {currentPage > 1 ? (
-                <LocalizedLink href={buildPageHref(currentPage - 1)} className={styles.button}>
+                <LocalizedLink
+                  href={buildPageHref(currentPage - 1)}
+                  className={styles.button}
+                >
                   ← Ankstesnis
                 </LocalizedLink>
               ) : (
@@ -207,7 +229,10 @@ export default async function AdminServicesPage({ params, searchParams }: PagePr
               </span>
 
               {currentPage < totalPages ? (
-                <LocalizedLink href={buildPageHref(currentPage + 1)} className={styles.button}>
+                <LocalizedLink
+                  href={buildPageHref(currentPage + 1)}
+                  className={styles.button}
+                >
                   Kitas →
                 </LocalizedLink>
               ) : (

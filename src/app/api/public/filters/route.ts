@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export async function GET() {
   const [cities, categories] = await Promise.all([
@@ -18,6 +18,9 @@ export async function GET() {
   ]);
 
   const res = NextResponse.json({ cities, categories });
-  res.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+  res.headers.set(
+    "Cache-Control",
+    "public, s-maxage=3600, stale-while-revalidate=86400",
+  );
   return res;
 }

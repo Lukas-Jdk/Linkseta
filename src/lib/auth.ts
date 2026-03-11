@@ -12,7 +12,6 @@ export type AuthUser = {
   name: string | null;
   phone: string | null;
   avatarUrl: string | null;
-
   betaAccess: boolean;
   lifetimeFree: boolean;
 };
@@ -20,6 +19,18 @@ export type AuthUser = {
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
+
+const authUserSelect = {
+  id: true,
+  supabaseId: true,
+  email: true,
+  role: true,
+  name: true,
+  phone: true,
+  avatarUrl: true,
+  betaAccess: true,
+  lifetimeFree: true,
+} as const;
 
 export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createSupabaseServerClient();
@@ -36,18 +47,24 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
 
   let dbUser = await prisma.user.findUnique({
     where: { supabaseId },
-    select: {
-      id: true,
-      supabaseId: true,
-      email: true,
-      role: true,
-      name: true,
-      phone: true,
-      avatarUrl: true,
-      betaAccess: true,
-      lifetimeFree: true,
-    },
+    select: authUserSelect,
   });
+
+  // Legacy atvejis: jei user DB yra pagal email, bet dar neturi supabaseId
+  if (!dbUser) {
+    dbUser = await prisma.user.findUnique({
+      where: { email },
+      select: authUserSelect,
+    });
+
+    if (dbUser && !dbUser.supabaseId) {
+      dbUser = await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { supabaseId },
+        select: authUserSelect,
+      });
+    }
+  }
 
   if (!dbUser) {
     dbUser = await prisma.user.create({
@@ -57,42 +74,29 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
         ...(metaName ? { name: metaName } : {}),
         ...(metaPhone ? { phone: metaPhone } : {}),
       },
-      select: {
-        id: true,
-        supabaseId: true,
-        email: true,
-        role: true,
-        name: true,
-        phone: true,
-        avatarUrl: true,
-        betaAccess: true,
-        lifetimeFree: true,
-      },
+      select: authUserSelect,
     });
   } else {
-    const needsEmailUpdate = dbUser.email !== email;
-    const needsNameUpdate = metaName && dbUser.name !== metaName;
-    const needsPhoneUpdate = metaPhone && dbUser.phone !== metaPhone;
+    const needsUpdate =
+      dbUser.supabaseId !== supabaseId ||
+      dbUser.email !== email ||
+      (metaName !== null && dbUser.name !== metaName) ||
+      (metaPhone !== null && dbUser.phone !== metaPhone);
 
-    if (needsEmailUpdate || needsNameUpdate || needsPhoneUpdate) {
+    if (needsUpdate) {
       dbUser = await prisma.user.update({
         where: { id: dbUser.id },
         data: {
-          ...(needsEmailUpdate ? { email } : {}),
-          ...(needsNameUpdate ? { name: metaName } : {}),
-          ...(needsPhoneUpdate ? { phone: metaPhone } : {}),
+          ...(dbUser.supabaseId !== supabaseId ? { supabaseId } : {}),
+          ...(dbUser.email !== email ? { email } : {}),
+          ...(metaName !== null && dbUser.name !== metaName
+            ? { name: metaName }
+            : {}),
+          ...(metaPhone !== null && dbUser.phone !== metaPhone
+            ? { phone: metaPhone }
+            : {}),
         },
-        select: {
-          id: true,
-          supabaseId: true,
-          email: true,
-          role: true,
-          name: true,
-          phone: true,
-          avatarUrl: true,
-          betaAccess: true,
-          lifetimeFree: true,
-        },
+        select: authUserSelect,
       });
     }
   }
@@ -125,7 +129,10 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const { user, response } = await requireUser();
-  if (response || !user) return { response, user: null as AuthUser | null };
+
+  if (response || !user) {
+    return { response, user: null as AuthUser | null };
+  }
 
   if (user.role !== "ADMIN") {
     return {

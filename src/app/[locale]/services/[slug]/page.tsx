@@ -26,7 +26,10 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return input
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -65,7 +68,9 @@ function isSafeAvatarUrl(url: string | null | undefined) {
   if (!url) return false;
   const s = url.trim();
   if (!s) return false;
-  return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/");
+  return (
+    s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/")
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -89,7 +94,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
+    stripHtml(
+      service.description || "Find service providers in Norway on Linkseta.",
+    ),
     160,
   );
 
@@ -141,10 +148,42 @@ export default async function ServiceDetailsPage({ params }: Props) {
       isActive: true,
       deletedAt: null,
     },
-    include: {
-      city: true,
-      category: true,
-      user: { include: { profile: true } },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      slug: true,
+      priceFrom: true,
+      highlighted: true,
+      highlights: true,
+      imageUrl: true,
+      createdAt: true,
+
+      city: {
+        select: {
+          name: true,
+        },
+      },
+
+      category: {
+        select: {
+          name: true,
+        },
+      },
+
+      user: {
+        select: {
+          email: true,
+          name: true,
+          phone: true,
+          avatarUrl: true,
+          profile: {
+            select: {
+              isApproved: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -160,7 +199,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName =
+    service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
@@ -180,13 +220,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
   )}`;
 
-  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
+  const highlights = Array.isArray(service.highlights)
+    ? service.highlights
+    : [];
   const hasHighlights = highlights.length > 0;
 
   const jsonLd = {
@@ -296,8 +340,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
-        <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
+        <div className={styles.tabletInlinePriceValue}>
+          {mobileCompactPriceValue}
+        </div>
+        <div className={styles.tabletInlinePriceLabel}>Kaina nuo:</div>
       </div>
     </div>
   );
@@ -323,13 +369,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
+            <div className={styles.mobileCompactSubtitle}>
+              Paslaugos teikėjas
+            </div>
           </div>
         </div>
 
         <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
-          <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
+          <div className={styles.mobileCompactPriceValue}>
+            {mobileCompactPriceValue}
+          </div>
+          <div className={styles.mobileCompactPriceLabel}>Kaina nuo:</div>
         </div>
       </div>
     </div>
@@ -430,8 +480,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <h1 className={styles.title}>{service.title}</h1>
 
                       <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
-                        <span className={styles.ratingCount}>({ratingCount})</span>
+                        <span className={styles.ratingValue}>
+                          ⭐ {ratingValue.toFixed(1)}
+                        </span>
+                        <span className={styles.ratingCount}>
+                          ({ratingCount})
+                        </span>
                       </div>
 
                       <div className={styles.metaRow}>
@@ -465,7 +519,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
               <div className={styles.contentCardWrap}>
                 <div className={styles.contentCard}>
                   <div className={styles.tabs}>
-                    <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
+                    <a
+                      className={`${styles.tab} ${styles.tabActive}`}
+                      href="#apie"
+                    >
                       Apie paslaugą
                     </a>
                     <a className={styles.tab} href="#atsiliepimai">
@@ -500,7 +557,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
+              <div className={styles.mobileBottomSeller}>
+                {MobileBottomSellerCard}
+              </div>
             </div>
           </section>
 

@@ -1,7 +1,7 @@
 // src/components/layout/HeaderClient.tsx
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
@@ -56,6 +56,9 @@ export default function HeaderClient({ locale, labels }: Props) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const mountedRef = useRef(true);
+  const lastUserIdRef = useRef<string | null>(null);
+
   const isAdmin = role === "ADMIN";
 
   const closeAllMenus = useCallback(() => {
@@ -64,6 +67,7 @@ export default function HeaderClient({ locale, labels }: Props) {
   }, []);
 
   const resetAuthUi = useCallback(() => {
+    lastUserIdRef.current = null;
     setIsLoggedIn(false);
     setRole(null);
     setUserName(null);
@@ -74,8 +78,19 @@ export default function HeaderClient({ locale, labels }: Props) {
 
   const loadMe = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        setRole(null);
+        return;
+      }
+
       const json = (await res.json()) as { user: MeUser | null };
+
+      if (!mountedRef.current) return;
 
       if (json.user) {
         setRole(json.user.role ?? "USER");
@@ -86,61 +101,68 @@ export default function HeaderClient({ locale, labels }: Props) {
         setRole(null);
       }
     } catch {
+      if (!mountedRef.current) return;
       setRole(null);
     }
   }, []);
 
   const applyUserToUi = useCallback(
-    (user: User | null) => {
+    async (user: User | null) => {
       if (!user) {
         resetAuthUi();
         return;
       }
 
+      const nextUserId = user.id;
+      const email = user.email ?? null;
+
       setIsLoggedIn(true);
-      setUserEmail(user.email ?? null);
+      setUserEmail(email);
+
+      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      const metaName =
+        typeof meta.name === "string" && meta.name.trim()
+          ? meta.name.trim()
+          : null;
+
+      setUserName((prev) => metaName ?? prev);
+      setAvatarUrl((prev) => prev);
+
+      if (lastUserIdRef.current === nextUserId) {
+        return;
+      }
+
+      lastUserIdRef.current = nextUserId;
+      await loadMe();
     },
-    [resetAuthUi],
+    [loadMe, resetAuthUi],
   );
 
   useEffect(() => {
-    let alive = true;
+    mountedRef.current = true;
 
     async function init() {
-      const { data } = await supabase.auth.getUser();
-      if (!alive) return;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      const user = data?.user ?? null;
-      applyUserToUi(user);
-
-      if (user) {
-        await loadMe();
-      } else {
-        setRole(null);
-      }
+      if (!mountedRef.current) return;
+      await applyUserToUi(user ?? null);
     }
 
     init();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const user = session?.user ?? null;
-
-      applyUserToUi(user);
-
-      if (user) {
-        await loadMe();
-      } else {
-        setRole(null);
-      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applyUserToUi(session?.user ?? null);
     });
 
     return () => {
-      alive = false;
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [applyUserToUi, loadMe, supabase]);
+  }, [applyUserToUi, supabase]);
 
   useEffect(() => {
     closeAllMenus();

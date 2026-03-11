@@ -323,7 +323,7 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         </div>
 
         <div className={styles.priceRow}>
-          <label className={styles.label}>Kaina nuo</label>
+          <label className={styles.label}>Kaina nuo:</label>
           <div className={styles.priceInput}>
             <input
               type="number"

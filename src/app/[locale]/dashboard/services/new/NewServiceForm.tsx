@@ -209,7 +209,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Kaina nuo (NOK)</label>
+          <label className={styles.label}>Kaina nuo: (NOK)</label>
           <input
             className={styles.input}
             value={priceFrom}

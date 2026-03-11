@@ -23,43 +23,44 @@ interface Props {
 }
 
 export default async function DashboardPage({ params }: Props) {
-  const { locale } = await params;
+  const [{ locale }, authUser] = await Promise.all([params, getAuthUser()]);
 
-  const authUser = await getAuthUser();
   if (!authUser) redirect(`/${locale}/login`);
 
-  const user = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      avatarUrl: true,
-      profile: { select: { isApproved: true } },
-      services: {
-        where: { deletedAt: null },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          createdAt: true,
-          isActive: true,
-          highlighted: true,
-          imageUrl: true,
-          city: { select: { name: true } },
-          category: { select: { name: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 12,
+  const [user, services] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        email: true,
+        name: true,
+        role: true,
+        avatarUrl: true,
+        profile: { select: { isApproved: true } },
       },
-    },
-  });
+    }),
+    prisma.serviceListing.findMany({
+      where: {
+        userId: authUser.id,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        isActive: true,
+        highlighted: true,
+        imageUrl: true,
+        city: { select: { name: true } },
+        category: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   if (!user) redirect(`/${locale}/login`);
 
   const isProviderApproved = Boolean(user.profile?.isApproved);
-  const services = user.services ?? [];
 
   const totalServices = services.length;
   const activeServices = services.filter((s) => s.isActive).length;
