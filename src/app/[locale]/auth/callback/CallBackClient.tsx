@@ -40,19 +40,20 @@ export default function CallbackClient() {
     let cancelled = false;
 
     async function waitForSession() {
-      const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient();
 
-      for (let i = 0; i < 8; i++) {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+  for (let i = 0; i < 20; i++) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-        if (session) return session;
-        await sleep(500);
-      }
+    if (session) return session;
 
-      return null;
-    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  return null;
+}
 
     async function run() {
       try {
