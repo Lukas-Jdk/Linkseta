@@ -42,14 +42,12 @@ export default function CallbackClient() {
     async function waitForSession() {
       const supabase = getSupabaseBrowserClient();
 
-      // bandome kelis kartus, nes po verify redirect session ne visada atsiranda akimirksniu
       for (let i = 0; i < 8; i++) {
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
         if (session) return session;
-
         await sleep(500);
       }
 
@@ -60,28 +58,15 @@ export default function CallbackClient() {
       try {
         const supabase = getSupabaseBrowserClient();
 
-        const code = searchParams.get("code");
         const flow = searchParams.get("flow");
         const tokenHash = searchParams.get("token_hash");
         const type = searchParams.get("type");
+        const code = searchParams.get("code");
 
-        let authStepOk = false;
+        let authOk = false;
 
-        // 1) PKCE flow
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (error) {
-            console.error("exchangeCodeForSession error:", error);
-            setMessage("Nepavyko patvirtinti el. pašto. Bandykite dar kartą.");
-            return;
-          }
-
-          authStepOk = true;
-        }
-
-        // 2) OTP / token_hash flow
-        else if (tokenHash && isOtpType(type)) {
+        // 1) PIRMENYBĖ: token_hash flow (stabiliausias email patvirtinimui)
+        if (tokenHash && isOtpType(type)) {
           const { error } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type,
@@ -93,49 +78,37 @@ export default function CallbackClient() {
             return;
           }
 
-          authStepOk = true;
+          authOk = true;
         }
 
-        // 3) Hash flow (#access_token=...)
-        else if (typeof window !== "undefined" && window.location.hash) {
-          const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-          const access_token = hash.get("access_token");
-          const refresh_token = hash.get("refresh_token");
+        // 2) Tik jei nėra token_hash, tada bandome code flow
+        else if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-          if (access_token && refresh_token) {
-            const { error } = await supabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
-
-            if (error) {
-              console.error("setSession error:", error);
-              setMessage("Nepavyko užbaigti prisijungimo. Bandykite dar kartą.");
-              return;
-            }
-
-            authStepOk = true;
+          if (error) {
+            console.error("exchangeCodeForSession error:", error);
+            setMessage("Nepavyko patvirtinti el. pašto. Bandykite dar kartą.");
+            return;
           }
+
+          authOk = true;
         }
 
-        // 4) palaukiam session net jei nebuvo akivaizdaus code/tokenHash
         const session = await waitForSession();
 
-        if (!authStepOk && !session) {
+        if (!authOk && !session) {
           setMessage(
             "Patvirtinimo nuoroda neteisinga arba pasibaigusi. Bandykite registruotis dar kartą.",
           );
           return;
         }
 
-        // sync DB user
         await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch((err) => {
           console.error("sync-user error:", err);
         });
 
         if (cancelled) return;
 
-        // išvalom URL
         if (typeof window !== "undefined") {
           const cleanUrl =
             flow === "signup-confirmed"
