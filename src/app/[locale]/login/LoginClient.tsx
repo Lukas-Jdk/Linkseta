@@ -9,7 +9,11 @@ import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { Mail, Lock } from "lucide-react";
 
 function mapLoginErrorMessage(raw: string | null | undefined): string {
-  const msg = (raw || "").toLowerCase();
+  const msg = (raw || "").toLowerCase().trim();
+
+  if (!msg) {
+    return "Nepavyko prisijungti. Patikrinkite duomenis ir bandykite dar kartą.";
+  }
 
   if (msg.includes("invalid login credentials")) {
     return "Neteisingas el. paštas arba slaptažodis.";
@@ -19,7 +23,23 @@ function mapLoginErrorMessage(raw: string | null | undefined): string {
     return "El. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.";
   }
 
-  return "Nepavyko prisijungti. Patikrinkite duomenis ir bandykite dar kartą.";
+  if (
+    msg.includes("too many requests") ||
+    msg.includes("rate limit") ||
+    msg.includes("over_request_rate_limit")
+  ) {
+    return "Per daug bandymų prisijungti. Palaukite kelias minutes ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("network") ||
+    msg.includes("failed to fetch") ||
+    msg.includes("fetch")
+  ) {
+    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+  }
+
+  return `Prisijungti nepavyko: ${raw}`;
 }
 
 export default function LoginClient() {
@@ -50,6 +70,12 @@ export default function LoginClient() {
       : null;
   }, [searchParams]);
 
+  const resetMessage = useMemo(() => {
+    return searchParams.get("reset") === "1"
+      ? "Slaptažodis sėkmingai pakeistas. Dabar galite prisijungti."
+      : null;
+  }, [searchParams]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -70,7 +96,7 @@ export default function LoginClient() {
       const supabase = getSupabaseBrowserClient();
 
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -96,6 +122,7 @@ export default function LoginClient() {
         <h1 className={styles.title}>Prisijungimas</h1>
 
         {confirmedMessage && <p className={styles.success}>{confirmedMessage}</p>}
+        {resetMessage && <p className={styles.success}>{resetMessage}</p>}
         {confirmErrorMessage && <p className={styles.error}>{confirmErrorMessage}</p>}
         {error && <p className={styles.error}>{error}</p>}
 

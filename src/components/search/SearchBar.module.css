@@ -259,3 +259,43 @@
     display: none;
   }
 }
+
+.dropdownField {
+  width: 100%;
+  min-height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.dropdownFieldTop {
+  display: block;
+  font: inherit;
+  color: inherit;
+}
+
+.dropdownFieldBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.segment {
+  min-width: 0;
+}
+
+.dropdownField:focus {
+  outline: none;
+}
+
+.dropdownField:focus-visible {
+  outline: none;
+}

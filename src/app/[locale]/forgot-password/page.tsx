@@ -6,6 +6,41 @@ import { useParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "../login/login.module.css";
 
+function mapForgotPasswordError(raw: string | null | undefined) {
+  const msg = (raw || "").toLowerCase().trim();
+
+  if (!msg) {
+    return "Nepavyko išsiųsti slaptažodžio atstatymo laiško.";
+  }
+
+  if (
+    msg.includes("email address is invalid") ||
+    msg.includes("invalid email") ||
+    msg.includes("unable to validate email address")
+  ) {
+    return "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("email rate limit exceeded") ||
+    msg.includes("rate limit") ||
+    msg.includes("too many requests") ||
+    msg.includes("over_email_send_rate_limit")
+  ) {
+    return "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.";
+  }
+
+  if (
+    msg.includes("network") ||
+    msg.includes("failed to fetch") ||
+    msg.includes("fetch")
+  ) {
+    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+  }
+
+  return `Nepavyko išsiųsti laiško: ${raw}`;
+}
+
 export default function ForgotPasswordPage() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const params = useParams<{ locale: string }>();
@@ -21,8 +56,8 @@ export default function ForgotPasswordPage() {
     setMessage(null);
     setError(null);
 
-    if (!email) {
-      setError("Įveskite el. paštą");
+    if (!email.trim()) {
+      setError("Įveskite el. paštą.");
       return;
     }
 
@@ -30,15 +65,17 @@ export default function ForgotPasswordPage() {
     try {
       const redirectTo = `${window.location.origin}/${locale}/reset-password`;
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
       });
 
       if (error) {
-        console.error(error);
-        setError("Nepavyko išsiųsti laiško. Patikrinkite el. paštą.");
+        console.error("forgot password error:", error);
+        setError(mapForgotPasswordError(error.message));
       } else {
-        setMessage("Jei toks el. paštas egzistuoja, išsiuntėme slaptažodžio atstatymo nuorodą.");
+        setMessage(
+          "Jei toks el. paštas egzistuoja, išsiuntėme slaptažodžio atstatymo nuorodą. Patikrinkite ir „Spam“ aplanką."
+        );
       }
     } catch (err) {
       console.error(err);

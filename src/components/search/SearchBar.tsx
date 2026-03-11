@@ -278,43 +278,39 @@ export default function SearchBar() {
       >
         <div className={styles.bar}>
           <div className={styles.segment} ref={cityWrapRef}>
-            <div className={styles.label}>
-              <div className={styles.labelText}>Miestas</div>
+            <button
+              type="button"
+              className={styles.dropdownField}
+              onClick={toggleCity}
+              ref={cityBtnRef}
+              aria-haspopup="listbox"
+              aria-expanded={openCity}
+            >
+              <span className={styles.dropdownFieldTop}>Miestas</span>
 
-              <button
-                type="button"
-                className={styles.dropdownBtn}
-                onClick={toggleCity}
-                ref={cityBtnRef}
-                aria-haspopup="listbox"
-                aria-expanded={openCity}
-              >
-                <span className={styles.dropdownLeft}>
-                  <span className={styles.fakeValue}>{cityName}</span>
-                </span>
+              <span className={styles.dropdownFieldBottom}>
+                <span className={styles.fakeValue}>{cityName}</span>
                 <ChevronDown className={styles.chev} />
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
 
           <div className={styles.segment} ref={catWrapRef}>
-            <div className={styles.label}>
-              <div className={styles.labelText}>Kategorija</div>
+            <button
+              type="button"
+              className={styles.dropdownField}
+              onClick={toggleCategory}
+              ref={catBtnRef}
+              aria-haspopup="listbox"
+              aria-expanded={openCategory}
+            >
+              <span className={styles.dropdownFieldTop}>Kategorija</span>
 
-              <button
-                type="button"
-                className={styles.dropdownBtn}
-                onClick={toggleCategory}
-                ref={catBtnRef}
-                aria-haspopup="listbox"
-                aria-expanded={openCategory}
-              >
-                <span className={styles.dropdownLeft}>
-                  <span className={styles.fakeValue}>{categoryName}</span>
-                </span>
+              <span className={styles.dropdownFieldBottom}>
+                <span className={styles.fakeValue}>{categoryName}</span>
                 <ChevronDown className={styles.chev} />
-              </button>
-            </div>
+              </span>
+            </button>
           </div>
 
           <button

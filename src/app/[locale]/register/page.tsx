@@ -34,7 +34,6 @@ function mapRegisterError(raw: string | null | undefined) {
 
   if (
     msg.includes("password should be at least") ||
-    msg.includes("password") ||
     msg.includes("weak password")
   ) {
     return "Slaptažodis per silpnas. Naudokite bent 8 simbolius, geriausia su raidėmis ir skaičiais.";
@@ -62,12 +61,6 @@ function mapRegisterError(raw: string | null | undefined) {
     msg.includes("fetch")
   ) {
     return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
-  }
-
-  if (
-    msg.includes("email not confirmed")
-  ) {
-    return "Šis el. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.";
   }
 
   return `Registracija nepavyko: ${raw}`;
@@ -205,9 +198,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className={styles.hint}>
-            *Slaptažodis turi būti bent 8 simbolių ilgio
-          </div>
+          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
 
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}
