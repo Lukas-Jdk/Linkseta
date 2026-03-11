@@ -38,6 +38,18 @@ export default function LoginClient() {
     return next;
   }, [searchParams, locale]);
 
+  const confirmedMessage = useMemo(() => {
+    return searchParams.get("confirmed") === "1"
+      ? "El. paštas sėkmingai patvirtintas. Dabar galite prisijungti."
+      : null;
+  }, [searchParams]);
+
+  const confirmErrorMessage = useMemo(() => {
+    return searchParams.get("error") === "confirm_failed"
+      ? "Nepavyko patvirtinti el. pašto arba nuoroda nebegalioja."
+      : null;
+  }, [searchParams]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -83,6 +95,8 @@ export default function LoginClient() {
       <div className={styles.card}>
         <h1 className={styles.title}>Prisijungimas</h1>
 
+        {confirmedMessage && <p className={styles.success}>{confirmedMessage}</p>}
+        {confirmErrorMessage && <p className={styles.error}>{confirmErrorMessage}</p>}
         {error && <p className={styles.error}>{error}</p>}
 
         <form onSubmit={handleSubmit} className={styles.form}>

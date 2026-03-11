@@ -48,7 +48,7 @@ export default function RegisterPage() {
 
       const fullName = [name.trim(), surname.trim()].filter(Boolean).join(" ");
 
-      const emailRedirectTo = `${window.location.origin}/${locale}/auth/callback?flow=signup-confirmed`;
+      const emailRedirectTo = `${window.location.origin}/${locale}/auth/confirm?flow=signup-confirmed`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
