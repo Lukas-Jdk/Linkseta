@@ -4,7 +4,7 @@
   min-height: calc(100vh - var(--header-height, 72px));
   display: grid;
   place-items: center;
-  padding: 48px 16px;
+  padding: 32px 16px;
 
   background: radial-gradient(
       900px 400px at 50% 20%,
@@ -12,16 +12,19 @@
       transparent 60%
     ),
     linear-gradient(180deg, #eef2f7 0%, #e7ebf2 100%);
+  overflow-x: clip;
 }
 
 .card {
   width: 100%;
   max-width: 520px;
+  min-width: 0;
   background: #ffffff;
   border-radius: 16px;
   padding: 26px 22px;
   box-shadow: 0 22px 60px rgba(2, 6, 23, 0.18);
   border: 1px solid rgba(15, 23, 42, 0.08);
+  overflow: hidden;
 }
 
 .title {
@@ -29,11 +32,13 @@
   font-weight: 900;
   margin: 0 0 14px 0;
   color: #0f172a;
+  overflow-wrap: anywhere;
 }
 
 .form {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .inputRow {
@@ -45,6 +50,7 @@
   border: 1px solid rgba(148, 163, 184, 0.45);
   border-radius: 10px;
   background: #fff;
+  min-width: 0;
 }
 
 .inputRow:focus-within {
@@ -64,6 +70,8 @@
   outline: none;
   font-size: 15px;
   flex: 1;
+  min-width: 0;
+  width: 100%;
 }
 
 .button {
@@ -77,6 +85,7 @@
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(29, 155, 240, 0.25);
   margin-top: 2px;
+  width: 100%;
 }
 
 .button:disabled {
@@ -89,6 +98,7 @@
   color: #6b7280;
   text-align: center;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .link {
@@ -105,11 +115,28 @@
   color: #dc2626;
   font-size: 0.9rem;
   margin: 0 0 10px 0;
+  overflow-wrap: anywhere;
 }
-
 
 .success {
   color: #15803d;
   font-size: 0.9rem;
   margin: 0 0 10px 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 20px 12px 32px;
+    align-items: start;
+  }
+
+  .card {
+    padding: 22px 16px;
+    border-radius: 14px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
 }

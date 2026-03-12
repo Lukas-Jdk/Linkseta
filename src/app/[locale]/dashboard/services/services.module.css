@@ -1,16 +1,21 @@
 /* src/app/[locale]/dashboard/services/services.module.css */
 
 .wrapper {
+  width: 100%;
   max-width: var(--container);
   margin: 32px auto 40px;
   padding: 0 16px 40px;
+  min-width: 0;
 }
 
 .card {
+  width: 100%;
+  min-width: 0;
   background: #ffffff;
   border-radius: var(--radius-lg);
   box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
   padding: 20px 22px;
+  overflow: hidden;
 }
 
 .headerRow {
@@ -19,15 +24,21 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .heading {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-main);
+  min-width: 0;
 }
 
 .newButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
   padding: 8px 16px;
   border-radius: 999px;
   border: none;
@@ -37,6 +48,7 @@
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .newButton:hover {
@@ -55,6 +67,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .listItem {
@@ -64,24 +77,41 @@
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid #e5e7eb;
+  min-width: 0;
+}
+
+.listItem > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .serviceTitle {
   font-weight: 600;
   color: #111827;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .meta {
   font-size: 0.85rem;
   color: #6b7280;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.85rem;
   padding: 6px 10px;
   border-radius: 999px;
@@ -89,8 +119,43 @@
   text-decoration: none;
   color: #111827;
   background: #f9fafb;
+  white-space: nowrap;
 }
 
 .linkButton:hover {
   background: #eef2ff;
+}
+
+@media (max-width: 720px) {
+  .wrapper {
+    margin: 24px auto 32px;
+  }
+
+  .card {
+    padding: 18px 14px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .newButton {
+    width: 100%;
+  }
+
+  .listItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .linkButton {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 }

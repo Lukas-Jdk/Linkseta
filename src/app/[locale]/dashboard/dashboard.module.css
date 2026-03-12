@@ -3,11 +3,15 @@
 .page {
   padding: 26px 0 44px;
   background: var(--bg-page);
+  width: 100%;
+  overflow-x: clip;
 }
 
 /* ================= TOP CARD ================= */
 
 .topCard {
+  width: 100%;
+  min-width: 0;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -18,10 +22,12 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+  overflow: hidden;
 }
 
 .topCardLeft {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .h1 {
@@ -29,16 +35,19 @@
   font-weight: 600;
   color: var(--text-heading);
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
   margin-top: 6px;
   font-size: 0.95rem;
   color: #6b7280;
+  overflow-wrap: anywhere;
 }
 
 .topCardRight {
   flex: 0 0 auto;
+  min-width: 0;
 }
 
 /* “+ Nauja paslauga” */
@@ -57,6 +66,7 @@
   text-decoration: none;
   box-shadow: 0 14px 34px rgba(14, 165, 233, 0.28);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  white-space: nowrap;
 }
 
 .newBtn:hover {
@@ -73,14 +83,18 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  width: 100%;
+  min-width: 0;
 }
 
 /* ================= PROFILE CARD ================= */
 
 .profileCard {
+  width: 100%;
+  min-width: 0;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -96,13 +110,15 @@
 .profileBody {
   padding: 14px 16px 16px;
   position: relative;
+  min-width: 0;
 }
 
 .avatarWrap {
-  width: 92px;         /* pas tave gali būti 110 ar 120 – rinkis */
+  width: 92px;
   height: 92px;
-  margin: -50px auto 0;   /* kad “užliptų” ant header bg */
+  margin: -50px auto 0;
   margin-left: 18px;
+  max-width: 100%;
 }
 
 .avatarCircle {
@@ -122,12 +138,14 @@
 .profileIdentity {
   padding-top: 12px;
   padding-left: 6px;
+  min-width: 0;
 }
 
 .profileName {
   font-size: 1.15rem;
   font-weight: 900;
   color: var(--text-heading);
+  overflow-wrap: anywhere;
 }
 
 .profileType {
@@ -147,7 +165,7 @@
 
 .infoRow {
   display: grid;
-  grid-template-columns: 18px 1fr;
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
 }
@@ -161,9 +179,7 @@
   font-size: 0.9rem;
   color: #334155;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .profileBadges {
@@ -185,6 +201,7 @@
   color: #166534;
   width: 100%;
   justify-content: center;
+  text-align: center;
 }
 
 .providerPending {
@@ -199,6 +216,7 @@
   color: #9a3412;
   width: 100%;
   justify-content: center;
+  text-align: center;
 }
 
 .profileCta {
@@ -217,16 +235,20 @@
   font-weight: 800;
   text-decoration: none;
   width: 100%;
+  text-align: center;
 }
 
 /* ================= SERVICES CARD ================= */
 
 .servicesCard {
+  width: 100%;
+  min-width: 0;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
   box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
   padding: 14px 14px 12px;
+  overflow: hidden;
 }
 
 .servicesHeader {
@@ -235,18 +257,22 @@
   justify-content: space-between;
   gap: 10px;
   padding: 6px 6px 20px;
+  min-width: 0;
 }
 
 .h2 {
   font-size: 1.15rem;
   font-weight: 900;
   color: var(--text-heading);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .servicesCount {
   font-size: 0.9rem;
   color: #6b7280;
   font-family: var(--font-second);
+  flex: 0 0 auto;
 }
 
 /* List */
@@ -254,6 +280,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 /* Empty state */
@@ -264,6 +291,7 @@
   background: #f8fafc;
   color: #475569;
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
 .emptyActions {
@@ -286,13 +314,14 @@
 /* Service item */
 .serviceItem {
   display: grid;
-  grid-template-columns: 140px 1fr;
+  grid-template-columns: 140px minmax(0, 1fr);
   gap: 12px;
   padding: 10px;
   border-radius: 16px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: #ffffff;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  min-width: 0;
 }
 
 .serviceThumb {
@@ -334,6 +363,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .serviceTitle {
@@ -341,9 +371,7 @@
   font-weight: 900;
   color: #0f172a;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .statusActive,
@@ -353,6 +381,7 @@
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .statusActive {
@@ -369,6 +398,7 @@
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .metaItem {
@@ -376,22 +406,26 @@
   align-items: center;
   gap: 6px;
   font-size: 0.85rem;
-  color: #64748b; /* 🔹 neutrali pilka-mėlyna */
+  color: #64748b;
+  min-width: 0;
 }
 
 .metaIcon {
   width: 14px;
   height: 14px;
   stroke-width: 2;
-   color: #0ea5e9;
+  color: #0ea5e9;
+  flex: 0 0 auto;
 }
 
 /* Actions */
 .serviceActions {
   display: flex;
-  justify-content: right;
+  justify-content: flex-end;
   gap: 18px;
   margin-top: 2px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .actionLink {
@@ -402,13 +436,16 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .actionIcon {
   width: 20px;
   height: 20px;
   color: #0ea5e9;
+  flex: 0 0 auto;
 }
+
 .actionLink:hover {
   text-decoration: underline;
 }
@@ -430,6 +467,7 @@
   color: #334155;
   font-weight: 800;
   text-decoration: none;
+  text-align: center;
 }
 
 /* ================= RESPONSIVE ================= */
@@ -444,8 +482,13 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 640px) {
+  .page {
+    padding: 18px 0 32px;
+  }
+
   .topCard {
+    padding: 18px 14px;
     flex-direction: column;
     align-items: stretch;
   }
@@ -454,16 +497,31 @@
     width: 100%;
   }
 
+  .servicesHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 2px 16px;
+  }
+
   .serviceItem {
     grid-template-columns: 1fr;
   }
 
   .serviceThumb {
-    height: 140px;
+    height: 160px;
   }
 
   .serviceTopRow {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .serviceActions {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .actionLink {
+    width: 100%;
   }
 }
