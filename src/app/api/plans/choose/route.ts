@@ -22,7 +22,7 @@ function isAllowedPlanInBetaMode(
   planSlug: string,
 ) {
   if (user.role === "ADMIN") return true;
-  if (planSlug === "demo") return true;
+  if (planSlug === "free-trial") return true;
   if (planSlug === "beta") return Boolean(user.betaAccess);
   return false;
 }
@@ -57,14 +57,14 @@ export async function POST(req: Request) {
     if (betaOnly) {
       if (!isAllowedPlanInBetaMode(user, planSlug)) {
         return jsonNoStore(
-          { error: "Šiuo metu galimas tik Demo planas." },
+          { error: "Šiuo metu viešai galimas tik Free Trial planas." },
           { status: 409 },
         );
       }
     } else {
       if (planSlug === "basic" || planSlug === "premium") {
         return jsonNoStore(
-          { error: "Apmokėjimai dar neįjungti (coming soon)." },
+          { error: "Apmokėjimai dar neįjungti. Kol kas galite naudoti tik Free Trial." },
           { status: 409 },
         );
       }
@@ -72,28 +72,43 @@ export async function POST(req: Request) {
 
     const plan = await prisma.plan.findUnique({
       where: { slug: planSlug },
-      select: { id: true, slug: true, name: true },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        isTrial: true,
+        trialDays: true,
+      },
     });
 
     if (!plan) {
       return jsonNoStore({ error: "Plan not found" }, { status: 404 });
     }
 
+    const now = new Date();
+    const trialEndsAt =
+      plan.isTrial && typeof plan.trialDays === "number"
+        ? new Date(now.getTime() + plan.trialDays * 24 * 60 * 60 * 1000)
+        : null;
+
     const providerProfile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
       update: {
         planId: plan.id,
         isApproved: true,
+        trialEndsAt,
       },
       create: {
         userId: user.id,
         planId: plan.id,
         isApproved: true,
+        trialEndsAt,
       },
       select: {
         id: true,
         isApproved: true,
         planId: true,
+        trialEndsAt: true,
       },
     });
 
@@ -109,6 +124,7 @@ export async function POST(req: Request) {
         planName: plan.name,
         betaOnly,
         autoApproved: true,
+        trialEndsAt: providerProfile.trialEndsAt,
       },
     });
 
@@ -119,6 +135,7 @@ export async function POST(req: Request) {
         providerProfile: {
           id: providerProfile.id,
           isApproved: providerProfile.isApproved,
+          trialEndsAt: providerProfile.trialEndsAt,
         },
       },
       { status: 200 },

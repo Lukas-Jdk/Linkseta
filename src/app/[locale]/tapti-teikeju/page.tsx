@@ -6,7 +6,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./tapti.module.css";
 
-type PlanSlug = "demo" | "basic" | "premium";
+type PlanSlug = "free-trial" | "basic" | "premium";
 
 type Plan = {
   slug: PlanSlug;
@@ -20,14 +20,14 @@ type Plan = {
 
 const PLANS: Plan[] = [
   {
-    slug: "demo",
-    name: "Demo planas",
-    priceLabel: "0 NOK",
-    description: "Puikus variantas išbandyti Linksetą testavimo laikotarpiu.",
+    slug: "free-trial",
+    name: "Free Trial",
+    priceLabel: "0 NOK / 30 dienų",
+    description: "Išbandyk Linksetą be rizikos ir pasižiūrėk, ar platforma tinka tavo paslaugoms.",
     features: [
       "1 aktyvus skelbimas",
-      "Rodomas paieškos rezultate",
-      "Galite bet kada atnaujinti informaciją",
+      "Iki 3 nuotraukų galerijoje",
+      "30 dienų nemokamas išbandymas",
     ],
     recommended: true,
   },
@@ -35,16 +35,24 @@ const PLANS: Plan[] = [
     slug: "basic",
     name: "Basic",
     priceLabel: "199 NOK / mėn",
-    description: "Standartinis planas (apmokėjimai bus įjungti vėliau).",
-    features: ["Iki 3 aktyvių skelbimų", "Didesnis matomumas", "Paprastas valdymas iš panelės"],
+    description: "Geras variantas individualiam paslaugų teikėjui, kuris nori daugiau matomumo.",
+    features: [
+      "Iki 3 aktyvių skelbimų",
+      "Iki 5 nuotraukų kiekvienam skelbimui",
+      "Paprastas valdymas iš panelės",
+    ],
     comingSoon: true,
   },
   {
     slug: "premium",
     name: "Premium",
     priceLabel: "399 NOK / mėn",
-    description: "Didžiausias planas (apmokėjimai bus įjungti vėliau).",
-    features: ["Iki 10 aktyvių skelbimų", "TOP statusas", "Daugiau vietos turiniui"],
+    description: "Skirta tiems, kas nori maksimalios laisvės ir stipresnio matomumo.",
+    features: [
+      "Iki 10 aktyvių skelbimų",
+      "Iki 15 nuotraukų kiekvienam skelbimui",
+      "TOP statusas",
+    ],
     comingSoon: true,
   },
 ];
@@ -62,13 +70,10 @@ export default function TaptiTeikejuPage() {
   const [loadingSlug, setLoadingSlug] = useState<PlanSlug | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const canChoose = useMemo(() => {
-    return true;
-  }, []);
+  const canChoose = useMemo(() => true, []);
 
   async function handleChoose(planSlug: PlanSlug) {
-    // Basic/Premium yra disabled (Coming soon)
-    if (planSlug !== "demo") return;
+    if (planSlug !== "free-trial") return;
 
     setError(null);
     setLoadingSlug(planSlug);
@@ -110,15 +115,15 @@ export default function TaptiTeikejuPage() {
         </p>
 
         <p className={styles.demoNote}>
-          💡 <strong>Šiuo metu veikia DEMO režimas.</strong> Veikia tik Demo planas.
-          Kiti planai bus aktyvuoti vėliau (Stripe / Vipps).
+          💡 <strong>Šiuo metu aktyvus Free Trial.</strong> Basic ir Premium planai bus
+          įjungti vėliau.
         </p>
 
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.plansGrid}>
           {PLANS.map((plan) => {
-            const disabled = plan.slug !== "demo" || !canChoose;
+            const disabled = plan.slug !== "free-trial" || !canChoose;
             const busy = loadingSlug === plan.slug;
 
             return (
@@ -128,7 +133,7 @@ export default function TaptiTeikejuPage() {
                 data-disabled={disabled ? "true" : "false"}
                 style={disabled ? { opacity: 0.75 } : undefined}
               >
-                {plan.recommended && <div className={styles.tag}>Rekomenduojamas DEMO</div>}
+                {plan.recommended && <div className={styles.tag}>Rekomenduojamas</div>}
                 {plan.comingSoon && <div className={styles.tag}>Coming soon</div>}
 
                 <h2 className={styles.planName}>{plan.name}</h2>
@@ -149,9 +154,9 @@ export default function TaptiTeikejuPage() {
                   onClick={() => handleChoose(plan.slug)}
                   disabled={disabled || busy}
                   aria-disabled={disabled || busy}
-                  title={disabled ? "Šis planas dar neaktyvus (coming soon)" : undefined}
+                  title={disabled ? "Šis planas dar neaktyvus" : undefined}
                 >
-                  {busy ? "Vykdoma..." : disabled ? "Netrukus" : "Pasirinkti šį planą"}
+                  {busy ? "Vykdoma..." : disabled ? "Netrukus" : "Pradėti Free Trial"}
                 </button>
               </article>
             );
@@ -159,8 +164,8 @@ export default function TaptiTeikejuPage() {
         </div>
 
         <p className={styles.smallInfo}>
-          Pasirinkus Demo planą būsite nukreiptas į savo paskyrą, kur galėsite susikurti paslaugos skelbimą
-          (pavadinimas, aprašymas, kaina, nuotrauka ir t.t.).
+          Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti
+          pirmą skelbimą ir įkelti iki 3 nuotraukų galerijoje.
         </p>
       </div>
     </main>

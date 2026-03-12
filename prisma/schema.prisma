@@ -22,7 +22,6 @@ model User {
   betaAccess   Boolean @default(false)
   lifetimeFree Boolean @default(false)
 
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -45,6 +44,8 @@ model ProviderProfile {
   website     String?
   isApproved  Boolean @default(false)
 
+  trialEndsAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -65,16 +66,21 @@ model ServiceListing {
   isActive    Boolean  @default(true)
   highlighted Boolean  @default(false)
   highlights  String[] @default([])
-  imageUrl    String?
-  why1        String?
-  why2        String?
-  why3        String?
-  imagePath   String?
-  cityId      String?
-  categoryId  String?
-  planId      String?
 
-  deletedAt DateTime? // 
+  imageUrl  String?
+  imagePath String?
+
+  galleryImageUrls  String[] @default([])
+  galleryImagePaths String[] @default([])
+
+  why1       String?
+  why2       String?
+  why3       String?
+  cityId     String?
+  categoryId String?
+  planId     String?
+
+  deletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -84,13 +90,10 @@ model ServiceListing {
   category Category? @relation(fields: [categoryId], references: [id])
   plan     Plan?     @relation(fields: [planId], references: [id])
 
-  // Composite indexes for filtering + sorting
   @@index([isActive, deletedAt, createdAt])
   @@index([isActive, deletedAt, highlighted, createdAt])
-  // Single indexes for foreign key filters
   @@index([cityId])
   @@index([categoryId])
-  // Index for user lookups
   @@index([userId])
 }
 
@@ -144,16 +147,19 @@ enum CategoryType {
 }
 
 model Plan {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  priceNok    Int
-  period      PlanPeriod @default(MONTHLY)
-  maxListings Int?
-  highlight   Boolean    @default(false)
+  id                  String     @id @default(cuid())
+  name                String
+  slug                String     @unique
+  priceNok            Int
+  period              PlanPeriod @default(MONTHLY)
+  maxListings         Int?
+  maxImagesPerListing Int        @default(1)
+  highlight           Boolean    @default(false)
+  isTrial             Boolean    @default(false)
+  trialDays           Int?
 
-  services  ServiceListing[]
-  profiles  ProviderProfile[]
+  services ServiceListing[]
+  profiles ProviderProfile[]
 }
 
 enum PlanPeriod {
@@ -188,20 +194,16 @@ model AuditLog {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  // kas atliko veiksmą (gali būti null jei anon)
   userId String?
   user   User?   @relation("UserAuditLogs", fields: [userId], references: [id])
 
-  // ką padarė
-  action   String // pvz. "SERVICE_CREATE", "SERVICE_UPDATE", "SERVICE_DELETE"
-  entity   String // pvz. "ServiceListing", "ProviderRequest"
+  action   String
+  entity   String
   entityId String?
 
-  // kontekstas
   ip        String?
   userAgent String?
 
-  // papildoma info (pvz. kas pasikeitė, senas/new)
   metadata Json?
 
   @@index([createdAt])

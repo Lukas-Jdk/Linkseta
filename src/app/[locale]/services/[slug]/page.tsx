@@ -9,7 +9,6 @@ import { setRequestLocale } from "next-intl/server";
 import {
   MapPin,
   Folder,
-  CalendarDays,
   Zap,
   Mail,
   Phone,
@@ -26,10 +25,7 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -68,9 +64,7 @@ function isSafeAvatarUrl(url: string | null | undefined) {
   if (!url) return false;
   const s = url.trim();
   if (!s) return false;
-  return (
-    s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/")
-  );
+  return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/");
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -94,9 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(
-      service.description || "Find service providers in Norway on Linkseta.",
-    ),
+    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
     160,
   );
 
@@ -158,19 +150,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
       highlights: true,
       imageUrl: true,
       createdAt: true,
-
+      galleryImageUrls: true,
       city: {
         select: {
           name: true,
         },
       },
-
       category: {
         select: {
           name: true,
         },
       },
-
       user: {
         select: {
           email: true,
@@ -189,8 +179,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
   if (!service) notFound();
 
-  const cover = service.imageUrl || "/def.webp";
-  const images = service.imageUrl ? [cover] : [cover];
+  const gallery = Array.isArray(service.galleryImageUrls)
+    ? service.galleryImageUrls.filter(Boolean)
+    : [];
+
+  const images =
+    gallery.length > 0 ? gallery : service.imageUrl ? [service.imageUrl] : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
@@ -199,18 +193,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName =
-    service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
-  const sellerAvatarUrl = isSafeAvatarUrl((service.user as any)?.avatarUrl)
-    ? String((service.user as any)?.avatarUrl).trim()
+  const sellerAvatarUrl = isSafeAvatarUrl(service.user.avatarUrl)
+    ? String(service.user.avatarUrl).trim()
     : null;
 
-  const phoneRaw = (service.user as any)?.phone
-    ? String((service.user as any).phone).trim()
-    : "";
+  const phoneRaw = service.user.phone ? String(service.user.phone).trim() : "";
   const phone = phoneRaw || null;
   const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
 
@@ -220,18 +211,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "—";
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
   )}`;
 
-  const highlights = Array.isArray(service.highlights)
-    ? service.highlights
-    : [];
+  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
   const hasHighlights = highlights.length > 0;
+  const hasGallery = images.length > 0;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -340,10 +328,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>
-          {mobileCompactPriceValue}
-        </div>
-        <div className={styles.tabletInlinePriceLabel}>Kaina nuo:</div>
+        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
+        <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
       </div>
     </div>
   );
@@ -369,17 +355,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>
-              Paslaugos teikėjas
-            </div>
+            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
           </div>
         </div>
 
         <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>
-            {mobileCompactPriceValue}
-          </div>
-          <div className={styles.mobileCompactPriceLabel}>Kaina nuo:</div>
+          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
+          <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
         </div>
       </div>
     </div>
@@ -474,18 +456,34 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <div className={styles.categoryPillOnImage}>
                         {category !== "—" ? category : "Paslauga"}
                       </div>
+
+                      {images.length > 1 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            right: 12,
+                            bottom: 12,
+                            zIndex: 3,
+                            background: "rgba(2, 6, 23, 0.78)",
+                            color: "#fff",
+                            padding: "6px 10px",
+                            borderRadius: 999,
+                            fontSize: 13,
+                            fontWeight: 800,
+                            backdropFilter: "blur(6px)",
+                          }}
+                        >
+                          {images.length} nuotraukos
+                        </div>
+                      )}
                     </div>
 
                     <div className={styles.heroContent}>
                       <h1 className={styles.title}>{service.title}</h1>
 
                       <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>
-                          ⭐ {ratingValue.toFixed(1)}
-                        </span>
-                        <span className={styles.ratingCount}>
-                          ({ratingCount})
-                        </span>
+                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
+                        <span className={styles.ratingCount}>({ratingCount})</span>
                       </div>
 
                       <div className={styles.metaRow}>
@@ -497,10 +495,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                           <Folder size={16} />
                           {category}
                         </span>
-                        <span className={styles.metaChip}>
-                          <CalendarDays size={16} />
-                          {created}
-                        </span>
+                       
                       </div>
 
                       <div className={styles.quickInfo}>
@@ -519,11 +514,11 @@ export default async function ServiceDetailsPage({ params }: Props) {
               <div className={styles.contentCardWrap}>
                 <div className={styles.contentCard}>
                   <div className={styles.tabs}>
-                    <a
-                      className={`${styles.tab} ${styles.tabActive}`}
-                      href="#apie"
-                    >
+                    <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
                       Apie paslaugą
+                    </a>
+                    <a className={styles.tab} href="#galerija">
+                      Galerija
                     </a>
                     <a className={styles.tab} href="#atsiliepimai">
                       Atsiliepimai
@@ -548,18 +543,69 @@ export default async function ServiceDetailsPage({ params }: Props) {
                     </div>
                   )}
 
+                  <div id="galerija" className={styles.section}>
+                    <h2 className={styles.sectionTitle}>Galerija</h2>
+
+                    {hasGallery ? (
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                          gap: 12,
+                        }}
+                      >
+                        {images.map((img, index) => (
+                          <a
+                            key={`${img}-${index}`}
+                            href={img}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              display: "block",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <div
+                              style={{
+                                position: "relative",
+                                width: "100%",
+                                aspectRatio: "4 / 3",
+                                overflow: "hidden",
+                                borderRadius: 14,
+                                border: "1px solid rgba(15, 23, 42, 0.08)",
+                                background: "#f8fafc",
+                              }}
+                            >
+                              <img
+                                src={img}
+                                alt={`${service.title} nuotrauka ${index + 1}`}
+                                loading="lazy"
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  display: "block",
+                                }}
+                              />
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={styles.descSmall}>Galerijos nuotraukų dar nėra.</p>
+                    )}
+                  </div>
+
                   <div id="atsiliepimai" className={styles.section}>
                     <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
                     <p className={styles.descSmall}>
-                      Atsiliepimai bus vėliau (kai pridėsiu review sistemą).
+                      Atsiliepimai bus vėliau (kai pridėsime review sistemą).
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className={styles.mobileBottomSeller}>
-                {MobileBottomSellerCard}
-              </div>
+              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
             </div>
           </section>
 

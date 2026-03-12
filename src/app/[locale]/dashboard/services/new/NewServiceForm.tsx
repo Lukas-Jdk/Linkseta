@@ -15,6 +15,13 @@ type Props = {
   categories: Option[];
 };
 
+type GalleryItem = {
+  url: string;
+  path: string;
+};
+
+const MAX_IMAGES = 15;
+
 function trimOrEmpty(v: string) {
   return v.trim();
 }
@@ -41,8 +48,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [h3, setH3] = useState("");
 
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,21 +68,18 @@ export default function NewServiceForm({ cities, categories }: Props) {
     );
   }, [title, description, cityId, categoryId, submitting, uploading]);
 
-  async function handlePickImage(file: File | null) {
-    if (!file) return;
+  async function handlePickImages(files: FileList | null) {
+    if (!files || files.length === 0) return;
 
     setError(null);
 
-    if (!file.type.startsWith("image/")) {
-      setError("Failas turi būti nuotrauka.");
+    const remainingSlots = MAX_IMAGES - gallery.length;
+    if (remainingSlots <= 0) {
+      setError(`Galima įkelti daugiausia ${MAX_IMAGES} nuotraukų.`);
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Nuotrauka per didelė (max ~10MB prieš suspaudimą).");
-      return;
-    }
-
+    const selected = Array.from(files).slice(0, remainingSlots);
     setUploading(true);
 
     try {
@@ -84,46 +87,57 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userData.user) {
-        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
+        setError("Turite būti prisijungęs, kad įkeltumėte nuotraukas.");
         return;
       }
 
       const userId = userData.user.id;
-
-      const compressed = await compressImageFile(file, {
-        maxWidth: 1600,
-        maxHeight: 1600,
-        quality: 0.82,
-        mimeType: "image/jpeg",
-      });
-
-      if (compressed.size > 3 * 1024 * 1024) {
-        setError("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
-        return;
-      }
-
-      const fileName = `${crypto.randomUUID()}.jpg`;
-      const path = `${userId}/services/${fileName}`;
-
-      const { error: upErr } = await supabase.storage.from(bucket).upload(path, compressed, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: "image/jpeg",
-      });
-
-      if (upErr) {
-        throw new Error(upErr.message || "Nepavyko įkelti nuotraukos.");
-      }
-
       const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const publicUrl = publicStorageUrl(baseUrl, bucket, path);
 
-      setImagePath(path);
-      setImageUrl(publicUrl);
+      const uploaded: GalleryItem[] = [];
+
+      for (const file of selected) {
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Vienas iš failų nėra nuotrauka.");
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error("Viena iš nuotraukų per didelė (max ~10MB prieš suspaudimą).");
+        }
+
+        const compressed = await compressImageFile(file, {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.82,
+          mimeType: "image/jpeg",
+        });
+
+        if (compressed.size > 3 * 1024 * 1024) {
+          throw new Error("Viena iš suspaustų nuotraukų vis dar per didelė.");
+        }
+
+        const fileName = `${crypto.randomUUID()}.jpg`;
+        const path = `${userId}/services/${fileName}`;
+
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, compressed, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: "image/jpeg",
+        });
+
+        if (upErr) {
+          throw new Error(upErr.message || "Nepavyko įkelti vienos iš nuotraukų.");
+        }
+
+        uploaded.push({
+          path,
+          url: publicStorageUrl(baseUrl, bucket, path),
+        });
+      }
+
+      setGallery((prev) => [...prev, ...uploaded]);
     } catch (e) {
-      setImagePath(null);
-      setImageUrl(null);
-      setError(e instanceof Error ? e.message : "Įvyko klaida keliant nuotrauką.");
+      setError(e instanceof Error ? e.message : "Įvyko klaida keliant nuotraukas.");
     } finally {
       setUploading(false);
     }
@@ -144,8 +158,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
         priceFrom: priceFrom.trim() ? Number(priceFrom) : null,
         description: description.trim(),
         highlights,
-        imageUrl,
-        imagePath,
+        galleryImageUrls: gallery.map((x) => x.url),
+        galleryImagePaths: gallery.map((x) => x.path),
       };
 
       const res = await csrfFetch("/api/dashboard/services", {
@@ -273,30 +287,37 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.fieldFull}>
-          <label className={styles.label}>Nuotrauka iš galerijos (nebūtina)</label>
+          <label className={styles.label}>Galerijos nuotraukos (nebūtina)</label>
 
           <input
             className={styles.file}
             type="file"
             accept="image/*"
-            onChange={(e) => handlePickImage(e.target.files?.[0] ?? null)}
+            multiple
+            onChange={(e) => {
+              void handlePickImages(e.target.files);
+              e.currentTarget.value = "";
+            }}
           />
 
-          {uploading && <div className={styles.muted}>Nuotrauka mažinama ir įkeliama...</div>}
+          {uploading && <div className={styles.muted}>Nuotraukos mažinamos ir įkeliamos...</div>}
 
-          {imageUrl && (
-            <div className={styles.preview}>
-              <img src={imageUrl} alt="Preview" className={styles.previewImg} />
-              <button
-                type="button"
-                className={styles.removeBtn}
-                onClick={() => {
-                  setImageUrl(null);
-                  setImagePath(null);
-                }}
-              >
-                Pašalinti
-              </button>
+          {gallery.length > 0 && (
+            <div className={styles.preview} style={{ flexWrap: "wrap" }}>
+              {gallery.map((img, idx) => (
+                <div key={img.path} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <img src={img.url} alt={`Preview ${idx + 1}`} className={styles.previewImg} />
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => {
+                      setGallery((prev) => prev.filter((x) => x.path !== img.path));
+                    }}
+                  >
+                    Pašalinti
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

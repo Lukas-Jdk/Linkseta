@@ -44,6 +44,18 @@ export default async function EditServicePage({ params }: PageProps) {
     priceFrom: service.priceFrom ?? null,
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
+    galleryImageUrls:
+      Array.isArray(service.galleryImageUrls) && service.galleryImageUrls.length > 0
+        ? service.galleryImageUrls
+        : service.imageUrl
+          ? [service.imageUrl]
+          : [],
+    galleryImagePaths:
+      Array.isArray(service.galleryImagePaths) && service.galleryImagePaths.length > 0
+        ? service.galleryImagePaths
+        : service.imagePath
+          ? [service.imagePath]
+          : [],
     highlights: Array.isArray(service.highlights) ? service.highlights : [],
     isActive: service.isActive,
   };
@@ -55,7 +67,7 @@ export default async function EditServicePage({ params }: PageProps) {
           <div>
             <h1 className={styles.pageTitle}>Redaguoti paslaugą</h1>
             <p className={styles.pageSubtitle}>
-              Atnaujinkite paslaugos informaciją arba ištrinkite skelbimą.
+              Atnaujinkite paslaugos informaciją, galeriją arba ištrinkite skelbimą.
             </p>
           </div>
         </header>

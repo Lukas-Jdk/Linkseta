@@ -24,6 +24,8 @@ type InitialData = {
   imagePath: string | null;
   highlights: string[];
   isActive?: boolean;
+  galleryImageUrls?: string[];
+  galleryImagePaths?: string[];
 };
 
 type Props = {
@@ -32,7 +34,13 @@ type Props = {
   categories: Option[];
 };
 
+type GalleryItem = {
+  url: string;
+  path: string;
+};
+
 const BUCKET = "service-images";
+const MAX_IMAGES = 15;
 
 function parseHighlights(text: string) {
   return text
@@ -68,26 +76,28 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
     [highlightsText],
   );
 
-  const [imageUrl, setImageUrl] = useState<string>(initial.imageUrl || "");
-  const [imagePath, setImagePath] = useState<string>(initial.imagePath || "");
-  const [uploading, setUploading] = useState(false);
+  const [gallery, setGallery] = useState<GalleryItem[]>(
+    (initial.galleryImageUrls ?? []).map((url, idx) => ({
+      url,
+      path: initial.galleryImagePaths?.[idx] ?? "",
+    })),
+  );
 
+  const [uploading, setUploading] = useState(false);
   const [isActive, setIsActive] = useState<boolean>(initial.isActive ?? true);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  async function handleUpload(file: File) {
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+
     setError(null);
     setSuccess(null);
 
-    if (!file.type.startsWith("image/")) {
-      setError("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.");
+    const remainingSlots = MAX_IMAGES - gallery.length;
+    if (remainingSlots <= 0) {
+      setError(`Galima įkelti daugiausia ${MAX_IMAGES} nuotraukų.`);
       return;
     }
 
@@ -101,48 +111,61 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       }
 
       const userId = userData.user.id;
-      const random = window.crypto.randomUUID();
+      const selected = Array.from(files).slice(0, remainingSlots);
+      const uploaded: GalleryItem[] = [];
 
-      const compressed = await compressImageFile(file, {
-        maxWidth: 1600,
-        maxHeight: 1600,
-        quality: 0.82,
-        mimeType: "image/jpeg",
-      });
+      for (const file of selected) {
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
+        }
 
-      if (compressed.size > 3 * 1024 * 1024) {
-        setError("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
-        return;
-      }
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error("Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.");
+        }
 
-      const path = `${userId}/services/${random}.jpg`;
+        const random = window.crypto.randomUUID();
 
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, compressed, {
-          cacheControl: "31536000",
-          upsert: false,
-          contentType: "image/jpeg",
+        const compressed = await compressImageFile(file, {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.82,
+          mimeType: "image/jpeg",
         });
 
-      if (uploadError) {
-        console.error(uploadError);
-        setError("Nepavyko įkelti nuotraukos.");
-        return;
+        if (compressed.size > 3 * 1024 * 1024) {
+          throw new Error("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
+        }
+
+        const path = `${userId}/services/${random}.jpg`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, compressed, {
+            cacheControl: "31536000",
+            upsert: false,
+            contentType: "image/jpeg",
+          });
+
+        if (uploadError) {
+          throw new Error("Nepavyko įkelti nuotraukos.");
+        }
+
+        const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        if (!data?.publicUrl) {
+          throw new Error("Nepavyko gauti nuotraukos URL.");
+        }
+
+        uploaded.push({
+          url: data.publicUrl,
+          path,
+        });
       }
 
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      if (!data?.publicUrl) {
-        setError("Nepavyko gauti nuotraukos URL.");
-        return;
-      }
-
-      setImageUrl(data.publicUrl);
-      setImagePath(path);
-      setSuccess("Nuotrauka įkelta. Nepamirškite išsaugoti pakeitimų.");
+      setGallery((prev) => [...prev, ...uploaded]);
+      setSuccess("Nuotraukos įkeltos. Nepamirškite išsaugoti pakeitimų.");
     } catch (e) {
       console.error(e);
-      setError("Įvyko klaida įkeliant nuotrauką.");
+      setError(e instanceof Error ? e.message : "Įvyko klaida įkeliant nuotrauką.");
     } finally {
       setUploading(false);
     }
@@ -164,8 +187,8 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
-          imageUrl: imageUrl || null,
-          imagePath: imagePath || null,
+          galleryImageUrls: gallery.map((x) => x.url),
+          galleryImagePaths: gallery.map((x) => x.path),
           highlights,
           isActive,
         }),
@@ -342,43 +365,66 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
         <div className={styles.uploadRow}>
           <label className={styles.uploadBtn}>
-            {uploading ? "Įkeliama..." : "Įkelti nuotrauką"}
+            {uploading ? "Įkeliama..." : "Įkelti nuotraukas"}
             <input
               type="file"
               accept="image/*"
+              multiple
               disabled={uploading || pending}
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleUpload(file);
+                void handleUpload(e.target.files);
                 e.currentTarget.value = "";
               }}
             />
           </label>
-
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => {
-              setImageUrl("");
-              setImagePath("");
-            }}
-            disabled={uploading || pending}
-          >
-            Pašalinti nuotrauką
-          </button>
         </div>
 
-        <div className={styles.imagePreview}>
-          {imageUrl ? (
-            <img src={imageUrl} alt="Nuotraukos peržiūra" />
+        <div
+          className={styles.imagePreview}
+          style={{
+            height: "auto",
+            minHeight: 240,
+            padding: 12,
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+          }}
+        >
+          {gallery.length > 0 ? (
+            gallery.map((img, idx) => (
+              <div key={img.path || img.url} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <img
+                  src={img.url}
+                  alt={`Nuotrauka ${idx + 1}`}
+                  style={{
+                    width: 180,
+                    height: 130,
+                    objectFit: "cover",
+                    borderRadius: 12,
+                  }}
+                />
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => {
+                    setGallery((prev) => prev.filter((x) => x.url !== img.url));
+                  }}
+                  disabled={uploading || pending}
+                >
+                  Pašalinti
+                </button>
+              </div>
+            ))
           ) : (
             <div className={styles.emptyState}>
-              <span className={styles.emptyText}>Nuotrauka neįkelta</span>
+              <span className={styles.emptyText}>Nuotraukų nėra</span>
             </div>
           )}
         </div>
 
-        <p className={styles.helpText}>Rekomenduojamas formatas: JPG / PNG / WEBP. Maks. 10MB prieš suspaudimą.</p>
+        <p className={styles.helpText}>Galite įkelti kelias nuotraukas. Maks. 10MB prieš suspaudimą.</p>
         {error && <p className={styles.errorText}>{error}</p>}
         {success && <p className={styles.successText}>{success}</p>}
       </section>

@@ -1,4 +1,5 @@
 // src/app/api/dashboard/services/[id]/route.ts
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
@@ -18,14 +19,36 @@ function clampText(x: unknown, max: number) {
   return t ? t.slice(0, max) : null;
 }
 
-async function removeFromStorage(path: string) {
-  if (!path) return;
+function normalizeGalleryStrings(
+  input: unknown,
+  maxItems: number,
+  maxLen: number,
+) {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((x) => String(x).trim())
+    .filter(Boolean)
+    .slice(0, maxItems)
+    .map((x) => x.slice(0, maxLen));
+}
+
+async function removeFromStorage(paths: string[]) {
+  if (!paths.length) return;
   try {
-    const { error } = await supabaseAdmin.storage.from(BUCKET).remove([path]);
+    const { error } = await supabaseAdmin.storage.from(BUCKET).remove(paths);
     if (error) console.warn("Storage remove error:", error.message);
   } catch (e) {
     console.warn("Storage remove exception:", e);
   }
+}
+
+function revalidateServicePaths(slug: string) {
+  revalidatePath("/[locale]", "page");
+  revalidatePath("/[locale]/services", "page");
+  revalidatePath("/[locale]/services/[slug]", "page");
+  revalidatePath(`/lt/services/${slug}`);
+  revalidatePath(`/en/services/${slug}`);
+  revalidatePath(`/no/services/${slug}`);
 }
 
 export async function PATCH(
@@ -57,6 +80,7 @@ export async function PATCH(
       where: { id, deletedAt: null },
       select: {
         id: true,
+        slug: true,
         userId: true,
         title: true,
         description: true,
@@ -66,6 +90,8 @@ export async function PATCH(
         isActive: true,
         imageUrl: true,
         imagePath: true,
+        galleryImageUrls: true,
+        galleryImagePaths: true,
         highlights: true,
       },
     });
@@ -77,6 +103,35 @@ export async function PATCH(
     if (service.userId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+
+    const profile = await prisma.providerProfile.findUnique({
+      where: { userId: user.id },
+      select: {
+        trialEndsAt: true,
+        plan: {
+          select: {
+            maxImagesPerListing: true,
+            isTrial: true,
+          },
+        },
+      },
+    });
+
+    if (
+      profile?.plan?.isTrial &&
+      profile.trialEndsAt &&
+      new Date(profile.trialEndsAt).getTime() < Date.now()
+    ) {
+      return NextResponse.json(
+        { error: "Jūsų Free Trial laikotarpis baigėsi." },
+        { status: 409 },
+      );
+    }
+
+    const maxImagesPerListing =
+      typeof profile?.plan?.maxImagesPerListing === "number"
+        ? profile.plan.maxImagesPerListing
+        : 3;
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -114,21 +169,35 @@ export async function PATCH(
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
 
-    const nextImageUrl =
-      body?.imageUrl === undefined
-        ? service.imageUrl
-        : clampText(body?.imageUrl, 600);
+    const nextGalleryImageUrls =
+      body?.galleryImageUrls === undefined
+        ? service.galleryImageUrls
+        : normalizeGalleryStrings(
+            body?.galleryImageUrls,
+            maxImagesPerListing,
+            600,
+          );
 
-    const requestedPath =
-      body?.imagePath === undefined
-        ? service.imagePath
-        : clampText(body?.imagePath, 300);
+    const nextGalleryImagePaths =
+      body?.galleryImagePaths === undefined
+        ? service.galleryImagePaths
+        : normalizeGalleryStrings(
+            body?.galleryImagePaths,
+            maxImagesPerListing,
+            300,
+          );
 
-    const nextImagePath =
-      requestedPath && requestedPath.length > 0 ? requestedPath : null;
+    if (nextGalleryImageUrls.length !== nextGalleryImagePaths.length) {
+      return NextResponse.json(
+        { error: "Nesutampa nuotraukų duomenys." },
+        { status: 400 },
+      );
+    }
 
-    if (nextImagePath && !nextImagePath.startsWith(safePrefix)) {
-      return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
+    for (const path of nextGalleryImagePaths) {
+      if (!path.startsWith(safePrefix)) {
+        return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
+      }
     }
 
     const highlights: string[] = Array.isArray(body?.highlights)
@@ -138,12 +207,12 @@ export async function PATCH(
           .slice(0, 6)
       : service.highlights;
 
-    const oldPath = service.imagePath;
+    const oldPaths = service.galleryImagePaths ?? [];
+    const nextPaths = nextGalleryImagePaths ?? [];
 
-    const isPathChanged = oldPath && nextImagePath && oldPath !== nextImagePath;
-    const isRemoved = oldPath && !nextImagePath;
-    const shouldDeleteOld =
-      (isPathChanged || isRemoved) && oldPath!.startsWith(safePrefix);
+    const toDelete = oldPaths.filter(
+      (path) => path && !nextPaths.includes(path) && path.startsWith(safePrefix),
+    );
 
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
@@ -154,20 +223,22 @@ export async function PATCH(
         categoryId: nextCategoryId ?? null,
         priceFrom: nextPriceFrom,
         isActive: nextIsActive,
-        imageUrl: nextImageUrl,
-        imagePath: nextImagePath,
+        imageUrl: nextGalleryImageUrls[0] ?? null,
+        imagePath: nextGalleryImagePaths[0] ?? null,
+        galleryImageUrls: nextGalleryImageUrls,
+        galleryImagePaths: nextGalleryImagePaths,
         highlights,
       },
       select: {
         id: true,
-        imagePath: true,
+        slug: true,
         isActive: true,
         title: true,
       },
     });
 
-    if (shouldDeleteOld) {
-      await removeFromStorage(oldPath!);
+    if (toDelete.length) {
+      await removeFromStorage(toDelete);
     }
 
     await auditLog({
@@ -179,9 +250,12 @@ export async function PATCH(
       userAgent: ua,
       metadata: {
         changedKeys: Object.keys(body ?? {}),
-        removedOldImage: Boolean(shouldDeleteOld),
+        deletedImagesCount: toDelete.length,
+        imageCount: nextGalleryImageUrls.length,
       },
     });
+
+    revalidateServicePaths(updated.slug);
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
@@ -225,7 +299,13 @@ export async function DELETE(
 
     const service = await prisma.serviceListing.findFirst({
       where: { id, deletedAt: null },
-      select: { id: true, userId: true, imagePath: true },
+      select: {
+        id: true,
+        slug: true,
+        userId: true,
+        imagePath: true,
+        galleryImagePaths: true,
+      },
     });
 
     if (!service) {
@@ -244,8 +324,14 @@ export async function DELETE(
       );
     }
 
-    if (service.imagePath && service.imagePath.startsWith(safePrefix)) {
-      await removeFromStorage(service.imagePath);
+    const paths = (service.galleryImagePaths ?? []).filter((p) =>
+      p.startsWith(safePrefix),
+    );
+
+    if (paths.length) {
+      await removeFromStorage(paths);
+    } else if (service.imagePath && service.imagePath.startsWith(safePrefix)) {
+      await removeFromStorage([service.imagePath]);
     }
 
     await prisma.serviceListing.update({
@@ -262,6 +348,8 @@ export async function DELETE(
       userAgent: ua,
       metadata: { softDelete: true },
     });
+
+    revalidateServicePaths(service.slug);
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

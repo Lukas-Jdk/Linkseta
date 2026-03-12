@@ -1,4 +1,5 @@
 // src/app/api/dashboard/services/route.ts
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
@@ -47,6 +48,19 @@ function jsonNoStore(data: any, init?: ResponseInit) {
   return res;
 }
 
+function normalizeGalleryStrings(
+  input: unknown,
+  maxItems: number,
+  maxLen: number,
+) {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((x) => String(x).trim())
+    .filter(Boolean)
+    .slice(0, maxItems)
+    .map((x) => x.slice(0, maxLen));
+}
+
 export async function POST(req: Request) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
@@ -70,8 +84,17 @@ export async function POST(req: Request) {
       select: {
         id: true,
         isApproved: true,
+        trialEndsAt: true,
         planId: true,
-        plan: { select: { slug: true, name: true, maxListings: true } },
+        plan: {
+          select: {
+            slug: true,
+            name: true,
+            maxListings: true,
+            maxImagesPerListing: true,
+            isTrial: true,
+          },
+        },
       },
     });
 
@@ -79,10 +102,27 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Forbidden" }, { status: 403 });
     }
 
-    const planSlug = profile.plan?.slug ?? "demo";
-    const planName = profile.plan?.name ?? "Demo";
+    if (
+      profile.plan?.isTrial &&
+      profile.trialEndsAt &&
+      new Date(profile.trialEndsAt).getTime() < Date.now()
+    ) {
+      return jsonNoStore(
+        { error: "Jūsų Free Trial laikotarpis baigėsi." },
+        { status: 409 },
+      );
+    }
+
+    const planSlug = profile.plan?.slug ?? "free-trial";
+    const planName = profile.plan?.name ?? "Free Trial";
     const maxListings =
-      typeof profile.plan?.maxListings === "number" ? profile.plan.maxListings : 1;
+      typeof profile.plan?.maxListings === "number"
+        ? profile.plan.maxListings
+        : 1;
+    const maxImagesPerListing =
+      typeof profile.plan?.maxImagesPerListing === "number"
+        ? profile.plan.maxImagesPerListing
+        : 3;
 
     if (Number.isFinite(maxListings) && maxListings > 0) {
       const activeCount = await prisma.serviceListing.count({
@@ -94,7 +134,12 @@ export async function POST(req: Request) {
           {
             error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
             code: "PLAN_LIMIT",
-            plan: { slug: planSlug, name: planName, maxListings },
+            plan: {
+              slug: planSlug,
+              name: planName,
+              maxListings,
+              maxImagesPerListing,
+            },
             activeCount,
           },
           { status: 409 },
@@ -112,7 +157,8 @@ export async function POST(req: Request) {
     }
 
     const cityId = typeof body?.cityId === "string" ? body.cityId : null;
-    const categoryId = typeof body?.categoryId === "string" ? body.categoryId : null;
+    const categoryId =
+      typeof body?.categoryId === "string" ? body.categoryId : null;
 
     const priceFrom =
       body?.priceFrom === null || body?.priceFrom === undefined
@@ -121,11 +167,24 @@ export async function POST(req: Request) {
           ? Math.max(0, Math.min(10_000_000, Math.trunc(Number(body.priceFrom))))
           : null;
 
-    const imageUrl =
-      typeof body?.imageUrl === "string" ? body.imageUrl.trim().slice(0, 600) : null;
+    const galleryImageUrls = normalizeGalleryStrings(
+      body?.galleryImageUrls,
+      maxImagesPerListing,
+      600,
+    );
 
-    const imagePath =
-      typeof body?.imagePath === "string" ? body.imagePath.trim().slice(0, 300) : null;
+    const galleryImagePaths = normalizeGalleryStrings(
+      body?.galleryImagePaths,
+      maxImagesPerListing,
+      300,
+    );
+
+    if (galleryImageUrls.length !== galleryImagePaths.length) {
+      return jsonNoStore(
+        { error: "Nesutampa nuotraukų duomenys." },
+        { status: 400 },
+      );
+    }
 
     const highlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
@@ -139,12 +198,17 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Missing supabaseId" }, { status: 400 });
     }
 
-    if (imagePath && !imagePath.startsWith(safePrefix)) {
-      return jsonNoStore({ error: "Invalid imagePath" }, { status: 400 });
+    for (const path of galleryImagePaths) {
+      if (!path.startsWith(safePrefix)) {
+        return jsonNoStore({ error: "Invalid imagePath" }, { status: 400 });
+      }
     }
 
     const baseSlug = slugify(title) || "service";
     const slug = await uniqueSlugGlobal(baseSlug);
+
+    const coverImageUrl = galleryImageUrls[0] ?? null;
+    const coverImagePath = galleryImagePaths[0] ?? null;
 
     const created = await prisma.serviceListing.create({
       data: {
@@ -155,12 +219,15 @@ export async function POST(req: Request) {
         cityId,
         categoryId,
         priceFrom,
-        imageUrl,
-        imagePath,
+        imageUrl: coverImageUrl,
+        imagePath: coverImagePath,
+        galleryImageUrls,
+        galleryImagePaths,
         highlights,
         isActive: true,
         highlighted: false,
         deletedAt: null,
+        planId: profile.planId ?? null,
       },
       select: { id: true, slug: true },
     });
@@ -175,11 +242,25 @@ export async function POST(req: Request) {
       metadata: {
         slug: created.slug,
         title,
-        plan: { slug: planSlug, name: planName, maxListings },
+        imageCount: galleryImageUrls.length,
+        plan: {
+          slug: planSlug,
+          name: planName,
+          maxListings,
+          maxImagesPerListing,
+        },
       },
     });
 
-    return jsonNoStore({ ok: true, id: created.id, slug: created.slug }, { status: 200 });
+    revalidatePath("/[locale]", "page");
+    revalidatePath("/[locale]/services", "page");
+    revalidatePath("/[locale]/services/[slug]", "page");
+    revalidatePath(`/${created.slug}`);
+
+    return jsonNoStore(
+      { ok: true, id: created.id, slug: created.slug },
+      { status: 200 },
+    );
   } catch (e: any) {
     if (e instanceof Response) return e;
 

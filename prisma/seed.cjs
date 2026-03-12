@@ -1,4 +1,3 @@
-// src/prisma/seed.cjs
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -76,7 +75,7 @@ async function upsertCategories() {
     "Mokymai",
     "Vaikų priežiūra",
     "Gyvūnų priežiūra",
-    "Maistas",
+    "Maistas / Kateris",
     "Namų ūkis",
     "Kita",
   ];
@@ -93,14 +92,52 @@ async function upsertCategories() {
 
 async function upsertPlans() {
   const plans = [
-    { name: "Demo planas", slug: "demo", priceNok: 0, period: "MONTHLY", maxListings: 1, highlight: false },
+    {
+      name: "Free Trial",
+      slug: "free-trial",
+      priceNok: 0,
+      period: "MONTHLY",
+      maxListings: 1,
+      maxImagesPerListing: 3,
+      highlight: false,
+      isTrial: true,
+      trialDays: 30,
+    },
+    {
+      name: "Basic",
+      slug: "basic",
+      priceNok: 199,
+      period: "MONTHLY",
+      maxListings: 3,
+      maxImagesPerListing: 5,
+      highlight: false,
+      isTrial: false,
+      trialDays: null,
+    },
+    {
+      name: "Premium",
+      slug: "premium",
+      priceNok: 399,
+      period: "MONTHLY",
+      maxListings: 10,
+      maxImagesPerListing: 15,
+      highlight: true,
+      isTrial: false,
+      trialDays: null,
+    },
 
-    //  planas “pirmiem testuotojam” (prieinamas tik per betaAccess)
-    { name: "Beta (tester)", slug: "beta", priceNok: 0, period: "MONTHLY", maxListings: 10, highlight: false },
-
-    // ateičiai (mokėjimai)
-    { name: "Basic", slug: "basic", priceNok: 199, period: "MONTHLY", maxListings: 3, highlight: false },
-    { name: "Premium", slug: "premium", priceNok: 399, period: "MONTHLY", maxListings: 10, highlight: true },
+    // Paslėptas planas tavo pirmiems testuotojams
+    {
+      name: "Beta (tester)",
+      slug: "beta",
+      priceNok: 0,
+      period: "MONTHLY",
+      maxListings: 10,
+      maxImagesPerListing: 15,
+      highlight: true,
+      isTrial: false,
+      trialDays: null,
+    },
   ];
 
   for (const plan of plans) {
@@ -111,7 +148,10 @@ async function upsertPlans() {
         priceNok: plan.priceNok,
         period: plan.period,
         maxListings: plan.maxListings,
+        maxImagesPerListing: plan.maxImagesPerListing,
         highlight: plan.highlight,
+        isTrial: plan.isTrial,
+        trialDays: plan.trialDays,
       },
       create: plan,
     });
