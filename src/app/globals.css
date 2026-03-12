@@ -12,26 +12,44 @@
 html,
 body {
   height: 100%;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* ✅ FIX: neleisti horizontal “page drag” visame projekte */
+/* ✅ Globalus horizontal scroll stop */
 html {
-  overflow-x: hidden;
-  width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  overflow-x: hidden;
-  width: 100%;
-  /* iOS: mažiau “guminių” šoninių tampymų */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+
+  font-family: var(
+    --font-primary,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+  );
+
+  color: var(--text-main);
+  padding-top: var(--header-height);
+
+  overflow-x: clip;
   overscroll-behavior-x: none;
+  position: relative;
 }
 
-/* ✅ FIX: visiems blokams – niekas neturi išlįsti už viewport */
+/* ✅ Niekas neturi išlįsti už viewport */
 img,
 svg,
 video,
-canvas {
+canvas,
+iframe {
   max-width: 100%;
 }
 
@@ -140,42 +158,20 @@ canvas {
   --bg-btn-filters: #ffffff;
 }
 
-/* ------------------ Global layout ------------------ */
-body {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-
-  font-family: var(
-    --font-primary,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif
-  );
-
-  color: var(--text-main);
-  padding-top: var(--header-height);
-
-  /* background-color: var(--bg-body); */
-
-}
-
-/* ✅ Svarbiausia: tavo LocaleLayout wrapperis turi būti flex column ir pilno aukščio */
+/* ✅ Locale layout wrapper */
 .app-shell {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-
-  /* ✅ FIX: jei kažkur viduj išlenda 1px – nukerpa be dizaino griovimo */
+  min-width: 0;
+  width: 100%;
   overflow-x: clip;
 }
 
-/* ✅ main turi “stumti” footerį žemyn */
 .app-main {
   flex: 1;
-  /* ✅ FIX: apsauga nuo vaikų overflow (pvz. marquee/hero) */
+  min-width: 0;
+  width: 100%;
   overflow-x: clip;
 }
 
@@ -195,7 +191,19 @@ img {
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 16px;
+  padding-inline: 16px;
+  min-width: 0;
+}
+
+/* ✅ Dažnas overflow fix */
+main,
+section,
+article,
+aside,
+header,
+footer,
+div {
+  min-width: 0;
 }
 
 /* ------------------ Buttons ------------------ */
@@ -318,7 +326,6 @@ img {
   background: #ffffff10;
 }
 
-/* Hide Google reCAPTCHA badge  */
 /* .grecaptcha-badge {
   visibility: hidden !important;
   opacity: 0 !important;

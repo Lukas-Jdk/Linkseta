@@ -8,7 +8,7 @@ import { setRequestLocale } from "next-intl/server";
 
 import {
   MapPin,
-  Folder,
+  Folder, 
   Zap,
   Mail,
   Phone,
