@@ -14,7 +14,7 @@ type Props = {
 export default function GalleryClient({ title, images, highlighted }: Props) {
   const safeImages = useMemo(
     () => (images?.length ? images : ["/def.webp"]),
-    [images]
+    [images],
   );
 
   const [active, setActive] = useState(0);

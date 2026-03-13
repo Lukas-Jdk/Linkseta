@@ -14,11 +14,7 @@ const ContentSecurityPolicy = `
   img-src 'self' data: blob: https:;
   font-src 'self' data: https:;
   style-src 'self' 'unsafe-inline' https:;
-
-  /*  FIX: Next.js hydration reikia inline scriptų */
   script-src 'self' 'unsafe-inline' https:;
-
-  /* Supabase + (jei reikia) reCAPTCHA */
   connect-src 'self' https: wss:;
   frame-src 'self' https:;
 
@@ -28,6 +24,7 @@ const ContentSecurityPolicy = `
   .trim();
 
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: ContentSecurityPolicy },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

@@ -1,5 +1,6 @@
 // src/app/[locale]/services/[slug]/page.tsx
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,7 @@ import { setRequestLocale } from "next-intl/server";
 
 import {
   MapPin,
-  Folder, 
+  Folder,
   Zap,
   Mail,
   Phone,
@@ -88,7 +89,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
+    stripHtml(
+      service.description || "Find service providers in Norway on Linkseta.",
+    ),
     160,
   );
 
@@ -128,6 +131,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [ogImage],
     },
   };
+}
+
+function SellerAvatar({
+  sellerAvatarUrl,
+  sellerInitial,
+  className,
+  imageClassName,
+  size,
+}: {
+  sellerAvatarUrl: string | null;
+  sellerInitial: string;
+  className: string;
+  imageClassName: string;
+  size: number;
+}) {
+  return (
+    <div className={className} aria-hidden="true">
+      {sellerAvatarUrl ? (
+        <Image
+          src={sellerAvatarUrl}
+          alt=""
+          fill
+          className={imageClassName}
+          sizes={`${size}px`}
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        sellerInitial
+      )}
+    </div>
+  );
 }
 
 export default async function ServiceDetailsPage({ params }: Props) {
@@ -184,7 +218,11 @@ export default async function ServiceDetailsPage({ params }: Props) {
     : [];
 
   const images =
-    gallery.length > 0 ? gallery : service.imageUrl ? [service.imageUrl] : ["/def.webp"];
+    gallery.length > 0
+      ? gallery
+      : service.imageUrl
+        ? [service.imageUrl]
+        : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
@@ -193,7 +231,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName =
+    service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
@@ -211,7 +250,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
@@ -247,19 +288,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.sideCard}>
       <div className={styles.sellerHeader}>
         <div className={styles.sellerAvatarWrap}>
-          <div className={styles.sellerAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
-
+          <SellerAvatar
+            sellerAvatarUrl={sellerAvatarUrl}
+            sellerInitial={sellerInitial}
+            className={styles.sellerAvatar}
+            imageClassName={styles.sellerAvatarImg}
+            size={96}
+          />
           <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
@@ -307,18 +342,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.tabletInlineSeller}>
       <div className={styles.tabletInlineSellerLeft}>
         <div className={styles.tabletInlineAvatarWrap}>
-          <div className={styles.tabletInlineAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
+          <SellerAvatar
+            sellerAvatarUrl={sellerAvatarUrl}
+            sellerInitial={sellerInitial}
+            className={styles.tabletInlineAvatar}
+            imageClassName={styles.sellerAvatarImg}
+            size={56}
+          />
         </div>
 
         <div className={styles.tabletInlineInfo}>
@@ -328,7 +358,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
+        <div className={styles.tabletInlinePriceValue}>
+          {mobileCompactPriceValue}
+        </div>
         <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
       </div>
     </div>
@@ -339,28 +371,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
       <div className={styles.mobileCompactSeller}>
         <div className={styles.mobileCompactLeft}>
           <div className={styles.mobileCompactAvatarWrap}>
-            <div className={styles.mobileCompactAvatar} aria-hidden="true">
-              {sellerAvatarUrl ? (
-                <img
-                  className={styles.sellerAvatarImg}
-                  src={sellerAvatarUrl}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                sellerInitial
-              )}
-            </div>
+            <SellerAvatar
+              sellerAvatarUrl={sellerAvatarUrl}
+              sellerInitial={sellerInitial}
+              className={styles.mobileCompactAvatar}
+              imageClassName={styles.sellerAvatarImg}
+              size={56}
+            />
           </div>
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
+            <div className={styles.mobileCompactSubtitle}>
+              Paslaugos teikėjas
+            </div>
           </div>
         </div>
 
         <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
+          <div className={styles.mobileCompactPriceValue}>
+            {mobileCompactPriceValue}
+          </div>
           <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
         </div>
       </div>
@@ -371,18 +402,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.mobileBottomSellerCard}>
       <div className={styles.mobileBottomSellerHeader}>
         <div className={styles.mobileBottomAvatarWrap}>
-          <div className={styles.mobileBottomAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
+          <SellerAvatar
+            sellerAvatarUrl={sellerAvatarUrl}
+            sellerInitial={sellerInitial}
+            className={styles.mobileBottomAvatar}
+            imageClassName={styles.sellerAvatarImg}
+            size={72}
+          />
           <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
@@ -482,8 +508,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <h1 className={styles.title}>{service.title}</h1>
 
                       <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
-                        <span className={styles.ratingCount}>({ratingCount})</span>
+                        <span className={styles.ratingValue}>
+                          ⭐ {ratingValue.toFixed(1)}
+                        </span>
+                        <span className={styles.ratingCount}>
+                          ({ratingCount})
+                        </span>
                       </div>
 
                       <div className={styles.metaRow}>
@@ -495,7 +525,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
                           <Folder size={16} />
                           {category}
                         </span>
-                       
                       </div>
 
                       <div className={styles.quickInfo}>
@@ -514,7 +543,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
               <div className={styles.contentCardWrap}>
                 <div className={styles.contentCard}>
                   <div className={styles.tabs}>
-                    <a className={`${styles.tab} ${styles.tabActive}`} href="#apie">
+                    <a
+                      className={`${styles.tab} ${styles.tabActive}`}
+                      href="#apie"
+                    >
                       Apie paslaugą
                     </a>
                     <a className={styles.tab} href="#galerija">
@@ -550,7 +582,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                          gridTemplateColumns:
+                            "repeat(auto-fill, minmax(180px, 1fr))",
                           gap: 12,
                         }}
                       >
@@ -576,15 +609,14 @@ export default async function ServiceDetailsPage({ params }: Props) {
                                 background: "#f8fafc",
                               }}
                             >
-                              <img
+                              <Image
                                 src={img}
                                 alt={`${service.title} nuotrauka ${index + 1}`}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 240px"
                                 loading="lazy"
                                 style={{
-                                  width: "100%",
-                                  height: "100%",
                                   objectFit: "cover",
-                                  display: "block",
                                 }}
                               />
                             </div>
@@ -592,7 +624,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                         ))}
                       </div>
                     ) : (
-                      <p className={styles.descSmall}>Galerijos nuotraukų dar nėra.</p>
+                      <p className={styles.descSmall}>
+                        Galerijos nuotraukų dar nėra.
+                      </p>
                     )}
                   </div>
 
@@ -605,7 +639,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
+              <div className={styles.mobileBottomSeller}>
+                {MobileBottomSellerCard}
+              </div>
             </div>
           </section>
 
