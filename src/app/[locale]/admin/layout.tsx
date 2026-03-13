@@ -1,8 +1,6 @@
 //  src/app/[locale]/admin/layout.tsx
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Admin – Linkseta",
   robots: {

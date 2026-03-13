@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function GET() {
   try {
@@ -19,7 +19,6 @@ export async function GET() {
     ]);
 
     const res = NextResponse.json({ cities, categories });
-    // trumpas cache OK (tai nėra privati info)
     res.headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
     return res;
   } catch (error) {

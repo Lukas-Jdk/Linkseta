@@ -88,8 +88,8 @@ export const categoryIconMap: Record<
   // Gyvūnų priežiūra (gyvn-prieira)
   "gyvn-prieira": PawPrint,
 
-  // Maistas / Kateris (maistas-kateris)
-  "maistas-kateris": ChefHat,
+  // Maistas / (maistas)
+  "maistas": ChefHat,
 
   // Namų ūkis (nam-kis)
   "nam-kis": Home,

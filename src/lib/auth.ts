@@ -32,6 +32,30 @@ const authUserSelect = {
   lifetimeFree: true,
 } as const;
 
+function toAuthUser(dbUser: {
+  id: string;
+  supabaseId: string | null;
+  email: string;
+  role: "USER" | "ADMIN";
+  name: string | null;
+  phone: string | null;
+  avatarUrl: string | null;
+  betaAccess: boolean;
+  lifetimeFree: boolean;
+}): AuthUser {
+  return {
+    id: dbUser.id,
+    supabaseId: dbUser.supabaseId ?? null,
+    email: dbUser.email,
+    role: dbUser.role,
+    name: dbUser.name,
+    phone: dbUser.phone,
+    avatarUrl: dbUser.avatarUrl,
+    betaAccess: dbUser.betaAccess,
+    lifetimeFree: dbUser.lifetimeFree,
+  };
+}
+
 export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
@@ -50,24 +74,25 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
     select: authUserSelect,
   });
 
-  // Legacy atvejis: jei user DB yra pagal email, bet dar neturi supabaseId
   if (!dbUser) {
-    dbUser = await prisma.user.findUnique({
+    const legacyUser = await prisma.user.findUnique({
       where: { email },
       select: authUserSelect,
     });
 
-    if (dbUser && !dbUser.supabaseId) {
-      dbUser = await prisma.user.update({
-        where: { id: dbUser.id },
-        data: { supabaseId },
-        select: authUserSelect,
-      });
+    if (legacyUser) {
+      dbUser = legacyUser.supabaseId
+        ? legacyUser
+        : await prisma.user.update({
+            where: { id: legacyUser.id },
+            data: { supabaseId },
+            select: authUserSelect,
+          });
     }
   }
 
   if (!dbUser) {
-    dbUser = await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         supabaseId,
         email,
@@ -76,42 +101,31 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
       },
       select: authUserSelect,
     });
-  } else {
-    const needsUpdate =
-      dbUser.supabaseId !== supabaseId ||
-      dbUser.email !== email ||
-      (metaName !== null && dbUser.name !== metaName) ||
-      (metaPhone !== null && dbUser.phone !== metaPhone);
 
-    if (needsUpdate) {
-      dbUser = await prisma.user.update({
-        where: { id: dbUser.id },
-        data: {
-          ...(dbUser.supabaseId !== supabaseId ? { supabaseId } : {}),
-          ...(dbUser.email !== email ? { email } : {}),
-          ...(metaName !== null && dbUser.name !== metaName
-            ? { name: metaName }
-            : {}),
-          ...(metaPhone !== null && dbUser.phone !== metaPhone
-            ? { phone: metaPhone }
-            : {}),
-        },
-        select: authUserSelect,
-      });
-    }
+    return toAuthUser(created);
   }
 
-  return {
-    id: dbUser.id,
-    supabaseId: dbUser.supabaseId ?? null,
-    email: dbUser.email,
-    role: dbUser.role,
-    name: dbUser.name,
-    phone: dbUser.phone,
-    avatarUrl: dbUser.avatarUrl,
-    betaAccess: dbUser.betaAccess,
-    lifetimeFree: dbUser.lifetimeFree,
-  };
+  const updateData: {
+    supabaseId?: string;
+    email?: string;
+    name?: string;
+    phone?: string;
+  } = {};
+
+  if (dbUser.supabaseId !== supabaseId) updateData.supabaseId = supabaseId;
+  if (dbUser.email !== email) updateData.email = email;
+  if (metaName !== null && dbUser.name !== metaName) updateData.name = metaName;
+  if (metaPhone !== null && dbUser.phone !== metaPhone) updateData.phone = metaPhone;
+
+  if (Object.keys(updateData).length > 0) {
+    dbUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: updateData,
+      select: authUserSelect,
+    });
+  }
+
+  return toAuthUser(dbUser);
 });
 
 export async function requireUser() {

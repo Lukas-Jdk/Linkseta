@@ -24,7 +24,7 @@ const ITEMS: Item[] = [
   { label: "Mokymai", slug: "mokymai" },
   { label: "Vaikai", slug: "vaik-prieira" },
   { label: "Gyvūnai", slug: "gyvn-prieira" },
-  { label: "Maistas", slug: "maistas-kateris" },
+  { label: "Maistas", slug: "maistas" },
   { label: "Namų ūkis", slug: "nam-kis" },
   { label: "Kita", slug: "kita" },
 ];

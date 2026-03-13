@@ -26,7 +26,7 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function buildLanguageAlternates(path: string) {
   return {
@@ -149,17 +149,20 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const [total, cities, categories, services] = await Promise.all([
+  const [total, activeCity, activeCategory, services] = await Promise.all([
     prisma.serviceListing.count({ where }),
-    prisma.city.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.category.findMany({
-      where: { type: "SERVICE" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
+    city
+      ? prisma.city.findUnique({
+          where: { id: city },
+          select: { name: true },
+        })
+      : Promise.resolve(null),
+    category
+      ? prisma.category.findUnique({
+          where: { id: category },
+          select: { name: true },
+        })
+      : Promise.resolve(null),
     prisma.serviceListing.findMany({
       where,
       select: {
@@ -179,14 +182,10 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     }),
   ]);
 
-const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const activeCityName = city
-    ? (cities.find((c) => c.id === city)?.name ?? "")
-    : "";
-  const activeCategoryName = category
-    ? (categories.find((cat) => cat.id === category)?.name ?? "")
-    : "";
+  const activeCityName = activeCity?.name ?? "";
+  const activeCategoryName = activeCategory?.name ?? "";
 
   let heading = "Services in Norway";
 

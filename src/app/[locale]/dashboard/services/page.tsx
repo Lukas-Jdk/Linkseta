@@ -19,7 +19,10 @@ export default async function DashboardServicesPage({ params }: Props) {
   }
 
   const services = await prisma.serviceListing.findMany({
-    where: { userId: authUser.id, deletedAt: null },
+    where: {
+      userId: authUser.id,
+      deletedAt: null,
+    },
     select: {
       id: true,
       slug: true,

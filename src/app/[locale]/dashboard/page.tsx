@@ -27,16 +27,10 @@ export default async function DashboardPage({ params }: Props) {
 
   if (!authUser) redirect(`/${locale}/login`);
 
-  const [user, services] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: authUser.id },
-      select: {
-        email: true,
-        name: true,
-        role: true,
-        avatarUrl: true,
-        profile: { select: { isApproved: true } },
-      },
+  const [profile, services] = await Promise.all([
+    prisma.providerProfile.findUnique({
+      where: { userId: authUser.id },
+      select: { isApproved: true },
     }),
     prisma.serviceListing.findMany({
       where: {
@@ -58,9 +52,7 @@ export default async function DashboardPage({ params }: Props) {
     }),
   ]);
 
-  if (!user) redirect(`/${locale}/login`);
-
-  const isProviderApproved = Boolean(user.profile?.isApproved);
+  const isProviderApproved = Boolean(profile?.isApproved);
 
   const totalServices = services.length;
   const activeServices = services.filter((s) => s.isActive).length;
@@ -91,10 +83,10 @@ export default async function DashboardPage({ params }: Props) {
 
         <div className={styles.grid}>
           <ProfileCardClient
-            name={user.name ?? null}
-            email={user.email}
-            role={user.role}
-            avatarUrl={user.avatarUrl ?? null}
+            name={authUser.name ?? null}
+            email={authUser.email}
+            role={authUser.role}
+            avatarUrl={authUser.avatarUrl ?? null}
             totalServices={totalServices}
             isProviderApproved={isProviderApproved}
           />

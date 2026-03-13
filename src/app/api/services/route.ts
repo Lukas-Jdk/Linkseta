@@ -6,12 +6,10 @@ import { withApi } from "@/lib/withApi";
 import { withRateLimit } from "@/lib/apiGuard";
 import { validatePaginationParams, sanitizeStringParam } from "@/lib/validation";
 
-export const dynamic = "force-dynamic";
-
 async function ensureUniqueSlugGlobal(slug: string) {
   let s = slug;
   let i = 2;
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const exists = await prisma.serviceListing.findUnique({
       where: { slug: s },
@@ -23,9 +21,6 @@ async function ensureUniqueSlugGlobal(slug: string) {
   }
 }
 
-// ---------------------------------------------
-// GET /api/services (public)
-// ---------------------------------------------
 export async function GET(req: Request) {
   return withApi(req, "GET /api/services", async () => {
     return withRateLimit(
@@ -71,10 +66,17 @@ export async function GET(req: Request) {
         const totalPages = Math.ceil(total / pageSize);
 
         if (pageNum > totalPages && totalPages > 0) {
-          return NextResponse.json({ data: [], total, page: pageNum, pageSize, totalPages });
+          const res = NextResponse.json({
+            data: [],
+            total,
+            page: pageNum,
+            pageSize,
+            totalPages,
+          });
+          res.headers.set("Cache-Control", "public, max-age=30, s-maxage=120");
+          return res;
         }
 
-        // pastebėjimas: dažnai norisi TOP rodyti pirmiau
         const services = await prisma.serviceListing.findMany({
           where,
           select: {
@@ -95,7 +97,13 @@ export async function GET(req: Request) {
           take: pageSize,
         });
 
-        const res = NextResponse.json({ data: services, total, page: pageNum, pageSize, totalPages });
+        const res = NextResponse.json({
+          data: services,
+          total,
+          page: pageNum,
+          pageSize,
+          totalPages,
+        });
         res.headers.set("Cache-Control", "public, max-age=30, s-maxage=120");
         return res;
       },
@@ -104,9 +112,6 @@ export async function GET(req: Request) {
   });
 }
 
-// ---------------------------------------------
-// POST /api/services  (ADMIN-only)
-// ---------------------------------------------
 export async function POST(req: Request) {
   return withApi(req, "POST /api/services", async () => {
     return withRateLimit(

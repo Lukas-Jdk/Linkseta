@@ -42,6 +42,54 @@ type Props = {
   labels: Labels;
 };
 
+const ME_CACHE_KEY = "linkseta:me:v1";
+const ME_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedMe = {
+  user: MeUser | null;
+  savedAt: number;
+};
+
+function readCachedMe(): CachedMe | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(ME_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as CachedMe;
+    if (!parsed || typeof parsed.savedAt !== "number") return null;
+
+    if (Date.now() - parsed.savedAt > ME_CACHE_TTL_MS) {
+      window.sessionStorage.removeItem(ME_CACHE_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedMe(user: MeUser | null) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const payload: CachedMe = {
+      user,
+      savedAt: Date.now(),
+    };
+    window.sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(payload));
+  } catch {}
+}
+
+function clearCachedMe() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(ME_CACHE_KEY);
+  } catch {}
+}
+
 export default function HeaderClient({ locale, labels }: Props) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const pathname = usePathname();
@@ -74,40 +122,62 @@ export default function HeaderClient({ locale, labels }: Props) {
     setUserEmail(null);
     setAvatarUrl(null);
     setIsProfileOpen(false);
+    clearCachedMe();
   }, []);
 
-  const loadMe = useCallback(async () => {
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
+  const applyMeUser = useCallback((user: MeUser | null) => {
+    if (!mountedRef.current) return;
 
-      if (!res.ok) {
-        setRole(null);
-        return;
-      }
-
-      const json = (await res.json()) as { user: MeUser | null };
-
-      if (!mountedRef.current) return;
-
-      if (json.user) {
-        setRole(json.user.role ?? "USER");
-        setUserName(json.user.name);
-        setUserEmail(json.user.email);
-        setAvatarUrl(json.user.avatarUrl);
-      } else {
-        setRole(null);
-      }
-    } catch {
-      if (!mountedRef.current) return;
+    if (!user) {
       setRole(null);
+      return;
     }
+
+    setRole(user.role ?? "USER");
+    setUserName(user.name);
+    setUserEmail(user.email);
+    setAvatarUrl(user.avatarUrl);
   }, []);
+
+  const loadMe = useCallback(
+    async (opts?: { force?: boolean }) => {
+      const force = Boolean(opts?.force);
+
+      if (!force) {
+        const cached = readCachedMe();
+        if (cached) {
+          applyMeUser(cached.user);
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          if (mountedRef.current) setRole(null);
+          return;
+        }
+
+        const json = (await res.json()) as { user: MeUser | null };
+
+        if (!mountedRef.current) return;
+
+        writeCachedMe(json.user ?? null);
+        applyMeUser(json.user ?? null);
+      } catch {
+        if (!mountedRef.current) return;
+        setRole(null);
+      }
+    },
+    [applyMeUser],
+  );
 
   const applyUserToUi = useCallback(
-    async (user: User | null) => {
+    async (user: User | null, opts?: { forceMe?: boolean }) => {
       if (!user) {
         resetAuthUi();
         return;
@@ -124,16 +194,22 @@ export default function HeaderClient({ locale, labels }: Props) {
         typeof meta.name === "string" && meta.name.trim()
           ? meta.name.trim()
           : null;
+      const metaAvatar =
+        typeof meta.avatar_url === "string" && meta.avatar_url.trim()
+          ? meta.avatar_url.trim()
+          : null;
 
       setUserName((prev) => metaName ?? prev);
-      setAvatarUrl((prev) => prev);
+      setAvatarUrl((prev) => metaAvatar ?? prev);
 
-      if (lastUserIdRef.current === nextUserId) {
+      const shouldForce = Boolean(opts?.forceMe);
+
+      if (lastUserIdRef.current === nextUserId && !shouldForce) {
         return;
       }
 
       lastUserIdRef.current = nextUserId;
-      await loadMe();
+      await loadMe({ force: shouldForce });
     },
     [loadMe, resetAuthUi],
   );
@@ -143,26 +219,33 @@ export default function HeaderClient({ locale, labels }: Props) {
 
     async function init() {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!mountedRef.current) return;
-      await applyUserToUi(user ?? null);
+      await applyUserToUi(session?.user ?? null);
     }
 
-    init();
+    void init();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applyUserToUi(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        resetAuthUi();
+        return;
+      }
+
+      void applyUserToUi(session?.user ?? null, {
+        forceMe: event === "SIGNED_IN" || event === "TOKEN_REFRESHED",
+      });
     });
 
     return () => {
       mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [applyUserToUi, supabase]);
+  }, [applyUserToUi, resetAuthUi, supabase]);
 
   useEffect(() => {
     closeAllMenus();
@@ -190,6 +273,7 @@ export default function HeaderClient({ locale, labels }: Props) {
 
   async function handleLogout() {
     try {
+      clearCachedMe();
       await csrfFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
       await supabase.auth.signOut().catch(() => null);
     } finally {

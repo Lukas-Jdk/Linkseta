@@ -12,13 +12,27 @@ type PageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function EditServicePage({ params }: PageProps) {
-  const { id, locale } = await params;
-  const authUser = await getAuthUser();
+  const [{ id, locale }, authUser] = await Promise.all([params, getAuthUser()]);
+
   if (!authUser) redirect(`/${locale}/login`);
 
   const service = await prisma.serviceListing.findUnique({
     where: { id },
-    include: { city: true, category: true },
+    select: {
+      id: true,
+      userId: true,
+      title: true,
+      description: true,
+      cityId: true,
+      categoryId: true,
+      priceFrom: true,
+      imageUrl: true,
+      imagePath: true,
+      galleryImageUrls: true,
+      galleryImagePaths: true,
+      highlights: true,
+      isActive: true,
+    },
   });
 
   if (!service) redirect(`/${locale}/dashboard/services`);
@@ -28,10 +42,14 @@ export default async function EditServicePage({ params }: PageProps) {
   }
 
   const [cities, categories] = await Promise.all([
-    prisma.city.findMany({ orderBy: { name: "asc" } }),
+    prisma.city.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
     prisma.category.findMany({
       where: { type: "SERVICE" },
       orderBy: { name: "asc" },
+      select: { id: true, name: true },
     }),
   ]);
 
@@ -45,13 +63,15 @@ export default async function EditServicePage({ params }: PageProps) {
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
     galleryImageUrls:
-      Array.isArray(service.galleryImageUrls) && service.galleryImageUrls.length > 0
+      Array.isArray(service.galleryImageUrls) &&
+      service.galleryImageUrls.length > 0
         ? service.galleryImageUrls
         : service.imageUrl
           ? [service.imageUrl]
           : [],
     galleryImagePaths:
-      Array.isArray(service.galleryImagePaths) && service.galleryImagePaths.length > 0
+      Array.isArray(service.galleryImagePaths) &&
+      service.galleryImagePaths.length > 0
         ? service.galleryImagePaths
         : service.imagePath
           ? [service.imagePath]
@@ -67,7 +87,8 @@ export default async function EditServicePage({ params }: PageProps) {
           <div>
             <h1 className={styles.pageTitle}>Redaguoti paslaugą</h1>
             <p className={styles.pageSubtitle}>
-              Atnaujinkite paslaugos informaciją, galeriją arba ištrinkite skelbimą.
+              Atnaujinkite paslaugos informaciją, galeriją arba ištrinkite
+              skelbimą.
             </p>
           </div>
         </header>
