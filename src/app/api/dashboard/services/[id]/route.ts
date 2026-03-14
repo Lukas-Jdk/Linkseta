@@ -19,21 +19,38 @@ function clampText(x: unknown, max: number) {
   return t ? t.slice(0, max) : null;
 }
 
-function normalizeGalleryStrings(
-  input: unknown,
+type GalleryPair = {
+  url: string;
+  path: string;
+};
+
+function normalizeGalleryPairs(
+  urlsInput: unknown,
+  pathsInput: unknown,
   maxItems: number,
-  maxLen: number,
 ) {
-  if (!Array.isArray(input)) return [];
-  return input
-    .map((x) => String(x).trim())
-    .filter(Boolean)
-    .slice(0, maxItems)
-    .map((x) => x.slice(0, maxLen));
+  const urls = Array.isArray(urlsInput) ? urlsInput : [];
+  const paths = Array.isArray(pathsInput) ? pathsInput : [];
+
+  const maxLen = Math.min(urls.length, paths.length, maxItems);
+
+  const pairs: GalleryPair[] = [];
+
+  for (let i = 0; i < maxLen; i += 1) {
+    const url = String(urls[i] ?? "").trim().slice(0, 600);
+    const path = String(paths[i] ?? "").trim().slice(0, 300);
+
+    if (!url || !path) continue;
+
+    pairs.push({ url, path });
+  }
+
+  return pairs;
 }
 
 async function removeFromStorage(paths: string[]) {
   if (!paths.length) return;
+
   try {
     const { error } = await supabaseAdmin.storage.from(BUCKET).remove(paths);
     if (error) console.warn("Storage remove error:", error.message);
@@ -169,34 +186,27 @@ export async function PATCH(
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
 
-    const nextGalleryImageUrls =
-      body?.galleryImageUrls === undefined
-        ? service.galleryImageUrls
-        : normalizeGalleryStrings(
-            body?.galleryImageUrls,
-            maxImagesPerListing,
-            600,
-          );
+    const currentPairs = normalizeGalleryPairs(
+      service.galleryImageUrls ?? [],
+      service.galleryImagePaths ?? [],
+      maxImagesPerListing,
+    );
 
-    const nextGalleryImagePaths =
-      body?.galleryImagePaths === undefined
-        ? service.galleryImagePaths
-        : normalizeGalleryStrings(
+    const nextPairs =
+      body?.galleryImageUrls === undefined && body?.galleryImagePaths === undefined
+        ? currentPairs
+        : normalizeGalleryPairs(
+            body?.galleryImageUrls,
             body?.galleryImagePaths,
             maxImagesPerListing,
-            300,
           );
 
-    if (nextGalleryImageUrls.length !== nextGalleryImagePaths.length) {
-      return NextResponse.json(
-        { error: "Nesutampa nuotraukų duomenys." },
-        { status: 400 },
-      );
-    }
-
-    for (const path of nextGalleryImagePaths) {
-      if (!path.startsWith(safePrefix)) {
-        return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
+    for (const pair of nextPairs) {
+      if (!pair.path.startsWith(safePrefix)) {
+        return NextResponse.json(
+          { error: "Invalid imagePath" },
+          { status: 400 },
+        );
       }
     }
 
@@ -207,12 +217,25 @@ export async function PATCH(
           .slice(0, 6)
       : service.highlights;
 
-    const oldPaths = service.galleryImagePaths ?? [];
-    const nextPaths = nextGalleryImagePaths ?? [];
-
-    const toDelete = oldPaths.filter(
-      (path) => path && !nextPaths.includes(path) && path.startsWith(safePrefix),
+    const oldPathsSet = new Set(
+      [
+        ...(Array.isArray(service.galleryImagePaths)
+          ? service.galleryImagePaths
+          : []),
+        ...(service.imagePath ? [service.imagePath] : []),
+      ]
+        .map((x) => String(x ?? "").trim())
+        .filter(Boolean),
     );
+
+    const nextPathsSet = new Set(nextPairs.map((x) => x.path));
+
+    const toDelete = Array.from(oldPathsSet).filter(
+      (path) => path.startsWith(safePrefix) && !nextPathsSet.has(path),
+    );
+
+    const nextGalleryImageUrls = nextPairs.map((x) => x.url);
+    const nextGalleryImagePaths = nextPairs.map((x) => x.path);
 
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
@@ -234,6 +257,8 @@ export async function PATCH(
         slug: true,
         isActive: true,
         title: true,
+        galleryImageUrls: true,
+        galleryImagePaths: true,
       },
     });
 
@@ -257,7 +282,11 @@ export async function PATCH(
 
     revalidateServicePaths(updated.slug);
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      galleryImageUrls: updated.galleryImageUrls,
+      galleryImagePaths: updated.galleryImagePaths,
+    });
   } catch (e: any) {
     if (e instanceof Response) return e;
 
@@ -324,14 +353,19 @@ export async function DELETE(
       );
     }
 
-    const paths = (service.galleryImagePaths ?? []).filter((p) =>
-      p.startsWith(safePrefix),
-    );
+    const paths = [
+      ...(Array.isArray(service.galleryImagePaths)
+        ? service.galleryImagePaths
+        : []),
+      ...(service.imagePath ? [service.imagePath] : []),
+    ]
+      .map((x) => String(x ?? "").trim())
+      .filter((p) => p.startsWith(safePrefix));
 
-    if (paths.length) {
-      await removeFromStorage(paths);
-    } else if (service.imagePath && service.imagePath.startsWith(safePrefix)) {
-      await removeFromStorage([service.imagePath]);
+    const uniquePaths = Array.from(new Set(paths));
+
+    if (uniquePaths.length) {
+      await removeFromStorage(uniquePaths);
     }
 
     await prisma.serviceListing.update({

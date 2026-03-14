@@ -51,18 +51,26 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
-function normalizeGallery(
+function normalizeInitialGallery(
   urls?: string[],
   paths?: string[],
 ): GalleryItem[] {
-  if (!Array.isArray(urls) || urls.length === 0) return [];
+  if (!Array.isArray(urls) || !Array.isArray(paths)) return [];
 
-  return urls
-    .map((url, idx) => ({
-      url: String(url ?? "").trim(),
-      path: String(paths?.[idx] ?? "").trim(),
-    }))
-    .filter((item) => item.url.length > 0 && item.path.length > 0);
+  const len = Math.min(urls.length, paths.length);
+
+  const out: GalleryItem[] = [];
+
+  for (let i = 0; i < len; i += 1) {
+    const url = String(urls[i] ?? "").trim();
+    const path = String(paths[i] ?? "").trim();
+
+    if (!url || !path) continue;
+
+    out.push({ url, path });
+  }
+
+  return out;
 }
 
 export default function EditServiceForm({
@@ -95,7 +103,7 @@ export default function EditServiceForm({
   );
 
   const [gallery, setGallery] = useState<GalleryItem[]>(
-    normalizeGallery(initial.galleryImageUrls, initial.galleryImagePaths),
+    normalizeInitialGallery(initial.galleryImageUrls, initial.galleryImagePaths),
   );
 
   const [uploading, setUploading] = useState(false);
@@ -104,8 +112,8 @@ export default function EditServiceForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  async function handleUpload(files: FileList | null) {
-    if (!files || files.length === 0) return;
+  async function handleUpload(files: File[]) {
+    if (!files.length) return;
 
     setError(null);
     setSuccess(null);
@@ -120,13 +128,14 @@ export default function EditServiceForm({
 
     try {
       const { data: userData, error: userErr } = await supabase.auth.getUser();
+
       if (userErr || !userData.user) {
         setError("Turite būti prisijungęs, kad įkeltumėte nuotraukas.");
         return;
       }
 
       const userId = userData.user.id;
-      const selected = Array.from(files).slice(0, remainingSlots);
+      const selected = files.slice(0, remainingSlots);
       const uploaded: GalleryItem[] = [];
 
       for (const file of selected) {
@@ -166,7 +175,7 @@ export default function EditServiceForm({
           });
 
         if (uploadError) {
-          throw new Error("Nepavyko įkelti nuotraukos.");
+          throw new Error(uploadError.message || "Nepavyko įkelti nuotraukos.");
         }
 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
@@ -179,6 +188,11 @@ export default function EditServiceForm({
           url: data.publicUrl,
           path,
         });
+      }
+
+      if (!uploaded.length) {
+        setError("Nepavyko pridėti nuotraukų.");
+        return;
       }
 
       setGallery((prev) => [...prev, ...uploaded]);
@@ -418,8 +432,12 @@ export default function EditServiceForm({
               multiple
               disabled={uploading || pending}
               onChange={(e) => {
-                void handleUpload(e.target.files);
+                const files = e.currentTarget.files
+                  ? Array.from(e.currentTarget.files)
+                  : [];
+
                 e.currentTarget.value = "";
+                void handleUpload(files);
               }}
             />
           </label>
@@ -458,7 +476,9 @@ export default function EditServiceForm({
                     alt={`Nuotrauka ${idx + 1}`}
                     fill
                     sizes="180px"
-                    style={{ objectFit: "cover" }}
+                    style={{
+                      objectFit: "cover",
+                    }}
                   />
                 </div>
 
