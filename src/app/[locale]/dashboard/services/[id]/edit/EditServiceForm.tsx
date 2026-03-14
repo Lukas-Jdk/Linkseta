@@ -51,6 +51,20 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
+function normalizeGallery(
+  urls?: string[],
+  paths?: string[],
+): GalleryItem[] {
+  if (!Array.isArray(urls) || urls.length === 0) return [];
+
+  return urls
+    .map((url, idx) => ({
+      url: String(url ?? "").trim(),
+      path: String(paths?.[idx] ?? "").trim(),
+    }))
+    .filter((item) => item.url.length > 0 && item.path.length > 0);
+}
+
 export default function EditServiceForm({
   initial,
   cities,
@@ -61,7 +75,6 @@ export default function EditServiceForm({
   const locale = params?.locale ?? "lt";
 
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-
   const [pending, startTransition] = useTransition();
 
   const [title, setTitle] = useState(initial.title);
@@ -82,10 +95,7 @@ export default function EditServiceForm({
   );
 
   const [gallery, setGallery] = useState<GalleryItem[]>(
-    (initial.galleryImageUrls ?? []).map((url, idx) => ({
-      url,
-      path: initial.galleryImagePaths?.[idx] ?? "",
-    })),
+    normalizeGallery(initial.galleryImageUrls, initial.galleryImagePaths),
   );
 
   const [uploading, setUploading] = useState(false);
@@ -111,7 +121,7 @@ export default function EditServiceForm({
     try {
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userData.user) {
-        setError("Turite būti prisijungęs, kad įkeltumėte nuotrauką.");
+        setError("Turite būti prisijungęs, kad įkeltumėte nuotraukas.");
         return;
       }
 
@@ -160,6 +170,7 @@ export default function EditServiceForm({
         }
 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
         if (!data?.publicUrl) {
           throw new Error("Nepavyko gauti nuotraukos URL.");
         }
@@ -191,17 +202,21 @@ export default function EditServiceForm({
 
     const highlights = parseHighlights(highlightsText);
 
+    const cleanGallery = gallery.filter(
+      (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
+    );
+
     try {
       const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
         body: JSON.stringify({
-          title,
-          description,
+          title: title.trim(),
+          description: description.trim(),
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
-          galleryImageUrls: gallery.map((x) => x.url),
-          galleryImagePaths: gallery.map((x) => x.path),
+          galleryImageUrls: cleanGallery.map((x) => x.url),
+          galleryImagePaths: cleanGallery.map((x) => x.path),
           highlights,
           isActive,
         }),
@@ -214,7 +229,9 @@ export default function EditServiceForm({
         return;
       }
 
+      setGallery(cleanGallery);
       setSuccess("Paslauga sėkmingai atnaujinta.");
+
       startTransition(() => {
         router.push(`/${locale}/dashboard/services`);
         router.refresh();
@@ -424,7 +441,7 @@ export default function EditServiceForm({
           {gallery.length > 0 ? (
             gallery.map((img, idx) => (
               <div
-                key={img.path || img.url}
+                key={img.path}
                 style={{ display: "flex", flexDirection: "column", gap: 8 }}
               >
                 <div
@@ -441,9 +458,7 @@ export default function EditServiceForm({
                     alt={`Nuotrauka ${idx + 1}`}
                     fill
                     sizes="180px"
-                    style={{
-                      objectFit: "cover",
-                    }}
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
 
@@ -451,7 +466,9 @@ export default function EditServiceForm({
                   type="button"
                   className={styles.secondaryButton}
                   onClick={() => {
-                    setGallery((prev) => prev.filter((x) => x.url !== img.url));
+                    setGallery((prev) =>
+                      prev.filter((x) => x.path !== img.path),
+                    );
                   }}
                   disabled={uploading || pending}
                 >
