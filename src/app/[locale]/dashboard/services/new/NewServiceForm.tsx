@@ -1,6 +1,7 @@
 // src/app/[locale]/dashboard/services/new/NewServiceForm.tsx
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { csrfFetch } from "@/lib/csrfClient";
@@ -102,7 +103,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
         }
 
         if (file.size > 10 * 1024 * 1024) {
-          throw new Error("Viena iš nuotraukų per didelė (max ~10MB prieš suspaudimą).");
+          throw new Error(
+            "Viena iš nuotraukų per didelė (max ~10MB prieš suspaudimą).",
+          );
         }
 
         const compressed = await compressImageFile(file, {
@@ -119,14 +122,18 @@ export default function NewServiceForm({ cities, categories }: Props) {
         const fileName = `${crypto.randomUUID()}.jpg`;
         const path = `${userId}/services/${fileName}`;
 
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, compressed, {
-          cacheControl: "31536000",
-          upsert: false,
-          contentType: "image/jpeg",
-        });
+        const { error: upErr } = await supabase.storage
+          .from(bucket)
+          .upload(path, compressed, {
+            cacheControl: "31536000",
+            upsert: false,
+            contentType: "image/jpeg",
+          });
 
         if (upErr) {
-          throw new Error(upErr.message || "Nepavyko įkelti vienos iš nuotraukų.");
+          throw new Error(
+            upErr.message || "Nepavyko įkelti vienos iš nuotraukų.",
+          );
         }
 
         uploaded.push({
@@ -137,7 +144,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       setGallery((prev) => [...prev, ...uploaded]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Įvyko klaida keliant nuotraukas.");
+      setError(
+        e instanceof Error ? e.message : "Įvyko klaida keliant nuotraukas.",
+      );
     } finally {
       setUploading(false);
     }
@@ -173,7 +182,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
         const data = await res.json().catch(() => null);
         const msg =
           data?.error ??
-          (res.status === 403 ? "Forbidden / CSRF check failed" : "Nepavyko sukurti paslaugos");
+          (res.status === 403
+            ? "Forbidden / CSRF check failed"
+            : "Nepavyko sukurti paslaugos");
         throw new Error(msg);
       }
 
@@ -202,7 +213,11 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         <div className={styles.field}>
           <label className={styles.label}>Miestas</label>
-          <select className={styles.select} value={cityId} onChange={(e) => setCityId(e.target.value)}>
+          <select
+            className={styles.select}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
+          >
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -213,7 +228,11 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         <div className={styles.field}>
           <label className={styles.label}>Kategorija</label>
-          <select className={styles.select} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+          <select
+            className={styles.select}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -300,18 +319,45 @@ export default function NewServiceForm({ cities, categories }: Props) {
             }}
           />
 
-          {uploading && <div className={styles.muted}>Nuotraukos mažinamos ir įkeliamos...</div>}
+          {uploading && (
+            <div className={styles.muted}>
+              Nuotraukos mažinamos ir įkeliamos...
+            </div>
+          )}
 
           {gallery.length > 0 && (
             <div className={styles.preview} style={{ flexWrap: "wrap" }}>
               {gallery.map((img, idx) => (
-                <div key={img.path} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <img src={img.url} alt={`Preview ${idx + 1}`} className={styles.previewImg} />
+                <div
+                  key={img.path}
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      width: 180,
+                      height: 130,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={`Preview ${idx + 1}`}
+                      fill
+                      sizes="180px"
+                      className={styles.previewImg}
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+
                   <button
                     type="button"
                     className={styles.removeBtn}
                     onClick={() => {
-                      setGallery((prev) => prev.filter((x) => x.path !== img.path));
+                      setGallery((prev) =>
+                        prev.filter((x) => x.path !== img.path),
+                      );
                     }}
                   >
                     Pašalinti

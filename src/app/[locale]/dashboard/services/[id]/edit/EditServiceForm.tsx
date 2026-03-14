@@ -1,6 +1,7 @@
 // src/app/[locale]/dashboard/services/[id]/edit/EditServiceForm.tsx
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
@@ -50,7 +51,11 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
-export default function EditServiceForm({ initial, cities, categories }: Props) {
+export default function EditServiceForm({
+  initial,
+  cities,
+  categories,
+}: Props) {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
@@ -120,7 +125,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         }
 
         if (file.size > 10 * 1024 * 1024) {
-          throw new Error("Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.");
+          throw new Error(
+            "Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.",
+          );
         }
 
         const random = window.crypto.randomUUID();
@@ -133,7 +140,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         });
 
         if (compressed.size > 3 * 1024 * 1024) {
-          throw new Error("Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.");
+          throw new Error(
+            "Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.",
+          );
         }
 
         const path = `${userId}/services/${random}.jpg`;
@@ -165,7 +174,11 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       setSuccess("Nuotraukos įkeltos. Nepamirškite išsaugoti pakeitimų.");
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : "Įvyko klaida įkeliant nuotrauką.");
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Įvyko klaida įkeliant nuotrauką.",
+      );
     } finally {
       setUploading(false);
     }
@@ -296,15 +309,21 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-          <div className={styles.charHint}>{description.length} / 2000 simbolių</div>
+          <div className={styles.charHint}>
+            {description.length} / 2000 simbolių
+          </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Kodėl verta rinktis šią paslaugą?</h2>
+        <h2 className={styles.sectionTitle}>
+          Kodėl verta rinktis šią paslaugą?
+        </h2>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Privalumai (1 eilutė = 1 punktas)</label>
+          <label className={styles.label}>
+            Privalumai (1 eilutė = 1 punktas)
+          </label>
           <textarea
             className={styles.textarea}
             rows={5}
@@ -312,7 +331,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
             onChange={(e) => setHighlightsText(e.target.value)}
             placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
           />
-          <div className={styles.charHint}>Punktų: {highlightsPreview.length} / 6</div>
+          <div className={styles.charHint}>
+            Punktų: {highlightsPreview.length} / 6
+          </div>
         </div>
       </section>
 
@@ -322,7 +343,11 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         <div className={styles.formRow}>
           <div className={styles.formCol}>
             <label className={styles.label}>Miestas</label>
-            <select className={styles.select} value={cityId} onChange={(e) => setCityId(e.target.value)}>
+            <select
+              className={styles.select}
+              value={cityId}
+              onChange={(e) => setCityId(e.target.value)}
+            >
               <option value="">Pasirinkti miestą</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -334,7 +359,11 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
 
           <div className={styles.formCol}>
             <label className={styles.label}>Kategorija</label>
-            <select className={styles.select} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <select
+              className={styles.select}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
               <option value="">Pasirinkti kategoriją</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -394,17 +423,30 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
         >
           {gallery.length > 0 ? (
             gallery.map((img, idx) => (
-              <div key={img.path || img.url} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <img
-                  src={img.url}
-                  alt={`Nuotrauka ${idx + 1}`}
+              <div
+                key={img.path || img.url}
+                style={{ display: "flex", flexDirection: "column", gap: 8 }}
+              >
+                <div
                   style={{
+                    position: "relative",
                     width: 180,
                     height: 130,
-                    objectFit: "cover",
                     borderRadius: 12,
+                    overflow: "hidden",
                   }}
-                />
+                >
+                  <Image
+                    src={img.url}
+                    alt={`Nuotrauka ${idx + 1}`}
+                    fill
+                    sizes="180px"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+
                 <button
                   type="button"
                   className={styles.secondaryButton}
@@ -424,7 +466,9 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
           )}
         </div>
 
-        <p className={styles.helpText}>Galite įkelti kelias nuotraukas. Maks. 10MB prieš suspaudimą.</p>
+        <p className={styles.helpText}>
+          Galite įkelti kelias nuotraukas. Maks. 10MB prieš suspaudimą.
+        </p>
         {error && <p className={styles.errorText}>{error}</p>}
         {success && <p className={styles.successText}>{success}</p>}
       </section>
@@ -447,12 +491,21 @@ export default function EditServiceForm({ initial, cities, categories }: Props) 
       </section>
 
       <div className={styles.actionsBar}>
-        <button type="button" className={styles.dangerButton} onClick={handleDelete} disabled={pending || uploading}>
+        <button
+          type="button"
+          className={styles.dangerButton}
+          onClick={handleDelete}
+          disabled={pending || uploading}
+        >
           Ištrinti paslaugą
         </button>
 
         <div className={styles.actionsRight}>
-          <button type="submit" className={styles.primaryButton} disabled={pending || uploading}>
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={pending || uploading}
+          >
             {pending ? "Saugoma..." : "Išsaugoti pakeitimus"}
           </button>
         </div>
