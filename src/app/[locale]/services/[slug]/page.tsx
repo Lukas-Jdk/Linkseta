@@ -1,6 +1,5 @@
 // src/app/[locale]/services/[slug]/page.tsx
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +17,7 @@ import {
 
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
+import ServiceTabsClient from "./ServiceTabsClient";
 
 export const revalidate = 120;
 
@@ -33,14 +33,6 @@ function truncate(input: string, max = 160) {
   const s = input.trim();
   if (s.length <= max) return s;
   return s.slice(0, max - 1).trimEnd() + "…";
-}
-
-function formatDateLT(date: Date) {
-  return new Intl.DateTimeFormat("lt-LT", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
 }
 
 function formatPriceNOK(value: number) {
@@ -89,9 +81,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(
-      service.description || "Find service providers in Norway on Linkseta.",
-    ),
+    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
     160,
   );
 
@@ -133,37 +123,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function SellerAvatar({
-  sellerAvatarUrl,
-  sellerInitial,
-  className,
-  imageClassName,
-  size,
-}: {
-  sellerAvatarUrl: string | null;
-  sellerInitial: string;
-  className: string;
-  imageClassName: string;
-  size: number;
-}) {
-  return (
-    <div className={className} aria-hidden="true">
-      {sellerAvatarUrl ? (
-        <Image
-          src={sellerAvatarUrl}
-          alt=""
-          fill
-          className={imageClassName}
-          sizes={`${size}px`}
-          referrerPolicy="no-referrer"
-        />
-      ) : (
-        sellerInitial
-      )}
-    </div>
-  );
-}
-
 export default async function ServiceDetailsPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -183,7 +142,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
       highlighted: true,
       highlights: true,
       imageUrl: true,
-      createdAt: true,
       galleryImageUrls: true,
       city: {
         select: {
@@ -218,21 +176,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
     : [];
 
   const images =
-    gallery.length > 0
-      ? gallery
-      : service.imageUrl
-        ? [service.imageUrl]
-        : ["/def.webp"];
+    gallery.length > 0 ? gallery : service.imageUrl ? [service.imageUrl] : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
-  const created = formatDateLT(service.createdAt);
 
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName =
-    service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
@@ -250,17 +202,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "—";
+    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
 
   const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
   )}`;
 
   const highlights = Array.isArray(service.highlights) ? service.highlights : [];
-  const hasHighlights = highlights.length > 0;
-  const hasGallery = images.length > 0;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -288,13 +236,19 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.sideCard}>
       <div className={styles.sellerHeader}>
         <div className={styles.sellerAvatarWrap}>
-          <SellerAvatar
-            sellerAvatarUrl={sellerAvatarUrl}
-            sellerInitial={sellerInitial}
-            className={styles.sellerAvatar}
-            imageClassName={styles.sellerAvatarImg}
-            size={96}
-          />
+          <div className={styles.sellerAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
+
           <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
@@ -342,13 +296,18 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.tabletInlineSeller}>
       <div className={styles.tabletInlineSellerLeft}>
         <div className={styles.tabletInlineAvatarWrap}>
-          <SellerAvatar
-            sellerAvatarUrl={sellerAvatarUrl}
-            sellerInitial={sellerInitial}
-            className={styles.tabletInlineAvatar}
-            imageClassName={styles.sellerAvatarImg}
-            size={56}
-          />
+          <div className={styles.tabletInlineAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
         </div>
 
         <div className={styles.tabletInlineInfo}>
@@ -358,9 +317,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>
-          {mobileCompactPriceValue}
-        </div>
+        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
         <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
       </div>
     </div>
@@ -371,27 +328,28 @@ export default async function ServiceDetailsPage({ params }: Props) {
       <div className={styles.mobileCompactSeller}>
         <div className={styles.mobileCompactLeft}>
           <div className={styles.mobileCompactAvatarWrap}>
-            <SellerAvatar
-              sellerAvatarUrl={sellerAvatarUrl}
-              sellerInitial={sellerInitial}
-              className={styles.mobileCompactAvatar}
-              imageClassName={styles.sellerAvatarImg}
-              size={56}
-            />
+            <div className={styles.mobileCompactAvatar} aria-hidden="true">
+              {sellerAvatarUrl ? (
+                <img
+                  className={styles.sellerAvatarImg}
+                  src={sellerAvatarUrl}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                sellerInitial
+              )}
+            </div>
           </div>
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>
-              Paslaugos teikėjas
-            </div>
+            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
           </div>
         </div>
 
         <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>
-            {mobileCompactPriceValue}
-          </div>
+          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
           <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
         </div>
       </div>
@@ -402,13 +360,18 @@ export default async function ServiceDetailsPage({ params }: Props) {
     <div className={styles.mobileBottomSellerCard}>
       <div className={styles.mobileBottomSellerHeader}>
         <div className={styles.mobileBottomAvatarWrap}>
-          <SellerAvatar
-            sellerAvatarUrl={sellerAvatarUrl}
-            sellerInitial={sellerInitial}
-            className={styles.mobileBottomAvatar}
-            imageClassName={styles.sellerAvatarImg}
-            size={72}
-          />
+          <div className={styles.mobileBottomAvatar} aria-hidden="true">
+            {sellerAvatarUrl ? (
+              <img
+                className={styles.sellerAvatarImg}
+                src={sellerAvatarUrl}
+                alt=""
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              sellerInitial
+            )}
+          </div>
           <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
@@ -508,12 +471,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <h1 className={styles.title}>{service.title}</h1>
 
                       <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>
-                          ⭐ {ratingValue.toFixed(1)}
-                        </span>
-                        <span className={styles.ratingCount}>
-                          ({ratingCount})
-                        </span>
+                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
+                        <span className={styles.ratingCount}>({ratingCount})</span>
                       </div>
 
                       <div className={styles.metaRow}>
@@ -541,107 +500,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
               <div className={styles.mobileSeller}>{MobileSellerCompact}</div>
 
               <div className={styles.contentCardWrap}>
-                <div className={styles.contentCard}>
-                  <div className={styles.tabs}>
-                    <a
-                      className={`${styles.tab} ${styles.tabActive}`}
-                      href="#apie"
-                    >
-                      Apie paslaugą
-                    </a>
-                    <a className={styles.tab} href="#galerija">
-                      Galerija
-                    </a>
-                    <a className={styles.tab} href="#atsiliepimai">
-                      Atsiliepimai
-                    </a>
-                  </div>
-
-                  <div id="apie" className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Aprašymas</h2>
-                    <p className={styles.desc}>{service.description}</p>
-                  </div>
-
-                  {hasHighlights && (
-                    <div className={styles.section}>
-                      <h2 className={styles.sectionTitle}>
-                        Kodėl verta rinktis šią paslaugą?
-                      </h2>
-                      <ul className={styles.bullets}>
-                        {highlights.map((h, i) => (
-                          <li key={i}>✅ {h}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div id="galerija" className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Galerija</h2>
-
-                    {hasGallery ? (
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns:
-                            "repeat(auto-fill, minmax(180px, 1fr))",
-                          gap: 12,
-                        }}
-                      >
-                        {images.map((img, index) => (
-                          <a
-                            key={`${img}-${index}`}
-                            href={img}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              display: "block",
-                              textDecoration: "none",
-                            }}
-                          >
-                            <div
-                              style={{
-                                position: "relative",
-                                width: "100%",
-                                aspectRatio: "4 / 3",
-                                overflow: "hidden",
-                                borderRadius: 14,
-                                border: "1px solid rgba(15, 23, 42, 0.08)",
-                                background: "#f8fafc",
-                              }}
-                            >
-                              <Image
-                                src={img}
-                                alt={`${service.title} nuotrauka ${index + 1}`}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 240px"
-                                loading="lazy"
-                                style={{
-                                  objectFit: "cover",
-                                }}
-                              />
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className={styles.descSmall}>
-                        Galerijos nuotraukų dar nėra.
-                      </p>
-                    )}
-                  </div>
-
-                  <div id="atsiliepimai" className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
-                    <p className={styles.descSmall}>
-                      Atsiliepimai bus vėliau (kai pridėsime review sistemą).
-                    </p>
-                  </div>
-                </div>
+                <ServiceTabsClient
+                  title={service.title}
+                  description={service.description}
+                  highlights={highlights}
+                  images={images}
+                />
               </div>
 
-              <div className={styles.mobileBottomSeller}>
-                {MobileBottomSellerCard}
-              </div>
+              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
             </div>
           </section>
 

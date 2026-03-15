@@ -1,4 +1,5 @@
 /* src/app/[locale]/services/[slug]/slugPage.module.css */
+/* src/app/[locale]/services/[slug]/slugPage.module.css */
 .page {
   padding: 2rem 0 56px;
   background: #f3f5f7;
@@ -58,7 +59,6 @@
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 22px;
-  
   overflow: hidden;
   margin-bottom: 1.3rem;
 }
@@ -247,46 +247,72 @@
 }
 
 .tabs {
-  position: relative;
   display: flex;
-  gap: 22px;
-  padding: 14px 18px;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
   background: linear-gradient(180deg, #fbfdff 0%, #f3f7fb 100%);
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: 40px;
-  padding: 0 4px;
-  text-decoration: none;
-  font-weight: 950;
-  color: #64748b;
+  appearance: none;
+  border: 1px solid transparent;
   background: transparent;
-  border-radius: 0;
+  color: #64748b;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 0.95rem;
   font-family: var(--font-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
 }
 
 .tab:hover {
   color: #0b1220;
+  background: rgba(14, 165, 233, 0.06);
+}
+
+.tab:focus-visible {
+  outline: none;
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14);
 }
 
 .tabActive {
   color: #0b1220;
+  background: #ffffff;
+  border-color: rgba(14, 165, 233, 0.18);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 8px 18px rgba(14, 165, 233, 0.08);
 }
 
 .tabActive::after {
   content: "";
   position: absolute;
-  left: 0;
-  bottom: -14px;
-  width: 100%;
+  left: 8px;
+  right: 8px;
+  bottom: -15px;
   height: 3px;
   border-radius: 999px;
   background: #0ea5e9;
-  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2), 0 0 18px rgba(14, 165, 233, 0.25);
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.25);
 }
 
 .section {
@@ -304,9 +330,10 @@
 .desc {
   color: #0f172a;
   line-height: 1.75;
-  font-size: 0.98rem;
+  font-size: 1rem;
   margin: 0;
   white-space: pre-wrap;
+  font-weight: 400;
   font-family: var(--font-second);
 }
 
@@ -323,7 +350,7 @@
   color: #0f172a;
   font-family: var(--font-second);
   line-height: 1.7;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* DESKTOP SELLER */
@@ -400,7 +427,7 @@
   color: #64748b;
   font-size: 0.85rem;
   font-weight: 500;
-   font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .verifiedBadge {
@@ -411,7 +438,7 @@
   color: #16a34a;
   font-size: 0.86rem;
   font-weight: 600;
-   font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .priceBox {
@@ -428,7 +455,7 @@
   font-weight: 900;
   font-size: 0.8rem;
   letter-spacing: 0.7px;
-   font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .priceBoxValue {
@@ -439,7 +466,7 @@
   color: #111827;
   font-variant-numeric: tabular-nums;
   word-break: break-word;
-   font-family: var(--font-primary);
+  font-family: var(--font-primary);
 }
 
 .sideActions {
@@ -465,7 +492,7 @@
   font-size: 1rem;
   padding: 0 18px;
   text-align: center;
-   font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .primaryBtn {
@@ -959,5 +986,20 @@
 
   .thumbs {
     display: none;
+  }
+
+  .tabs {
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .tab {
+    height: 38px;
+    padding: 0 12px;
+    font-size: 0.9rem;
+  }
+
+  .tabActive::after {
+    bottom: -13px;
   }
 }
