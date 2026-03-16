@@ -6,14 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { setRequestLocale } from "next-intl/server";
 
-import {
-  MapPin,
-  Folder,
-  Zap,
-  Mail,
-  Phone,
-  BadgeCheck,
-} from "lucide-react";
+import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
 
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
@@ -26,7 +19,10 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return input
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -57,7 +53,13 @@ function isSafeAvatarUrl(url: string | null | undefined) {
   if (!url) return false;
   const s = url.trim();
   if (!s) return false;
-  return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/");
+  return (
+    s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/")
+  );
+}
+
+function normalizePhoneHref(phone: string) {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -81,7 +83,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${service.title} | Linkseta`;
   const description = truncate(
-    stripHtml(service.description || "Find service providers in Norway on Linkseta."),
+    stripHtml(
+      service.description || "Find service providers in Norway on Linkseta.",
+    ),
     160,
   );
 
@@ -176,7 +180,11 @@ export default async function ServiceDetailsPage({ params }: Props) {
     : [];
 
   const images =
-    gallery.length > 0 ? gallery : service.imageUrl ? [service.imageUrl] : ["/def.webp"];
+    gallery.length > 0
+      ? gallery
+      : service.imageUrl
+        ? [service.imageUrl]
+        : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
   const category = service.category?.name ?? "—";
@@ -184,7 +192,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const ratingValue = 5.0;
   const ratingCount = 1;
 
-  const sellerName = service.user.name?.trim() || service.user.email.split("@")[0];
+  const sellerName =
+    service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
@@ -194,7 +203,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
   const phoneRaw = service.user.phone ? String(service.user.phone).trim() : "";
   const phone = phoneRaw || null;
-  const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+  const telHref = phone ? normalizePhoneHref(phone) : null;
 
   const priceValue =
     service.priceFrom != null
@@ -202,13 +211,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
       : "Kaina sutartinė";
 
   const mobileCompactPriceValue =
-    service.priceFrom != null ? `${formatPriceNOK(service.priceFrom)} NOK` : "—";
+    service.priceFrom != null
+      ? `${formatPriceNOK(service.priceFrom)} NOK`
+      : "—";
 
-  const mailto = `mailto:${service.user.email}?subject=${encodeURIComponent(
+  const emailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+    service.user.email,
+  )}&su=${encodeURIComponent(
     `Užklausa dėl paslaugos: ${service.title}`,
+  )}&body=${encodeURIComponent(
+    `Sveiki,
+
+Radau jūsų paslaugą per Linkseta platformą.
+
+Domina daugiau informacijos apie: ${service.title}
+
+Ačiū.`,
   )}`;
 
-  const highlights = Array.isArray(service.highlights) ? service.highlights : [];
+  const highlights = Array.isArray(service.highlights)
+    ? service.highlights
+    : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -272,22 +295,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.sideActions}>
-        <a className={styles.primaryBtn} href={mailto}>
+        <a
+          className={styles.primaryBtn}
+          href={emailHref}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Mail size={18} />
           Rašyti el. paštu
         </a>
 
-  {telHref ? (
-  <a className={styles.secondaryBtn} href={telHref}>
-    <Phone size={18} />
-    {phone}
-  </a>
-) : (
-  <button className={styles.secondaryBtn} type="button" disabled>
-    <Phone size={18} />
-    Tel. numerio nėra
-  </button>
-)}
+        {telHref ? (
+          <a className={styles.secondaryBtn} href={telHref}>
+            <Phone size={18} />
+            {phone}
+          </a>
+        ) : (
+          <button className={styles.secondaryBtn} type="button" disabled>
+            <Phone size={18} />
+            Tel. numerio nėra
+          </button>
+        )}
       </div>
     </div>
   );
@@ -317,7 +345,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
+        <div className={styles.tabletInlinePriceValue}>
+          {mobileCompactPriceValue}
+        </div>
         <div className={styles.tabletInlinePriceLabel}>Kaina nuo:</div>
       </div>
     </div>
@@ -344,12 +374,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>Paslaugos teikėjas</div>
+            <div className={styles.mobileCompactSubtitle}>
+              Paslaugos teikėjas
+            </div>
           </div>
         </div>
 
         <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
+          <div className={styles.mobileCompactPriceValue}>
+            {mobileCompactPriceValue}
+          </div>
           <div className={styles.mobileCompactPriceLabel}>Kaina nuo:</div>
         </div>
       </div>
@@ -394,22 +428,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.mobileBottomActions}>
-        <a className={styles.primaryBtn} href={mailto}>
+        <a
+          className={styles.primaryBtn}
+          href={emailHref}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Mail size={18} />
           Rašyti el. paštu
         </a>
 
-      {telHref ? (
-  <a className={styles.secondaryBtn} href={telHref}>
-    <Phone size={18} />
-    {phone}
-  </a>
-) : (
-  <button className={styles.secondaryBtn} type="button" disabled>
-    <Phone size={18} />
-    Tel. numerio nėra
-  </button>
-)}
+        {telHref ? (
+          <a className={styles.secondaryBtn} href={telHref}>
+            <Phone size={18} />
+            {phone}
+          </a>
+        ) : (
+          <button className={styles.secondaryBtn} type="button" disabled>
+            <Phone size={18} />
+            Tel. numerio nėra
+          </button>
+        )}
       </div>
     </div>
   );
@@ -471,8 +510,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <h1 className={styles.title}>{service.title}</h1>
 
                       <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>⭐ {ratingValue.toFixed(1)}</span>
-                        <span className={styles.ratingCount}>({ratingCount})</span>
+                        <span className={styles.ratingValue}>
+                          ⭐ {ratingValue.toFixed(1)}
+                        </span>
+                        <span className={styles.ratingCount}>
+                          ({ratingCount})
+                        </span>
                       </div>
 
                       <div className={styles.metaRow}>
@@ -508,7 +551,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
                 />
               </div>
 
-              <div className={styles.mobileBottomSeller}>{MobileBottomSellerCard}</div>
+              <div className={styles.mobileBottomSeller}>
+                {MobileBottomSellerCard}
+              </div>
             </div>
           </section>
 

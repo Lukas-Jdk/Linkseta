@@ -86,7 +86,9 @@ export default function Footer() {
             <div className={styles.socialRow}>
               <a
                 className={styles.iconBtn}
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61587063122451"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 title="Facebook"
               >
@@ -100,9 +102,11 @@ export default function Footer() {
 
               <a
                 className={styles.iconBtn}
-                href="mailto:info@linkseta.com"
-                aria-label={t("emailAria")}
-                title={t("emailTitle")}
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=info@linkseta.com&su=U%C5%BEklausa%20i%C5%A1%20Linkseta"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Rašyti el. paštu"
+                title="Rašyti el. paštu"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
