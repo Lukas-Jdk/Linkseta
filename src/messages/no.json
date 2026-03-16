@@ -93,5 +93,20 @@
     "emailTitle": "E-post",
     "rights": "Alle rettigheter forbeholdt.",
     "createdBy": "Created by"
-  }
+  },
+  "servicesPage": {
+  "headingAll": "Tjenester i Norge",
+  "headingCity": "Tjenester i {city}",
+  "headingCategory": "{category} tjenester i Norge",
+  "headingCategoryCity": "{category} – {city}",
+  "found": "Funnet",
+  "forQuery": "for",
+  "invalidPage": "Ugyldig sidenummer. Prøv igjen.",
+  "empty": "Ingen tjenester funnet for de valgte filtrene.",
+  "emptyHint": "Prøv å endre by, kategori eller søkeord.",
+  "page": "Side",
+  "of": "av",
+  "previous": "← Forrige",
+  "next": "Neste →"
+}
 }

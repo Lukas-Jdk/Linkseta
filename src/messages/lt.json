@@ -92,5 +92,20 @@
     "emailTitle": "El. paštas",
     "rights": "Visos teisės saugomos.",
     "createdBy": "Created by"
-  }
+  },
+  "servicesPage": {
+  "headingAll": "Paslaugos Norvegijoje",
+  "headingCity": "Paslaugos mieste {city}",
+  "headingCategory": "{category} paslaugos Norvegijoje",
+  "headingCategoryCity": "{category} – {city}",
+  "found": "Rasta",
+  "forQuery": "pagal užklausą",
+  "invalidPage": "Neteisingas puslapio numeris. Bandykite dar kartą.",
+  "empty": "Pagal pasirinktus filtrus paslaugų nerasta.",
+  "emptyHint": "Pabandykite pakeisti miestą, kategoriją arba paieškos tekstą.",
+  "page": "Puslapis",
+  "of": "iš",
+  "previous": "← Ankstesnis",
+  "next": "Kitas →"
+}
 }

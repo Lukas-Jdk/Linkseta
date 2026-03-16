@@ -277,17 +277,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
           Rašyti el. paštu
         </a>
 
-        {telHref ? (
-          <a className={styles.secondaryBtn} href={telHref}>
-            <Phone size={18} />
-            Skambinti dabar
-          </a>
-        ) : (
-          <button className={styles.secondaryBtn} type="button" disabled>
-            <Phone size={18} />
-            Skambinti (nėra tel.)
-          </button>
-        )}
+  {telHref ? (
+  <a className={styles.secondaryBtn} href={telHref}>
+    <Phone size={18} />
+    {phone}
+  </a>
+) : (
+  <button className={styles.secondaryBtn} type="button" disabled>
+    <Phone size={18} />
+    Tel. numerio nėra
+  </button>
+)}
       </div>
     </div>
   );
@@ -318,7 +318,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
       <div className={styles.tabletInlinePrice}>
         <div className={styles.tabletInlinePriceValue}>{mobileCompactPriceValue}</div>
-        <div className={styles.tabletInlinePriceLabel}>Fiksuota kaina</div>
+        <div className={styles.tabletInlinePriceLabel}>Kaina nuo:</div>
       </div>
     </div>
   );
@@ -350,7 +350,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
         <div className={styles.mobileCompactPrice}>
           <div className={styles.mobileCompactPriceValue}>{mobileCompactPriceValue}</div>
-          <div className={styles.mobileCompactPriceLabel}>Fiksuota kaina</div>
+          <div className={styles.mobileCompactPriceLabel}>Kaina nuo:</div>
         </div>
       </div>
     </div>
@@ -399,17 +399,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
           Rašyti el. paštu
         </a>
 
-        {telHref ? (
-          <a className={styles.secondaryBtn} href={telHref}>
-            <Phone size={18} />
-            Skambinti dabar
-          </a>
-        ) : (
-          <button className={styles.secondaryBtn} type="button" disabled>
-            <Phone size={18} />
-            Skambinti (nėra tel.)
-          </button>
-        )}
+      {telHref ? (
+  <a className={styles.secondaryBtn} href={telHref}>
+    <Phone size={18} />
+    {phone}
+  </a>
+) : (
+  <button className={styles.secondaryBtn} type="button" disabled>
+    <Phone size={18} />
+    Tel. numerio nėra
+  </button>
+)}
       </div>
     </div>
   );

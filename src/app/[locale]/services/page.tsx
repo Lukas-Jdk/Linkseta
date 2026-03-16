@@ -1,4 +1,5 @@
 // src/app/[locale]/services/page.tsx
+// src/app/[locale]/services/page.tsx
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -55,6 +56,7 @@ export async function generateMetadata({
   if (resolved.q) queryParams.set("q", resolved.q);
   if (resolved.city) queryParams.set("city", resolved.city);
   if (resolved.category) queryParams.set("category", resolved.category);
+
   const queryString = queryParams.toString();
   const baseQueryString = queryString ? `?${queryString}&` : "?";
 
@@ -105,6 +107,11 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   const [{ locale }, resolved] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
+  const t = await getTranslations({
+    locale,
+    namespace: "servicesPage",
+  });
+
   const paginationResult = validatePaginationParams(
     resolved.page,
     undefined,
@@ -116,9 +123,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         <ServicesHero />
         <section className={styles.results}>
           <div className="container">
-            <p className={styles.emptyState}>
-              Invalid page number. Please try again.
-            </p>
+            <p className={styles.emptyState}>{t("invalidPage")}</p>
           </div>
         </section>
       </main>
@@ -187,14 +192,17 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   const activeCityName = activeCity?.name ?? "";
   const activeCategoryName = activeCategory?.name ?? "";
 
-  let heading = "Services in Norway";
+  let heading = t("headingAll");
 
   if (activeCityName && activeCategoryName) {
-    heading = `${activeCategoryName} – ${activeCityName}`;
+    heading = t("headingCategoryCity", {
+      category: activeCategoryName,
+      city: activeCityName,
+    });
   } else if (activeCityName) {
-    heading = `Services in ${activeCityName}`;
+    heading = t("headingCity", { city: activeCityName });
   } else if (activeCategoryName) {
-    heading = `${activeCategoryName} – Services in Norway`;
+    heading = t("headingCategory", { category: activeCategoryName });
   }
 
   const items = services.map((service) => ({
@@ -232,20 +240,20 @@ export default async function ServicesPage({ params, searchParams }: Props) {
       <section className={styles.results}>
         <div className="container">
           <p className={styles.meta}>
-            {heading} · Found: <strong>{total}</strong>
+            {heading} · {t("found")}: <strong>{total}</strong>
             {q && (
               <>
                 {" "}
-                for <strong>&quot;{q}&quot;</strong>
+                {t("forQuery")} <strong>&quot;{q}&quot;</strong>
               </>
             )}
           </p>
 
           {services.length === 0 ? (
             <p className={styles.emptyState}>
-              No services found for your filters.
+              {t("empty")}
               <br />
-              Try changing city/category or search terms.
+              {t("emptyHint")}
             </p>
           ) : (
             <>
@@ -256,15 +264,16 @@ export default async function ServicesPage({ params, searchParams }: Props) {
               {totalPages > 1 && (
                 <div className={styles.pagination}>
                   <div className={styles.paginationInfo}>
-                    Page {pageNum} of {totalPages}
+                    {t("page")} {pageNum} {t("of")} {totalPages}
                   </div>
+
                   <div className={styles.paginationControls}>
                     {pageNum > 1 && (
                       <a
                         href={getPageUrl(pageNum - 1)}
                         className={styles.paginationButton}
                       >
-                        ← Previous
+                        {t("previous")}
                       </a>
                     )}
 
@@ -307,7 +316,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
                         href={getPageUrl(pageNum + 1)}
                         className={styles.paginationButton}
                       >
-                        Next →
+                        {t("next")}
                       </a>
                     )}
                   </div>
