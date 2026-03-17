@@ -124,8 +124,8 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
                     <td>
                       {u.isProvider
                         ? u.isApprovedProvider
-                          ? "Patvirtintas"
-                          : "Ne patvirtintas"
+                          ? "Aktyvus teikėjas"
+                          : "Neaktyvus teikėjas"
                         : "Ne teikėjas"}
                     </td>
                     <td>{u.servicesCount}</td>

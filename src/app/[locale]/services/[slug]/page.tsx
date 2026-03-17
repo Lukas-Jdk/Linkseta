@@ -278,13 +278,13 @@ Ačiū.`,
         <div className={styles.sellerName}>{sellerName}</div>
 
         <div className={styles.sellerSubtitle}>
-          {isVerified ? "Sertifikuotas specialistas" : "Paslaugos teikėjas"}
+          {isVerified ? "Aktyvus teikėjas" : "Paslaugos teikėjas"}
         </div>
 
         {isVerified && (
           <div className={styles.verifiedBadge}>
             <BadgeCheck size={16} />
-            Patvirtintas
+            Aktyvus
           </div>
         )}
       </div>
@@ -411,13 +411,13 @@ Ačiū.`,
 
         <div className={styles.mobileBottomSellerName}>{sellerName}</div>
         <div className={styles.mobileBottomSellerSubtitle}>
-          {isVerified ? "Sertifikuotas specialistas" : "Paslaugos teikėjas"}
+          {isVerified ? "Aktyvus teikėjas" : "Paslaugos teikėjas"}
         </div>
 
         {isVerified && (
-          <div className={styles.mobileBottomVerified}>
+          <div className={styles.verifiedBadge}>
             <BadgeCheck size={16} />
-            Patvirtintas
+            Aktyvus
           </div>
         )}
       </div>

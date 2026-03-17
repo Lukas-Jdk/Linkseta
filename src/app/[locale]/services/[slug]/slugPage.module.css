@@ -645,9 +645,10 @@
 
 .mobileBottomSellerName {
   font-size: 1.2rem;
-  font-weight: 950;
+  font-weight: 900;
   color: #0b1220;
   line-height: 1.2;
+  font-family: var(--font-primary);
 }
 
 .mobileBottomSellerSubtitle {
@@ -655,6 +656,7 @@
   color: #64748b;
   font-size: 0.95rem;
   font-weight: 700;
+    font-family: var(--font-second);
 }
 
 .mobileBottomVerified {
@@ -681,16 +683,18 @@
   font-weight: 900;
   font-size: 0.8rem;
   letter-spacing: 0.7px;
+    font-family: var(--font-second);
 }
 
 .mobileBottomPriceValue {
   margin-top: 6px;
   font-size: 1.9rem;
   line-height: 1.1;
-  font-weight: 950;
+  font-weight: 800;
   color: #111827;
   font-variant-numeric: tabular-nums;
   word-break: break-word;
+    font-family: var(--font-primary);
 }
 
 .mobileBottomActions {

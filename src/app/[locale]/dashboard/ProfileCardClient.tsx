@@ -78,11 +78,9 @@ export default function ProfileCardClient({
 
         <div className={styles.profileBadges}>
           {isProviderApproved ? (
-            <span className={styles.providerOk}>Patvirtintas teikėjas</span>
+            <span className={styles.providerOk}>Aktyvus teikėjas</span>
           ) : (
-            <span className={styles.providerPending}>
-              Nepatvirtintas teikėjas
-            </span>
+            <span className={styles.providerPending}>Neaktyvus teikėjas</span>
           )}
         </div>
 
