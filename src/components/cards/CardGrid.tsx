@@ -1,4 +1,5 @@
 // src/components/cards/CardGrid.tsx
+import { useTranslations } from "next-intl";
 import PremiumServiceCard from "./PremiumServiceCard";
 import ServiceCard from "./ServiceCard";
 import styles from "./CardGrid.module.css";
@@ -26,19 +27,17 @@ export default function CardGrid({
   variant = "premium",
   locale,
 }: Props) {
+  const t = useTranslations("cardGrid");
+
   if (!items.length) {
-    return (
-      <div className={styles.empty}>
-        Šiuo metu dar neturime rodomų paslaugų.
-      </div>
-    );
+    return <div className={styles.empty}>{t("empty")}</div>;
   }
 
   return (
     <div className={styles.wrapper}>
       <header className={styles.header}>
         <h2 className={styles.heading}>
-          {variant === "premium" ? "Populiariausios paslaugos" : "Rezultatai"}
+          {variant === "premium" ? t("popularTitle") : t("resultsTitle")}
         </h2>
       </header>
 

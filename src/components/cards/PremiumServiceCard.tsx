@@ -1,6 +1,7 @@
 // src/components/cards/PremiumServiceCard.tsx
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import { Star, MapPin, CalendarDays, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
@@ -21,8 +22,14 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
-function formatTodayLikeCard() {
-  return new Intl.DateTimeFormat("lt-LT", {
+function formatTodayLikeCard(locale: string) {
+  const map: Record<string, string> = {
+    lt: "lt-LT",
+    en: "en-GB",
+    no: "nb-NO",
+  };
+
+  return new Intl.DateTimeFormat(map[locale] ?? "lt-LT", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -40,6 +47,9 @@ export default function PremiumServiceCard({
   imageUrl,
   locale,
 }: PremiumServiceCardProps) {
+  const t = useTranslations("serviceCard");
+  const currentLocale = useLocale();
+
   const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultCenterImg = "/logo.webp";
 
@@ -48,8 +58,8 @@ export default function PremiumServiceCard({
 
   const formattedPrice =
     priceFrom != null
-      ? `nuo ${formatPriceNOK(priceFrom)} NOK`
-      : "Kaina sutartinė";
+      ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
+      : t("priceNegotiable");
 
   const ratingValue = highlighted ? 5.0 : 4.9;
 
@@ -59,7 +69,7 @@ export default function PremiumServiceCard({
         <Link
           href={serviceHref}
           className={styles.cardLinkOverlay}
-          aria-label={`Atidaryti paslaugą: ${title}`}
+          aria-label={t("openServiceAria", { title })}
         />
 
         <div className={styles.imageWrap} aria-hidden="true">
@@ -100,14 +110,14 @@ export default function PremiumServiceCard({
           {highlighted && (
             <div className={styles.topBadge}>
               <ShieldCheck className={styles.topBadgeIcon} />
-              TOP
+              {t("top")}
             </div>
           )}
         </div>
 
         <div className={styles.body}>
           <div className={styles.topRow}>
-            <span className={styles.category}>{category || "Kategorija"}</span>
+            <span className={styles.category}>{category || t("categoryFallback")}</span>
 
             <span className={styles.rating}>
               <Star className={styles.ratingIcon} />
@@ -125,7 +135,7 @@ export default function PremiumServiceCard({
 
             <span className={styles.infoItem}>
               <CalendarDays className={styles.infoIcon} />
-              {formatTodayLikeCard()}
+              {formatTodayLikeCard(currentLocale)}
             </span>
           </div>
 
@@ -139,7 +149,7 @@ export default function PremiumServiceCard({
                     : styles.contactButtonStandard
                 }`}
               >
-                Susisiekti
+                {t("contact")}
               </Link>
             </div>
           </div>

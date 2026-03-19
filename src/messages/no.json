@@ -1,4 +1,3 @@
-
 {
   "meta": {
     "siteName": "Linkseta",
@@ -9,12 +8,16 @@
     "contactTitle": "Kontakt | Linkseta",
     "contactDesc": "Spørsmål om Linkseta? Send oss en melding.",
     "becomeTitle": "Bli leverandør | Linkseta",
-    "becomeDesc": "Bli med i Linkseta og publiser tjenestene dine i Norge."
+    "becomeDesc": "Bli med i Linkseta og publiser tjenestene dine i Norge.",
+    "termsTitle": "Vilkår | Linkseta",
+    "termsDesc": "Les Linkseta sine bruksvilkår og regler for plattformen.",
+    "privacyTitle": "Personvernerklæring | Linkseta",
+    "privacyDesc": "Les hvordan Linkseta samler inn, bruker og beskytter dine data."
   },
-    "common": {
+  "common": {
     "brand": "Linkseta"
   },
-    "terms": {
+  "terms": {
     "title": "Vilkår",
     "updated": "Oppdatert: 2026-02-18",
     "introTitle": "Generelt",
@@ -92,21 +95,288 @@
     "emailAria": "E-post",
     "emailTitle": "E-post",
     "rights": "Alle rettigheter forbeholdt.",
-    "createdBy": "Created by"
+    "createdBy": "Created by",
+    "facebookAria": "Facebook",
+    "facebookTitle": "Facebook"
   },
   "servicesPage": {
-  "headingAll": "Tjenester i Norge",
-  "headingCity": "Tjenester i {city}",
-  "headingCategory": "{category} tjenester i Norge",
-  "headingCategoryCity": "{category} – {city}",
-  "found": "Funnet",
-  "forQuery": "for",
-  "invalidPage": "Ugyldig sidenummer. Prøv igjen.",
-  "empty": "Ingen tjenester funnet for de valgte filtrene.",
-  "emptyHint": "Prøv å endre by, kategori eller søkeord.",
-  "page": "Side",
-  "of": "av",
-  "previous": "← Forrige",
-  "next": "Neste →"
+    "headingAll": "Tjenester i Norge",
+    "headingCity": "Tjenester i {city}",
+    "headingCategory": "{category} tjenester i Norge",
+    "headingCategoryCity": "{category} – {city}",
+    "found": "Funnet",
+    "forQuery": "for",
+    "invalidPage": "Ugyldig sidenummer. Prøv igjen.",
+    "empty": "Ingen tjenester funnet for de valgte filtrene.",
+    "emptyHint": "Prøv å endre by, kategori eller søkeord.",
+    "page": "Side",
+    "of": "av",
+    "previous": "← Forrige",
+    "next": "Neste →"
+  },
+  "hero": {
+    "aria": "Søk",
+    "subtitle": "Finn tjenesteleverandører i Norge – se profiler og kontakt dem direkte.",
+    "title": "Ser du etter riktig <highlight>spesialist?</highlight>"
+  },
+  "servicesHero": {
+    "aria": "Tjenestesøk",
+    "title": "Tjenester i din by i <mark>Norge</mark>",
+    "subtitle": "Filtrer etter <accent>by</accent>, <accent>kategori</accent> eller <accent>søkeord</accent> – finn riktig spesialist i ditt område."
+  },
+  "features": {
+    "aria": "Fordeler med Linkseta",
+    "title": "Hvorfor velge Linkseta?",
+    "subtitle": "Raskt søk, tydelig struktur og et voksende fellesskap.",
+    "items": [
+      {
+        "title": "Et sted for tjenesteleverandører i Norge",
+        "text": "En ny plattform som kobler spesialister og kunder på ett sted."
+      },
+      {
+        "title": "Leter du eller tilbyr du? Begge passer her",
+        "text": "Enten du leter etter en tjeneste eller ønsker å tilby en – dette stedet er for deg."
+      },
+      {
+        "title": "Vi bygger fellesskapet fra bunnen av",
+        "text": "Plattformen vokser – vær en av de første og få mer synlighet."
+      }
+    ]
+  },
+  "cardGrid": {
+    "empty": "Det finnes ingen synlige tjenester akkurat nå.",
+    "popularTitle": "Mest populære tjenester",
+    "resultsTitle": "Resultater"
+  },
+  "serviceCard": {
+    "priceFrom": "fra {price} NOK",
+    "priceNegotiable": "Pris etter avtale",
+    "top": "TOP",
+    "categoryFallback": "Kategori",
+    "contact": "Kontakt",
+    "openServiceAria": "Åpne tjeneste: {title}"
+  },
+  "searchBar": {
+    "cityLabel": "By",
+    "categoryLabel": "Kategori",
+    "selectPlaceholder": "Velg...",
+    "searchAria": "Søk etter tjenester",
+    "searchCityPlaceholder": "Søk etter by...",
+    "searchCategoryPlaceholder": "Søk etter kategori...",
+    "clear": "Tøm",
+    "allCities": "Alle byer",
+    "allCategories": "Alle kategorier",
+    "loading": "Laster...",
+    "noResults": "Ingen resultater funnet."
+  },
+  "serviceMarquee": {
+    "aria": "Tjenestekategorier",
+    "items": {
+      "statybos": "Bygg",
+      "remontas": "Reparasjon",
+      "santechnika": "Rørlegger",
+      "elektra": "Elektriker",
+      "buitine": "Hvitevarer",
+      "valymas": "Rengjøring",
+      "auto": "Bil",
+      "transportas": "Transport",
+      "grozis": "Skjønnhet",
+      "it": "IT",
+      "apskaita": "Regnskap",
+      "teisine": "Juridisk",
+      "nt": "Eiendom",
+      "mokymai": "Kurs",
+      "vaikai": "Barn",
+      "gyvunai": "Dyr",
+      "maistas": "Mat",
+      "namai": "Husholdning",
+      "kita": "Annet"
+    }
+  },
+  "serviceDetailsPage": {
+    "metaFallbackDescription": "Finn tjenesteleverandører i Norge på Linkseta.",
+    "priceNegotiable": "Pris etter avtale",
+    "emailSubject": "Forespørsel om tjeneste: {title}",
+    "emailBody": "Hei,\n\nJeg fant tjenesten din via Linkseta-plattformen.\n\nJeg ønsker mer informasjon om: {title}\n\nTakk.",
+    "activeProvider": "Aktiv leverandør",
+    "provider": "Tjenesteleverandør",
+    "active": "Aktiv",
+    "servicePriceLabel": "TJENESTEPRIS",
+    "writeEmail": "Skriv e-post",
+    "noPhone": "Ingen telefonnummer",
+    "priceFromLabel": "Pris fra:",
+    "backToList": "Tilbake til listen",
+    "serviceFallback": "Tjeneste",
+    "photosCount": "{count} bilder",
+    "respondsFast": "Svarar vanligvis innen 1 time."
+  },
+  "serviceDetailsTabs": {
+    "about": "Om tjenesten",
+    "gallery": "Galleri",
+    "reviews": "Anmeldelser",
+    "descriptionTitle": "Beskrivelse",
+    "whyChoose": "Hvorfor velge denne tjenesten?",
+    "noGallery": "Ingen bilder ennå.",
+    "reviewsComing": "Anmeldelser kommer senere.",
+    "photoAlt": "{title} bilde {index}"
+  },
+  "gallery": {
+    "openImage": "Åpne bilde",
+    "close": "Lukk",
+    "prev": "Forrige",
+    "next": "Neste",
+    "photo": "Bilde {index}",
+    "topAd": "TOP annonse"
+  },
+  "contactPage": {
+    "title": "Kontakt",
+    "subtitle": "Har du spørsmål om plattformen, tjenester eller ønsker å foreslå en idé? Skriv til oss – vi svarer så raskt som mulig.",
+    "contactsTitle": "Kontaktinformasjon",
+    "emailLabel": "E-post",
+    "shortMessageTitle": "Kort melding"
+  },
+ "dashboardPage": {
+  "title": "Min konto",
+  "subtitle": "Administrer profilen din og tjenesteannonsene dine på ett sted.",
+  "newService": "Ny tjeneste",
+  "myServices": "Mine tjenester",
+  "active": "aktive",
+  "emptyApproved": "Du har ingen tjenesteannonser ennå. Opprett din første annonse.",
+  "createFirst": "Opprett annonse",
+  "emptyNotProvider": "For å opprette tjenester må du bli en godkjent leverandør.",
+  "becomeProvider": "Bli leverandør",
+  "statusActive": "Aktiv",
+  "statusInactive": "Deaktivert",
+  "view": "Vis",
+  "edit": "Rediger",
+  "viewServiceAria": "Vis tjeneste",
+  "editServiceAria": "Rediger tjeneste",
+  "manageAll": "Administrer alle tjenester"
+},
+  "dashboardServicesPage": {
+    "title": "Mine tjenester",
+    "newService": "Ny tjeneste",
+    "emptyStart": "Du har ingen tjenester ennå. Opprett din første annonse ved å trykke på",
+    "emptyStrong": "«Ny tjeneste»",
+    "from": "fra",
+    "statusActive": "Aktiv",
+    "statusInactive": "Deaktivert",
+    "view": "Vis",
+    "edit": "Rediger"
+  },
+  "becomeProviderPage": {
+    "title": "Bli leverandør på Linkseta",
+    "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
+    "noteStrong": "Free Trial er aktiv nå.",
+    "noteText": "Basic- og Premium-planene blir aktivert senere.",
+    "recommended": "Anbefalt",
+    "comingSoon": "Kommer snart",
+    "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
+    "buttonBusy": "Behandler...",
+    "buttonSoon": "Snart",
+    "buttonStartTrial": "Start Free Trial",
+    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 3 bilder i galleriet.",
+    "errors": {
+      "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
+      "server": "Serverfeil. Prøv igjen."
+    },
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 dager",
+        "description": "Prøv Linkseta uten risiko og se om plattformen passer tjenestene dine.",
+        "features": [
+          "1 aktiv annonse",
+          "Opptil 3 bilder i galleriet",
+          "30 dagers gratis prøveperiode"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "149 NOK / måned",
+        "description": "Et godt valg for en individuell leverandør som ønsker mer synlighet.",
+        "features": [
+          "Opptil 3 aktive annonser",
+          "Opptil 5 bilder per annonse",
+          "Enkel administrasjon fra panelet"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "299 NOK / måned",
+        "description": "For dem som ønsker maksimal frihet og sterkere synlighet.",
+        "features": [
+          "Opptil 10 aktive annonser",
+          "Opptil 15 bilder per annonse",
+          "TOP-status"
+        ]
+      }
+    }
+  },
+  "dashboardNewServicePage": {
+    "title": "Ny tjeneste",
+    "subtitle": "Fyll ut skjemaet og opprett tjenesteannonsen din. Du kan redigere den senere fra kontoen din."
+  },
+  "profileCard": {
+    "provider": "Tjenesteleverandør",
+    "user": "Bruker",
+    "admin": "Administrator",
+    "listings": "annonser",
+    "activeProvider": "Aktiv leverandør",
+    "inactiveProvider": "Inaktiv leverandør",
+    "becomeProvider": "Bli tjenesteleverandør"
+  },
+  "contactForm": {
+    "nameLabel": "Navn",
+    "namePlaceholder": "Ditt navn",
+    "emailLabel": "E-post",
+    "emailPlaceholder": "din@epost.no",
+    "messageLabel": "Melding",
+    "messagePlaceholder": "Beskriv kort spørsmålet eller ideen din",
+    "submit": "Send melding",
+    "submitting": "Sender...",
+    "success": "Meldingen ble sendt. Vi svarer snart.",
+    "errors": {
+      "recaptchaNotLoaded": "reCAPTCHA er ikke lastet inn ennå. Vent noen sekunder og prøv igjen.",
+      "recaptchaFailed": "Kunne ikke hente reCAPTCHA-token.",
+      "sendFailed": "Kunne ikke sende meldingen.",
+      "generic": "Det oppstod en feil."
+    }
+  },
+  "dashboardNewServiceForm": {
+    "titleLabel": "Tittel",
+    "titlePlaceholder": "F.eks. Elektriker i Oslo",
+    "cityLabel": "By",
+    "categoryLabel": "Kategori",
+    "priceLabel": "Pris fra: (NOK)",
+    "pricePlaceholder": "F.eks. 500",
+    "descriptionLabel": "Beskrivelse",
+    "descriptionPlaceholder": "Beskriv så tydelig som mulig hva du tilbyr.",
+    "highlightsTitle": "Hvorfor velge meg? (valgfritt)",
+    "highlightsHint": "Du kan skrive inn 1–3 punkter med ✅",
+    "highlightPlaceholder1": "F.eks. Rask oppmøte",
+    "highlightPlaceholder2": "F.eks. 5 års erfaring",
+    "highlightPlaceholder3": "F.eks. Garanti på arbeid",
+    "galleryLabel": "Galleri-bilder (valgfritt)",
+    "uploading": "Bildene komprimeres og lastes opp...",
+    "previewAlt": "Forhåndsvisning {index}",
+    "remove": "Fjern",
+    "creating": "Oppretter...",
+    "submit": "Opprett tjeneste",
+    "errors": {
+      "maxImages": "Du kan laste opp maks {max} bilder.",
+      "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
+      "fileNotImage": "En av filene er ikke et bilde.",
+      "fileTooLargeBeforeCompression": "Ett av bildene er for stort (maks ca. 10MB før komprimering).",
+      "fileTooLargeAfterCompression": "Ett av de komprimerte bildene er fortsatt for stort.",
+      "uploadOneFailed": "Kunne ikke laste opp ett av bildene.",
+      "uploadGeneric": "Det oppstod en feil ved opplasting av bilder.",
+      "csrfOrForbidden": "Sikkerhetssjekken feilet. Last inn siden på nytt og prøv igjen.",
+      "createFailed": "Kunne ikke opprette tjenesten",
+      "generic": "Det oppstod en feil"
+    }
+  },
+  "categories": {
+  "it-paslaugos": "IT-tjenester"
 }
 }

@@ -23,7 +23,7 @@ function isProd() {
  * - ensure path="/"
  */
 function hardenCookieOptions(options: CookieOptions): CookieOptions {
-  return {
+  return { 
     ...options,
 
     // default to httpOnly=true if Supabase didn't specify

@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { compressImageFile } from "@/lib/imageCompress";
@@ -32,6 +33,7 @@ function publicStorageUrl(baseUrl: string, bucket: string, path: string) {
 }
 
 export default function NewServiceForm({ cities, categories }: Props) {
+  const t = useTranslations("dashboardNewServiceForm");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
@@ -76,7 +78,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
     const remainingSlots = MAX_IMAGES - gallery.length;
     if (remainingSlots <= 0) {
-      setError(`Galima įkelti daugiausia ${MAX_IMAGES} nuotraukų.`);
+      setError(t("errors.maxImages", { max: MAX_IMAGES }));
       return;
     }
 
@@ -88,7 +90,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userData.user) {
-        setError("Turite būti prisijungęs, kad įkeltumėte nuotraukas.");
+        setError(t("errors.mustBeLoggedIn"));
         return;
       }
 
@@ -99,13 +101,11 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       for (const file of selected) {
         if (!file.type.startsWith("image/")) {
-          throw new Error("Vienas iš failų nėra nuotrauka.");
+          throw new Error(t("errors.fileNotImage"));
         }
 
         if (file.size > 10 * 1024 * 1024) {
-          throw new Error(
-            "Viena iš nuotraukų per didelė (max ~10MB prieš suspaudimą).",
-          );
+          throw new Error(t("errors.fileTooLargeBeforeCompression"));
         }
 
         const compressed = await compressImageFile(file, {
@@ -116,7 +116,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         });
 
         if (compressed.size > 3 * 1024 * 1024) {
-          throw new Error("Viena iš suspaustų nuotraukų vis dar per didelė.");
+          throw new Error(t("errors.fileTooLargeAfterCompression"));
         }
 
         const fileName = `${crypto.randomUUID()}.jpg`;
@@ -132,7 +132,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
         if (upErr) {
           throw new Error(
-            upErr.message || "Nepavyko įkelti vienos iš nuotraukų.",
+            upErr.message || t("errors.uploadOneFailed"),
           );
         }
 
@@ -145,7 +145,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
       setGallery((prev) => [...prev, ...uploaded]);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Įvyko klaida keliant nuotraukas.",
+        e instanceof Error ? e.message : t("errors.uploadGeneric"),
       );
     } finally {
       setUploading(false);
@@ -183,15 +183,15 @@ export default function NewServiceForm({ cities, categories }: Props) {
         const msg =
           data?.error ??
           (res.status === 403
-            ? "Forbidden / CSRF check failed"
-            : "Nepavyko sukurti paslaugos");
+            ? t("errors.csrfOrForbidden")
+            : t("errors.createFailed"));
         throw new Error(msg);
       }
 
       router.push(`/${locale}/dashboard/services`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Įvyko klaida");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -201,18 +201,18 @@ export default function NewServiceForm({ cities, categories }: Props) {
     <form className={styles.form} onSubmit={onSubmit}>
       <div className={styles.grid}>
         <div className={styles.field}>
-          <label className={styles.label}>Pavadinimas</label>
+          <label className={styles.label}>{t("titleLabel")}</label>
           <input
             className={styles.input}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Pvz. Elektrikas Osle"
+            placeholder={t("titlePlaceholder")}
             autoComplete="off"
           />
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Miestas</label>
+          <label className={styles.label}>{t("cityLabel")}</label>
           <select
             className={styles.select}
             value={cityId}
@@ -227,7 +227,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Kategorija</label>
+          <label className={styles.label}>{t("categoryLabel")}</label>
           <select
             className={styles.select}
             value={categoryId}
@@ -242,31 +242,31 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Kaina nuo: (NOK)</label>
+          <label className={styles.label}>{t("priceLabel")}</label>
           <input
             className={styles.input}
             value={priceFrom}
             onChange={(e) => setPriceFrom(e.target.value)}
-            placeholder="Pvz. 500"
+            placeholder={t("pricePlaceholder")}
             inputMode="numeric"
           />
         </div>
 
         <div className={styles.fieldFull}>
-          <label className={styles.label}>Aprašymas</label>
+          <label className={styles.label}>{t("descriptionLabel")}</label>
           <textarea
             className={styles.textarea}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Parašyk kuo aiškiau, ką siūlai."
+            placeholder={t("descriptionPlaceholder")}
             rows={6}
           />
         </div>
 
         <div className={styles.fieldFull}>
           <div className={styles.highHeader}>
-            <div className={styles.highTitle}>Kodėl rinktis mane? (nebūtina)</div>
-            <div className={styles.highHint}>Gali įrašyti 1–3 punktus su ✅</div>
+            <div className={styles.highTitle}>{t("highlightsTitle")}</div>
+            <div className={styles.highHint}>{t("highlightsHint")}</div>
           </div>
 
           <div className={styles.highList}>
@@ -276,7 +276,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                 className={styles.input}
                 value={h1}
                 onChange={(e) => setH1(e.target.value)}
-                placeholder="Pvz. Greitas atvykimas"
+                placeholder={t("highlightPlaceholder1")}
                 autoComplete="off"
               />
             </div>
@@ -287,7 +287,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                 className={styles.input}
                 value={h2}
                 onChange={(e) => setH2(e.target.value)}
-                placeholder="Pvz. 5 metų patirtis"
+                placeholder={t("highlightPlaceholder2")}
                 autoComplete="off"
               />
             </div>
@@ -298,7 +298,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                 className={styles.input}
                 value={h3}
                 onChange={(e) => setH3(e.target.value)}
-                placeholder="Pvz. Garantija darbams"
+                placeholder={t("highlightPlaceholder3")}
                 autoComplete="off"
               />
             </div>
@@ -306,7 +306,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.fieldFull}>
-          <label className={styles.label}>Galerijos nuotraukos (nebūtina)</label>
+          <label className={styles.label}>{t("galleryLabel")}</label>
 
           <input
             className={styles.file}
@@ -321,7 +321,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
           {uploading && (
             <div className={styles.muted}>
-              Nuotraukos mažinamos ir įkeliamos...
+              {t("uploading")}
             </div>
           )}
 
@@ -343,7 +343,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                   >
                     <Image
                       src={img.url}
-                      alt={`Preview ${idx + 1}`}
+                      alt={t("previewAlt", { index: idx + 1 })}
                       fill
                       sizes="180px"
                       className={styles.previewImg}
@@ -360,7 +360,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                       );
                     }}
                   >
-                    Pašalinti
+                    {t("remove")}
                   </button>
                 </div>
               ))}
@@ -372,7 +372,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
       {error && <div className={styles.errorInline}>{error}</div>}
 
       <button className={styles.submit} type="submit" disabled={!canSubmit}>
-        {submitting ? "Kuriama..." : "Sukurti paslaugą"}
+        {submitting ? t("creating") : t("submit")}
       </button>
     </form>
   );

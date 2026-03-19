@@ -16,7 +16,6 @@ body {
   max-width: 100%;
 }
 
-/* ✅ Globalus horizontal scroll stop */
 html {
   overflow-x: clip;
   -webkit-text-size-adjust: 100%;
@@ -44,7 +43,7 @@ body {
   position: relative;
 }
 
-/* ✅ Niekas neturi išlįsti už viewport */
+
 img,
 svg,
 video,
@@ -158,7 +157,7 @@ iframe {
   --bg-btn-filters: #ffffff;
 }
 
-/* ✅ Locale layout wrapper */
+/*  Locale layout wrapper */
 .app-shell {
   min-height: 100%;
   display: flex;
@@ -195,7 +194,7 @@ img {
   min-width: 0;
 }
 
-/* ✅ Dažnas overflow fix */
+/*  Dažnas overflow fix */
 main,
 section,
 article,

@@ -1,8 +1,10 @@
 //  src/app/[locale]/dashboard/services/page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { translateCategoryName } from "@/lib/categoryTranslations";
 import styles from "./services.module.css";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,13 @@ export default async function DashboardServicesPage({ params }: Props) {
     redirect(`/${locale}/login`);
   }
 
+  setRequestLocale(locale);
+
+  const t = await getTranslations({
+    locale,
+    namespace: "dashboardServicesPage",
+  });
+
   const services = await prisma.serviceListing.findMany({
     where: {
       userId: authUser.id,
@@ -30,7 +39,7 @@ export default async function DashboardServicesPage({ params }: Props) {
       priceFrom: true,
       isActive: true,
       city: { select: { name: true } },
-      category: { select: { name: true } },
+      category: { select: { name: true, slug: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -39,20 +48,20 @@ export default async function DashboardServicesPage({ params }: Props) {
     <main className={styles.wrapper}>
       <div className={styles.card}>
         <div className={styles.headerRow}>
-          <h1 className={styles.heading}>Mano paslaugos</h1>
+          <h1 className={styles.heading}>{t("title")}</h1>
 
           <Link
             href={`/${locale}/dashboard/services/new`}
             className={styles.newButton}
           >
-            + Nauja paslauga
+            + {t("newService")}
           </Link>
         </div>
 
         {services.length === 0 ? (
           <p className={styles.empty}>
-            Dar neturite nė vienos paslaugos. Sukurkite pirmą skelbimą paspaudę
-            <strong> „Nauja paslauga“</strong>.
+            {t("empty")}
+            <strong> {t("emptyStrong")}</strong>.
           </p>
         ) : (
           <ul className={styles.list}>
@@ -62,11 +71,24 @@ export default async function DashboardServicesPage({ params }: Props) {
                   <div className={styles.serviceTitle}>{s.title}</div>
                   <div className={styles.meta}>
                     {s.city?.name && <span>{s.city.name}</span>}
-                    {s.category?.name && <span> · {s.category.name}</span>}
-                    {typeof s.priceFrom === "number" && (
-                      <span> · nuo {s.priceFrom} NOK</span>
+                    {(s.category?.name || s.category?.slug) && (
+                      <span>
+                        {" "}
+                        ·{" "}
+                        {translateCategoryName(
+                          s.category?.slug,
+                          s.category?.name,
+                          locale,
+                        )}
+                      </span>
                     )}
-                    <span> · {s.isActive ? "Aktyvi" : "Išjungta"}</span>
+                    {typeof s.priceFrom === "number" && (
+                      <span> · {t("from")} {s.priceFrom} NOK</span>
+                    )}
+                    <span>
+                      {" "}
+                      · {s.isActive ? t("statusActive") : t("statusInactive")}
+                    </span>
                   </div>
                 </div>
 
@@ -75,14 +97,14 @@ export default async function DashboardServicesPage({ params }: Props) {
                     href={`/${locale}/services/${s.slug}`}
                     className={styles.linkButton}
                   >
-                    Peržiūrėti
+                    {t("view")}
                   </Link>
 
                   <Link
                     href={`/${locale}/dashboard/services/${s.id}/edit`}
                     className={styles.linkButton}
                   >
-                    Redaguoti
+                    {t("edit")}
                   </Link>
                 </div>
               </li>

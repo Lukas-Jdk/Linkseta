@@ -1,10 +1,55 @@
 // src/app/[locale]/privacy/page.tsx
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { absOg } from "@/lib/seo-i18n";
+import { siteUrl } from "@/lib/seo";
 import styles from "./privacy.module.css";
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const tMeta = await getTranslations({ locale, namespace: "meta" });
+  const canonical = `${siteUrl}/${locale}/privacy`;
+
+  return {
+    title: tMeta("privacyTitle"),
+    description: tMeta("privacyDesc"),
+    alternates: {
+      canonical,
+      languages: {
+        lt: `${siteUrl}/lt/privacy`,
+        en: `${siteUrl}/en/privacy`,
+        no: `${siteUrl}/no/privacy`,
+      },
+    },
+    openGraph: {
+      title: tMeta("privacyTitle"),
+      description: tMeta("privacyDesc"),
+      url: canonical,
+      siteName: "Linkseta",
+      type: "website",
+      images: [
+        {
+          url: absOg("/og.png"),
+          width: 1200,
+          height: 630,
+          alt: "Linkseta",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: tMeta("privacyTitle"),
+      description: tMeta("privacyDesc"),
+      images: [absOg("/og.png")],
+    },
+  };
+}
 
 export default async function PrivacyPage({ params }: Props) {
   const { locale } = await params;

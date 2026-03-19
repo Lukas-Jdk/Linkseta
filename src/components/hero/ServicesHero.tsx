@@ -1,23 +1,26 @@
 // src/components/hero/ServicesHero.tsx
+import { useTranslations } from "next-intl";
 import SearchBar from "@/components/search/SearchBar";
 import styles from "./ServicesHero.module.css";
 
 export default function ServicesHero() {
+  const t = useTranslations("servicesHero");
+
   return (
-    <section className={styles.hero} aria-label="Paslaugų paieška">
+    <section className={styles.hero} aria-label={t("aria")}>
       <div className="container">
-       
         <h1 className={styles.title}>
-          Paslaugos tavo mieste{" "}
-          <span className={styles.mark}>Norvegijoje</span>
+          {t.rich("title", {
+            mark: (chunks) => <span className={styles.mark}>{chunks}</span>,
+          })}
         </h1>
 
         <p className={styles.subtitle}>
-          Filtruok pagal{" "}
-          <span className={styles.softAccent}>miestą</span>,{" "}
-          <span className={styles.softAccent}>kategoriją</span> ar{" "}
-          <span className={styles.softAccent}>raktinius žodžius</span> – surask
-          tinkamą specialistą savo mieste.
+          {t.rich("subtitle", {
+            accent: (chunks) => (
+              <span className={styles.softAccent}>{chunks}</span>
+            ),
+          })}
         </p>
 
         <div className={styles.searchWrap}>

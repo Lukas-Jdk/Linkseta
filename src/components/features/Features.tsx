@@ -1,4 +1,5 @@
 // src/components/features/Features.tsx
+import { useTranslations } from "next-intl";
 import styles from "./Features.module.css";
 
 type FeatureItem = {
@@ -49,33 +50,32 @@ const BriefcaseIcon: FeatureItem["Icon"] = (props) => (
 );
 
 export default function Features() {
+  const t = useTranslations("features");
+
   const items: FeatureItem[] = [
     {
       Icon: PinIcon,
-      title: "Vieta paslaugų teikėjams Norvegijoje",
-      text: "Nauja platforma, kuri jungia specialistus ir klientus vienoje vietoje.",
+      title: t("items.0.title"),
+      text: t("items.0.text"),
     },
     {
       Icon: ClockIcon,
-      title: "Ieškai ar teiki? Abu variantai čia tinka",
-      text: "Tiek ieškant paslaugos, tiek norint pasiūlyti – ši vieta skirta tau.",
+      title: t("items.1.title"),
+      text: t("items.1.text"),
     },
     {
       Icon: BriefcaseIcon,
-      title: "Kuriame bendruomenę nuo nulio",
-      text: "Ši platforma auga – būk vienas iš pirmųjų ir gauk daugiau matomumo.",
+      title: t("items.2.title"),
+      text: t("items.2.text"),
     },
   ];
 
   return (
-    <section className={styles.section} aria-label="Linkseta privalumai">
+    <section className={styles.section} aria-label={t("aria")}>
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Kodėl rinktis Linkseta?</h2>
-          <p className={styles.subtitle}>
-            Greita paieška, aiški struktūra ir
-            auganti bendruomenė.
-          </p>
+          <h2 className={styles.title}>{t("title")}</h2>
+          <p className={styles.subtitle}>{t("subtitle")}</p>
         </header>
 
         <div className={styles.grid}>

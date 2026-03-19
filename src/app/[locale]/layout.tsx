@@ -11,7 +11,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/seo";
-import { absOg } from "@/lib/seo-118n";
+import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import { Poppins, Roboto, Fira_Code } from "next/font/google";
 
 const poppins = Poppins({
@@ -57,14 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       template: `%s | ${t("siteName")}`,
     },
     description: t("homeDesc"),
-    alternates: {
-      canonical,
-      languages: {
-        lt: `${siteUrl}/lt`,
-        en: `${siteUrl}/en`,
-        no: `${siteUrl}/no`,
-      },
-    },
+    alternates: localeAlternates(""),
     openGraph: {
       type: "website",
       url: canonical,

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { siteUrl } from "@/lib/seo";
+import { localeAlternates, absOg } from "@/lib/seo-i18n";
 
 import Hero from "@/components/hero/Hero";
 import Features from "@/components/features/Features";
@@ -11,8 +13,6 @@ import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
 import SearchBarLazy from "@/components/search/SearchBarLazy";
 
 export const revalidate = 60;
-
-const siteUrl = "https://www.linkseta.com";
 
 type SearchParams = {
   q?: string;
@@ -40,14 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: t("homeTitle"),
     description: t("homeDesc"),
-    alternates: {
-      canonical,
-      languages: {
-        lt: `${siteUrl}/lt`,
-        en: `${siteUrl}/en`,
-        no: `${siteUrl}/no`,
-      },
-    },
+    alternates: localeAlternates(""),
     openGraph: {
       title: t("homeTitle"),
       description: t("homeDesc"),
@@ -56,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: "/og.png",
+          url: absOg("/og.png"),
           width: 1200,
           height: 630,
           alt: "Linkseta",
@@ -67,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: t("homeTitle"),
       description: t("homeDesc"),
-      images: ["/og.png"],
+      images: [absOg("/og.png")],
     },
   };
 }

@@ -8,9 +8,13 @@
     "contactTitle": "Susisiekite | Linkseta",
     "contactDesc": "Turite klausimų apie Linkseta? Parašykite mums.",
     "becomeTitle": "Tapk paslaugų teikėju | Linkseta",
-    "becomeDesc": "Prisijunk prie Linkseta ir skelbk savo paslaugas Norvegijoje."
+    "becomeDesc": "Prisijunk prie Linkseta ir skelbk savo paslaugas Norvegijoje.",
+    "termsTitle": "Naudojimo taisyklės | Linkseta",
+    "termsDesc": "Perskaitykite Linkseta naudojimo taisykles ir platformos sąlygas.",
+    "privacyTitle": "Privatumo politika | Linkseta",
+    "privacyDesc": "Sužinokite, kaip Linkseta renka, naudoja ir saugo jūsų duomenis."
   },
-    "common": {
+  "common": {
     "brand": "Linkseta"
   },
   "terms": {
@@ -49,7 +53,7 @@
     "contactTitle": "Kontaktai",
     "contactText": "Privatumo klausimais: info@linkseta.com"
   },
-   "header": {
+  "header": {
     "brandAria": "Linkseta – grįžti į pradžią",
     "brandAlt": "Linkseta – paslaugos Norvegijoje",
     "openMenu": "Atidaryti mobilų meniu",
@@ -91,21 +95,288 @@
     "emailAria": "El. paštas",
     "emailTitle": "El. paštas",
     "rights": "Visos teisės saugomos.",
-    "createdBy": "Created by"
+    "createdBy": "Created by",
+    "facebookAria": "Facebook",
+    "facebookTitle": "Facebook"
   },
   "servicesPage": {
-  "headingAll": "Paslaugos Norvegijoje",
-  "headingCity": "Paslaugos mieste {city}",
-  "headingCategory": "{category} paslaugos Norvegijoje",
-  "headingCategoryCity": "{category} – {city}",
-  "found": "Rasta",
-  "forQuery": "pagal užklausą",
-  "invalidPage": "Neteisingas puslapio numeris. Bandykite dar kartą.",
-  "empty": "Pagal pasirinktus filtrus paslaugų nerasta.",
-  "emptyHint": "Pabandykite pakeisti miestą, kategoriją arba paieškos tekstą.",
-  "page": "Puslapis",
-  "of": "iš",
-  "previous": "← Ankstesnis",
-  "next": "Kitas →"
+    "headingAll": "Paslaugos Norvegijoje",
+    "headingCity": "Paslaugos mieste {city}",
+    "headingCategory": "{category} paslaugos Norvegijoje",
+    "headingCategoryCity": "{category} – {city}",
+    "found": "Rasta",
+    "forQuery": "pagal užklausą",
+    "invalidPage": "Neteisingas puslapio numeris. Bandykite dar kartą.",
+    "empty": "Pagal pasirinktus filtrus paslaugų nerasta.",
+    "emptyHint": "Pabandykite pakeisti miestą, kategoriją arba paieškos tekstą.",
+    "page": "Puslapis",
+    "of": "iš",
+    "previous": "← Ankstesnis",
+    "next": "Kitas →"
+  },
+  "hero": {
+    "aria": "Paieška",
+    "subtitle": "Čia rasi paslaugų teikėjus iš Norvegijos – peržiūrėk profilius ir susisiek tiesiogiai.",
+    "title": "Ieškai tinkamo <highlight>specialisto?</highlight>"
+  },
+  "servicesHero": {
+    "aria": "Paslaugų paieška",
+    "title": "Paslaugos tavo mieste <mark>Norvegijoje</mark>",
+    "subtitle": "Filtruok pagal <accent>miestą</accent>, <accent>kategoriją</accent> ar <accent>raktinius žodžius</accent> – surask tinkamą specialistą savo mieste."
+  },
+  "features": {
+    "aria": "Linkseta privalumai",
+    "title": "Kodėl rinktis Linkseta?",
+    "subtitle": "Greita paieška, aiški struktūra ir auganti bendruomenė.",
+    "items": [
+      {
+        "title": "Vieta paslaugų teikėjams Norvegijoje",
+        "text": "Nauja platforma, kuri jungia specialistus ir klientus vienoje vietoje."
+      },
+      {
+        "title": "Ieškai ar teiki? Abu variantai čia tinka",
+        "text": "Tiek ieškant paslaugos, tiek norint pasiūlyti – ši vieta skirta tau."
+      },
+      {
+        "title": "Kuriame bendruomenę nuo nulio",
+        "text": "Ši platforma auga – būk vienas iš pirmųjų ir gauk daugiau matomumo."
+      }
+    ]
+  },
+  "cardGrid": {
+    "empty": "Šiuo metu dar neturime rodomų paslaugų.",
+    "popularTitle": "Populiariausios paslaugos",
+    "resultsTitle": "Rezultatai"
+  },
+  "serviceCard": {
+    "priceFrom": "nuo {price} NOK",
+    "priceNegotiable": "Kaina sutartinė",
+    "top": "TOP",
+    "categoryFallback": "Kategorija",
+    "contact": "Susisiekti",
+    "openServiceAria": "Atidaryti paslaugą: {title}"
+  },
+  "searchBar": {
+    "cityLabel": "Miestas",
+    "categoryLabel": "Kategorija",
+    "selectPlaceholder": "Pasirinkite...",
+    "searchAria": "Ieškoti paslaugų",
+    "searchCityPlaceholder": "Ieškoti miesto...",
+    "searchCategoryPlaceholder": "Ieškoti kategorijos...",
+    "clear": "Išvalyti",
+    "allCities": "Visi miestai",
+    "allCategories": "Visos kategorijos",
+    "loading": "Kraunama...",
+    "noResults": "Nieko nerasta."
+  },
+  "serviceMarquee": {
+    "aria": "Paslaugų kategorijos",
+    "items": {
+      "statybos": "Statybos",
+      "remontas": "Remontas",
+      "santechnika": "Santechnika",
+      "elektra": "Elektra",
+      "buitine": "Buitinė technika",
+      "valymas": "Valymas",
+      "auto": "Automobiliai",
+      "transportas": "Transportas",
+      "grozis": "Grožis",
+      "it": "IT",
+      "apskaita": "Apskaita",
+      "teisine": "Teisinės",
+      "nt": "NT",
+      "mokymai": "Mokymai",
+      "vaikai": "Vaikai",
+      "gyvunai": "Gyvūnai",
+      "maistas": "Maistas",
+      "namai": "Namų ūkis",
+      "kita": "Kita"
+    }
+  },
+  "serviceDetailsPage": {
+    "metaFallbackDescription": "Rask paslaugų teikėjus Norvegijoje su Linkseta.",
+    "priceNegotiable": "Kaina sutartinė",
+    "emailSubject": "Užklausa dėl paslaugos: {title}",
+    "emailBody": "Sveiki,\n\nRadau jūsų paslaugą per Linkseta platformą.\n\nDomina daugiau informacijos apie: {title}\n\nAčiū.",
+    "activeProvider": "Aktyvus teikėjas",
+    "provider": "Paslaugos teikėjas",
+    "active": "Aktyvus",
+    "servicePriceLabel": "PASLAUGOS KAINA",
+    "writeEmail": "Rašyti el. paštu",
+    "noPhone": "Tel. numerio nėra",
+    "priceFromLabel": "Kaina nuo:",
+    "backToList": "Grįžti į sąrašą",
+    "serviceFallback": "Paslauga",
+    "photosCount": "{count} nuotraukos",
+    "respondsFast": "Dažniausiai atsako per 1 val."
+  },
+  "serviceDetailsTabs": {
+    "about": "Apie paslaugą",
+    "gallery": "Galerija",
+    "reviews": "Atsiliepimai",
+    "descriptionTitle": "Aprašymas",
+    "whyChoose": "Kodėl verta rinktis šią paslaugą?",
+    "noGallery": "Galerijos nuotraukų dar nėra.",
+    "reviewsComing": "Atsiliepimai bus vėliau.",
+    "photoAlt": "{title} nuotrauka {index}"
+  },
+  "gallery": {
+    "openImage": "Atidaryti nuotrauką",
+    "close": "Uždaryti",
+    "prev": "Ankstesnė",
+    "next": "Kita",
+    "photo": "Nuotrauka {index}",
+    "topAd": "TOP skelbimas"
+  },
+  "contactPage": {
+    "title": "Susisiekite",
+    "subtitle": "Turite klausimų apie platformą, paslaugas ar norite pasiūlyti idėją? Parašykite – atsakysime kuo greičiau.",
+    "contactsTitle": "Kontaktai",
+    "emailLabel": "El. paštas",
+    "shortMessageTitle": "Trumpa žinutė"
+  },
+ "dashboardPage": {
+  "title": "Mano paskyra",
+  "subtitle": "Valdykite savo profilį ir paslaugų skelbimus vienoje vietoje.",
+  "newService": "Nauja paslauga",
+  "myServices": "Mano paslaugos",
+  "active": "aktyvūs",
+  "emptyApproved": "Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.",
+  "createFirst": "Sukurti skelbimą",
+  "emptyNotProvider": "Norint kurti paslaugas, reikia tapti patvirtintu paslaugų teikėju.",
+  "becomeProvider": "Tapti teikėju",
+  "statusActive": "Aktyvi",
+  "statusInactive": "Išjungta",
+  "view": "Peržiūrėti",
+  "edit": "Redaguoti",
+  "viewServiceAria": "Peržiūrėti paslaugą",
+  "editServiceAria": "Redaguoti paslaugą",
+  "manageAll": "Valdyti visas paslaugas"
+},
+  "dashboardServicesPage": {
+    "title": "Mano paslaugos",
+    "newService": "Nauja paslauga",
+    "emptyStart": "Dar neturite nė vienos paslaugos. Sukurkite pirmą skelbimą paspaudę",
+    "emptyStrong": "„Nauja paslauga“",
+    "from": "nuo",
+    "statusActive": "Aktyvi",
+    "statusInactive": "Išjungta",
+    "view": "Peržiūrėti",
+    "edit": "Redaguoti"
+  },
+  "becomeProviderPage": {
+    "title": "Tapk paslaugų teikėju Linksetoje",
+    "lead": "Pasirink planą ir gauk galimybę kurti savo paslaugų skelbimus, kad žmonės Norvegijoje lengvai tave rastų.",
+    "noteStrong": "Šiuo metu aktyvus Free Trial.",
+    "noteText": "Basic ir Premium planai bus įjungti vėliau.",
+    "recommended": "Rekomenduojamas",
+    "comingSoon": "Netrukus",
+    "inactivePlanTitle": "Šis planas dar neaktyvus",
+    "buttonBusy": "Vykdoma...",
+    "buttonSoon": "Netrukus",
+    "buttonStartTrial": "Pradėti Free Trial",
+    "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 3 nuotraukų galerijoje.",
+    "errors": {
+      "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
+      "server": "Serverio klaida. Bandykite dar kartą."
+    },
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 dienų",
+        "description": "Išbandyk Linksetą be rizikos ir pasižiūrėk, ar platforma tinka tavo paslaugoms.",
+        "features": [
+          "1 aktyvus skelbimas",
+          "Iki 3 nuotraukų galerijoje",
+          "30 dienų nemokamas išbandymas"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "149 NOK / mėn",
+        "description": "Geras variantas individualiam paslaugų teikėjui, kuris nori daugiau matomumo.",
+        "features": [
+          "Iki 3 aktyvių skelbimų",
+          "Iki 5 nuotraukų kiekvienam skelbimui",
+          "Paprastas valdymas iš panelės"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "299 NOK / mėn",
+        "description": "Skirta tiems, kas nori maksimalios laisvės ir stipresnio matomumo.",
+        "features": [
+          "Iki 10 aktyvių skelbimų",
+          "Iki 15 nuotraukų kiekvienam skelbimui",
+          "TOP statusas"
+        ]
+      }
+    }
+  },
+  "dashboardNewServicePage": {
+    "title": "Nauja paslauga",
+    "subtitle": "Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą."
+  },
+  "profileCard": {
+    "provider": "Paslaugų teikėjas",
+    "user": "Vartotojas",
+    "admin": "Administratorius",
+    "listings": "skelbimai",
+    "activeProvider": "Aktyvus teikėjas",
+    "inactiveProvider": "Neaktyvus teikėjas",
+    "becomeProvider": "Tapti paslaugų teikėju"
+  },
+  "contactForm": {
+    "nameLabel": "Vardas",
+    "namePlaceholder": "Jūsų vardas",
+    "emailLabel": "El. paštas",
+    "emailPlaceholder": "jusu@pastas.lt",
+    "messageLabel": "Žinutė",
+    "messagePlaceholder": "Trumpai aprašykite klausimą ar idėją",
+    "submit": "Siųsti žinutę",
+    "submitting": "Siunčiama...",
+    "success": "Žinutė sėkmingai išsiųsta. Netrukus atsakysime.",
+    "errors": {
+      "recaptchaNotLoaded": "reCAPTCHA dar neužsikrovė. Palaukite kelias sekundes ir bandykite dar kartą.",
+      "recaptchaFailed": "Nepavyko gauti reCAPTCHA token.",
+      "sendFailed": "Nepavyko išsiųsti žinutės.",
+      "generic": "Įvyko klaida."
+    }
+  },
+  "dashboardNewServiceForm": {
+    "titleLabel": "Pavadinimas",
+    "titlePlaceholder": "Pvz. Elektrikas Osle",
+    "cityLabel": "Miestas",
+    "categoryLabel": "Kategorija",
+    "priceLabel": "Kaina nuo: (NOK)",
+    "pricePlaceholder": "Pvz. 500",
+    "descriptionLabel": "Aprašymas",
+    "descriptionPlaceholder": "Parašyk kuo aiškiau, ką siūlai.",
+    "highlightsTitle": "Kodėl rinktis mane? (nebūtina)",
+    "highlightsHint": "Gali įrašyti 1–3 punktus su ✅",
+    "highlightPlaceholder1": "Pvz. Greitas atvykimas",
+    "highlightPlaceholder2": "Pvz. 5 metų patirtis",
+    "highlightPlaceholder3": "Pvz. Garantija darbams",
+    "galleryLabel": "Galerijos nuotraukos (nebūtina)",
+    "uploading": "Nuotraukos mažinamos ir įkeliamos...",
+    "previewAlt": "Peržiūra {index}",
+    "remove": "Pašalinti",
+    "creating": "Kuriama...",
+    "submit": "Sukurti paslaugą",
+    "errors": {
+      "maxImages": "Galima įkelti daugiausia {max} nuotraukų.",
+      "mustBeLoggedIn": "Turite būti prisijungęs, kad įkeltumėte nuotraukas.",
+      "fileNotImage": "Vienas iš failų nėra nuotrauka.",
+      "fileTooLargeBeforeCompression": "Viena iš nuotraukų per didelė (max ~10MB prieš suspaudimą).",
+      "fileTooLargeAfterCompression": "Viena iš suspaustų nuotraukų vis dar per didelė.",
+      "uploadOneFailed": "Nepavyko įkelti vienos iš nuotraukų.",
+      "uploadGeneric": "Įvyko klaida keliant nuotraukas.",
+      "csrfOrForbidden": "Saugumo klaida. Perkraukite puslapį ir bandykite dar kartą.",
+      "createFailed": "Nepavyko sukurti paslaugos",
+      "generic": "Įvyko klaida"
+    }
+  },
+  "categories": {
+  "it-paslaugos": "IT paslaugos"
 }
 }

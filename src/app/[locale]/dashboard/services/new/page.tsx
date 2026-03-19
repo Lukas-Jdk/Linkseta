@@ -1,6 +1,7 @@
 // src/app/[locale]/dashboard/services/new/page.tsx
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
+import { translateCategoryName } from "@/lib/categoryTranslations";
 import NewServiceForm from "./NewServiceForm";
 import styles from "./newService.module.css";
 
@@ -13,6 +14,11 @@ type Props = {
 export default async function NewServicePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
+
+  const t = await getTranslations({
+    locale,
+    namespace: "dashboardNewServicePage",
+  });
 
   const [cities, categories] = await Promise.all([
     prisma.city.findMany({
@@ -30,11 +36,8 @@ export default async function NewServicePage({ params }: Props) {
     <main className={styles.page}>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>Nauja paslauga</h1>
-          <p className={styles.subtitle}>
-            Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau
-            galėsite jį redaguoti per savo paskyrą.
-          </p>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <p className={styles.subtitle}>{t("subtitle")}</p>
         </header>
 
         <div className={styles.card}>
@@ -42,7 +45,7 @@ export default async function NewServicePage({ params }: Props) {
             cities={cities.map((c) => ({ id: c.id, name: c.name }))}
             categories={categories.map((c) => ({
               id: c.id,
-              name: c.name,
+              name: translateCategoryName(c.slug, c.name, locale),
               slug: c.slug,
             }))}
           />

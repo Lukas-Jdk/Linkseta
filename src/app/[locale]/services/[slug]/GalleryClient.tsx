@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import styles from "./slugPage.module.css";
 
 type Props = {
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export default function GalleryClient({ title, images, highlighted }: Props) {
+  const t = useTranslations("gallery");
+
   const safeImages = useMemo(
     () => (images?.length ? images : ["/def.webp"]),
     [images],
@@ -55,42 +58,32 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
         role="button"
         tabIndex={0}
         onClick={() => openAt(active)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") openAt(active);
-        }}
-        aria-label="Atidaryti nuotrauką"
+        aria-label={t("openImage")}
       >
         <Image
           src={safeImages[active]}
           alt={title}
           fill
           className={styles.coverImg}
-          sizes="(max-width: 980px) 100vw, 760px"
-          priority={highlighted}
         />
-        {highlighted && <span className={styles.topBadge}>TOP skelbimas</span>}
+
+        {highlighted && (
+          <span className={styles.topBadge}>{t("topAd")}</span>
+        )}
+
         <div className={styles.zoomHint}>🔍</div>
       </div>
 
       {safeImages.length > 1 && (
         <div className={styles.thumbs}>
-          {safeImages.slice(0, 6).map((src, idx) => (
+          {safeImages.map((src, idx) => (
             <button
               key={`${src}-${idx}`}
               type="button"
-              className={`${styles.thumb} ${
-                idx === active ? styles.thumbActive : ""
-              }`}
               onClick={() => setActive(idx)}
-              aria-label={`Nuotrauka ${idx + 1}`}
+              aria-label={t("photo", { index: idx + 1 })}
             >
-              <Image
-                src={src}
-                alt={`${title} ${idx + 1}`}
-                fill
-                className={styles.thumbImg}
-                sizes="140px"
-              />
+              <Image src={src} alt={`${title}`} fill />
             </button>
           ))}
         </div>
@@ -102,46 +95,22 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
             className={styles.lightboxInner}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className={styles.lightboxClose}
-              onClick={close}
-              aria-label="Uždaryti"
-            >
+            <button onClick={close} aria-label={t("close")}>
               ✕
             </button>
 
             {safeImages.length > 1 && (
               <>
-                <button
-                  type="button"
-                  className={styles.lightboxNavLeft}
-                  onClick={prev}
-                  aria-label="Ankstesnė"
-                >
+                <button onClick={prev} aria-label={t("prev")}>
                   ‹
                 </button>
-                <button
-                  type="button"
-                  className={styles.lightboxNavRight}
-                  onClick={next}
-                  aria-label="Kita"
-                >
+                <button onClick={next} aria-label={t("next")}>
                   ›
                 </button>
               </>
             )}
 
-            <div className={styles.lightboxImgWrap}>
-              <Image
-                src={safeImages[active]}
-                alt={title}
-                fill
-                className={styles.lightboxImg}
-                sizes="(max-width: 980px) 96vw, 1100px"
-                priority
-              />
-            </div>
+            <Image src={safeImages[active]} alt={title} fill />
           </div>
         </div>
       )}

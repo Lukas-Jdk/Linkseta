@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, ChevronDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import styles from "./SearchBar.module.css";
 import { categoryIconMap, DefaultCategoryIcon } from "@/lib/categoryIcons";
@@ -38,6 +39,7 @@ function normalize(s: string) {
 }
 
 export default function SearchBar() {
+  const t = useTranslations("searchBar");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
@@ -96,7 +98,9 @@ export default function SearchBar() {
 
     setFiltersLoading(true);
     try {
-      const res = await fetch("/api/public/filters", { cache: "force-cache" });
+      const res = await fetch(`/api/public/filters?locale=${locale}`, {
+        cache: "force-cache",
+      });
       const data = await res.json().catch(() => ({} as any));
       setCities(data.cities ?? []);
       setCategories(data.categories ?? []);
@@ -104,17 +108,20 @@ export default function SearchBar() {
     } finally {
       setFiltersLoading(false);
     }
-  }, [filtersLoaded, filtersLoading]);
+  }, [filtersLoaded, filtersLoading, locale]);
 
   const cityName = useMemo(() => {
-    if (!cityId) return "Pasirinkite...";
-    return cities.find((c) => c.id === cityId)?.name ?? "Pasirinkite...";
-  }, [cityId, cities]);
+    if (!cityId) return t("selectPlaceholder");
+    return cities.find((c) => c.id === cityId)?.name ?? t("selectPlaceholder");
+  }, [cityId, cities, t]);
 
   const categoryName = useMemo(() => {
-    if (!categoryId) return "Pasirinkite...";
-    return categories.find((c) => c.id === categoryId)?.name ?? "Pasirinkite...";
-  }, [categoryId, categories]);
+    if (!categoryId) return t("selectPlaceholder");
+    return (
+      categories.find((c) => c.id === categoryId)?.name ??
+      t("selectPlaceholder")
+    );
+  }, [categoryId, categories, t]);
 
   const filteredCities = useMemo(() => {
     const nq = normalize(cityQuery);
@@ -286,7 +293,7 @@ export default function SearchBar() {
               aria-haspopup="listbox"
               aria-expanded={openCity}
             >
-              <span className={styles.dropdownFieldTop}>Miestas</span>
+              <span className={styles.dropdownFieldTop}>{t("cityLabel")}</span>
 
               <span className={styles.dropdownFieldBottom}>
                 <span className={styles.fakeValue}>{cityName}</span>
@@ -304,7 +311,9 @@ export default function SearchBar() {
               aria-haspopup="listbox"
               aria-expanded={openCategory}
             >
-              <span className={styles.dropdownFieldTop}>Kategorija</span>
+              <span className={styles.dropdownFieldTop}>
+                {t("categoryLabel")}
+              </span>
 
               <span className={styles.dropdownFieldBottom}>
                 <span className={styles.fakeValue}>{categoryName}</span>
@@ -316,7 +325,7 @@ export default function SearchBar() {
           <button
             type="submit"
             className={styles.searchButton}
-            aria-label="Ieškoti paslaugų"
+            aria-label={t("searchAria")}
           >
             <Search className={styles.searchIcon} strokeWidth={2} />
           </button>
@@ -344,7 +353,7 @@ export default function SearchBar() {
                   <input
                     ref={cityInputRef}
                     className={styles.dropdownSearch}
-                    placeholder="Ieškoti miesto..."
+                    placeholder={t("searchCityPlaceholder")}
                     value={cityQuery}
                     onChange={(e) => setCityQuery(e.target.value)}
                   />
@@ -357,7 +366,7 @@ export default function SearchBar() {
                         setOpenCity(false);
                       }}
                     >
-                      Išvalyti
+                      {t("clear")}
                     </button>
                   )}
                 </div>
@@ -365,17 +374,19 @@ export default function SearchBar() {
                 <div className={styles.dropdownList}>
                   <button
                     type="button"
-                    className={`${styles.option} ${!cityId ? styles.optionActive : ""}`}
+                    className={`${styles.option} ${
+                      !cityId ? styles.optionActive : ""
+                    }`}
                     onClick={() => {
                       setCityId("");
                       setOpenCity(false);
                     }}
                   >
-                    <span className={styles.optionName}>Visi miestai</span>
+                    <span className={styles.optionName}>{t("allCities")}</span>
                   </button>
 
                   {filtersLoading && (
-                    <div className={styles.noResults}>Kraunama...</div>
+                    <div className={styles.noResults}>{t("loading")}</div>
                   )}
 
                   {!filtersLoading &&
@@ -383,7 +394,9 @@ export default function SearchBar() {
                       <button
                         key={c.id}
                         type="button"
-                        className={`${styles.option} ${cityId === c.id ? styles.optionActive : ""}`}
+                        className={`${styles.option} ${
+                          cityId === c.id ? styles.optionActive : ""
+                        }`}
                         onClick={() => {
                           setCityId(c.id);
                           setOpenCity(false);
@@ -394,7 +407,7 @@ export default function SearchBar() {
                     ))}
 
                   {!filtersLoading && filteredCities.length === 0 && (
-                    <div className={styles.noResults}>Nieko nerasta.</div>
+                    <div className={styles.noResults}>{t("noResults")}</div>
                   )}
                 </div>
               </div>
@@ -411,7 +424,7 @@ export default function SearchBar() {
                   <input
                     ref={categoryInputRef}
                     className={styles.dropdownSearch}
-                    placeholder="Ieškoti kategorijos..."
+                    placeholder={t("searchCategoryPlaceholder")}
                     value={categoryQuery}
                     onChange={(e) => setCategoryQuery(e.target.value)}
                   />
@@ -424,7 +437,7 @@ export default function SearchBar() {
                         setOpenCategory(false);
                       }}
                     >
-                      Išvalyti
+                      {t("clear")}
                     </button>
                   )}
                 </div>
@@ -432,17 +445,21 @@ export default function SearchBar() {
                 <div className={styles.dropdownList}>
                   <button
                     type="button"
-                    className={`${styles.option} ${!categoryId ? styles.optionActive : ""}`}
+                    className={`${styles.option} ${
+                      !categoryId ? styles.optionActive : ""
+                    }`}
                     onClick={() => {
                       setCategoryId("");
                       setOpenCategory(false);
                     }}
                   >
-                    <span className={styles.optionName}>Visos kategorijos</span>
+                    <span className={styles.optionName}>
+                      {t("allCategories")}
+                    </span>
                   </button>
 
                   {filtersLoading && (
-                    <div className={styles.noResults}>Kraunama...</div>
+                    <div className={styles.noResults}>{t("loading")}</div>
                   )}
 
                   {!filtersLoading &&
@@ -454,7 +471,9 @@ export default function SearchBar() {
                         <button
                           key={c.id}
                           type="button"
-                          className={`${styles.option} ${categoryId === c.id ? styles.optionActive : ""}`}
+                          className={`${styles.option} ${
+                            categoryId === c.id ? styles.optionActive : ""
+                          }`}
                           onClick={() => {
                             setCategoryId(c.id);
                             setOpenCategory(false);
@@ -470,7 +489,7 @@ export default function SearchBar() {
                     })}
 
                   {!filtersLoading && filteredCategories.length === 0 && (
-                    <div className={styles.noResults}>Nieko nerasta.</div>
+                    <div className={styles.noResults}>{t("noResults")}</div>
                   )}
                 </div>
               </div>

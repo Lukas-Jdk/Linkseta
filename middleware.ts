@@ -19,7 +19,7 @@ function getLocaleFromPath(pathname: string): string | null {
 }
 
 function setSecurityHeaders(res: NextResponse, nonce: string) {
-  // ✅ CSP su nonce (scriptams be unsafe-inline)
+
   const csp = [
     `default-src 'self'`,
     `base-uri 'self'`,

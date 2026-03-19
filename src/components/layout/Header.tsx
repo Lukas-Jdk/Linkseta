@@ -61,6 +61,8 @@ export default async function Header({ locale }: Props) {
                 contact: tNav("contact"),
                 admin: tNav("admin"),
                 navAria: tNav("aria"),
+                privacy: tNav("privacy"),
+                terms: tNav("terms"),
               }}
             />
           </div>

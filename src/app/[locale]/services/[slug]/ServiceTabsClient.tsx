@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import styles from "./slugPage.module.css";
 
 type Props = {
@@ -20,6 +21,8 @@ export default function ServiceTabsClient({
   highlights,
   images,
 }: Props) {
+  const t = useTranslations("serviceDetailsTabs");
+
   const [activeTab, setActiveTab] = useState<TabKey>("about");
 
   const hasHighlights = highlights.length > 0;
@@ -35,7 +38,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("about")}
         >
-          Apie paslaugą
+          {t("about")}
         </button>
 
         <button
@@ -45,7 +48,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("gallery")}
         >
-          Galerija
+          {t("gallery")}
         </button>
 
         <button
@@ -55,21 +58,21 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("reviews")}
         >
-          Atsiliepimai
+          {t("reviews")}
         </button>
       </div>
 
       {activeTab === "about" && (
         <>
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Aprašymas</h2>
+            <h2 className={styles.sectionTitle}>{t("descriptionTitle")}</h2>
             <p className={styles.desc}>{description}</p>
           </div>
 
           {hasHighlights && (
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                Kodėl verta rinktis šią paslaugą?
+                {t("whyChoose")}
               </h2>
               <ul className={styles.bullets}>
                 {highlights.map((h, i) => (
@@ -83,7 +86,7 @@ export default function ServiceTabsClient({
 
       {activeTab === "gallery" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Galerija</h2>
+          <h2 className={styles.sectionTitle}>{t("gallery")}</h2>
 
           {hasGallery ? (
             <div
@@ -99,10 +102,6 @@ export default function ServiceTabsClient({
                   href={img}
                   target="_blank"
                   rel="noreferrer"
-                  style={{
-                    display: "block",
-                    textDecoration: "none",
-                  }}
                 >
                   <div
                     style={{
@@ -117,29 +116,25 @@ export default function ServiceTabsClient({
                   >
                     <Image
                       src={img}
-                      alt={`${title} nuotrauka ${index + 1}`}
+                      alt={t("photoAlt", { title, index: index + 1 })}
                       fill
                       sizes="(max-width: 768px) 50vw, 220px"
-                      style={{
-                        objectFit: "cover",
-                      }}
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 </a>
               ))}
             </div>
           ) : (
-            <p className={styles.descSmall}>Galerijos nuotraukų dar nėra.</p>
+            <p className={styles.descSmall}>{t("noGallery")}</p>
           )}
         </div>
       )}
 
       {activeTab === "reviews" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Atsiliepimai</h2>
-          <p className={styles.descSmall}>
-            Atsiliepimai bus vėliau (kai pridėsime review sistemą).
-          </p>
+          <h2 className={styles.sectionTitle}>{t("reviews")}</h2>
+          <p className={styles.descSmall}>{t("reviewsComing")}</p>
         </div>
       )}
     </div>

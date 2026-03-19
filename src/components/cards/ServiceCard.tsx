@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
 import styles from "./ServiceCard.module.css";
 import { MapPin, Star, CalendarDays } from "lucide-react";
 
@@ -22,8 +23,14 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
-function formatCardDate() {
-  return new Intl.DateTimeFormat("lt-LT", {
+function formatCardDate(locale: string) {
+  const map: Record<string, string> = {
+    lt: "lt-LT",
+    en: "en-GB",
+    no: "nb-NO",
+  };
+
+  return new Intl.DateTimeFormat(map[locale] ?? "lt-LT", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -40,11 +47,16 @@ export default function ServiceCard({
   imageUrl,
   locale,
 }: Props) {
+  const t = useTranslations("serviceCard");
+  const currentLocale = useLocale();
+
   const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultArt = "/logo.webp";
 
   const priceValue =
-    priceFrom != null ? `nuo ${formatPriceNOK(priceFrom)} NOK` : "Kaina sutartinė";
+    priceFrom != null
+      ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
+      : t("priceNegotiable");
 
   const ratingValue = highlighted ? 5.0 : 4.9;
 
@@ -78,14 +90,12 @@ export default function ServiceCard({
           </>
         )}
 
-        {priceFrom != null && (
-          <div className={styles.priceBadge}>{priceValue}</div>
-        )}
+        {priceFrom != null && <div className={styles.priceBadge}>{priceValue}</div>}
 
         {highlighted && (
           <div className={styles.topBadge}>
             <Star className={styles.topIcon} />
-            TOP
+            {t("top")}
           </div>
         )}
       </div>
@@ -93,7 +103,7 @@ export default function ServiceCard({
       <div className={styles.body}>
         <div className={styles.topRow}>
           <span className={styles.category} title={category || ""}>
-            {category || "Kategorija"}
+            {category || t("categoryFallback")}
           </span>
 
           <span className={styles.rating}>
@@ -112,12 +122,14 @@ export default function ServiceCard({
 
           <span className={styles.infoItem}>
             <CalendarDays className={styles.infoIcon} />
-            <span className={styles.infoText}>{formatCardDate()}</span>
+            <span className={styles.infoText}>
+              {formatCardDate(currentLocale)}
+            </span>
           </span>
         </div>
 
         <div className={styles.footer}>
-          <span className={styles.cta}>Susisiekti</span>
+          <span className={styles.cta}>{t("contact")}</span>
         </div>
       </div>
     </Link>

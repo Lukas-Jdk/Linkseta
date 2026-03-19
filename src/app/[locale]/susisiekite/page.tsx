@@ -1,20 +1,21 @@
 // src/app/[locale]/susisiekite/page.tsx
-import type { Metadata } from "next";
 import Script from "next/script";
 import { headers } from "next/headers";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import styles from "./susisiekite.module.css";
 import ContactForm from "./ContactForm";
 
-export const metadata: Metadata = {
-  title: "Susisiekite – Linkseta",
-  description:
-    "Turite klausimų apie Linkseta platformą, paslaugų skelbimus ar bendradarbiavimą? Parašykite mums.",
+type Props = {
+  params: Promise<{ locale: string }>;
 };
 
-export default async function ContactPage() {
+export default async function ContactPage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations({ locale, namespace: "contactPage" });
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  // ✅ Next 15 – headers() yra async
   const headersList = await headers();
   const nonce = headersList.get("x-nonce") ?? undefined;
 
@@ -30,20 +31,16 @@ export default async function ContactPage() {
 
       <div className={styles.container}>
         <section className={styles.header}>
-          <h1 className={styles.title}>Susisiekite</h1>
-          <p className={styles.subtitle}>
-            Turite klausimų apie platformą, paslaugas ar norite pasiūlyti idėją?
-            Parašykite – atsakysime kuo greičiau.
-          </p>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <p className={styles.subtitle}>{t("subtitle")}</p>
         </section>
 
         <section className={styles.grid}>
           <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Kontaktai</h2>
-            
+            <h2 className={styles.cardTitle}>{t("contactsTitle")}</h2>
 
             <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>El. paštas</span>
+              <span className={styles.infoLabel}>{t("emailLabel")}</span>
               <a href="mailto:info@linkseta.com" className={styles.infoValue}>
                 info@linkseta.com
               </a>
@@ -51,7 +48,7 @@ export default async function ContactPage() {
           </div>
 
           <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Trumpa žinutė</h2>
+            <h2 className={styles.cardTitle}>{t("shortMessageTitle")}</h2>
             <ContactForm />
           </div>
         </section>

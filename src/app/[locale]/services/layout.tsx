@@ -1,8 +1,8 @@
 // src/app/[locale]/services/layout.tsx
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-
-const siteUrl = "https://www.linkseta.com";
+import { absOg } from "@/lib/seo-i18n";
+import { siteUrl } from "@/lib/seo";
 
 type Props = {
   children: React.ReactNode;
@@ -14,7 +14,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: "meta" });
-
   const canonical = `${siteUrl}/${locale}/services`;
 
   return {
@@ -35,14 +34,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "Linkseta",
       type: "website",
       images: [
-        { url: "/og.png", width: 1200, height: 630, alt: "Linkseta" },
+        {
+          url: absOg("/og.png"),
+          width: 1200,
+          height: 630,
+          alt: "Linkseta",
+        },
       ],
     },
     twitter: {
       card: "summary_large_image",
       title: t("servicesTitle"),
       description: t("servicesDesc"),
-      images: ["/og.png"],
+      images: [absOg("/og.png")],
     },
   };
 }

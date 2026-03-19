@@ -1,6 +1,7 @@
 // src/components/layout/HeaderClient.tsx
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,12 +36,27 @@ type Labels = {
   contact: string;
   admin: string;
   navAria: string;
+  privacy: string;
+  terms: string;
 };
 
 type Props = {
   locale: string;
   labels: Labels;
 };
+
+type LocaleItem = {
+  code: "lt" | "en" | "no";
+  short: string;
+  flagSrc: string;
+  alt: string;
+};
+
+const LOCALES: LocaleItem[] = [
+  { code: "lt", short: "LT", flagSrc: "/flags/lt.webp", alt: "Lithuanian" },
+  { code: "en", short: "EN", flagSrc: "/flags/en.webp", alt: "English" },
+  { code: "no", short: "NO", flagSrc: "/flags/no.webp", alt: "Norwegian" },
+];
 
 const ME_CACHE_KEY = "linkseta:me:v1";
 const ME_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -90,6 +106,22 @@ function clearCachedMe() {
   } catch {}
 }
 
+function buildLocaleHref(
+  pathname: string | null,
+  currentLocale: string,
+  nextLocale: string,
+) {
+  const currentPath = pathname || `/${currentLocale}`;
+  const segments = currentPath.split("/");
+
+  if (segments.length > 1 && segments[1] === currentLocale) {
+    segments[1] = nextLocale;
+    return segments.join("/") || `/${nextLocale}`;
+  }
+
+  return `/${nextLocale}`;
+}
+
 export default function HeaderClient({ locale, labels }: Props) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const pathname = usePathname();
@@ -102,15 +134,24 @@ export default function HeaderClient({ locale, labels }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLocaleOpen, setIsLocaleOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const mountedRef = useRef(true);
   const lastUserIdRef = useRef<string | null>(null);
+  const localeRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === "ADMIN";
 
+  const activeLocale =
+    LOCALES.find((item) => item.code === locale) ?? LOCALES[0];
+
+  const otherLocales = LOCALES.filter((item) => item.code !== locale);
+
   const closeAllMenus = useCallback(() => {
     setIsProfileOpen(false);
+    setIsLocaleOpen(false);
     setIsMobileMenuOpen(false);
   }, []);
 
@@ -248,17 +289,40 @@ export default function HeaderClient({ locale, labels }: Props) {
   }, [applyUserToUi, resetAuthUi, supabase]);
 
   useEffect(() => {
-    closeAllMenus();
-  }, [pathname, closeAllMenus]);
+    setIsProfileOpen(false);
+    setIsLocaleOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") closeAllMenus();
+      if (e.key === "Escape") {
+        setIsProfileOpen(false);
+        setIsLocaleOpen(false);
+        setIsMobileMenuOpen(false);
+      }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeAllMenus]);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+
+      if (profileRef.current && !profileRef.current.contains(target)) {
+        setIsProfileOpen(false);
+      }
+
+      if (localeRef.current && !localeRef.current.contains(target)) {
+        setIsLocaleOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -284,17 +348,74 @@ export default function HeaderClient({ locale, labels }: Props) {
   function toggleMobileMenu() {
     setIsMobileMenuOpen((v) => !v);
     setIsProfileOpen(false);
+    setIsLocaleOpen(false);
   }
 
   return (
     <>
       <div className={styles.iconGroup}>
+        <div className={styles.localeWrapper} ref={localeRef}>
+          <button
+            type="button"
+            className={styles.localeCurrent}
+            onClick={() => {
+              setIsLocaleOpen((v) => !v);
+              setIsProfileOpen(false);
+            }}
+            aria-haspopup="menu"
+            aria-expanded={isLocaleOpen}
+            aria-label="Select language"
+          >
+            <span className={styles.localeFlagImageWrap} aria-hidden="true">
+              <Image
+                src={activeLocale.flagSrc}
+                alt=""
+                width={18}
+                height={18}
+                className={styles.localeFlagImage}
+              />
+            </span>
+            <span className={styles.localeCode}>{activeLocale.short}</span>
+            <span className={styles.localeChevron} aria-hidden="true">
+              ▾
+            </span>
+          </button>
+
+          {isLocaleOpen && (
+            <div className={styles.localeMenu} role="menu">
+              {otherLocales.map((item) => (
+                <Link
+                  key={item.code}
+                  href={buildLocaleHref(pathname, locale, item.code)}
+                  className={styles.localeMenuItem}
+                  role="menuitem"
+                  onClick={() => setIsLocaleOpen(false)}
+                >
+                  <span className={styles.localeFlagImageWrap} aria-hidden="true">
+                    <Image
+                      src={item.flagSrc}
+                      alt=""
+                      width={18}
+                      height={18}
+                      className={styles.localeFlagImage}
+                    />
+                  </span>
+                  <span className={styles.localeCode}>{item.short}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
         {isLoggedIn ? (
-          <div className={styles.profileWrapper}>
+          <div className={styles.profileWrapper} ref={profileRef}>
             <button
               type="button"
               className={styles.profileButton}
-              onClick={() => setIsProfileOpen((v) => !v)}
+              onClick={() => {
+                setIsProfileOpen((v) => !v);
+                setIsLocaleOpen(false);
+              }}
               aria-label={labels.accountMenuAria}
             >
               <Avatar
@@ -494,15 +615,47 @@ export default function HeaderClient({ locale, labels }: Props) {
               </div>
             )}
 
+            <hr className={styles.drawerDivider} />
+
+            <div className={styles.mobileLocaleBlock}>
+              <div className={styles.mobileLocaleTitle}>Language</div>
+              <div className={styles.mobileLocaleList}>
+                {LOCALES.map((item) => {
+                  const isActive = item.code === locale;
+                  return (
+                    <Link
+                      key={item.code}
+                      href={buildLocaleHref(pathname, locale, item.code)}
+                      className={`${styles.mobileLocaleBtn} ${
+                        isActive ? styles.mobileLocaleBtnActive : ""
+                      }`}
+                      onClick={closeAllMenus}
+                    >
+                      <span className={styles.localeFlagImageWrap} aria-hidden="true">
+                        <Image
+                          src={item.flagSrc}
+                          alt=""
+                          width={18}
+                          height={18}
+                          className={styles.localeFlagImage}
+                        />
+                      </span>
+                      <span className={styles.localeCode}>{item.short}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className={styles.drawerFooter}>
               <div>© {new Date().getFullYear()} Linkseta</div>
               <div className={styles.drawerFooterLinks}>
                 <Link href={`/${locale}/privacy`} onClick={closeAllMenus}>
-                  Privacy
+                  {labels.privacy}
                 </Link>
                 <span>·</span>
                 <Link href={`/${locale}/terms`} onClick={closeAllMenus}>
-                  Terms
+                  {labels.terms}
                 </Link>
               </div>
             </div>

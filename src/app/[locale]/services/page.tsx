@@ -1,5 +1,4 @@
 // src/app/[locale]/services/page.tsx
-// src/app/[locale]/services/page.tsx
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";

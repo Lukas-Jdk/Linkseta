@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import styles from "./susisiekite.module.css";
 
 declare global {
@@ -14,6 +15,8 @@ declare global {
 }
 
 export default function ContactForm() {
+  const t = useTranslations("contactForm");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -30,7 +33,7 @@ export default function ContactForm() {
     }
 
     if (!window.grecaptcha) {
-      throw new Error("reCAPTCHA dar neužsikrovė. Palaukite kelias sekundes ir bandykite dar kartą.");
+      throw new Error(t("errors.recaptchaNotLoaded"));
     }
 
     return await new Promise<string>((resolve, reject) => {
@@ -41,7 +44,7 @@ export default function ContactForm() {
           });
           resolve(token);
         } catch {
-          reject(new Error("Nepavyko gauti reCAPTCHA token."));
+          reject(new Error(t("errors.recaptchaFailed")));
         }
       });
     });
@@ -72,15 +75,15 @@ export default function ContactForm() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Nepavyko išsiųsti žinutės.");
+        throw new Error(data?.error || t("errors.sendFailed"));
       }
 
-      setSuccess("Žinutė sėkmingai išsiųsta. Netrukus atsakysime.");
+      setSuccess(t("success"));
       setName("");
       setEmail("");
       setMessage("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Įvyko klaida.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -89,11 +92,11 @@ export default function ContactForm() {
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.field}>
-        <label className={styles.label}>Vardas</label>
+        <label className={styles.label}>{t("nameLabel")}</label>
         <input
           className={styles.input}
           type="text"
-          placeholder="Jūsų vardas"
+          placeholder={t("namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -102,11 +105,11 @@ export default function ContactForm() {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>El. paštas</label>
+        <label className={styles.label}>{t("emailLabel")}</label>
         <input
           className={styles.input}
           type="email"
-          placeholder="jusu@pastas.lt"
+          placeholder={t("emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -115,11 +118,11 @@ export default function ContactForm() {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label}>Žinutė</label>
+        <label className={styles.label}>{t("messageLabel")}</label>
         <textarea
           className={styles.textarea}
           rows={4}
-          placeholder="Trumpai aprašykite klausimą ar idėją"
+          placeholder={t("messagePlaceholder")}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
@@ -132,7 +135,7 @@ export default function ContactForm() {
       {error ? <p className={styles.errorText}>{error}</p> : null}
 
       <button type="submit" className={styles.submitButton} disabled={submitting}>
-        {submitting ? "Siunčiama..." : "Siųsti žinutę"}
+        {submitting ? t("submitting") : t("submit")}
       </button>
     </form>
   );

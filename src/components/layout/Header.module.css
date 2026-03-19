@@ -10,7 +10,6 @@
   overflow-x: clip;
 }
 
-/* GLOW LINE */
 .header::after {
   content: "";
   position: absolute;
@@ -26,7 +25,6 @@
   );
 }
 
-/* pagrindinė eilutė */
 .row {
   display: flex;
   align-items: center;
@@ -36,7 +34,6 @@
   width: 100%;
 }
 
-/* brand / logo */
 .brand {
   display: flex;
   align-items: center;
@@ -60,7 +57,6 @@
   white-space: nowrap;
 }
 
-/* dešinė pusė (nav + ikonos) */
 .right {
   display: flex;
   align-items: center;
@@ -68,7 +64,6 @@
   min-width: 0;
 }
 
-/* NAV – desktop */
 .nav {
   display: flex;
   align-items: center;
@@ -100,7 +95,6 @@
   font-weight: 600;
 }
 
-/* IKONOS DEŠINĖJE */
 .iconGroup {
   display: flex;
   align-items: center;
@@ -110,6 +104,100 @@
   flex: 0 0 auto;
 }
 
+/* LANGUAGE */
+.localeWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.localeCurrent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5edff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
+  transition: all 0.15s ease;
+}
+
+.localeCurrent:hover {
+  border-color: rgba(226, 232, 240, 0.9);
+  transform: translateY(-1px);
+}
+
+.localeFlag {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.localeCode {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.localeChevron {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+.localeFlagImageWrap {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  overflow: hidden;
+  flex: 0 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.localeFlagImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.localeMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 110px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #020617;
+  border: 1px solid rgba(30, 64, 175, 0.6);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 70;
+}
+
+.localeMenuItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: #e5edff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.localeMenuItem:hover {
+  background: rgba(30, 64, 175, 0.25);
+}
+
 /* AUTH MYGTUKAI – DESKTOP */
 .authDesktop {
   display: flex;
@@ -117,7 +205,6 @@
   gap: 0.5rem;
 }
 
-/* bendras button stilius */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -158,7 +245,6 @@
   transform: translateY(-1px);
 }
 
-/* PROFILIO MYGTUKAS (desktop) */
 .profileWrapper {
   position: relative;
   padding-right: 0;
@@ -237,7 +323,6 @@
   border: 2px solid rgba(255, 255, 255, 0.75);
 }
 
-/* BURGER – MOBILE */
 .menuToggle {
   display: none;
   flex-direction: column;
@@ -267,7 +352,6 @@
   color: #e5fbff;
 }
 
-/* MOBILE OVERLAY + DRAWER */
 .mobileOverlay {
   position: fixed;
   left: 0;
@@ -310,7 +394,6 @@
   }
 }
 
-/* TOP ROW + CLOSE BTN */
 .drawerTopRow {
   display: flex;
   justify-content: flex-end;
@@ -337,7 +420,6 @@
   color: #e5fbff;
 }
 
-/* PROFILE BLOCK */
 .drawerProfile {
   display: flex;
   align-items: flex-start;
@@ -449,7 +531,47 @@
   margin: 4px 0 6px;
 }
 
-/* MAIN NAV LIST */
+.mobileLocaleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobileLocaleTitle {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.mobileLocaleList {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobileLocaleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #ffffff;
+  color: #0f172a;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.mobileLocaleBtnActive {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: #ffffff;
+  border-color: transparent;
+}
+
 .drawerNav {
   display: flex;
   flex-direction: column;
@@ -484,7 +606,6 @@
   min-width: 0;
 }
 
-/* FOOTER */
 .drawerFooter {
   margin-top: auto;
   padding-top: 10px;
@@ -511,7 +632,6 @@
   text-decoration: underline;
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
   .navLinks {
     display: none;
@@ -522,6 +642,10 @@
   }
 
   .profileWrapper {
+    display: none;
+  }
+
+  .localeWrapper {
     display: none;
   }
 
@@ -544,7 +668,6 @@
   }
 }
 
-/* desktop'e mobile drawer overlay neaktyvus */
 @media (min-width: 901px) {
   .mobileOverlay {
     display: none;

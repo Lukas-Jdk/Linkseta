@@ -2,16 +2,24 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { translateCategoryName } from "@/lib/categoryTranslations";
 import styles from "./dashboard.module.css";
 import ProfileCardClient from "./ProfileCardClient";
 import { MapPin, Folder, Calendar, Eye, Pencil } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-function formatDateLT(date: Date) {
-  return new Intl.DateTimeFormat("lt-LT", {
+function formatDateByLocale(date: Date, locale: string) {
+  const map: Record<string, string> = {
+    lt: "lt-LT",
+    en: "en-GB",
+    no: "nb-NO",
+  };
+
+  return new Intl.DateTimeFormat(map[locale] ?? "lt-LT", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -26,6 +34,13 @@ export default async function DashboardPage({ params }: Props) {
   const [{ locale }, authUser] = await Promise.all([params, getAuthUser()]);
 
   if (!authUser) redirect(`/${locale}/login`);
+
+  setRequestLocale(locale);
+
+  const t = await getTranslations({
+    locale,
+    namespace: "dashboardPage",
+  });
 
   const [profile, services] = await Promise.all([
     prisma.providerProfile.findUnique({
@@ -46,7 +61,7 @@ export default async function DashboardPage({ params }: Props) {
         highlighted: true,
         imageUrl: true,
         city: { select: { name: true } },
-        category: { select: { name: true } },
+        category: { select: { name: true, slug: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -62,10 +77,8 @@ export default async function DashboardPage({ params }: Props) {
       <div className="container">
         <section className={styles.topCard}>
           <div className={styles.topCardLeft}>
-            <h1 className={styles.h1}>Mano paskyra</h1>
-            <p className={styles.subtitle}>
-              Valdykite savo profilį ir paslaugų skelbimus vienoje vietoje.
-            </p>
+            <h1 className={styles.h1}>{t("title")}</h1>
+            <p className={styles.subtitle}>{t("subtitle")}</p>
           </div>
 
           <div className={styles.topCardRight}>
@@ -75,7 +88,7 @@ export default async function DashboardPage({ params }: Props) {
                 className={styles.newBtn}
               >
                 <span className={styles.plus}>＋</span>
-                Nauja paslauga
+                {t("newService")}
               </Link>
             )}
           </div>
@@ -94,23 +107,23 @@ export default async function DashboardPage({ params }: Props) {
           <section className={styles.servicesCard}>
             <div className={styles.servicesHeader}>
               <div>
-                <h2 className={styles.h2}>Mano paslaugos</h2>
+                <h2 className={styles.h2}>{t("myServices")}</h2>
               </div>
               <div className={styles.servicesCount}>
-                {activeServices} aktyvūs
+                {activeServices} {t("active")}
               </div>
             </div>
 
             <div className={styles.servicesList}>
               {isProviderApproved && services.length === 0 && (
                 <div className={styles.empty}>
-                  Dar neturite paslaugų skelbimų. Sukurkite pirmą skelbimą.
+                  {t("emptyApproved")}
                   <div className={styles.emptyActions}>
                     <Link
                       href={`/${locale}/dashboard/services/new`}
                       className={styles.newBtnSmall}
                     >
-                      ＋ Sukurti skelbimą
+                      ＋ {t("createFirst")}
                     </Link>
                   </div>
                 </div>
@@ -118,14 +131,13 @@ export default async function DashboardPage({ params }: Props) {
 
               {!isProviderApproved && (
                 <div className={styles.empty}>
-                  Norint kurti paslaugas, reikia tapti patvirtintu paslaugų
-                  teikėju.
+                  {t("emptyNotApproved")}
                   <div className={styles.emptyActions}>
                     <Link
                       href={`/${locale}/tapti-teikeju`}
                       className={styles.newBtnSmall}
                     >
-                      Tapti teikėju
+                      {t("becomeProvider")}
                     </Link>
                   </div>
                 </div>
@@ -135,8 +147,12 @@ export default async function DashboardPage({ params }: Props) {
                 services.map((s) => {
                   const img = s.imageUrl || "/default.png";
                   const cityName = s.city?.name ?? "—";
-                  const catName = s.category?.name ?? "—";
-                  const date = formatDateLT(s.createdAt);
+                  const catName = translateCategoryName(
+                    s.category?.slug,
+                    s.category?.name,
+                    locale,
+                  );
+                  const date = formatDateByLocale(s.createdAt, locale);
 
                   return (
                     <article key={s.id} className={styles.serviceItem}>
@@ -163,7 +179,7 @@ export default async function DashboardPage({ params }: Props) {
                                 : styles.statusInactive
                             }
                           >
-                            {s.isActive ? "Aktyvi" : "Išjungta"}
+                            {s.isActive ? t("statusActive") : t("statusInactive")}
                           </span>
                         </div>
 
@@ -188,19 +204,19 @@ export default async function DashboardPage({ params }: Props) {
                           <Link
                             href={`/${locale}/services/${s.slug}`}
                             className={styles.actionLink}
-                            aria-label="Peržiūrėti paslaugą"
+                            aria-label={t("viewServiceAria")}
                           >
                             <Eye className={styles.actionIcon} />
-                            <span>Peržiūrėti</span>
+                            <span>{t("view")}</span>
                           </Link>
 
                           <Link
                             href={`/${locale}/dashboard/services/${s.id}/edit`}
                             className={styles.actionLink}
-                            aria-label="Redaguoti paslaugą"
+                            aria-label={t("editServiceAria")}
                           >
                             <Pencil className={styles.actionIcon} />
-                            <span>Redaguoti</span>
+                            <span>{t("edit")}</span>
                           </Link>
                         </div>
                       </div>
@@ -215,7 +231,7 @@ export default async function DashboardPage({ params }: Props) {
                   href={`/${locale}/dashboard/services`}
                   className={styles.manageAllBtn}
                 >
-                  Valdyti visas paslaugas
+                  {t("manageAll")}
                 </Link>
               </div>
             )}

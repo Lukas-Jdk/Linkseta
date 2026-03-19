@@ -1,10 +1,12 @@
+
 // src/app/[locale]/services/[slug]/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { absOg, localeAlternates } from "@/lib/seo-i18n";
 
 import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
 
@@ -19,10 +21,7 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -38,15 +37,6 @@ function formatPriceNOK(value: number) {
 function initialLetter(name: string | null, email: string) {
   const src = name?.trim() ? name.trim() : email;
   return src.slice(0, 1).toUpperCase() || "U";
-}
-
-function buildLanguageAlternates(slug: string) {
-  const path = `/services/${slug}`;
-  return {
-    lt: `${siteUrl}/lt${path}`,
-    en: `${siteUrl}/en${path}`,
-    no: `${siteUrl}/no${path}`,
-  };
 }
 
 function isSafeAvatarUrl(url: string | null | undefined) {
@@ -66,6 +56,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
+  const tMeta = await getTranslations({ locale, namespace: "meta" });
+  const t = await getTranslations({ locale, namespace: "serviceDetailsPage" });
+
   const service = await prisma.serviceListing.findUnique({
     where: { slug },
     select: {
@@ -81,11 +74,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { robots: { index: false, follow: false } };
   }
 
-  const title = `${service.title} | Linkseta`;
+  const title = `${service.title} | ${tMeta("siteName")}`;
   const description = truncate(
-    stripHtml(
-      service.description || "Find service providers in Norway on Linkseta.",
-    ),
+    stripHtml(service.description || t("metaFallbackDescription")),
     160,
   );
 
@@ -94,20 +85,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImage =
     service.imageUrl && service.imageUrl.startsWith("http")
       ? service.imageUrl
-      : `${siteUrl}/og.png`;
+      : absOg("/og.png");
 
   return {
     title,
     description,
     alternates: {
+      ...localeAlternates(`/services/${slug}`),
       canonical,
-      languages: buildLanguageAlternates(slug),
     },
     openGraph: {
       url: canonical,
       title,
       description,
-      siteName: "Linkseta",
+      siteName: tMeta("siteName"),
       type: "article",
       images: [
         {
@@ -130,6 +121,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ServiceDetailsPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+
+  const t = await getTranslations({
+    locale,
+    namespace: "serviceDetailsPage",
+  });
+
+  const tCategories = await getTranslations({
+    locale,
+    namespace: "categories",
+  });
 
   const service = await prisma.serviceListing.findFirst({
     where: {
@@ -155,6 +156,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       category: {
         select: {
           name: true,
+          slug: true,
         },
       },
       user: {
@@ -187,7 +189,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
         : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
-  const category = service.category?.name ?? "—";
+  const category = service.category?.slug
+    ? tCategories(service.category.slug)
+    : "—";
 
   const ratingValue = 5.0;
   const ratingCount = 1;
@@ -208,7 +212,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const priceValue =
     service.priceFrom != null
       ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "Kaina sutartinė";
+      : t("priceNegotiable");
 
   const mobileCompactPriceValue =
     service.priceFrom != null
@@ -218,15 +222,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const emailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     service.user.email,
   )}&su=${encodeURIComponent(
-    `Užklausa dėl paslaugos: ${service.title}`,
+    t("emailSubject", { title: service.title }),
   )}&body=${encodeURIComponent(
-    `Sveiki,
-
-Radau jūsų paslaugą per Linkseta platformą.
-
-Domina daugiau informacijos apie: ${service.title}
-
-Ačiū.`,
+    t("emailBody", { title: service.title }),
   )}`;
 
   const highlights = Array.isArray(service.highlights)
@@ -278,19 +276,19 @@ Ačiū.`,
         <div className={styles.sellerName}>{sellerName}</div>
 
         <div className={styles.sellerSubtitle}>
-          {isVerified ? "Aktyvus teikėjas" : "Paslaugos teikėjas"}
+          {isVerified ? t("activeProvider") : t("provider")}
         </div>
 
         {isVerified && (
           <div className={styles.verifiedBadge}>
             <BadgeCheck size={16} />
-            Aktyvus
+            {t("active")}
           </div>
         )}
       </div>
 
       <div className={styles.priceBox}>
-        <div className={styles.priceBoxLabel}>PASLAUGOS KAINA</div>
+        <div className={styles.priceBoxLabel}>{t("servicePriceLabel")}</div>
         <div className={styles.priceBoxValue}>{priceValue}</div>
       </div>
 
@@ -302,7 +300,7 @@ Ačiū.`,
           rel="noopener noreferrer"
         >
           <Mail size={18} />
-          Rašyti el. paštu
+          {t("writeEmail")}
         </a>
 
         {telHref ? (
@@ -313,7 +311,7 @@ Ačiū.`,
         ) : (
           <button className={styles.secondaryBtn} type="button" disabled>
             <Phone size={18} />
-            Tel. numerio nėra
+            {t("noPhone")}
           </button>
         )}
       </div>
@@ -340,7 +338,7 @@ Ačiū.`,
 
         <div className={styles.tabletInlineInfo}>
           <div className={styles.tabletInlineName}>{sellerName}</div>
-          <div className={styles.tabletInlineSubtitle}>Paslaugos teikėjas</div>
+          <div className={styles.tabletInlineSubtitle}>{t("provider")}</div>
         </div>
       </div>
 
@@ -348,7 +346,9 @@ Ačiū.`,
         <div className={styles.tabletInlinePriceValue}>
           {mobileCompactPriceValue}
         </div>
-        <div className={styles.tabletInlinePriceLabel}>Kaina nuo:</div>
+        <div className={styles.tabletInlinePriceLabel}>
+          {t("priceFromLabel")}
+        </div>
       </div>
     </div>
   );
@@ -374,9 +374,7 @@ Ačiū.`,
 
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>
-              Paslaugos teikėjas
-            </div>
+            <div className={styles.mobileCompactSubtitle}>{t("provider")}</div>
           </div>
         </div>
 
@@ -384,7 +382,9 @@ Ačiū.`,
           <div className={styles.mobileCompactPriceValue}>
             {mobileCompactPriceValue}
           </div>
-          <div className={styles.mobileCompactPriceLabel}>Kaina nuo:</div>
+          <div className={styles.mobileCompactPriceLabel}>
+            {t("priceFromLabel")}
+          </div>
         </div>
       </div>
     </div>
@@ -411,19 +411,21 @@ Ačiū.`,
 
         <div className={styles.mobileBottomSellerName}>{sellerName}</div>
         <div className={styles.mobileBottomSellerSubtitle}>
-          {isVerified ? "Aktyvus teikėjas" : "Paslaugos teikėjas"}
+          {isVerified ? t("activeProvider") : t("provider")}
         </div>
 
         {isVerified && (
           <div className={styles.verifiedBadge}>
             <BadgeCheck size={16} />
-            Aktyvus
+            {t("active")}
           </div>
         )}
       </div>
 
       <div className={styles.mobileBottomPriceBox}>
-        <div className={styles.mobileBottomPriceLabel}>PASLAUGOS KAINA</div>
+        <div className={styles.mobileBottomPriceLabel}>
+          {t("servicePriceLabel")}
+        </div>
         <div className={styles.mobileBottomPriceValue}>{priceValue}</div>
       </div>
 
@@ -435,7 +437,7 @@ Ačiū.`,
           rel="noopener noreferrer"
         >
           <Mail size={18} />
-          Rašyti el. paštu
+          {t("writeEmail")}
         </a>
 
         {telHref ? (
@@ -446,7 +448,7 @@ Ačiū.`,
         ) : (
           <button className={styles.secondaryBtn} type="button" disabled>
             <Phone size={18} />
-            Tel. numerio nėra
+            {t("noPhone")}
           </button>
         )}
       </div>
@@ -464,7 +466,7 @@ Ačiū.`,
 
         <div className={styles.topBar}>
           <Link href={`/${locale}/services`} className={styles.backLink}>
-            ← Grįžti į sąrašą
+            ← {t("backToList")}
           </Link>
         </div>
 
@@ -482,7 +484,7 @@ Ačiū.`,
                       />
 
                       <div className={styles.categoryPillOnImage}>
-                        {category !== "—" ? category : "Paslauga"}
+                        {category !== "—" ? category : t("serviceFallback")}
                       </div>
 
                       {images.length > 1 && (
@@ -501,7 +503,7 @@ Ačiū.`,
                             backdropFilter: "blur(6px)",
                           }}
                         >
-                          {images.length} nuotraukos
+                          {t("photosCount", { count: images.length })}
                         </div>
                       )}
                     </div>
@@ -531,7 +533,7 @@ Ačiū.`,
 
                       <div className={styles.quickInfo}>
                         <Zap size={16} />
-                        Dažniausiai atsako per 1 val.
+                        {t("respondsFast")}
                       </div>
 
                       {TabletInlineSeller}

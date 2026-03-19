@@ -9,12 +9,12 @@ import { useTranslations } from "next-intl";
 export default function Footer() {
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
 
   return (
     <footer className={styles.footer}>
       <div className="container">
         <div className={styles.grid}>
-          {/* BRAND */}
           <div className={styles.brand}>
             <LocalizedLink
               href="/"
@@ -28,13 +28,12 @@ export default function Footer() {
                 height={48}
                 priority={false}
               />
-              <span className={styles.logoText}>Linkseta</span>
+              <span className={styles.logoText}>{tCommon("brand")}</span>
             </LocalizedLink>
 
             <p className={styles.brandDesc}>{t("brandDesc")}</p>
           </div>
 
-          {/* NAV */}
           <nav className={styles.col} aria-label={t("navAria")}>
             <h3 className={styles.colTitle}>{t("navTitle")}</h3>
             <ul className={styles.list}>
@@ -61,7 +60,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* LEGAL */}
           <nav className={styles.col} aria-label={t("legalAria")}>
             <h3 className={styles.colTitle}>{t("legalTitle")}</h3>
             <ul className={styles.list}>
@@ -78,7 +76,6 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* CONTACT */}
           <div className={styles.col}>
             <h3 className={styles.colTitle}>{t("contactTitle")}</h3>
             <p className={styles.smallText}>{t("contactSubtitle")}</p>
@@ -89,8 +86,8 @@ export default function Footer() {
                 href="https://www.facebook.com/profile.php?id=61587063122451"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Facebook"
-                title="Facebook"
+                aria-label={t("facebookAria")}
+                title={t("facebookTitle")}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -105,8 +102,8 @@ export default function Footer() {
                 href="https://mail.google.com/mail/?view=cm&fs=1&to=info@linkseta.com&su=U%C5%BEklausa%20i%C5%A1%20Linkseta"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Rašyti el. paštu"
-                title="Rašyti el. paštu"
+                aria-label={t("emailAria")}
+                title={t("emailTitle")}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -121,7 +118,7 @@ export default function Footer() {
 
         <div className={styles.bottom}>
           <p className={styles.copy}>
-            © {new Date().getFullYear()} Linkseta. {t("rights")}
+            © {new Date().getFullYear()} {tCommon("brand")}. {t("rights")}
           </p>
 
           <p className={styles.copy}>

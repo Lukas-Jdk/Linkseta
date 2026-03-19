@@ -1,3 +1,4 @@
+
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -68,6 +69,11 @@ async function upsertCategories() {
     "Valymas",
     "Grožis",
     "Sveikata",
+    "Sportas",
+    "Mityba",
+    "Maistas",
+    "Konditerija",
+    "Renginiai",
     "Apskaita",
     "Teisinės paslaugos",
     "IT paslaugos",
@@ -75,7 +81,6 @@ async function upsertCategories() {
     "Mokymai",
     "Vaikų priežiūra",
     "Gyvūnų priežiūra",
-    "Maistas",
     "Namų ūkis",
     "Kita",
   ];
@@ -106,7 +111,7 @@ async function upsertPlans() {
     {
       name: "Basic",
       slug: "basic",
-      priceNok: 199,
+      priceNok: 149,
       period: "MONTHLY",
       maxListings: 3,
       maxImagesPerListing: 5,
@@ -117,7 +122,7 @@ async function upsertPlans() {
     {
       name: "Premium",
       slug: "premium",
-      priceNok: 399,
+      priceNok: 299,
       period: "MONTHLY",
       maxListings: 10,
       maxImagesPerListing: 15,
@@ -125,8 +130,6 @@ async function upsertPlans() {
       isTrial: false,
       trialDays: null,
     },
-
-    // Paslėptas planas tavo pirmiems testuotojams
     {
       name: "Beta (tester)",
       slug: "beta",

@@ -1,5 +1,6 @@
 // src/components/hero/Hero.tsx
 
+import { useTranslations } from "next-intl";
 import AnimatedTitle from "./AnimatedTitle";
 import styles from "./Hero.module.css";
 
@@ -8,8 +9,14 @@ type Props = {
 };
 
 export default function Hero({ children }: Props) {
+  const t = useTranslations("hero");
+
   return (
-    <section className={styles.hero} role="region" aria-label="Paieška">
+    <section
+      className={styles.hero}
+      role="region"
+      aria-label={t("aria")}
+    >
       <div className={styles.bgGlow} aria-hidden="true" />
 
       <div className="container">
@@ -17,8 +24,7 @@ export default function Hero({ children }: Props) {
           <AnimatedTitle />
 
           <p className={styles.subtitle}>
-            Čia rasi paslaugų teikėjus iš Norvegijos – peržiūrėk profilius ir
-            susisiek tiesiogiai.
+            {t("subtitle")}
           </p>
 
           <div className={styles.searchWrap}>{children}</div>

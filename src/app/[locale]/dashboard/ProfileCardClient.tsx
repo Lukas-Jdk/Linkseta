@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./dashboard.module.css";
 import AvatarUploader from "@/components/profile/AvatarUploader";
@@ -28,6 +29,7 @@ export default function ProfileCardClient({
   totalServices,
   isProviderApproved,
 }: Props) {
+  const t = useTranslations("profileCard");
   const displayName = name?.trim() || email.split("@")[0];
   const initial = getInitialLetter(name, email);
 
@@ -36,8 +38,8 @@ export default function ProfileCardClient({
   );
 
   const accountTypeLabel = isProviderApproved
-    ? "Paslaugų teikėjas"
-    : "Vartotojas";
+    ? t("provider")
+    : t("user");
 
   return (
     <aside className={styles.profileCard}>
@@ -66,28 +68,30 @@ export default function ProfileCardClient({
           <div className={styles.infoRow}>
             <span className={styles.infoIcon}>🛡</span>
             <span className={styles.infoText}>
-              {role === "ADMIN" ? "Administratorius" : "Vartotojas"}
+              {role === "ADMIN" ? t("admin") : t("user")}
             </span>
           </div>
 
           <div className={styles.infoRow}>
             <span className={styles.infoIcon}>📦</span>
-            <span className={styles.infoText}>{totalServices} skelbimai</span>
+            <span className={styles.infoText}>
+              {totalServices} {t("listings")}
+            </span>
           </div>
         </div>
 
         <div className={styles.profileBadges}>
           {isProviderApproved ? (
-            <span className={styles.providerOk}>Aktyvus teikėjas</span>
+            <span className={styles.providerOk}>{t("activeProvider")}</span>
           ) : (
-            <span className={styles.providerPending}>Neaktyvus teikėjas</span>
+            <span className={styles.providerPending}>{t("inactiveProvider")}</span>
           )}
         </div>
 
         {!isProviderApproved && (
           <div className={styles.profileCta}>
             <LocalizedLink href="/tapti-teikeju" className={styles.ctaBtn}>
-              Tapti paslaugų teikėju
+              {t("becomeProvider")}
             </LocalizedLink>
           </div>
         )}

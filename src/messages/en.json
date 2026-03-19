@@ -8,9 +8,13 @@
     "contactTitle": "Contact | Linkseta",
     "contactDesc": "Questions about Linkseta? Send us a message.",
     "becomeTitle": "Become a provider | Linkseta",
-    "becomeDesc": "Join Linkseta and publish your services in Norway."
+    "becomeDesc": "Join Linkseta and publish your services in Norway.",
+    "termsTitle": "Terms of Service | Linkseta",
+    "termsDesc": "Read the Linkseta terms of service and usage rules.",
+    "privacyTitle": "Privacy Policy | Linkseta",
+    "privacyDesc": "Read how Linkseta collects, uses and protects your data."
   },
-    "common": {
+  "common": {
     "brand": "Linkseta"
   },
   "terms": {
@@ -91,21 +95,288 @@
     "emailAria": "Email",
     "emailTitle": "Email",
     "rights": "All rights reserved.",
-    "createdBy": "Created by"
+    "createdBy": "Created by",
+    "facebookAria": "Facebook",
+    "facebookTitle": "Facebook"
   },
   "servicesPage": {
-  "headingAll": "Paslaugos Norvegijoje",
-  "headingCity": "Paslaugos mieste {city}",
-  "headingCategory": "{category} paslaugos Norvegijoje",
-  "headingCategoryCity": "{category} – {city}",
-  "found": "Rasta",
-  "forQuery": "pagal užklausą",
-  "invalidPage": "Neteisingas puslapio numeris. Bandykite dar kartą.",
-  "empty": "Pagal pasirinktus filtrus paslaugų nerasta.",
-  "emptyHint": "Pabandykite pakeisti miestą, kategoriją arba paieškos tekstą.",
-  "page": "Puslapis",
-  "of": "iš",
-  "previous": "← Ankstesnis",
-  "next": "Kitas →"
+    "headingAll": "Services in Norway",
+    "headingCity": "Services in {city}",
+    "headingCategory": "{category} services in Norway",
+    "headingCategoryCity": "{category} – {city}",
+    "found": "Found",
+    "forQuery": "for query",
+    "invalidPage": "Invalid page number. Please try again.",
+    "empty": "No services found for the selected filters.",
+    "emptyHint": "Try changing the city, category, or search text.",
+    "page": "Page",
+    "of": "of",
+    "previous": "← Previous",
+    "next": "Next →"
+  },
+  "hero": {
+    "aria": "Search",
+    "subtitle": "Find service providers in Norway – browse profiles and contact them directly.",
+    "title": "Looking for the right <highlight>specialist?</highlight>"
+  },
+  "servicesHero": {
+    "aria": "Service search",
+    "title": "Services in your city in <mark>Norway</mark>",
+    "subtitle": "Filter by <accent>city</accent>, <accent>category</accent> or <accent>keywords</accent> – find the right specialist in your area."
+  },
+  "features": {
+    "aria": "Linkseta benefits",
+    "title": "Why choose Linkseta?",
+    "subtitle": "Fast search, clear structure, and a growing community.",
+    "items": [
+      {
+        "title": "A place for service providers in Norway",
+        "text": "A new platform that connects specialists and customers in one place."
+      },
+      {
+        "title": "Looking or offering? Both fit here",
+        "text": "Whether you are searching for a service or want to offer one – this place is for you."
+      },
+      {
+        "title": "We are building the community from scratch",
+        "text": "This platform is growing – be one of the first and get more visibility."
+      }
+    ]
+  },
+  "cardGrid": {
+    "empty": "There are no visible services at the moment.",
+    "popularTitle": "Most popular services",
+    "resultsTitle": "Results"
+  },
+  "serviceCard": {
+    "priceFrom": "from {price} NOK",
+    "priceNegotiable": "Price negotiable",
+    "top": "TOP",
+    "categoryFallback": "Category",
+    "contact": "Contact",
+    "openServiceAria": "Open service: {title}"
+  },
+  "searchBar": {
+    "cityLabel": "City",
+    "categoryLabel": "Category",
+    "selectPlaceholder": "Select...",
+    "searchAria": "Search services",
+    "searchCityPlaceholder": "Search city...",
+    "searchCategoryPlaceholder": "Search category...",
+    "clear": "Clear",
+    "allCities": "All cities",
+    "allCategories": "All categories",
+    "loading": "Loading...",
+    "noResults": "No results found."
+  },
+  "serviceMarquee": {
+    "aria": "Service categories",
+    "items": {
+      "statybos": "Construction",
+      "remontas": "Repair",
+      "santechnika": "Plumbing",
+      "elektra": "Electrical",
+      "buitine": "Appliances",
+      "valymas": "Cleaning",
+      "auto": "Automotive",
+      "transportas": "Transport",
+      "grozis": "Beauty",
+      "it": "IT",
+      "apskaita": "Accounting",
+      "teisine": "Legal",
+      "nt": "Real estate",
+      "mokymai": "Training",
+      "vaikai": "Childcare",
+      "gyvunai": "Pets",
+      "maistas": "Food",
+      "namai": "Household",
+      "kita": "Other"
+    }
+  },
+  "serviceDetailsPage": {
+    "metaFallbackDescription": "Find service providers in Norway on Linkseta.",
+    "priceNegotiable": "Price on request",
+    "emailSubject": "Inquiry about service: {title}",
+    "emailBody": "Hello,\n\nI found your service through the Linkseta platform.\n\nI would like more information about: {title}\n\nThank you.",
+    "activeProvider": "Active provider",
+    "provider": "Service provider",
+    "active": "Active",
+    "servicePriceLabel": "SERVICE PRICE",
+    "writeEmail": "Write by email",
+    "noPhone": "No phone number",
+    "priceFromLabel": "Price from:",
+    "backToList": "Back to list",
+    "serviceFallback": "Service",
+    "photosCount": "{count} photos",
+    "respondsFast": "Usually responds within 1 hour."
+  },
+  "serviceDetailsTabs": {
+    "about": "About",
+    "gallery": "Gallery",
+    "reviews": "Reviews",
+    "descriptionTitle": "Description",
+    "whyChoose": "Why choose this service?",
+    "noGallery": "No gallery images yet.",
+    "reviewsComing": "Reviews will be added later.",
+    "photoAlt": "{title} photo {index}"
+  },
+  "gallery": {
+    "openImage": "Open image",
+    "close": "Close",
+    "prev": "Previous",
+    "next": "Next",
+    "photo": "Photo {index}",
+    "topAd": "TOP listing"
+  },
+  "contactPage": {
+    "title": "Contact",
+    "subtitle": "Do you have questions about the platform, services, or want to suggest an idea? Write to us — we will reply as soon as possible.",
+    "contactsTitle": "Contacts",
+    "emailLabel": "Email",
+    "shortMessageTitle": "Short message"
+  },
+ "dashboardPage": {
+  "title": "My account",
+  "subtitle": "Manage your profile and service listings in one place.",
+  "newService": "New service",
+  "myServices": "My services",
+  "active": "active",
+  "emptyApproved": "You do not have any service listings yet. Create your first listing.",
+  "createFirst": "Create listing",
+  "emptyNotProvider": "To create services, you need to become an approved provider.",
+  "becomeProvider": "Become a provider",
+  "statusActive": "Active",
+  "statusInactive": "Disabled",
+  "view": "View",
+  "edit": "Edit",
+  "viewServiceAria": "View service",
+  "editServiceAria": "Edit service",
+  "manageAll": "Manage all services"
+},
+  "dashboardServicesPage": {
+    "title": "My services",
+    "newService": "New service",
+    "emptyStart": "You do not have any services yet. Create your first listing by clicking",
+    "emptyStrong": "“New service”",
+    "from": "from",
+    "statusActive": "Active",
+    "statusInactive": "Disabled",
+    "view": "View",
+    "edit": "Edit"
+  },
+  "becomeProviderPage": {
+    "title": "Become a provider on Linkseta",
+    "lead": "Choose a plan and get the ability to create service listings so people in Norway can easily find you.",
+    "noteStrong": "Free Trial is currently active.",
+    "noteText": "Basic and Premium plans will be enabled later.",
+    "recommended": "Recommended",
+    "comingSoon": "Coming soon",
+    "inactivePlanTitle": "This plan is not active yet",
+    "buttonBusy": "Processing...",
+    "buttonSoon": "Soon",
+    "buttonStartTrial": "Start Free Trial",
+    "smallInfo": "After choosing Free Trial, you will be redirected to your account where you can create your first listing and upload up to 3 gallery photos.",
+    "errors": {
+      "chooseFailed": "Failed to choose the plan. Please try again.",
+      "server": "Server error. Please try again."
+    },
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 days",
+        "description": "Try Linkseta risk-free and see whether the platform fits your services.",
+        "features": [
+          "1 active listing",
+          "Up to 3 gallery photos",
+          "30-day free trial"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "149 NOK / month",
+        "description": "A good option for an individual provider who wants more visibility.",
+        "features": [
+          "Up to 3 active listings",
+          "Up to 5 photos per listing",
+          "Simple dashboard management"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "299 NOK / month",
+        "description": "Made for those who want maximum freedom and stronger visibility.",
+        "features": [
+          "Up to 10 active listings",
+          "Up to 15 photos per listing",
+          "TOP status"
+        ]
+      }
+    }
+  },
+  "dashboardNewServicePage": {
+    "title": "New service",
+    "subtitle": "Fill in the form and create your service listing. You will be able to edit it later from your account."
+  },
+  "profileCard": {
+    "provider": "Service provider",
+    "user": "User",
+    "admin": "Administrator",
+    "listings": "listings",
+    "activeProvider": "Active provider",
+    "inactiveProvider": "Inactive provider",
+    "becomeProvider": "Become a provider"
+  },
+  "contactForm": {
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Briefly describe your question or idea",
+    "submit": "Send message",
+    "submitting": "Sending...",
+    "success": "Message sent successfully. We will reply soon.",
+    "errors": {
+      "recaptchaNotLoaded": "reCAPTCHA has not loaded yet. Please wait a few seconds and try again.",
+      "recaptchaFailed": "Failed to get reCAPTCHA token.",
+      "sendFailed": "Failed to send message.",
+      "generic": "An error occurred."
+    }
+  },
+  "dashboardNewServiceForm": {
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g. Electrician in Oslo",
+    "cityLabel": "City",
+    "categoryLabel": "Category",
+    "priceLabel": "Price from: (NOK)",
+    "pricePlaceholder": "E.g. 500",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe as clearly as possible what you offer.",
+    "highlightsTitle": "Why choose me? (optional)",
+    "highlightsHint": "You can add 1–3 points with ✅",
+    "highlightPlaceholder1": "E.g. Fast arrival",
+    "highlightPlaceholder2": "E.g. 5 years of experience",
+    "highlightPlaceholder3": "E.g. Work guarantee",
+    "galleryLabel": "Gallery images (optional)",
+    "uploading": "Images are being compressed and uploaded...",
+    "previewAlt": "Preview {index}",
+    "remove": "Remove",
+    "creating": "Creating...",
+    "submit": "Create service",
+    "errors": {
+      "maxImages": "You can upload up to {max} images.",
+      "mustBeLoggedIn": "You must be logged in to upload images.",
+      "fileNotImage": "One of the selected files is not an image.",
+      "fileTooLargeBeforeCompression": "One of the images is too large (max ~10MB before compression).",
+      "fileTooLargeAfterCompression": "One of the compressed images is still too large.",
+      "uploadOneFailed": "Failed to upload one of the images.",
+      "uploadGeneric": "An error occurred while uploading images.",
+      "csrfOrForbidden": "Security check failed. Refresh the page and try again.",
+      "createFailed": "Failed to create service",
+      "generic": "An error occurred"
+    }
+  },
+  "categories": {
+  "it-paslaugos": "IT services"
 }
 }
