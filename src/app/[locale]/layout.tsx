@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     openGraph: {
       type: "website",
-      url: canonical,
+      url: `https://linkseta.com/${locale}`,
       siteName: t("siteName"),
       title: t("homeTitle"),
       description: t("homeDesc"),
