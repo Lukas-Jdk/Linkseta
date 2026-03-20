@@ -57,7 +57,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       template: `%s | ${t("siteName")}`,
     },
     description: t("homeDesc"),
-    alternates: localeAlternates(""),
+    alternates: {
+      ...localeAlternates(""),
+      canonical,
+    },
     openGraph: {
       type: "website",
       url: canonical,

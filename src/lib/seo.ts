@@ -1,7 +1,7 @@
 // src/lib/seo.ts
 import type { Metadata } from "next";
 
-export const siteUrl = "https://www.linkseta.com";
+export const siteUrl = "https://linkseta.com";
 
 export const baseMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -27,12 +27,19 @@ export const baseMetadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    url: "/",
+    url: siteUrl,
     siteName: "Linkseta",
     title: "Linkseta – Paslaugos Norvegijoje",
     description:
       "Paslaugų katalogas Norvegijoje: raskite teikėją pagal miestą ir kategoriją, susisiekite tiesiogiai.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Linkseta" }],
+    images: [
+      {
+        url: `${siteUrl}/og.png`,
+        width: 1200,
+        height: 630,
+        alt: "Linkseta",
+      },
+    ],
     locale: "lt_LT",
   },
   twitter: {
@@ -40,7 +47,7 @@ export const baseMetadata: Metadata = {
     title: "Linkseta – Paslaugos Norvegijoje",
     description:
       "Raskite paslaugų teikėjus Norvegijoje pagal miestą ir kategoriją.",
-    images: ["/og.png"],
+    images: [`${siteUrl}/og.png`],
   },
   robots: {
     index: true,
@@ -55,11 +62,7 @@ export function orgJsonLd() {
     name: "Linkseta",
     url: siteUrl,
     logo: `${siteUrl}/og.png`,
-    sameAs: [
-      // pvz.:
-      // "https://facebook.com/linkseta",
-      // "https://instagram.com/linkseta",
-    ],
+    sameAs: [],
   };
 }
 
