@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImage =
     service.imageUrl && service.imageUrl.startsWith("http")
       ? service.imageUrl
-      : absOg("/og.png");
+      : absOg("/og-v2.png");
 
   return {
     title,

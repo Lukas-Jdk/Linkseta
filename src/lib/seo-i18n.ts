@@ -18,7 +18,7 @@ export function localeAlternates(path: string) {
 }
 
 export function absOg(url: string) {
-  if (!url) return `${siteUrl}/og.png`;
+  if (!url) return `${siteUrl}/og-v2.png`;
   if (url.startsWith("http")) return url;
   return `${siteUrl}${url.startsWith("/") ? url : `/${url}`}`;
 }

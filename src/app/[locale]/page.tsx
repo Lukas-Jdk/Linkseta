@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: absOg("/og.png"),
+          url: absOg("/og-v2.png"),
           width: 1200,
           height: 630,
           alt: "Linkseta",
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: t("homeTitle"),
       description: t("homeDesc"),
-      images: [absOg("/og.png")],
+      images: [absOg("/og-v2.png")],
     },
   };
 }

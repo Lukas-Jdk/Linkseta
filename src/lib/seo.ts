@@ -34,7 +34,7 @@ export const baseMetadata: Metadata = {
       "Paslaugų katalogas Norvegijoje: raskite teikėją pagal miestą ir kategoriją, susisiekite tiesiogiai.",
     images: [
       {
-        url: `${siteUrl}/og.png`,
+        url: `${siteUrl}/og-v2.png`,
         width: 1200,
         height: 630,
         alt: "Linkseta",
@@ -47,7 +47,7 @@ export const baseMetadata: Metadata = {
     title: "Linkseta – Paslaugos Norvegijoje",
     description:
       "Raskite paslaugų teikėjus Norvegijoje pagal miestą ir kategoriją.",
-    images: [`${siteUrl}/og.png`],
+    images: [`${siteUrl}/og-v2.png`],
   },
   robots: {
     index: true,
@@ -61,7 +61,7 @@ export function orgJsonLd() {
     "@type": "Organization",
     name: "Linkseta",
     url: siteUrl,
-    logo: `${siteUrl}/og.png`,
+    logo: `${siteUrl}/og-v2.png`,
     sameAs: [],
   };
 }
