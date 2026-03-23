@@ -193,9 +193,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
     ? tCategories(service.category.slug)
     : "—";
 
-  const ratingValue = 5.0;
-  const ratingCount = 1;
-
   const sellerName =
     service.user.name?.trim() || service.user.email.split("@")[0];
   const sellerInitial = initialLetter(service.user.name, service.user.email);
@@ -510,15 +507,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                     <div className={styles.heroContent}>
                       <h1 className={styles.title}>{service.title}</h1>
-
-                      <div className={styles.ratingRow}>
-                        <span className={styles.ratingValue}>
-                          ⭐ {ratingValue.toFixed(1)}
-                        </span>
-                        <span className={styles.ratingCount}>
-                          ({ratingCount})
-                        </span>
-                      </div>
 
                       <div className={styles.metaRow}>
                         <span className={styles.metaChip}>

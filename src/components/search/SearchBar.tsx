@@ -38,6 +38,93 @@ function normalize(s: string) {
   return s.toLowerCase().trim();
 }
 
+const CATEGORY_LABELS: Record<string, Record<string, string>> = {
+  lt: {
+    apskaita: "Apskaita",
+    automobiliai: "Automobiliai",
+    nt: "NT",
+    statybos: "Statybos",
+    remontas: "Remontas",
+    santechnika: "Santechnika",
+    elektra: "Elektra",
+    "buitin-technika": "Buitinė technika",
+    transportas: "Transportas",
+    valymas: "Valymas",
+    grois: "Grožis",
+    sveikata: "Sveikata",
+    "teisins-paslaugos": "Teisinės paslaugos",
+    "it-paslaugos": "IT paslaugos",
+    fotografija: "Fotografija",
+    mokymai: "Mokymai",
+    "vaik-prieira": "Vaikų priežiūra",
+    "gyvn-prieira": "Gyvūnų priežiūra",
+    maistas: "Maistas",
+    "nam-kis": "Namų ūkis",
+    kita: "Kita",
+    konditerija: "Konditerija",
+    mat: "Mat",
+    "maistas-kateris": "Maistas / Kateris",
+    mityba: "Mityba",
+    renginiai: "Renginiai",
+  },
+  en: {
+    apskaita: "Accounting",
+    automobiliai: "Automotive",
+    nt: "Real estate",
+    statybos: "Construction",
+    remontas: "Repair",
+    santechnika: "Plumbing",
+    elektra: "Electrical",
+    "buitin-technika": "Appliances",
+    transportas: "Transport",
+    valymas: "Cleaning",
+    grois: "Beauty",
+    sveikata: "Health",
+    "teisins-paslaugos": "Legal services",
+    "it-paslaugos": "IT services",
+    fotografija: "Photography",
+    mokymai: "Training",
+    "vaik-prieira": "Childcare",
+    "gyvn-prieira": "Pet care",
+    maistas: "Food",
+    "nam-kis": "Household",
+    kita: "Other",
+    konditerija: "Confectionery",
+    mat: "Food",
+    "maistas-kateris": "Food / Catering",
+    mityba: "Nutrition",
+    renginiai: "Events",
+  },
+  no: {
+    apskaita: "Regnskap",
+    automobiliai: "Bil",
+    nt: "Eiendom",
+    statybos: "Bygg",
+    remontas: "Reparasjon",
+    santechnika: "Rørlegger",
+    elektra: "Elektriker",
+    "buitin-technika": "Hvitevarer",
+    transportas: "Transport",
+    valymas: "Rengjøring",
+    grois: "Skjønnhet",
+    sveikata: "Helse",
+    "teisins-paslaugos": "Juridiske tjenester",
+    "it-paslaugos": "IT-tjenester",
+    fotografija: "Fotografi",
+    mokymai: "Kurs",
+    "vaik-prieira": "Barnepass",
+    "gyvn-prieira": "Dyrepass",
+    maistas: "Mat",
+    "nam-kis": "Husholdning",
+    kita: "Annet",
+    konditerija: "Konditori",
+    mat: "Mat",
+    "maistas-kateris": "Mat og catering",
+    mityba: "Ernæring",
+    renginiai: "Arrangementer",
+  },
+};
+
 export default function SearchBar() {
   const t = useTranslations("searchBar");
   const router = useRouter();
@@ -93,6 +180,13 @@ export default function SearchBar() {
     setMounted(true);
   }, []);
 
+  const getCategoryLabel = useCallback(
+    (category: CategoryOption) => {
+      return CATEGORY_LABELS[locale]?.[category.slug] ?? category.name;
+    },
+    [locale],
+  );
+
   const ensureFiltersLoaded = useCallback(async () => {
     if (filtersLoaded || filtersLoading) return;
 
@@ -117,11 +211,12 @@ export default function SearchBar() {
 
   const categoryName = useMemo(() => {
     if (!categoryId) return t("selectPlaceholder");
-    return (
-      categories.find((c) => c.id === categoryId)?.name ??
-      t("selectPlaceholder")
-    );
-  }, [categoryId, categories, t]);
+
+    const selected = categories.find((c) => c.id === categoryId);
+    if (!selected) return t("selectPlaceholder");
+
+    return getCategoryLabel(selected);
+  }, [categoryId, categories, t, getCategoryLabel]);
 
   const filteredCities = useMemo(() => {
     const nq = normalize(cityQuery);
@@ -132,8 +227,11 @@ export default function SearchBar() {
   const filteredCategories = useMemo(() => {
     const nq = normalize(categoryQuery);
     if (!nq) return categories;
-    return categories.filter((c) => normalize(c.name).includes(nq));
-  }, [categories, categoryQuery]);
+
+    return categories.filter((c) =>
+      normalize(getCategoryLabel(c)).includes(nq),
+    );
+  }, [categories, categoryQuery, getCategoryLabel]);
 
   const calcPanelStyle = useCallback(
     (el: HTMLButtonElement): React.CSSProperties => {
@@ -483,7 +581,9 @@ export default function SearchBar() {
                             className={styles.optionIcon}
                             aria-hidden="true"
                           />
-                          <span className={styles.optionName}>{c.name}</span>
+                          <span className={styles.optionName}>
+                            {getCategoryLabel(c)}
+                          </span>
                         </button>
                       );
                     })}

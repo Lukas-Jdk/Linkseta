@@ -2,25 +2,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "./login.module.css";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { Mail, Lock } from "lucide-react";
 
-function mapLoginErrorMessage(raw: string | null | undefined): string {
+function mapLoginErrorMessage(
+  raw: string | null | undefined,
+  t: ReturnType<typeof useTranslations<"loginPage">>,
+): string {
   const msg = (raw || "").toLowerCase().trim();
 
   if (!msg) {
-    return "Nepavyko prisijungti. Patikrinkite duomenis ir bandykite dar kartą.";
+    return t("errors.generic");
   }
 
   if (msg.includes("invalid login credentials")) {
-    return "Neteisingas el. paštas arba slaptažodis.";
+    return t("errors.invalidCredentials");
   }
 
   if (msg.includes("email not confirmed")) {
-    return "El. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.";
+    return t("errors.emailNotConfirmed");
   }
 
   if (
@@ -28,7 +32,7 @@ function mapLoginErrorMessage(raw: string | null | undefined): string {
     msg.includes("rate limit") ||
     msg.includes("over_request_rate_limit")
   ) {
-    return "Per daug bandymų prisijungti. Palaukite kelias minutes ir bandykite dar kartą.";
+    return t("errors.tooManyRequests");
   }
 
   if (
@@ -36,13 +40,14 @@ function mapLoginErrorMessage(raw: string | null | undefined): string {
     msg.includes("failed to fetch") ||
     msg.includes("fetch")
   ) {
-    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+    return t("errors.network");
   }
 
-  return `Prisijungti nepavyko: ${raw}`;
+  return t("errors.withReason", { reason: raw || "" });
 }
 
 export default function LoginClient() {
+  const t = useTranslations("loginPage");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
@@ -60,21 +65,21 @@ export default function LoginClient() {
 
   const confirmedMessage = useMemo(() => {
     return searchParams.get("confirmed") === "1"
-      ? "El. paštas sėkmingai patvirtintas. Dabar galite prisijungti."
+      ? t("confirmedMessage")
       : null;
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const confirmErrorMessage = useMemo(() => {
     return searchParams.get("error") === "confirm_failed"
-      ? "Nepavyko patvirtinti el. pašto arba nuoroda nebegalioja."
+      ? t("confirmErrorMessage")
       : null;
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const resetMessage = useMemo(() => {
     return searchParams.get("reset") === "1"
-      ? "Slaptažodis sėkmingai pakeistas. Dabar galite prisijungti."
+      ? t("resetMessage")
       : null;
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,7 +90,7 @@ export default function LoginClient() {
     e.preventDefault();
 
     if (!email || !password) {
-      setError("Įveskite el. paštą ir slaptažodį.");
+      setError(t("errors.missingFields"));
       return;
     }
 
@@ -102,7 +107,7 @@ export default function LoginClient() {
 
       if (error) {
         console.error("login error:", error);
-        setError(mapLoginErrorMessage(error.message));
+        setError(mapLoginErrorMessage(error.message, t));
         return;
       }
 
@@ -110,7 +115,7 @@ export default function LoginClient() {
       router.refresh();
     } catch (err) {
       console.error("login unexpected error:", err);
-      setError("Serverio klaida. Bandykite dar kartą.");
+      setError(t("errors.server"));
     } finally {
       setLoading(false);
     }
@@ -119,7 +124,7 @@ export default function LoginClient() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Prisijungimas</h1>
+        <h1 className={styles.title}>{t("title")}</h1>
 
         {confirmedMessage && <p className={styles.success}>{confirmedMessage}</p>}
         {resetMessage && <p className={styles.success}>{resetMessage}</p>}
@@ -131,7 +136,7 @@ export default function LoginClient() {
             <Mail className={styles.icon} />
             <input
               type="email"
-              placeholder="El. paštas"
+              placeholder={t("emailPlaceholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -144,7 +149,7 @@ export default function LoginClient() {
             <Lock className={styles.icon} />
             <input
               type="password"
-              placeholder="Slaptažodis"
+              placeholder={t("passwordPlaceholder")}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -154,13 +159,13 @@ export default function LoginClient() {
           </div>
 
           <button className={styles.button} disabled={loading} type="submit">
-            {loading ? "Jungiama..." : "Prisijungti"}
+            {loading ? t("loading") : t("submit")}
           </button>
 
           <p className={styles.helperText}>
-            Pamiršote slaptažodį?{" "}
+            {t("forgotPassword")}{" "}
             <LocalizedLink href="/forgot-password" className={styles.link}>
-              Atstatyti
+              {t("resetLink")}
             </LocalizedLink>
           </p>
         </form>

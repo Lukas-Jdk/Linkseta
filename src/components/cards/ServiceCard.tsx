@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import styles from "./ServiceCard.module.css";
-import { MapPin, Star, CalendarDays } from "lucide-react";
+import { MapPin, CalendarDays, Star } from "lucide-react";
 
 type Props = {
   title: string;
@@ -58,8 +58,6 @@ export default function ServiceCard({
       ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
       : t("priceNegotiable");
 
-  const ratingValue = highlighted ? 5.0 : 4.9;
-
   return (
     <Link href={`/${locale}/services/${slug}`} className={styles.card}>
       <div className={styles.imageWrap}>
@@ -90,7 +88,9 @@ export default function ServiceCard({
           </>
         )}
 
-        {priceFrom != null && <div className={styles.priceBadge}>{priceValue}</div>}
+        {priceFrom != null && (
+          <div className={styles.priceBadge}>{priceValue}</div>
+        )}
 
         {highlighted && (
           <div className={styles.topBadge}>
@@ -104,11 +104,6 @@ export default function ServiceCard({
         <div className={styles.topRow}>
           <span className={styles.category} title={category || ""}>
             {category || t("categoryFallback")}
-          </span>
-
-          <span className={styles.rating}>
-            <Star className={styles.ratingIcon} />
-            {ratingValue.toFixed(1)}
           </span>
         </div>
 

@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { Star, MapPin, CalendarDays, ShieldCheck } from "lucide-react";
+import { MapPin, CalendarDays, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
 export interface PremiumServiceCardProps {
@@ -61,8 +61,6 @@ export default function PremiumServiceCard({
       ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
       : t("priceNegotiable");
 
-  const ratingValue = highlighted ? 5.0 : 4.9;
-
   return (
     <div className={styles.cardContainer} data-id={id}>
       <div className={styles.card}>
@@ -117,11 +115,8 @@ export default function PremiumServiceCard({
 
         <div className={styles.body}>
           <div className={styles.topRow}>
-            <span className={styles.category}>{category || t("categoryFallback")}</span>
-
-            <span className={styles.rating}>
-              <Star className={styles.ratingIcon} />
-              {ratingValue.toFixed(1)}
+            <span className={styles.category}>
+              {category || t("categoryFallback")}
             </span>
           </div>
 

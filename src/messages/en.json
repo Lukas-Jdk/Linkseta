@@ -378,5 +378,57 @@
   },
   "categories": {
   "it-paslaugos": "IT services"
+},
+"registerPage": {
+  "title": "Register",
+  "subtitle": "Create a new account to use our services and features.",
+  "namePlaceholder": "First name",
+  "surnamePlaceholder": "Last name",
+  "phonePlaceholder": "Phone",
+  "emailPlaceholder": "Email",
+  "passwordPlaceholder": "Password",
+  "passwordHint": "*Password must be at least 8 characters long",
+  "loading": "Creating...",
+  "submit": "Register",
+  "success": "Registration successful! We sent a confirmation email. Please check your inbox, including Spam or Promotions.",
+  "alreadyHaveAccount": "Already have an account?",
+  "loginLink": "Log in",
+  "legalStart": "By registering, you agree to our",
+  "legalAnd": "and",
+  "terms": "Terms of Service",
+  "privacy": "Privacy Policy",
+  "errors": {
+    "generic": "Failed to register account. Please try again.",
+    "emailInUse": "This email is already in use. Try logging in or resetting your password.",
+    "invalidEmail": "The email address is invalid. Please check it and try again.",
+    "weakPassword": "Password is too weak. Use at least 8 characters, preferably with letters and numbers.",
+    "signupDisabled": "Registration is temporarily disabled. Please try again later.",
+    "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
+    "network": "Could not connect to the server. Check your internet connection and try again.",
+    "server": "A server error occurred. Please try again.",
+    "withReason": "Registration failed: {reason}"
+  }
+},
+"loginPage": {
+  "title": "Login",
+  "emailPlaceholder": "Email",
+  "passwordPlaceholder": "Password",
+  "loading": "Signing in...",
+  "submit": "Log in",
+  "forgotPassword": "Forgot your password?",
+  "resetLink": "Reset",
+  "confirmedMessage": "Email confirmed successfully. You can now log in.",
+  "confirmErrorMessage": "Failed to confirm email or the link has expired.",
+  "resetMessage": "Password changed successfully. You can now log in.",
+  "errors": {
+    "generic": "Failed to sign in. Check your details and try again.",
+    "invalidCredentials": "Incorrect email or password.",
+    "emailNotConfirmed": "Email has not been confirmed yet. Check your inbox.",
+    "tooManyRequests": "Too many login attempts. Please wait a few minutes and try again.",
+    "network": "Could not connect to the server. Check your internet connection and try again.",
+    "server": "Server error. Please try again.",
+    "missingFields": "Enter your email and password.",
+    "withReason": "Login failed: {reason}"
+  }
 }
 }

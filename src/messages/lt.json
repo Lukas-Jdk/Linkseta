@@ -378,5 +378,57 @@
   },
   "categories": {
   "it-paslaugos": "IT paslaugos"
+},
+"registerPage": {
+  "title": "Registracija",
+  "subtitle": "Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir funkcijomis.",
+  "namePlaceholder": "Vardas",
+  "surnamePlaceholder": "Pavardė",
+  "phonePlaceholder": "Telefonas",
+  "emailPlaceholder": "El. paštas",
+  "passwordPlaceholder": "Slaptažodis",
+  "passwordHint": "*Slaptažodis turi būti bent 8 simbolių ilgio",
+  "loading": "Kuriama...",
+  "submit": "Registruotis",
+  "success": "Registracija pavyko! Išsiuntėme patvirtinimo laišką. Patikrinkite el. paštą, taip pat „Spam“ ar „Promotions“ skiltis.",
+  "alreadyHaveAccount": "Jau turite paskyrą?",
+  "loginLink": "Prisijunkite",
+  "legalStart": "Registruodamiesi sutinkate su mūsų",
+  "legalAnd": "ir",
+  "terms": "Naudojimosi sąlygomis",
+  "privacy": "Privatumo politika",
+  "errors": {
+    "generic": "Nepavyko užregistruoti paskyros. Bandykite dar kartą.",
+    "emailInUse": "Toks el. paštas jau naudojamas. Bandykite prisijungti arba atstatyti slaptažodį.",
+    "invalidEmail": "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.",
+    "weakPassword": "Slaptažodis per silpnas. Naudokite bent 8 simbolius, geriausia su raidėmis ir skaičiais.",
+    "signupDisabled": "Registracija šiuo metu laikinai išjungta. Bandykite vėliau.",
+    "tooManyRequests": "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.",
+    "network": "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.",
+    "server": "Įvyko serverio klaida. Bandykite dar kartą.",
+    "withReason": "Registracija nepavyko: {reason}"
+  }
+},
+"loginPage": {
+  "title": "Prisijungimas",
+  "emailPlaceholder": "El. paštas",
+  "passwordPlaceholder": "Slaptažodis",
+  "loading": "Jungiama...",
+  "submit": "Prisijungti",
+  "forgotPassword": "Pamiršote slaptažodį?",
+  "resetLink": "Atstatyti",
+  "confirmedMessage": "El. paštas sėkmingai patvirtintas. Dabar galite prisijungti.",
+  "confirmErrorMessage": "Nepavyko patvirtinti el. pašto arba nuoroda nebegalioja.",
+  "resetMessage": "Slaptažodis sėkmingai pakeistas. Dabar galite prisijungti.",
+  "errors": {
+    "generic": "Nepavyko prisijungti. Patikrinkite duomenis ir bandykite dar kartą.",
+    "invalidCredentials": "Neteisingas el. paštas arba slaptažodis.",
+    "emailNotConfirmed": "El. paštas dar nepatvirtintas. Patikrinkite savo pašto dėžutę.",
+    "tooManyRequests": "Per daug bandymų prisijungti. Palaukite kelias minutes ir bandykite dar kartą.",
+    "network": "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.",
+    "server": "Serverio klaida. Bandykite dar kartą.",
+    "missingFields": "Įveskite el. paštą ir slaptažodį.",
+    "withReason": "Prisijungti nepavyko: {reason}"
+  }
 }
 }

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./register.module.css";
 import { User, Phone, Mail, Lock } from "lucide-react";
@@ -9,11 +10,14 @@ import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 
-function mapRegisterError(raw: string | null | undefined) {
+function mapRegisterError(
+  raw: string | null | undefined,
+  t: ReturnType<typeof useTranslations<"registerPage">>,
+) {
   const msg = (raw || "").toLowerCase().trim();
 
   if (!msg) {
-    return "Nepavyko užregistruoti paskyros. Bandykite dar kartą.";
+    return t("errors.generic");
   }
 
   if (
@@ -21,7 +25,7 @@ function mapRegisterError(raw: string | null | undefined) {
     msg.includes("user already registered") ||
     msg.includes("already exists")
   ) {
-    return "Toks el. paštas jau naudojamas. Bandykite prisijungti arba atstatyti slaptažodį.";
+    return t("errors.emailInUse");
   }
 
   if (
@@ -29,21 +33,21 @@ function mapRegisterError(raw: string | null | undefined) {
     msg.includes("invalid email") ||
     msg.includes("unable to validate email address")
   ) {
-    return "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.";
+    return t("errors.invalidEmail");
   }
 
   if (
     msg.includes("password should be at least") ||
     msg.includes("weak password")
   ) {
-    return "Slaptažodis per silpnas. Naudokite bent 8 simbolius, geriausia su raidėmis ir skaičiais.";
+    return t("errors.weakPassword");
   }
 
   if (
     msg.includes("signup is disabled") ||
     msg.includes("signups not allowed")
   ) {
-    return "Registracija šiuo metu laikinai išjungta. Bandykite vėliau.";
+    return t("errors.signupDisabled");
   }
 
   if (
@@ -52,7 +56,7 @@ function mapRegisterError(raw: string | null | undefined) {
     msg.includes("too many requests") ||
     msg.includes("over_email_send_rate_limit")
   ) {
-    return "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.";
+    return t("errors.tooManyRequests");
   }
 
   if (
@@ -60,13 +64,14 @@ function mapRegisterError(raw: string | null | undefined) {
     msg.includes("failed to fetch") ||
     msg.includes("fetch")
   ) {
-    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+    return t("errors.network");
   }
 
-  return `Registracija nepavyko: ${raw}`;
+  return t("errors.withReason", { reason: raw || "" });
 }
 
 export default function RegisterPage() {
+  const t = useTranslations("registerPage");
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
 
@@ -107,7 +112,7 @@ export default function RegisterPage() {
 
       if (error) {
         console.error("register error:", error);
-        setError(mapRegisterError(error.message));
+        setError(mapRegisterError(error.message, t));
         return;
       }
 
@@ -115,13 +120,11 @@ export default function RegisterPage() {
         await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
       }
 
-      setSuccess(
-        "Registracija pavyko! Išsiuntėme patvirtinimo laišką. Patikrinkite el. paštą, taip pat „Spam“ ar „Promotions“ skiltis."
-      );
+      setSuccess(t("success"));
       setPassword("");
     } catch (e) {
       console.error("register unexpected error:", e);
-      setError("Įvyko serverio klaida. Bandykite dar kartą.");
+      setError(t("errors.server"));
     } finally {
       setLoading(false);
     }
@@ -130,10 +133,8 @@ export default function RegisterPage() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Registracija</h1>
-        <p className={styles.subtitle}>
-          Sukurkite naują paskyrą, kad galėtumėte naudotis mūsų paslaugomis ir funkcijomis.
-        </p>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <p className={styles.subtitle}>{t("subtitle")}</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputRow}>
@@ -141,7 +142,7 @@ export default function RegisterPage() {
             <input
               className={styles.input}
               type="text"
-              placeholder="Vardas"
+              placeholder={t("namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoComplete="given-name"
@@ -153,7 +154,7 @@ export default function RegisterPage() {
             <input
               className={styles.input}
               type="text"
-              placeholder="Pavardė"
+              placeholder={t("surnamePlaceholder")}
               value={surname}
               onChange={(e) => setSurname(e.target.value)}
               autoComplete="family-name"
@@ -165,7 +166,7 @@ export default function RegisterPage() {
             <input
               className={styles.input}
               type="text"
-              placeholder="Telefonas"
+              placeholder={t("phonePlaceholder")}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               autoComplete="tel"
@@ -177,7 +178,7 @@ export default function RegisterPage() {
             <input
               className={styles.input}
               type="email"
-              placeholder="El. paštas"
+              placeholder={t("emailPlaceholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -190,7 +191,7 @@ export default function RegisterPage() {
             <input
               className={styles.input}
               type="password"
-              placeholder="Slaptažodis"
+              placeholder={t("passwordPlaceholder")}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -198,30 +199,30 @@ export default function RegisterPage() {
             />
           </div>
 
-          <div className={styles.hint}>*Slaptažodis turi būti bent 8 simbolių ilgio</div>
+          <div className={styles.hint}>{t("passwordHint")}</div>
 
           {error && <p className={styles.error}>{error}</p>}
           {success && <p className={styles.success}>{success}</p>}
 
           <button className={styles.button} disabled={loading} type="submit">
-            {loading ? "Kuriama..." : "Registruotis"}
+            {loading ? t("loading") : t("submit")}
           </button>
 
           <div className={styles.bottomText}>
-            Jau turite paskyrą?{" "}
+            {t("alreadyHaveAccount")}{" "}
             <LocalizedLink href="/login" className={styles.link}>
-              Prisijunkite
+              {t("loginLink")}
             </LocalizedLink>
           </div>
 
           <div className={styles.legal}>
-            Registruodamiesi sutinkate su mūsų{" "}
+            {t("legalStart")}{" "}
             <LocalizedLink href="/terms" className={styles.link}>
-              Naudojimosi sąlygomis
+              {t("terms")}
             </LocalizedLink>{" "}
-            ir{" "}
+            {t("legalAnd")}{" "}
             <LocalizedLink href="/privacy" className={styles.link}>
-              Privatumo politika
+              {t("privacy")}
             </LocalizedLink>
             .
           </div>
