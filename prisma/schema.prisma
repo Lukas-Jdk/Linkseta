@@ -49,6 +49,10 @@ model ProviderProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  lifetimeFree          Boolean   @default(false)
+  lifetimeFreeGrantedAt DateTime?
+  lifetimeFreeGrantedBy String?
+
   planId String?
   plan   Plan?   @relation(fields: [planId], references: [id])
 

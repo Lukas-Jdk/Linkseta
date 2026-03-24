@@ -1,0 +1,137 @@
+/* src/app/[locale]/admin/providers/providersAdmin.module.css */
+.wrapper {
+  padding: 32px;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 0.98rem;
+}
+
+.error {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.table th,
+.table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.table th {
+  background: #f8fafc;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.table td {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.badgeApproved,
+.badgeLifetime,
+.badgeMuted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.badgeApproved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badgeLifetime {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badgeMuted {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.actionBtn {
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.actionBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.actionBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.addBtn {
+  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  color: white;
+}
+
+.removeBtn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.empty {
+  text-align: center;
+  color: #64748b;
+  padding: 24px !important;
+}

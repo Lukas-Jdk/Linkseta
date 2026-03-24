@@ -131,7 +131,7 @@ export default async function DashboardPage({ params }: Props) {
 
               {!isProviderApproved && (
                 <div className={styles.empty}>
-                  {t("emptyNotApproved")}
+                  {t("emptyNotProvider")}
                   <div className={styles.emptyActions}>
                     <Link
                       href={`/${locale}/tapti-teikeju`}

@@ -1,5 +1,6 @@
 // src/app/[locale]/admin/users/page.tsx
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { routing } from "@/i18n/routing";
@@ -37,7 +38,53 @@ function parsePage(v: string | undefined) {
   return Math.floor(n);
 }
 
-export default async function AdminUsersPage({ params, searchParams }: PageProps) {
+async function toggleLifetimeFreeAction(formData: FormData) {
+  "use server";
+
+  const locale = safeLocale(String(formData.get("locale") || "lt"));
+  const userId = String(formData.get("userId") || "");
+  const nextValueRaw = String(formData.get("nextValue") || "false");
+  const nextValue = nextValueRaw === "true";
+
+  const { user, response } = await requireAdmin();
+  if (response || !user || user.role !== "ADMIN") {
+    redirect(`/${locale}`);
+  }
+
+  if (!userId) {
+    redirect(`/${locale}/admin/users`);
+  }
+
+  const existingProfile = await prisma.providerProfile.findUnique({
+    where: { userId },
+    select: {
+      userId: true,
+      isApproved: true,
+      lifetimeFree: true,
+    },
+  });
+
+  if (!existingProfile) {
+    redirect(`/${locale}/admin/users`);
+  }
+
+  await prisma.providerProfile.update({
+    where: { userId },
+    data: {
+      lifetimeFree: nextValue,
+      lifetimeFreeGrantedAt: nextValue ? new Date() : null,
+      lifetimeFreeGrantedBy: nextValue ? user.id : null,
+    },
+  });
+
+  revalidatePath(`/${locale}/admin/users`);
+  revalidatePath(`/${locale}/admin`);
+}
+
+export default async function AdminUsersPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { locale: rawLocale } = await params;
   const locale = safeLocale(rawLocale);
 
@@ -62,7 +109,13 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
       phone: true,
       role: true,
       createdAt: true,
-      profile: { select: { isApproved: true } },
+      profile: {
+        select: {
+          isApproved: true,
+          lifetimeFree: true,
+          lifetimeFreeGrantedAt: true,
+        },
+      },
       _count: { select: { services: true } },
     },
   });
@@ -76,6 +129,10 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
     createdAt: u.createdAt.toISOString(),
     isProvider: Boolean(u.profile),
     isApprovedProvider: u.profile?.isApproved ?? false,
+    lifetimeFree: u.profile?.lifetimeFree ?? false,
+    lifetimeFreeGrantedAt: u.profile?.lifetimeFreeGrantedAt
+      ? u.profile.lifetimeFreeGrantedAt.toISOString()
+      : null,
     servicesCount: u._count.services,
   }));
 
@@ -87,13 +144,13 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
     <main className={styles.wrapper}>
       <h1 className={styles.heading}>Vartotojų sąrašas</h1>
       <p className={styles.subheading}>
-        Čia matosi visi registruoti vartotojai, jų rolės ir ar jie turi patvirtintą
-        paslaugų teikėjo profilį.
+        Čia matosi visi registruoti vartotojai, jų rolės ir ar jie turi
+        patvirtintą paslaugų teikėjo profilį.
       </p>
 
       <p className={styles.subheading}>
-        Rodoma: <strong>{safeUsers.length}</strong> iš <strong>{totalUsers}</strong> • Puslapis{" "}
-        <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
+        Rodoma: <strong>{safeUsers.length}</strong> iš <strong>{totalUsers}</strong> •
+        {" "}Puslapis <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
       </p>
 
       {safeUsers.length === 0 ? (
@@ -111,6 +168,7 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
                   <th>Rolė</th>
                   <th>Teikėjas</th>
                   <th>Skelbimų sk.</th>
+                  <th>Veiksmas</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,13 +180,63 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
                     <td>{u.phone ?? "—"}</td>
                     <td>{u.role}</td>
                     <td>
-                      {u.isProvider
-                        ? u.isApprovedProvider
-                          ? "Aktyvus teikėjas"
-                          : "Neaktyvus teikėjas"
-                        : "Ne teikėjas"}
+                      {u.isProvider ? (
+                        <>
+                          <div>
+                            {u.isApprovedProvider
+                              ? "Aktyvus teikėjas"
+                              : "Neaktyvus teikėjas"}
+                          </div>
+
+                          {u.lifetimeFree && (
+                            <div
+                              style={{
+                                marginTop: 4,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: "#15803d",
+                              }}
+                            >
+                              ⭐ Lifetime free
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        "Ne teikėjas"
+                      )}
                     </td>
                     <td>{u.servicesCount}</td>
+                    <td>
+                      {u.isProvider ? (
+                        <form action={toggleLifetimeFreeAction}>
+                          <input type="hidden" name="locale" value={locale} />
+                          <input type="hidden" name="userId" value={u.id} />
+                          <input
+                            type="hidden"
+                            name="nextValue"
+                            value={u.lifetimeFree ? "false" : "true"}
+                          />
+
+                          <button
+                            type="submit"
+                            className={styles.button}
+                            style={{
+                              padding: "8px 12px",
+                              minWidth: 150,
+                              background: u.lifetimeFree
+                                ? "#dc2626"
+                                : undefined,
+                            }}
+                          >
+                            {u.lifetimeFree
+                              ? "Nuimti lifetime"
+                              : "Duoti lifetime"}
+                          </button>
+                        </form>
+                      ) : (
+                        <span style={{ color: "#94a3b8" }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -138,7 +246,10 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
           {totalPages > 1 && (
             <div className={styles.filtersRow} style={{ marginTop: 14 }}>
               {currentPage > 1 ? (
-                <LocalizedLink href={buildPageHref(currentPage - 1)} className={styles.button}>
+                <LocalizedLink
+                  href={buildPageHref(currentPage - 1)}
+                  className={styles.button}
+                >
                   ← Ankstesnis
                 </LocalizedLink>
               ) : (
@@ -150,7 +261,10 @@ export default async function AdminUsersPage({ params, searchParams }: PageProps
               </span>
 
               {currentPage < totalPages ? (
-                <LocalizedLink href={buildPageHref(currentPage + 1)} className={styles.button}>
+                <LocalizedLink
+                  href={buildPageHref(currentPage + 1)}
+                  className={styles.button}
+                >
                   Kitas →
                 </LocalizedLink>
               ) : (
