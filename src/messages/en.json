@@ -386,6 +386,7 @@
   "surnamePlaceholder": "Last name",
   "phonePlaceholder": "Phone",
   "emailPlaceholder": "Email",
+  "companyNamePlaceholder": "Company name",
   "passwordPlaceholder": "Password",
   "passwordHint": "*Password must be at least 8 characters long",
   "loading": "Creating...",
@@ -431,4 +432,5 @@
     "withReason": "Login failed: {reason}"
   }
 }
+
 }

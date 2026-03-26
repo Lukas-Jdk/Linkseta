@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import styles from "./register.module.css";
-import { User, Phone, Mail, Lock } from "lucide-react";
+import { User, Phone, Mail, Lock, Building2 } from "lucide-react";
 import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
@@ -79,6 +79,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [phone, setPhone] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -106,6 +107,7 @@ export default function RegisterPage() {
           data: {
             name: fullName,
             phone: phone.trim(),
+            companyName: companyName.trim(),
           },
         },
       });
@@ -117,7 +119,9 @@ export default function RegisterPage() {
       }
 
       if (data.session) {
-        await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(() => {});
+        await csrfFetch("/api/auth/sync-user", { method: "POST" }).catch(
+          () => {},
+        );
       }
 
       setSuccess(t("success"));
@@ -158,6 +162,18 @@ export default function RegisterPage() {
               value={surname}
               onChange={(e) => setSurname(e.target.value)}
               autoComplete="family-name"
+            />
+          </div>
+
+          <div className={styles.inputRow}>
+            <Building2 className={styles.icon} aria-hidden="true" />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder={t("companyNamePlaceholder")}
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              autoComplete="organization"
             />
           </div>
 

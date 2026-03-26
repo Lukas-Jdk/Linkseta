@@ -34,8 +34,8 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
-function initialLetter(name: string | null, email: string) {
-  const src = name?.trim() ? name.trim() : email;
+function initialLetter(source: string | null, email: string) {
+  const src = source?.trim() ? source.trim() : email;
   return src.slice(0, 1).toUpperCase() || "U";
 }
 
@@ -168,6 +168,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
           profile: {
             select: {
               isApproved: true,
+              companyName: true,
             },
           },
         },
@@ -193,9 +194,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
     ? tCategories(service.category.slug)
     : "—";
 
+  const publicCompanyName = service.user.profile?.companyName?.trim() || null;
+  const fallbackPersonName = service.user.name?.trim() || null;
+
   const sellerName =
-    service.user.name?.trim() || service.user.email.split("@")[0];
-  const sellerInitial = initialLetter(service.user.name, service.user.email);
+    publicCompanyName ||
+    fallbackPersonName ||
+    service.user.email.split("@")[0];
+
+  const sellerInitial = initialLetter(sellerName, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
 
   const sellerAvatarUrl = isSafeAvatarUrl(service.user.avatarUrl)
@@ -237,10 +244,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
       "@type": "AdministrativeArea",
       name: city !== "—" ? city : "Norway",
     },
-    provider: {
-      "@type": "Person",
-      name: sellerName,
-    },
+    provider: publicCompanyName
+      ? {
+          "@type": "Organization",
+          name: publicCompanyName,
+        }
+      : {
+          "@type": "Person",
+          name: sellerName,
+        },
     offers: {
       "@type": "Offer",
       priceCurrency: "NOK",

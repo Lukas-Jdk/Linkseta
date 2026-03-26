@@ -68,6 +68,8 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
   const metaName = typeof meta.name === "string" ? meta.name.trim() : null;
   const metaPhone = typeof meta.phone === "string" ? meta.phone.trim() : null;
+  const metaCompanyName =
+    typeof meta.companyName === "string" ? meta.companyName.trim() : null;
 
   let dbUser = await prisma.user.findUnique({
     where: { supabaseId },
@@ -102,6 +104,19 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
       select: authUserSelect,
     });
 
+    if (metaCompanyName) {
+      await prisma.providerProfile.upsert({
+        where: { userId: created.id },
+        update: {
+          companyName: metaCompanyName,
+        },
+        create: {
+          userId: created.id,
+          companyName: metaCompanyName,
+        },
+      });
+    }
+
     return toAuthUser(created);
   }
 
@@ -115,13 +130,27 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   if (dbUser.supabaseId !== supabaseId) updateData.supabaseId = supabaseId;
   if (dbUser.email !== email) updateData.email = email;
   if (metaName !== null && dbUser.name !== metaName) updateData.name = metaName;
-  if (metaPhone !== null && dbUser.phone !== metaPhone) updateData.phone = metaPhone;
+  if (metaPhone !== null && dbUser.phone !== metaPhone)
+    updateData.phone = metaPhone;
 
   if (Object.keys(updateData).length > 0) {
     dbUser = await prisma.user.update({
       where: { id: dbUser.id },
       data: updateData,
       select: authUserSelect,
+    });
+  }
+
+  if (metaCompanyName) {
+    await prisma.providerProfile.upsert({
+      where: { userId: dbUser.id },
+      update: {
+        companyName: metaCompanyName,
+      },
+      create: {
+        userId: dbUser.id,
+        companyName: metaCompanyName,
+      },
     });
   }
 

@@ -386,6 +386,7 @@
   "surnamePlaceholder": "Pavardė",
   "phonePlaceholder": "Telefonas",
   "emailPlaceholder": "El. paštas",
+  "companyNamePlaceholder": "Įmonės pavadinimas",
   "passwordPlaceholder": "Slaptažodis",
   "passwordHint": "*Slaptažodis turi būti bent 8 simbolių ilgio",
   "loading": "Kuriama...",
