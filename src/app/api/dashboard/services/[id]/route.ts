@@ -8,6 +8,7 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
+import { translateServiceContent } from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,13 @@ export async function PATCH(
         galleryImageUrls: true,
         galleryImagePaths: true,
         highlights: true,
+        sourceLocale: true,
+        titleEn: true,
+        titleNo: true,
+        descriptionEn: true,
+        descriptionNo: true,
+        highlightsEn: true,
+        highlightsNo: true,
       },
     });
 
@@ -193,7 +201,8 @@ export async function PATCH(
     );
 
     const nextPairs =
-      body?.galleryImageUrls === undefined && body?.galleryImagePaths === undefined
+      body?.galleryImageUrls === undefined &&
+      body?.galleryImagePaths === undefined
         ? currentPairs
         : normalizeGalleryPairs(
             body?.galleryImageUrls,
@@ -237,6 +246,50 @@ export async function PATCH(
     const nextGalleryImageUrls = nextPairs.map((x) => x.url);
     const nextGalleryImagePaths = nextPairs.map((x) => x.path);
 
+    const shouldRetranslate =
+      nextTitle !== service.title ||
+      nextDesc !== service.description ||
+      JSON.stringify(highlights) !== JSON.stringify(service.highlights);
+
+    let titleEn = service.titleEn;
+    let titleNo = service.titleNo;
+    let descriptionEn = service.descriptionEn;
+    let descriptionNo = service.descriptionNo;
+    let highlightsEn = Array.isArray(service.highlightsEn)
+      ? service.highlightsEn
+      : [];
+    let highlightsNo = Array.isArray(service.highlightsNo)
+      ? service.highlightsNo
+      : [];
+
+    if (shouldRetranslate) {
+      try {
+        const translated = await translateServiceContent({
+          title: nextTitle,
+          description: nextDesc,
+          highlights,
+        });
+
+        titleEn = translated.en.title;
+        descriptionEn = translated.en.description;
+        highlightsEn = translated.en.highlights;
+
+        titleNo = translated.no.title;
+        descriptionNo = translated.no.description;
+        highlightsNo = translated.no.highlights;
+      } catch (translationError: any) {
+        logError("DeepL translate failed on service update", {
+          requestId,
+          route: "/api/dashboard/services/[id]",
+          ip,
+          meta: {
+            message: translationError?.message,
+            stack: translationError?.stack,
+          },
+        });
+      }
+    }
+
     const updated = await prisma.serviceListing.update({
       where: { id: service.id },
       data: {
@@ -251,6 +304,13 @@ export async function PATCH(
         galleryImageUrls: nextGalleryImageUrls,
         galleryImagePaths: nextGalleryImagePaths,
         highlights,
+        sourceLocale: service.sourceLocale ?? "lt",
+        titleEn,
+        titleNo,
+        descriptionEn,
+        descriptionNo,
+        highlightsEn,
+        highlightsNo,
       },
       select: {
         id: true,
@@ -277,6 +337,7 @@ export async function PATCH(
         changedKeys: Object.keys(body ?? {}),
         deletedImagesCount: toDelete.length,
         imageCount: nextGalleryImageUrls.length,
+        retranslated: shouldRetranslate,
       },
     });
 

@@ -71,6 +71,15 @@ model ServiceListing {
   highlighted Boolean  @default(false)
   highlights  String[] @default([])
 
+  sourceLocale String @default("lt")
+
+  titleEn       String?
+  titleNo       String?
+  descriptionEn String?
+  descriptionNo String?
+  highlightsEn  String[] @default([])
+  highlightsNo  String[] @default([])
+
   imageUrl  String?
   imagePath String?
 

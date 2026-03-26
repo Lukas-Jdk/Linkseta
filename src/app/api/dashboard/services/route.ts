@@ -7,6 +7,7 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
+import { translateServiceContent } from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
@@ -210,6 +211,39 @@ export async function POST(req: Request) {
     const coverImageUrl = galleryImageUrls[0] ?? null;
     const coverImagePath = galleryImagePaths[0] ?? null;
 
+    let titleEn: string | null = null;
+    let titleNo: string | null = null;
+    let descriptionEn: string | null = null;
+    let descriptionNo: string | null = null;
+    let highlightsEn: string[] = [];
+    let highlightsNo: string[] = [];
+
+    try {
+      const translated = await translateServiceContent({
+        title,
+        description,
+        highlights,
+      });
+
+      titleEn = translated.en.title;
+      descriptionEn = translated.en.description;
+      highlightsEn = translated.en.highlights;
+
+      titleNo = translated.no.title;
+      descriptionNo = translated.no.description;
+      highlightsNo = translated.no.highlights;
+    } catch (translationError: any) {
+      logError("DeepL translate failed on service create", {
+        requestId,
+        route: "/api/dashboard/services",
+        ip,
+        meta: {
+          message: translationError?.message,
+          stack: translationError?.stack,
+        },
+      });
+    }
+
     const created = await prisma.serviceListing.create({
       data: {
         userId: user.id,
@@ -224,6 +258,13 @@ export async function POST(req: Request) {
         galleryImageUrls,
         galleryImagePaths,
         highlights,
+        sourceLocale: "lt",
+        titleEn,
+        titleNo,
+        descriptionEn,
+        descriptionNo,
+        highlightsEn,
+        highlightsNo,
         isActive: true,
         highlighted: false,
         deletedAt: null,

@@ -52,6 +52,42 @@ function normalizePhoneHref(phone: string) {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
 
+function pickLocalizedText(
+  locale: string,
+  original: string | null | undefined,
+  en: string | null | undefined,
+  no: string | null | undefined,
+) {
+  if (locale === "en") return en?.trim() || original?.trim() || "";
+  if (locale === "no") return no?.trim() || original?.trim() || "";
+  return original?.trim() || "";
+}
+
+function pickLocalizedArray(
+  locale: string,
+  original: string[] | null | undefined,
+  en: string[] | null | undefined,
+  no: string[] | null | undefined,
+) {
+  if (locale === "en") {
+    return Array.isArray(en) && en.length > 0
+      ? en
+      : Array.isArray(original)
+        ? original
+        : [];
+  }
+
+  if (locale === "no") {
+    return Array.isArray(no) && no.length > 0
+      ? no
+      : Array.isArray(original)
+        ? original
+        : [];
+  }
+
+  return Array.isArray(original) ? original : [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -63,7 +99,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { slug },
     select: {
       title: true,
+      titleEn: true,
+      titleNo: true,
       description: true,
+      descriptionEn: true,
+      descriptionNo: true,
       imageUrl: true,
       isActive: true,
       deletedAt: true,
@@ -74,9 +114,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { robots: { index: false, follow: false } };
   }
 
-  const title = `${service.title} | ${tMeta("siteName")}`;
+  const localizedTitle = pickLocalizedText(
+    locale,
+    service.title,
+    service.titleEn,
+    service.titleNo,
+  );
+
+  const localizedDescription = pickLocalizedText(
+    locale,
+    service.description,
+    service.descriptionEn,
+    service.descriptionNo,
+  );
+
+  const title = `${localizedTitle} | ${tMeta("siteName")}`;
   const description = truncate(
-    stripHtml(service.description || t("metaFallbackDescription")),
+    stripHtml(localizedDescription || t("metaFallbackDescription")),
     160,
   );
 
@@ -105,7 +159,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: service.title,
+          alt: localizedTitle,
         },
       ],
     },
@@ -141,11 +195,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
     select: {
       id: true,
       title: true,
+      titleEn: true,
+      titleNo: true,
       description: true,
+      descriptionEn: true,
+      descriptionNo: true,
       slug: true,
       priceFrom: true,
       highlighted: true,
       highlights: true,
+      highlightsEn: true,
+      highlightsNo: true,
       imageUrl: true,
       galleryImageUrls: true,
       city: {
@@ -177,6 +237,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
   });
 
   if (!service) notFound();
+
+  const localizedTitle = pickLocalizedText(
+    locale,
+    service.title,
+    service.titleEn,
+    service.titleNo,
+  );
+
+  const localizedDescription = pickLocalizedText(
+    locale,
+    service.description,
+    service.descriptionEn,
+    service.descriptionNo,
+  );
+
+  const localizedHighlights = pickLocalizedArray(
+    locale,
+    service.highlights,
+    service.highlightsEn,
+    service.highlightsNo,
+  );
 
   const gallery = Array.isArray(service.galleryImageUrls)
     ? service.galleryImageUrls.filter(Boolean)
@@ -226,20 +307,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const emailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     service.user.email,
   )}&su=${encodeURIComponent(
-    t("emailSubject", { title: service.title }),
+    t("emailSubject", { title: localizedTitle }),
   )}&body=${encodeURIComponent(
-    t("emailBody", { title: service.title }),
+    t("emailBody", { title: localizedTitle }),
   )}`;
-
-  const highlights = Array.isArray(service.highlights)
-    ? service.highlights
-    : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: service.title,
-    description: service.description,
+    name: localizedTitle,
+    description: localizedDescription,
     areaServed: {
       "@type": "AdministrativeArea",
       name: city !== "—" ? city : "Norway",
@@ -487,7 +564,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                   <div className={styles.heroTop}>
                     <div className={styles.heroMedia}>
                       <GalleryClient
-                        title={service.title}
+                        title={localizedTitle}
                         images={images}
                         highlighted={service.highlighted}
                       />
@@ -518,7 +595,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                     </div>
 
                     <div className={styles.heroContent}>
-                      <h1 className={styles.title}>{service.title}</h1>
+                      <h1 className={styles.title}>{localizedTitle}</h1>
 
                       <div className={styles.metaRow}>
                         <span className={styles.metaChip}>
@@ -546,9 +623,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
               <div className={styles.contentCardWrap}>
                 <ServiceTabsClient
-                  title={service.title}
-                  description={service.description}
-                  highlights={highlights}
+                  title={localizedTitle}
+                  description={localizedDescription}
+                  highlights={localizedHighlights}
                   images={images}
                 />
               </div>
