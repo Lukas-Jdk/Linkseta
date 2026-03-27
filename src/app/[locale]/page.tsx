@@ -29,6 +29,17 @@ function cleanParam(value?: string) {
   return value?.trim() ?? "";
 }
 
+function pickLocalizedValue(
+  locale: string,
+  base: string,
+  en?: string | null,
+  no?: string | null,
+) {
+  if (locale === "en") return en?.trim() || base;
+  if (locale === "no") return no?.trim() || base;
+  return base;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -69,6 +80,11 @@ export default async function HomePage({ params, searchParams }: Props) {
   const [{ locale }, resolved] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
+  const tCategories = await getTranslations({
+    locale,
+    namespace: "categories",
+  });
+
   const q = cleanParam(resolved.q);
   const city = cleanParam(resolved.city);
   const category = cleanParam(resolved.category);
@@ -82,6 +98,10 @@ export default async function HomePage({ params, searchParams }: Props) {
     where.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
+      { titleEn: { contains: q, mode: "insensitive" } },
+      { descriptionEn: { contains: q, mode: "insensitive" } },
+      { titleNo: { contains: q, mode: "insensitive" } },
+      { descriptionNo: { contains: q, mode: "insensitive" } },
     ];
   }
 
@@ -93,7 +113,11 @@ export default async function HomePage({ params, searchParams }: Props) {
     select: {
       id: true,
       title: true,
+      titleEn: true,
+      titleNo: true,
       description: true,
+      descriptionEn: true,
+      descriptionNo: true,
       priceFrom: true,
       slug: true,
       highlighted: true,
@@ -106,6 +130,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       category: {
         select: {
           name: true,
+          slug: true,
         },
       },
     },
@@ -113,17 +138,43 @@ export default async function HomePage({ params, searchParams }: Props) {
     take: 6,
   });
 
-  const items = services.map((s) => ({
-    id: s.id,
-    title: s.title,
-    description: s.description,
-    city: s.city?.name ?? "",
-    category: s.category?.name ?? "",
-    priceFrom: s.priceFrom,
-    slug: s.slug,
-    highlighted: s.highlighted ?? false,
-    imageUrl: s.imageUrl,
-  }));
+  const items = services.map((s) => {
+    const localizedTitle = pickLocalizedValue(
+      locale,
+      s.title,
+      s.titleEn,
+      s.titleNo,
+    );
+
+    const localizedDescription = pickLocalizedValue(
+      locale,
+      s.description,
+      s.descriptionEn,
+      s.descriptionNo,
+    );
+
+    let localizedCategory = s.category?.name ?? "";
+
+    if (s.category?.slug) {
+      try {
+        localizedCategory = tCategories(s.category.slug);
+      } catch {
+        localizedCategory = s.category.name ?? s.category.slug;
+      }
+    }
+
+    return {
+      id: s.id,
+      title: localizedTitle,
+      description: localizedDescription,
+      city: s.city?.name ?? "",
+      category: localizedCategory,
+      priceFrom: s.priceFrom,
+      slug: s.slug,
+      highlighted: s.highlighted ?? false,
+      imageUrl: s.imageUrl,
+    };
+  });
 
   return (
     <>
