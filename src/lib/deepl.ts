@@ -43,7 +43,10 @@ async function translateTexts({
   for (const text of filtered) {
     body.append("text", text);
   }
-
+console.log("🔥 DeepL REQUEST:", {
+  texts,
+  targetLang,
+});
   const res = await fetch(`${getDeeplBaseUrl()}/v2/translate`, {
     method: "POST",
     headers: {
@@ -53,7 +56,10 @@ async function translateTexts({
     body: body.toString(),
     cache: "no-store",
   });
-
+console.log("🔥 DeepL REQUEST:", {
+  texts,
+  targetLang,
+});
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");
     throw new Error(`DeepL error: ${res.status} ${errorText}`);
@@ -62,7 +68,7 @@ async function translateTexts({
   const json = (await res.json()) as {
     translations?: Array<{ text: string }>;
   };
-
+console.log("🔥 DeepL RESPONSE:", JSON.stringify(json));
   return Array.isArray(json.translations)
     ? json.translations.map((item) => item.text ?? "")
     : [];

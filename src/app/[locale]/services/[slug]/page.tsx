@@ -34,8 +34,8 @@ function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
 }
 
-function initialLetter(source: string | null, email: string) {
-  const src = source?.trim() ? source.trim() : email;
+function initialLetter(name: string | null, email: string) {
+  const src = name?.trim() ? name.trim() : email;
   return src.slice(0, 1).toUpperCase() || "U";
 }
 
@@ -52,40 +52,26 @@ function normalizePhoneHref(phone: string) {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
 
-function pickLocalizedText(
+function pickLocalizedValue(
   locale: string,
-  original: string | null | undefined,
-  en: string | null | undefined,
-  no: string | null | undefined,
+  base: string,
+  en?: string | null,
+  no?: string | null,
 ) {
-  if (locale === "en") return en?.trim() || original?.trim() || "";
-  if (locale === "no") return no?.trim() || original?.trim() || "";
-  return original?.trim() || "";
+  if (locale === "en") return en?.trim() || base;
+  if (locale === "no") return no?.trim() || base;
+  return base;
 }
 
 function pickLocalizedArray(
   locale: string,
-  original: string[] | null | undefined,
-  en: string[] | null | undefined,
-  no: string[] | null | undefined,
+  base: string[],
+  en?: string[] | null,
+  no?: string[] | null,
 ) {
-  if (locale === "en") {
-    return Array.isArray(en) && en.length > 0
-      ? en
-      : Array.isArray(original)
-        ? original
-        : [];
-  }
-
-  if (locale === "no") {
-    return Array.isArray(no) && no.length > 0
-      ? no
-      : Array.isArray(original)
-        ? original
-        : [];
-  }
-
-  return Array.isArray(original) ? original : [];
+  if (locale === "en" && Array.isArray(en) && en.length > 0) return en;
+  if (locale === "no" && Array.isArray(no) && no.length > 0) return no;
+  return base;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -114,25 +100,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { robots: { index: false, follow: false } };
   }
 
-  const localizedTitle = pickLocalizedText(
+  const localizedTitle = pickLocalizedValue(
     locale,
     service.title,
     service.titleEn,
     service.titleNo,
   );
 
-  const localizedDescription = pickLocalizedText(
+  const localizedDescription = pickLocalizedValue(
     locale,
-    service.description,
+    service.description || t("metaFallbackDescription"),
     service.descriptionEn,
     service.descriptionNo,
   );
 
   const title = `${localizedTitle} | ${tMeta("siteName")}`;
-  const description = truncate(
-    stripHtml(localizedDescription || t("metaFallbackDescription")),
-    160,
-  );
+  const description = truncate(stripHtml(localizedDescription), 160);
 
   const canonical = `${siteUrl}/${locale}/services/${slug}`;
 
@@ -238,27 +221,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
   if (!service) notFound();
 
-  const localizedTitle = pickLocalizedText(
-    locale,
-    service.title,
-    service.titleEn,
-    service.titleNo,
-  );
-
-  const localizedDescription = pickLocalizedText(
-    locale,
-    service.description,
-    service.descriptionEn,
-    service.descriptionNo,
-  );
-
-  const localizedHighlights = pickLocalizedArray(
-    locale,
-    service.highlights,
-    service.highlightsEn,
-    service.highlightsNo,
-  );
-
   const gallery = Array.isArray(service.galleryImageUrls)
     ? service.galleryImageUrls.filter(Boolean)
     : [];
@@ -271,16 +233,40 @@ export default async function ServiceDetailsPage({ params }: Props) {
         : ["/def.webp"];
 
   const city = service.city?.name ?? "—";
-  const category = service.category?.slug
-    ? tCategories(service.category.slug)
-    : "—";
 
-  const publicCompanyName = service.user.profile?.companyName?.trim() || null;
-  const fallbackPersonName = service.user.name?.trim() || null;
+  let category = service.category?.name ?? "—";
+  if (service.category?.slug) {
+    try {
+      category = tCategories(service.category.slug);
+    } catch {
+      category = service.category.name ?? service.category.slug;
+    }
+  }
+
+  const localizedTitle = pickLocalizedValue(
+    locale,
+    service.title,
+    service.titleEn,
+    service.titleNo,
+  );
+
+  const localizedDescription = pickLocalizedValue(
+    locale,
+    service.description,
+    service.descriptionEn,
+    service.descriptionNo,
+  );
+
+  const localizedHighlights = pickLocalizedArray(
+    locale,
+    Array.isArray(service.highlights) ? service.highlights : [],
+    service.highlightsEn,
+    service.highlightsNo,
+  );
 
   const sellerName =
-    publicCompanyName ||
-    fallbackPersonName ||
+    service.user.profile?.companyName?.trim() ||
+    service.user.name?.trim() ||
     service.user.email.split("@")[0];
 
   const sellerInitial = initialLetter(sellerName, service.user.email);
@@ -321,15 +307,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
       "@type": "AdministrativeArea",
       name: city !== "—" ? city : "Norway",
     },
-    provider: publicCompanyName
-      ? {
-          "@type": "Organization",
-          name: publicCompanyName,
-        }
-      : {
-          "@type": "Person",
-          name: sellerName,
-        },
+    provider: {
+      "@type": "Organization",
+      name: sellerName,
+    },
     offers: {
       "@type": "Offer",
       priceCurrency: "NOK",

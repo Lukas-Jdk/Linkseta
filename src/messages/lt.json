@@ -376,7 +376,8 @@
       "generic": "Įvyko klaida"
     }
   },
-  "categories": {
+ "categories": {
+  "konditerija": "Konditerija",
   "it-paslaugos": "IT paslaugos"
 },
 "registerPage": {
