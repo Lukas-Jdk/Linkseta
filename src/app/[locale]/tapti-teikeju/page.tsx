@@ -111,6 +111,29 @@ export default function TaptiTeikejuPage() {
     }
   }
 
+const faqItems = [
+  {
+    q: t("faq.items.first.q"),
+    a: t("faq.items.first.a"),
+  },
+  {
+    q: t("faq.items.second.q"),
+    a: t("faq.items.second.a"),
+  },
+  {
+    q: t("faq.items.third.q"),
+    a: t("faq.items.third.a"),
+  },
+  {
+    q: t("faq.items.fourth.q"),
+    a: t("faq.items.fourth.a"),
+  },
+  {
+    q: t("faq.items.fifth.q"),
+    a: t("faq.items.fifth.a"),
+  },
+];
+
   return (
     <main>
       <div className={styles.wrapper}>
@@ -170,12 +193,29 @@ export default function TaptiTeikejuPage() {
                       ? t("buttonSoon")
                       : t("buttonStartTrial")}
                 </button>
+
+                {plan.slug === "free-trial" && (
+                  <p className={styles.planSafetyNote}>{t("trialSafetyNote")}</p>
+                )}
               </article>
             );
           })}
         </div>
 
         <p className={styles.smallInfo}>{t("smallInfo")}</p>
+
+        <section className={styles.faqSection} aria-label={t("faq.title")}>
+          <h2 className={styles.faqTitle}>{t("faq.title")}</h2>
+
+          <div className={styles.faqList}>
+            {faqItems.map((item) => (
+              <article key={item.q} className={styles.faqItem}>
+                <h3 className={styles.faqQuestion}>{item.q}</h3>
+                <p className={styles.faqAnswer}>{item.a}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

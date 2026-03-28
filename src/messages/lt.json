@@ -264,55 +264,81 @@
     "view": "Peržiūrėti",
     "edit": "Redaguoti"
   },
-  "becomeProviderPage": {
-    "title": "Tapk paslaugų teikėju Linksetoje",
-    "lead": "Pasirink planą ir gauk galimybę kurti savo paslaugų skelbimus, kad žmonės Norvegijoje lengvai tave rastų.",
-    "noteStrong": "Šiuo metu aktyvus Free Trial.",
-    "noteText": "Basic ir Premium planai bus įjungti vėliau.",
-    "recommended": "Rekomenduojamas",
-    "comingSoon": "Netrukus",
-    "inactivePlanTitle": "Šis planas dar neaktyvus",
-    "buttonBusy": "Vykdoma...",
-    "buttonSoon": "Netrukus",
-    "buttonStartTrial": "Pradėti Free Trial",
-    "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 3 nuotraukų galerijoje.",
-    "errors": {
-      "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
-      "server": "Serverio klaida. Bandykite dar kartą."
+ "becomeProviderPage": {
+  "title": "Tapk paslaugų teikėju Linksetoje",
+  "lead": "Pasirink planą ir gauk galimybę kurti savo paslaugų skelbimus, kad žmonės Norvegijoje lengvai tave rastų.",
+  "noteStrong": "Šiuo metu aktyvus Free Trial.",
+  "noteText": "Basic ir Premium planai bus įjungti vėliau.",
+  "recommended": "Rekomenduojamas",
+  "comingSoon": "Netrukus",
+  "inactivePlanTitle": "Šis planas dar neaktyvus",
+  "buttonBusy": "Vykdoma...",
+  "buttonSoon": "Netrukus",
+  "buttonStartTrial": "Pradėti Free Trial",
+  "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 3 nuotraukų galerijoje.",
+  "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai",
+  "errors": {
+    "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
+    "server": "Serverio klaida. Bandykite dar kartą."
+  },
+  "plans": {
+    "freeTrial": {
+      "name": "Free Trial",
+      "priceLabel": "0 NOK / 30 dienų",
+      "description": "Išbandyk Linksetą be rizikos ir pasižiūrėk, ar platforma tinka tavo paslaugoms.",
+      "features": [
+        "1 aktyvus skelbimas",
+        "Iki 3 nuotraukų galerijoje",
+        "30 dienų nemokamas išbandymas"
+      ]
     },
-    "plans": {
-      "freeTrial": {
-        "name": "Free Trial",
-        "priceLabel": "0 NOK / 30 dienų",
-        "description": "Išbandyk Linksetą be rizikos ir pasižiūrėk, ar platforma tinka tavo paslaugoms.",
-        "features": [
-          "1 aktyvus skelbimas",
-          "Iki 3 nuotraukų galerijoje",
-          "30 dienų nemokamas išbandymas"
-        ]
-      },
-      "basic": {
-        "name": "Basic",
-        "priceLabel": "149 NOK / mėn",
-        "description": "Geras variantas individualiam paslaugų teikėjui, kuris nori daugiau matomumo.",
-        "features": [
-          "Iki 3 aktyvių skelbimų",
-          "Iki 5 nuotraukų kiekvienam skelbimui",
-          "Paprastas valdymas iš panelės"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "priceLabel": "299 NOK / mėn",
-        "description": "Skirta tiems, kas nori maksimalios laisvės ir stipresnio matomumo.",
-        "features": [
-          "Iki 10 aktyvių skelbimų",
-          "Iki 15 nuotraukų kiekvienam skelbimui",
-          "TOP statusas"
-        ]
-      }
+    "basic": {
+      "name": "Basic",
+      "priceLabel": "149 NOK / mėn",
+      "description": "Geras variantas individualiam paslaugų teikėjui, kuris nori daugiau matomumo.",
+      "features": [
+        "Iki 3 aktyvių skelbimų",
+        "Iki 5 nuotraukų kiekvienam skelbimui",
+        "Paprastas valdymas iš panelės"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "priceLabel": "299 NOK / mėn",
+      "description": "Skirta tiems, kas nori maksimalios laisvės ir stipresnio matomumo.",
+      "features": [
+        "Iki 10 aktyvių skelbimų",
+        "Iki 15 nuotraukų kiekvienam skelbimui",
+        "TOP statusas"
+      ]
     }
   },
+  "faq": {
+    "title": "Dažniausiai užduodami klausimai",
+    "items": {
+      "first": {
+        "q": "Ar po Free Trial bus automatiškai nuskaičiuoti pinigai?",
+        "a": "Ne. Pasibaigus 30 dienų laikotarpiui, mokestis nebus nuskaičiuotas automatiškai. Prenumeratą pratęsite tik jei patys pasirinksite."
+      },
+      "second": {
+        "q": "Ar reikia įvesti kortelės duomenis?",
+        "a": "Ne. Free Trial galite pradėti be mokėjimo informacijos."
+      },
+      "third": {
+        "q": "Kaip galiu nutraukti naudojimą?",
+        "a": "Galite bet kada nustoti naudotis – jokių įsipareigojimų nėra."
+      },
+      "fourth": {
+        "q": "Ką gaunu per Free Trial?",
+        "a": "Galėsite sukurti 1 aktyvų skelbimą ir įkelti iki 3 nuotraukų, kad išbandytumėte platformą."
+      },
+      "fifth": {
+        "q": "Kada bus prieinami mokami planai?",
+        "a": "Basic ir Premium planai bus prieinami netrukus."
+      }
+    }
+  }
+},
   "dashboardNewServicePage": {
     "title": "Nauja paslauga",
     "subtitle": "Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą."

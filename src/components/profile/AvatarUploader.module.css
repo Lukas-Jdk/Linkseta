@@ -77,12 +77,7 @@
 
 .overlayText {
   font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.overlaySub {
-  font-size: 0.7rem;
-  opacity: 0.85;
+  font-weight: 700;
 }
 
 .avatarButton:hover .overlay,

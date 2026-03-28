@@ -44,7 +44,7 @@
   font-size: 0.95rem;
   color: #6b7280;
   overflow-wrap: anywhere;
-   font-family: var(--font-primary);
+   font-family: var(--font-second);
 }
 
 .topCardRight {
@@ -218,12 +218,13 @@
   padding: 10px 12px;
   border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 700;
   background: #fff7ed;
   color: #9a3412;
   width: 100%;
   justify-content: center;
   text-align: center;
+  font-family: var(--font-second);
 }
 
 .profileCta {
@@ -239,10 +240,11 @@
   border-radius: 14px;
   background: linear-gradient(135deg, #06b6d4, #0ea5e9);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
   text-decoration: none;
   width: 100%;
   text-align: center;
+  font-family: var(--font-primary);
 }
 
 /* ================= SERVICES CARD ================= */
@@ -300,6 +302,7 @@
   color: #475569;
   font-size: 0.95rem;
   overflow-wrap: anywhere;
+  font-family: var(--font-second);
 }
 
 .emptyActions {
@@ -315,8 +318,9 @@
   border-radius: 12px;
   background: linear-gradient(135deg, #06b6d4, #0ea5e9);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
   text-decoration: none;
+  font-family: var(--font-primary);
 }
 
 /* Service item */

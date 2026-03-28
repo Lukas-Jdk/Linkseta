@@ -120,9 +120,7 @@ export default function AvatarUploader({ avatarUrl, initial, onUploaded }: Props
             <span className={styles.overlayText}>
               {loading ? "Įkeliama..." : "Keisti nuotrauką"}
             </span>
-            <span className={styles.overlaySub}>
-              JPG / PNG / WEBP · automatiškai optimizuojama
-            </span>
+           
           </div>
         </div>
 
