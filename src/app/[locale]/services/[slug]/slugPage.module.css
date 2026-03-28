@@ -155,10 +155,9 @@
   align-items: center;
   gap: 8px;
   color: #0f172a;
-  font-weight:500;
+  font-weight: 500;
   font-size: 0.75rem;
   font-family: var(--font-primary);
- 
 }
 
 /* TABLET INLINE SELLER */
@@ -659,7 +658,7 @@
   color: #64748b;
   font-size: 0.95rem;
   font-weight: 700;
-    font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .mobileBottomVerified {
@@ -686,7 +685,7 @@
   font-weight: 900;
   font-size: 0.8rem;
   letter-spacing: 0.7px;
-    font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .mobileBottomPriceValue {
@@ -697,7 +696,7 @@
   color: #111827;
   font-variant-numeric: tabular-nums;
   word-break: break-word;
-    font-family: var(--font-primary);
+  font-family: var(--font-primary);
 }
 
 .mobileBottomActions {
@@ -744,7 +743,9 @@
   font-weight: 900;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .mainImage:hover .zoomHint {
@@ -1015,7 +1016,7 @@
     bottom: -13px;
   }
 
-    .lightbox {
+  .lightbox {
     padding: 10px;
     align-items: center;
     justify-items: center;
@@ -1052,9 +1053,9 @@
 
   .lightboxNavLeft,
   .lightboxNavRight {
-    top: auto;
-    bottom: max(16px, env(safe-area-inset-bottom));
-    transform: none;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
     width: 48px;
     height: 48px;
     border-radius: 14px;
