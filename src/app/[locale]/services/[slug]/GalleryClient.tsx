@@ -28,7 +28,9 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
     setOpen(true);
   }, []);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
 
   const prev = useCallback(() => {
     setActive((i) => (i - 1 + safeImages.length) % safeImages.length);
@@ -47,8 +49,15 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
       if (e.key === "ArrowRight") next();
     }
 
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open, close, prev, next]);
 
   return (
@@ -58,6 +67,12 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
         role="button"
         tabIndex={0}
         onClick={() => openAt(active)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openAt(active);
+          }
+        }}
         aria-label={t("openImage")}
       >
         <Image
@@ -65,11 +80,11 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
           alt={title}
           fill
           className={styles.coverImg}
+          sizes="(max-width: 680px) 100vw, 50vw"
+          priority
         />
 
-        {highlighted && (
-          <span className={styles.topBadge}>{t("topAd")}</span>
-        )}
+        {highlighted && <span className={styles.topBadge}>{t("topAd")}</span>}
 
         <div className={styles.zoomHint}>🔍</div>
       </div>
@@ -80,10 +95,19 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
             <button
               key={`${src}-${idx}`}
               type="button"
+              className={`${styles.thumb} ${
+                idx === active ? styles.thumbActive : ""
+              }`}
               onClick={() => setActive(idx)}
               aria-label={t("photo", { index: idx + 1 })}
             >
-              <Image src={src} alt={`${title}`} fill />
+              <Image
+                src={src}
+                alt={t("photo", { index: idx + 1 })}
+                fill
+                className={styles.thumbImg}
+                sizes="92px"
+              />
             </button>
           ))}
         </div>
@@ -95,22 +119,47 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
             className={styles.lightboxInner}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <button onClick={close} aria-label={t("close")}>
+            <button
+              type="button"
+              className={styles.lightboxClose}
+              onClick={close}
+              aria-label={t("close")}
+            >
               ✕
             </button>
 
             {safeImages.length > 1 && (
               <>
-                <button onClick={prev} aria-label={t("prev")}>
+                <button
+                  type="button"
+                  className={styles.lightboxNavLeft}
+                  onClick={prev}
+                  aria-label={t("prev")}
+                >
                   ‹
                 </button>
-                <button onClick={next} aria-label={t("next")}>
+
+                <button
+                  type="button"
+                  className={styles.lightboxNavRight}
+                  onClick={next}
+                  aria-label={t("next")}
+                >
                   ›
                 </button>
               </>
             )}
 
-            <Image src={safeImages[active]} alt={title} fill />
+            <div className={styles.lightboxImgWrap}>
+              <Image
+                src={safeImages[active]}
+                alt={title}
+                fill
+                className={styles.lightboxImg}
+                sizes="100vw"
+                priority
+              />
+            </div>
           </div>
         </div>
       )}
