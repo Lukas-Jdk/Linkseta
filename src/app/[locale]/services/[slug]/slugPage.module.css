@@ -1075,3 +1075,116 @@
     transform: translateY(0);
   }
 }
+
+.priceList {
+  display: grid;
+  gap: 12px;
+}
+
+.priceCard {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.priceCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.priceCardName {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #0b1220;
+  font-family: var(--font-primary);
+}
+
+.priceCardValue {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #0ea5e9;
+  white-space: nowrap;
+  font-family: var(--font-primary);
+}
+
+.priceCardNote {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  font-family: var(--font-second);
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.relatedCard {
+  display: block;
+  text-decoration: none;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.relatedCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.1);
+}
+
+.relatedThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.relatedThumbFallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #0284c7;
+  background: #e0f2fe;
+  font-family: var(--font-primary);
+}
+
+.relatedBody {
+  padding: 12px 14px 14px;
+}
+
+.relatedCategory {
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #0ea5e9;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-family: var(--font-primary);
+}
+
+.relatedTitle {
+  margin-top: 6px;
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0b1220;
+  font-family: var(--font-primary);
+}
+
+.relatedMeta {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-family: var(--font-second);
+}

@@ -32,6 +32,15 @@ export default async function EditServicePage({ params }: PageProps) {
       galleryImagePaths: true,
       highlights: true,
       isActive: true,
+      priceItems: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          label: true,
+          priceFrom: true,
+          priceTo: true,
+          note: true,
+        },
+      },
     },
   });
 
@@ -78,6 +87,20 @@ export default async function EditServicePage({ params }: PageProps) {
           : [],
     highlights: Array.isArray(service.highlights) ? service.highlights : [],
     isActive: service.isActive,
+    priceItems: Array.isArray(service.priceItems)
+      ? service.priceItems.map((item) => ({
+          title: item.label ?? "",
+          price:
+            item.priceFrom != null && item.priceTo != null
+              ? `${item.priceFrom}-${item.priceTo} NOK`
+              : item.priceFrom != null
+                ? `nuo ${item.priceFrom} NOK`
+                : item.priceTo != null
+                  ? `iki ${item.priceTo} NOK`
+                  : "",
+          note: item.note ?? "",
+        }))
+      : [],
   };
 
   return (
@@ -87,8 +110,8 @@ export default async function EditServicePage({ params }: PageProps) {
           <div>
             <h1 className={styles.pageTitle}>Redaguoti paslaugą</h1>
             <p className={styles.pageSubtitle}>
-              Atnaujinkite paslaugos informaciją, galeriją arba ištrinkite
-              skelbimą.
+              Atnaujinkite paslaugos informaciją, galeriją, kainas arba
+              ištrinkite skelbimą.
             </p>
           </div>
         </header>

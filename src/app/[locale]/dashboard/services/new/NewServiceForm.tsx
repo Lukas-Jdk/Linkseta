@@ -22,6 +22,13 @@ type GalleryItem = {
   path: string;
 };
 
+type PriceItem = {
+  label: string;
+  priceFrom: string;
+  priceTo: string;
+  note: string;
+};
+
 const MAX_IMAGES = 15;
 
 function trimOrEmpty(v: string) {
@@ -30,6 +37,15 @@ function trimOrEmpty(v: string) {
 
 function publicStorageUrl(baseUrl: string, bucket: string, path: string) {
   return `${baseUrl}/storage/v1/object/public/${bucket}/${path}`;
+}
+
+function createEmptyPriceItem(): PriceItem {
+  return {
+    label: "",
+    priceFrom: "",
+    priceTo: "",
+    note: "",
+  };
 }
 
 export default function NewServiceForm({ cities, categories }: Props) {
@@ -43,12 +59,15 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [title, setTitle] = useState("");
   const [cityId, setCityId] = useState(cities?.[0]?.id ?? "");
   const [categoryId, setCategoryId] = useState(categories?.[0]?.id ?? "");
-  const [priceFrom, setPriceFrom] = useState<string>("");
   const [description, setDescription] = useState("");
 
   const [h1, setH1] = useState("");
   const [h2, setH2] = useState("");
   const [h3, setH3] = useState("");
+
+  const [priceItems, setPriceItems] = useState<PriceItem[]>([
+    createEmptyPriceItem(),
+  ]);
 
   const [uploading, setUploading] = useState(false);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
@@ -59,6 +78,17 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const highlights = useMemo(() => {
     return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
   }, [h1, h2, h3]);
+
+  const normalizedPriceItems = useMemo(() => {
+    return priceItems
+      .map((item) => ({
+        label: item.label.trim(),
+        priceFrom: item.priceFrom.trim() ? Number(item.priceFrom) : null,
+        priceTo: item.priceTo.trim() ? Number(item.priceTo) : null,
+        note: item.note.trim(),
+      }))
+      .filter((item) => item.label.length > 0);
+  }, [priceItems]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -131,9 +161,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
           });
 
         if (upErr) {
-          throw new Error(
-            upErr.message || t("errors.uploadOneFailed"),
-          );
+          throw new Error(upErr.message || t("errors.uploadOneFailed"));
         }
 
         uploaded.push({
@@ -144,12 +172,27 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       setGallery((prev) => [...prev, ...uploaded]);
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : t("errors.uploadGeneric"),
-      );
+      setError(e instanceof Error ? e.message : t("errors.uploadGeneric"));
     } finally {
       setUploading(false);
     }
+  }
+
+  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
+    setPriceItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
+    );
+  }
+
+  function addPriceItem() {
+    setPriceItems((prev) => [...prev, createEmptyPriceItem()]);
+  }
+
+  function removePriceItem(index: number) {
+    setPriceItems((prev) => {
+      if (prev.length === 1) return [createEmptyPriceItem()];
+      return prev.filter((_, i) => i !== index);
+    });
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -164,9 +207,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
         title: title.trim(),
         cityId,
         categoryId,
-        priceFrom: priceFrom.trim() ? Number(priceFrom) : null,
         description: description.trim(),
         highlights,
+        priceItems: normalizedPriceItems,
         galleryImageUrls: gallery.map((x) => x.url),
         galleryImagePaths: gallery.map((x) => x.path),
       };
@@ -241,17 +284,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
           </select>
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.label}>{t("priceLabel")}</label>
-          <input
-            className={styles.input}
-            value={priceFrom}
-            onChange={(e) => setPriceFrom(e.target.value)}
-            placeholder={t("pricePlaceholder")}
-            inputMode="numeric"
-          />
-        </div>
-
         <div className={styles.fieldFull}>
           <label className={styles.label}>{t("descriptionLabel")}</label>
           <textarea
@@ -306,6 +338,98 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.fieldFull}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 10,
+            }}
+          >
+            <label className={styles.label}>{t("pricingTitle")}</label>
+            <button
+              type="button"
+              className={styles.removeBtn}
+              onClick={addPriceItem}
+            >
+              {t("addPriceItem")}
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {priceItems.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 14,
+                  padding: 12,
+                  display: "grid",
+                  gap: 10,
+                }}
+              >
+                <input
+                  className={styles.input}
+                  value={item.label}
+                  onChange={(e) =>
+                    updatePriceItem(index, "label", e.target.value)
+                  }
+                  placeholder={t("priceItemLabelPlaceholder")}
+                />
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                  }}
+                >
+                  <input
+                    className={styles.input}
+                    value={item.priceFrom}
+                    onChange={(e) =>
+                      updatePriceItem(index, "priceFrom", e.target.value)
+                    }
+                    placeholder={t("priceItemFromPlaceholder")}
+                    inputMode="numeric"
+                  />
+
+                  <input
+                    className={styles.input}
+                    value={item.priceTo}
+                    onChange={(e) =>
+                      updatePriceItem(index, "priceTo", e.target.value)
+                    }
+                    placeholder={t("priceItemToPlaceholder")}
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <input
+                  className={styles.input}
+                  value={item.note}
+                  onChange={(e) =>
+                    updatePriceItem(index, "note", e.target.value)
+                  }
+                  placeholder={t("priceItemNotePlaceholder")}
+                />
+
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => removePriceItem(index)}
+                  >
+                    {t("remove")}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.fieldFull}>
           <label className={styles.label}>{t("galleryLabel")}</label>
 
           <input
@@ -319,11 +443,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
             }}
           />
 
-          {uploading && (
-            <div className={styles.muted}>
-              {t("uploading")}
-            </div>
-          )}
+          {uploading && <div className={styles.muted}>{t("uploading")}</div>}
 
           {gallery.length > 0 && (
             <div className={styles.preview} style={{ flexWrap: "wrap" }}>

@@ -14,6 +14,12 @@ type Option = {
   name: string;
 };
 
+type PriceItem = {
+  title: string;
+  price: string;
+  note: string;
+};
+
 type InitialData = {
   id: string;
   title: string;
@@ -21,6 +27,7 @@ type InitialData = {
   cityId: string;
   categoryId: string;
   priceFrom: number | null;
+  priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
   highlights: string[];
@@ -73,6 +80,14 @@ function normalizeInitialGallery(
   return out;
 }
 
+function emptyPriceItem(): PriceItem {
+  return {
+    title: "",
+    price: "",
+    note: "",
+  };
+}
+
 export default function EditServiceForm({
   initial,
   cities,
@@ -91,6 +106,16 @@ export default function EditServiceForm({
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [priceFrom, setPriceFrom] = useState(
     initial.priceFrom != null ? String(initial.priceFrom) : "",
+  );
+
+  const [priceItems, setPriceItems] = useState<PriceItem[]>(
+    Array.isArray(initial.priceItems) && initial.priceItems.length > 0
+      ? initial.priceItems.map((item) => ({
+          title: String(item?.title ?? ""),
+          price: String(item?.price ?? ""),
+          note: String(item?.note ?? ""),
+        }))
+      : [emptyPriceItem()],
   );
 
   const [highlightsText, setHighlightsText] = useState(
@@ -200,9 +225,7 @@ export default function EditServiceForm({
     } catch (e) {
       console.error(e);
       setError(
-        e instanceof Error
-          ? e.message
-          : "Įvyko klaida įkeliant nuotrauką.",
+        e instanceof Error ? e.message : "Įvyko klaida įkeliant nuotrauką.",
       );
     } finally {
       setUploading(false);
@@ -220,6 +243,15 @@ export default function EditServiceForm({
       (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
     );
 
+    const cleanPriceItems = priceItems
+      .map((item) => ({
+        title: item.title.trim(),
+        price: item.price.trim(),
+        note: item.note.trim(),
+      }))
+      .filter((item) => item.title || item.price || item.note)
+      .slice(0, 20);
+
     try {
       const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
@@ -229,6 +261,7 @@ export default function EditServiceForm({
           cityId: cityId || null,
           categoryId: categoryId || null,
           priceFrom: priceFrom ? Number(priceFrom) : null,
+          priceItems: cleanPriceItems,
           galleryImageUrls: cleanGallery.map((x) => x.url),
           galleryImagePaths: cleanGallery.map((x) => x.path),
           highlights,
@@ -316,6 +349,20 @@ export default function EditServiceForm({
     }
   }
 
+  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
+    setPriceItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
+    );
+  }
+
+  function addPriceItem() {
+    setPriceItems((prev) => [...prev, emptyPriceItem()]);
+  }
+
+  function removePriceItem(index: number) {
+    setPriceItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <section className={styles.sectionCard}>
@@ -369,7 +416,7 @@ export default function EditServiceForm({
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Detalės ir kaina</h2>
+        <h2 className={styles.sectionTitle}>Detalės ir kainos</h2>
 
         <div className={styles.formRow}>
           <div className={styles.formCol}>
@@ -406,7 +453,7 @@ export default function EditServiceForm({
         </div>
 
         <div className={styles.priceRow}>
-          <label className={styles.label}>Kaina nuo:</label>
+          <label className={styles.label}>Pagrindinė kaina nuo:</label>
           <div className={styles.priceInput}>
             <input
               type="number"
@@ -416,6 +463,72 @@ export default function EditServiceForm({
               placeholder="Pvz. 555"
             />
             <span>NOK</span>
+          </div>
+        </div>
+
+        <div className={styles.formGroup} style={{ marginTop: 16 }}>
+          <label className={styles.label}>Papildomos kainų eilutės</label>
+
+          <div style={{ display: "grid", gap: 12 }}>
+            {priceItems.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 14,
+                  padding: 12,
+                  display: "grid",
+                  gap: 10,
+                  background: "#fff",
+                }}
+              >
+                <input
+                  className={styles.input}
+                  value={item.title}
+                  onChange={(e) =>
+                    updatePriceItem(index, "title", e.target.value)
+                  }
+                  placeholder="Pvz. Tortai"
+                />
+                <input
+                  className={styles.input}
+                  value={item.price}
+                  onChange={(e) =>
+                    updatePriceItem(index, "price", e.target.value)
+                  }
+                  placeholder="Pvz. nuo 650 NOK"
+                />
+                <input
+                  className={styles.input}
+                  value={item.note}
+                  onChange={(e) =>
+                    updatePriceItem(index, "note", e.target.value)
+                  }
+                  placeholder="Pvz. Priklauso nuo dydžio"
+                />
+
+                <div>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => removePriceItem(index)}
+                    disabled={priceItems.length <= 1}
+                  >
+                    Pašalinti kainos eilutę
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={addPriceItem}
+            >
+              Pridėti kainos eilutę
+            </button>
           </div>
         </div>
       </section>

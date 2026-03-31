@@ -11,6 +11,13 @@ import { translateServiceContent } from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
+type RawPriceItem = {
+  label?: unknown;
+  priceFrom?: unknown;
+  priceTo?: unknown;
+  note?: unknown;
+};
+
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -60,6 +67,71 @@ function normalizeGalleryStrings(
     .filter(Boolean)
     .slice(0, maxItems)
     .map((x) => x.slice(0, maxLen));
+}
+
+function toSafeInt(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(10_000_000, Math.trunc(n)));
+}
+
+function normalizePriceItems(input: unknown) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item, index) => {
+      const raw = (item ?? {}) as RawPriceItem;
+
+      const label =
+        typeof raw.label === "string" ? raw.label.trim().slice(0, 120) : "";
+      const note =
+        typeof raw.note === "string" ? raw.note.trim().slice(0, 220) : "";
+
+      const priceFrom = toSafeInt(raw.priceFrom);
+      const priceTo = toSafeInt(raw.priceTo);
+
+      if (!label) return null;
+
+      return {
+        label,
+        labelEn: label,
+        labelNo: label,
+        priceFrom,
+        priceTo,
+        note: note || null,
+        noteEn: note || null,
+        noteNo: note || null,
+        sortOrder: index,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 20) as Array<{
+    label: string;
+    labelEn: string;
+    labelNo: string;
+    priceFrom: number | null;
+    priceTo: number | null;
+    note: string | null;
+    noteEn: string | null;
+    noteNo: string | null;
+    sortOrder: number;
+  }>;
+}
+
+function summarizePriceRange(priceItems: Array<{ priceFrom: number | null; priceTo: number | null }>) {
+  const fromValues = priceItems
+    .map((x) => x.priceFrom)
+    .filter((x): x is number => typeof x === "number");
+
+  const toValues = priceItems
+    .map((x) => x.priceTo)
+    .filter((x): x is number => typeof x === "number");
+
+  return {
+    priceFrom: fromValues.length ? Math.min(...fromValues) : null,
+    priceTo: toValues.length ? Math.max(...toValues) : null,
+  };
 }
 
 export async function POST(req: Request) {
@@ -161,13 +233,6 @@ export async function POST(req: Request) {
     const categoryId =
       typeof body?.categoryId === "string" ? body.categoryId : null;
 
-    const priceFrom =
-      body?.priceFrom === null || body?.priceFrom === undefined
-        ? null
-        : Number.isFinite(Number(body.priceFrom))
-          ? Math.max(0, Math.min(10_000_000, Math.trunc(Number(body.priceFrom))))
-          : null;
-
     const galleryImageUrls = normalizeGalleryStrings(
       body?.galleryImageUrls,
       maxImagesPerListing,
@@ -193,6 +258,9 @@ export async function POST(req: Request) {
           .filter(Boolean)
           .slice(0, 6)
       : [];
+
+    const priceItems = normalizePriceItems(body?.priceItems);
+    const priceSummary = summarizePriceRange(priceItems);
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -252,7 +320,8 @@ export async function POST(req: Request) {
         description,
         cityId,
         categoryId,
-        priceFrom,
+        priceFrom: priceSummary.priceFrom,
+        priceTo: priceSummary.priceTo,
         imageUrl: coverImageUrl,
         imagePath: coverImagePath,
         galleryImageUrls,
@@ -269,6 +338,9 @@ export async function POST(req: Request) {
         highlighted: false,
         deletedAt: null,
         planId: profile.planId ?? null,
+        priceItems: {
+          create: priceItems,
+        },
       },
       select: { id: true, slug: true },
     });
@@ -284,6 +356,7 @@ export async function POST(req: Request) {
         slug: created.slug,
         title,
         imageCount: galleryImageUrls.length,
+        priceItemsCount: priceItems.length,
         plan: {
           slug: planSlug,
           name: planName,

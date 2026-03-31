@@ -20,6 +20,12 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
+type PriceItem = {
+  title: string;
+  price: string;
+  note: string;
+};
+
 function stripHtml(input: string) {
   return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -72,6 +78,21 @@ function pickLocalizedArray(
   if (locale === "en" && Array.isArray(en) && en.length > 0) return en;
   if (locale === "no" && Array.isArray(no) && no.length > 0) return no;
   return base;
+}
+
+function normalizePriceItems(input: unknown): PriceItem[] {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      return {
+        title: typeof row?.title === "string" ? row.title.trim() : "",
+        price: typeof row?.price === "string" ? row.price.trim() : "",
+        note: typeof row?.note === "string" ? row.note.trim() : "",
+      };
+    })
+    .filter((item) => item.title || item.price || item.note);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -177,6 +198,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     },
     select: {
       id: true,
+      userId: true,
       title: true,
       titleEn: true,
       titleNo: true,
@@ -185,6 +207,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       descriptionNo: true,
       slug: true,
       priceFrom: true,
+      priceItems: true,
       highlighted: true,
       highlights: true,
       highlightsEn: true,
@@ -220,6 +243,36 @@ export default async function ServiceDetailsPage({ params }: Props) {
   });
 
   if (!service) notFound();
+
+  const relatedRaw = await prisma.serviceListing.findMany({
+    where: {
+      userId: service.userId,
+      isActive: true,
+      deletedAt: null,
+      id: { not: service.id },
+    },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      titleEn: true,
+      titleNo: true,
+      imageUrl: true,
+      city: {
+        select: {
+          name: true,
+        },
+      },
+      category: {
+        select: {
+          name: true,
+          slug: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
 
   const gallery = Array.isArray(service.galleryImageUrls)
     ? service.galleryImageUrls.filter(Boolean)
@@ -263,6 +316,28 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.highlightsEn,
     service.highlightsNo,
   );
+
+  const priceItems = normalizePriceItems(service.priceItems);
+
+  const relatedServices = relatedRaw.map((item) => {
+    let itemCategory = item.category?.name ?? "—";
+    if (item.category?.slug) {
+      try {
+        itemCategory = tCategories(item.category.slug);
+      } catch {
+        itemCategory = item.category.name ?? item.category.slug;
+      }
+    }
+
+    return {
+      id: item.id,
+      slug: item.slug,
+      title: pickLocalizedValue(locale, item.title, item.titleEn, item.titleNo),
+      city: item.city?.name ?? "—",
+      category: itemCategory,
+      imageUrl: item.imageUrl ?? null,
+    };
+  });
 
   const sellerName =
     service.user.profile?.companyName?.trim() ||
@@ -604,10 +679,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
               <div className={styles.contentCardWrap}>
                 <ServiceTabsClient
+                  locale={locale}
                   title={localizedTitle}
                   description={localizedDescription}
                   highlights={localizedHighlights}
                   images={images}
+                  priceItems={priceItems}
+                  services={relatedServices}
                 />
               </div>
 

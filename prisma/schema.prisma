@@ -98,16 +98,42 @@ model ServiceListing {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id])
-  city     City?     @relation(fields: [cityId], references: [id])
-  category Category? @relation(fields: [categoryId], references: [id])
-  plan     Plan?     @relation(fields: [planId], references: [id])
+  user       User               @relation(fields: [userId], references: [id])
+  city       City?              @relation(fields: [cityId], references: [id])
+  category   Category?          @relation(fields: [categoryId], references: [id])
+  plan       Plan?              @relation(fields: [planId], references: [id])
+  priceItems ServicePriceItem[]
 
   @@index([isActive, deletedAt, createdAt])
   @@index([isActive, deletedAt, highlighted, createdAt])
   @@index([cityId])
   @@index([categoryId])
   @@index([userId])
+}
+
+model ServicePriceItem {
+  id        String   @id @default(cuid())
+  serviceId String
+
+  label   String
+  labelEn String?
+  labelNo String?
+
+  priceFrom Int?
+  priceTo   Int?
+
+  note   String?
+  noteEn String?
+  noteNo String?
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
 }
 
 model JobListing {

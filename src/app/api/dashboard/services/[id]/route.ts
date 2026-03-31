@@ -14,16 +14,23 @@ export const dynamic = "force-dynamic";
 
 const BUCKET = "service-images";
 
+type GalleryPair = {
+  url: string;
+  path: string;
+};
+
+type RawPriceItem = {
+  label?: unknown;
+  priceFrom?: unknown;
+  priceTo?: unknown;
+  note?: unknown;
+};
+
 function clampText(x: unknown, max: number) {
   if (typeof x !== "string") return null;
   const t = x.trim();
   return t ? t.slice(0, max) : null;
 }
-
-type GalleryPair = {
-  url: string;
-  path: string;
-};
 
 function normalizeGalleryPairs(
   urlsInput: unknown,
@@ -47,6 +54,71 @@ function normalizeGalleryPairs(
   }
 
   return pairs;
+}
+
+function toSafeInt(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(10_000_000, Math.trunc(n)));
+}
+
+function normalizePriceItems(input: unknown) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item, index) => {
+      const raw = (item ?? {}) as RawPriceItem;
+
+      const label =
+        typeof raw.label === "string" ? raw.label.trim().slice(0, 120) : "";
+      const note =
+        typeof raw.note === "string" ? raw.note.trim().slice(0, 220) : "";
+
+      const priceFrom = toSafeInt(raw.priceFrom);
+      const priceTo = toSafeInt(raw.priceTo);
+
+      if (!label) return null;
+
+      return {
+        label,
+        labelEn: label,
+        labelNo: label,
+        priceFrom,
+        priceTo,
+        note: note || null,
+        noteEn: note || null,
+        noteNo: note || null,
+        sortOrder: index,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 20) as Array<{
+    label: string;
+    labelEn: string;
+    labelNo: string;
+    priceFrom: number | null;
+    priceTo: number | null;
+    note: string | null;
+    noteEn: string | null;
+    noteNo: string | null;
+    sortOrder: number;
+  }>;
+}
+
+function summarizePriceRange(priceItems: Array<{ priceFrom: number | null; priceTo: number | null }>) {
+  const fromValues = priceItems
+    .map((x) => x.priceFrom)
+    .filter((x): x is number => typeof x === "number");
+
+  const toValues = priceItems
+    .map((x) => x.priceTo)
+    .filter((x): x is number => typeof x === "number");
+
+  return {
+    priceFrom: fromValues.length ? Math.min(...fromValues) : null,
+    priceTo: toValues.length ? Math.max(...toValues) : null,
+  };
 }
 
 async function removeFromStorage(paths: string[]) {
@@ -105,6 +177,7 @@ export async function PATCH(
         cityId: true,
         categoryId: true,
         priceFrom: true,
+        priceTo: true,
         isActive: true,
         imageUrl: true,
         imagePath: true,
@@ -118,6 +191,15 @@ export async function PATCH(
         descriptionNo: true,
         highlightsEn: true,
         highlightsNo: true,
+        priceItems: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            label: true,
+            priceFrom: true,
+            priceTo: true,
+            note: true,
+          },
+        },
       },
     });
 
@@ -179,18 +261,6 @@ export async function PATCH(
         ? body.categoryId
         : service.categoryId;
 
-    const nextPriceFrom =
-      body?.priceFrom === undefined
-        ? service.priceFrom
-        : body?.priceFrom === null
-          ? null
-          : Number.isFinite(Number(body.priceFrom))
-            ? Math.max(
-                0,
-                Math.min(10_000_000, Math.trunc(Number(body.priceFrom))),
-              )
-            : service.priceFrom;
-
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
 
@@ -246,6 +316,23 @@ export async function PATCH(
     const nextGalleryImageUrls = nextPairs.map((x) => x.url);
     const nextGalleryImagePaths = nextPairs.map((x) => x.path);
 
+    const priceItems =
+      body?.priceItems === undefined
+        ? service.priceItems.map((item, index) => ({
+            label: item.label,
+            labelEn: item.label,
+            labelNo: item.label,
+            priceFrom: item.priceFrom,
+            priceTo: item.priceTo,
+            note: item.note ?? null,
+            noteEn: item.note ?? null,
+            noteNo: item.note ?? null,
+            sortOrder: index,
+          }))
+        : normalizePriceItems(body?.priceItems);
+
+    const priceSummary = summarizePriceRange(priceItems);
+
     const shouldRetranslate =
       nextTitle !== service.title ||
       nextDesc !== service.description ||
@@ -297,7 +384,8 @@ export async function PATCH(
         description: nextDesc,
         cityId: nextCityId ?? null,
         categoryId: nextCategoryId ?? null,
-        priceFrom: nextPriceFrom,
+        priceFrom: priceSummary.priceFrom,
+        priceTo: priceSummary.priceTo,
         isActive: nextIsActive,
         imageUrl: nextGalleryImageUrls[0] ?? null,
         imagePath: nextGalleryImagePaths[0] ?? null,
@@ -311,6 +399,10 @@ export async function PATCH(
         descriptionNo,
         highlightsEn,
         highlightsNo,
+        priceItems: {
+          deleteMany: {},
+          create: priceItems,
+        },
       },
       select: {
         id: true,
@@ -338,6 +430,7 @@ export async function PATCH(
         deletedImagesCount: toDelete.length,
         imageCount: nextGalleryImageUrls.length,
         retranslated: shouldRetranslate,
+        priceItemsCount: priceItems.length,
       },
     });
 
