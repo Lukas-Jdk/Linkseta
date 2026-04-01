@@ -24,8 +24,7 @@ type GalleryItem = {
 
 type PriceItem = {
   label: string;
-  priceFrom: string;
-  priceTo: string;
+  priceText: string;
   note: string;
 };
 
@@ -39,11 +38,10 @@ function publicStorageUrl(baseUrl: string, bucket: string, path: string) {
   return `${baseUrl}/storage/v1/object/public/${bucket}/${path}`;
 }
 
-function createEmptyPriceItem(): PriceItem {
+function emptyPriceItem(): PriceItem {
   return {
     label: "",
-    priceFrom: "",
-    priceTo: "",
+    priceText: "",
     note: "",
   };
 }
@@ -60,13 +58,14 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [cityId, setCityId] = useState(cities?.[0]?.id ?? "");
   const [categoryId, setCategoryId] = useState(categories?.[0]?.id ?? "");
   const [description, setDescription] = useState("");
+  const [responseTime, setResponseTime] = useState("1h");
 
   const [h1, setH1] = useState("");
   const [h2, setH2] = useState("");
   const [h3, setH3] = useState("");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>([
-    createEmptyPriceItem(),
+    emptyPriceItem(),
   ]);
 
   const [uploading, setUploading] = useState(false);
@@ -79,17 +78,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
     return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
   }, [h1, h2, h3]);
 
-  const normalizedPriceItems = useMemo(() => {
-    return priceItems
-      .map((item) => ({
-        label: item.label.trim(),
-        priceFrom: item.priceFrom.trim() ? Number(item.priceFrom) : null,
-        priceTo: item.priceTo.trim() ? Number(item.priceTo) : null,
-        note: item.note.trim(),
-      }))
-      .filter((item) => item.label.length > 0);
-  }, [priceItems]);
-
   const canSubmit = useMemo(() => {
     return (
       title.trim().length >= 3 &&
@@ -100,6 +88,24 @@ export default function NewServiceForm({ cities, categories }: Props) {
       !uploading
     );
   }, [title, description, cityId, categoryId, submitting, uploading]);
+
+  function updatePriceItem(
+    index: number,
+    key: keyof PriceItem,
+    value: string,
+  ) {
+    setPriceItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
+    );
+  }
+
+  function addPriceItem() {
+    setPriceItems((prev) => [...prev, emptyPriceItem()]);
+  }
+
+  function removePriceItem(index: number) {
+    setPriceItems((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handlePickImages(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -178,23 +184,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
     }
   }
 
-  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
-    setPriceItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
-    );
-  }
-
-  function addPriceItem() {
-    setPriceItems((prev) => [...prev, createEmptyPriceItem()]);
-  }
-
-  function removePriceItem(index: number) {
-    setPriceItems((prev) => {
-      if (prev.length === 1) return [createEmptyPriceItem()];
-      return prev.filter((_, i) => i !== index);
-    });
-  }
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -203,13 +192,23 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
     setSubmitting(true);
     try {
+      const cleanPriceItems = priceItems
+        .map((item) => ({
+          label: item.label.trim(),
+          priceText: item.priceText.trim(),
+          note: item.note.trim(),
+        }))
+        .filter((item) => item.label || item.priceText || item.note)
+        .slice(0, 20);
+
       const payload = {
         title: title.trim(),
         cityId,
         categoryId,
         description: description.trim(),
+        responseTime,
         highlights,
-        priceItems: normalizedPriceItems,
+        priceItems: cleanPriceItems,
         galleryImageUrls: gallery.map((x) => x.url),
         galleryImagePaths: gallery.map((x) => x.path),
       };
@@ -284,6 +283,19 @@ export default function NewServiceForm({ cities, categories }: Props) {
           </select>
         </div>
 
+        <div className={styles.field}>
+          <label className={styles.label}>Atsakymo laikas</label>
+          <select
+            className={styles.select}
+            value={responseTime}
+            onChange={(e) => setResponseTime(e.target.value)}
+          >
+            <option value="1h">Per 1 val.</option>
+            <option value="24h">Per 24 val.</option>
+            <option value="48h">Per 48 val.</option>
+          </select>
+        </div>
+
         <div className={styles.fieldFull}>
           <label className={styles.label}>{t("descriptionLabel")}</label>
           <textarea
@@ -338,26 +350,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.fieldFull}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 10,
-            }}
-          >
-            <label className={styles.label}>{t("pricingTitle")}</label>
-            <button
-              type="button"
-              className={styles.removeBtn}
-              onClick={addPriceItem}
-            >
-              {t("addPriceItem")}
-            </button>
-          </div>
+          <label className={styles.label}>Kainos</label>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "grid", gap: 12 }}>
             {priceItems.map((item, index) => (
               <div
                 key={index}
@@ -367,6 +362,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                   padding: 12,
                   display: "grid",
                   gap: 10,
+                  background: "#fff",
                 }}
               >
                 <input
@@ -375,36 +371,17 @@ export default function NewServiceForm({ cities, categories }: Props) {
                   onChange={(e) =>
                     updatePriceItem(index, "label", e.target.value)
                   }
-                  placeholder={t("priceItemLabelPlaceholder")}
+                  placeholder="Pvz. Landing Page"
                 />
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 10,
-                  }}
-                >
-                  <input
-                    className={styles.input}
-                    value={item.priceFrom}
-                    onChange={(e) =>
-                      updatePriceItem(index, "priceFrom", e.target.value)
-                    }
-                    placeholder={t("priceItemFromPlaceholder")}
-                    inputMode="numeric"
-                  />
-
-                  <input
-                    className={styles.input}
-                    value={item.priceTo}
-                    onChange={(e) =>
-                      updatePriceItem(index, "priceTo", e.target.value)
-                    }
-                    placeholder={t("priceItemToPlaceholder")}
-                    inputMode="numeric"
-                  />
-                </div>
+                <input
+                  className={styles.input}
+                  value={item.priceText}
+                  onChange={(e) =>
+                    updatePriceItem(index, "priceText", e.target.value)
+                  }
+                  placeholder="Pvz. Nuo 800 NOK"
+                />
 
                 <input
                   className={styles.input}
@@ -412,20 +389,31 @@ export default function NewServiceForm({ cities, categories }: Props) {
                   onChange={(e) =>
                     updatePriceItem(index, "note", e.target.value)
                   }
-                  placeholder={t("priceItemNotePlaceholder")}
+                  placeholder="Pvz. Priklauso nuo funkcionalumo"
                 />
 
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div>
                   <button
                     type="button"
                     className={styles.removeBtn}
                     onClick={() => removePriceItem(index)}
+                    disabled={priceItems.length <= 1}
                   >
-                    {t("remove")}
+                    Pašalinti kainos eilutę
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={styles.removeBtn}
+              onClick={addPriceItem}
+            >
+              Pridėti kainos eilutę
+            </button>
           </div>
         </div>
 

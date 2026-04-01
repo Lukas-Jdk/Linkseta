@@ -60,13 +60,17 @@ model ProviderProfile {
 }
 
 model ServiceListing {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   userId      String
   title       String
-  slug        String   @unique
+  slug        String @unique
   description String
-  priceFrom   Int?
-  priceTo     Int?
+
+  priceFrom Int?
+  priceTo   Int?
+
+  responseTime String? @default("1h")
+
   isActive    Boolean  @default(true)
   highlighted Boolean  @default(false)
   highlights  String[] @default([])
@@ -112,15 +116,16 @@ model ServiceListing {
 }
 
 model ServicePriceItem {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   serviceId String
 
   label   String
   labelEn String?
   labelNo String?
 
-  priceFrom Int?
-  priceTo   Int?
+  priceText   String?
+  priceTextEn String?
+  priceTextNo String?
 
   note   String?
   noteEn String?

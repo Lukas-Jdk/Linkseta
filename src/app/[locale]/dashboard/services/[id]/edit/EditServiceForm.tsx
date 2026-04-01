@@ -15,8 +15,8 @@ type Option = {
 };
 
 type PriceItem = {
-  title: string;
-  price: string;
+  label: string;
+  priceText: string;
   note: string;
 };
 
@@ -26,7 +26,7 @@ type InitialData = {
   description: string;
   cityId: string;
   categoryId: string;
-  priceFrom: number | null;
+  responseTime?: string | null;
   priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
@@ -82,8 +82,8 @@ function normalizeInitialGallery(
 
 function emptyPriceItem(): PriceItem {
   return {
-    title: "",
-    price: "",
+    label: "",
+    priceText: "",
     note: "",
   };
 }
@@ -104,15 +104,13 @@ export default function EditServiceForm({
   const [description, setDescription] = useState(initial.description);
   const [cityId, setCityId] = useState(initial.cityId || "");
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
-  const [priceFrom, setPriceFrom] = useState(
-    initial.priceFrom != null ? String(initial.priceFrom) : "",
-  );
+  const [responseTime, setResponseTime] = useState(initial.responseTime ?? "1h");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>(
     Array.isArray(initial.priceItems) && initial.priceItems.length > 0
       ? initial.priceItems.map((item) => ({
-          title: String(item?.title ?? ""),
-          price: String(item?.price ?? ""),
+          label: String(item?.label ?? ""),
+          priceText: String(item?.priceText ?? ""),
           note: String(item?.note ?? ""),
         }))
       : [emptyPriceItem()],
@@ -136,6 +134,24 @@ export default function EditServiceForm({
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  function updatePriceItem(
+    index: number,
+    key: keyof PriceItem,
+    value: string,
+  ) {
+    setPriceItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
+    );
+  }
+
+  function addPriceItem() {
+    setPriceItems((prev) => [...prev, emptyPriceItem()]);
+  }
+
+  function removePriceItem(index: number) {
+    setPriceItems((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleUpload(files: File[]) {
     if (!files.length) return;
@@ -245,11 +261,11 @@ export default function EditServiceForm({
 
     const cleanPriceItems = priceItems
       .map((item) => ({
-        title: item.title.trim(),
-        price: item.price.trim(),
+        label: item.label.trim(),
+        priceText: item.priceText.trim(),
         note: item.note.trim(),
       }))
-      .filter((item) => item.title || item.price || item.note)
+      .filter((item) => item.label || item.priceText || item.note)
       .slice(0, 20);
 
     try {
@@ -260,7 +276,7 @@ export default function EditServiceForm({
           description: description.trim(),
           cityId: cityId || null,
           categoryId: categoryId || null,
-          priceFrom: priceFrom ? Number(priceFrom) : null,
+          responseTime,
           priceItems: cleanPriceItems,
           galleryImageUrls: cleanGallery.map((x) => x.url),
           galleryImagePaths: cleanGallery.map((x) => x.path),
@@ -347,20 +363,6 @@ export default function EditServiceForm({
       setIsActive(!next);
       setError("Serverio klaida.");
     }
-  }
-
-  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
-    setPriceItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
-    );
-  }
-
-  function addPriceItem() {
-    setPriceItems((prev) => [...prev, emptyPriceItem()]);
-  }
-
-  function removePriceItem(index: number) {
-    setPriceItems((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
@@ -452,18 +454,17 @@ export default function EditServiceForm({
           </div>
         </div>
 
-        <div className={styles.priceRow}>
-          <label className={styles.label}>Pagrindinė kaina nuo:</label>
-          <div className={styles.priceInput}>
-            <input
-              type="number"
-              min={0}
-              value={priceFrom}
-              onChange={(e) => setPriceFrom(e.target.value)}
-              placeholder="Pvz. 555"
-            />
-            <span>NOK</span>
-          </div>
+        <div className={styles.formGroup} style={{ marginTop: 16 }}>
+          <label className={styles.label}>Atsakymo laikas</label>
+          <select
+            className={styles.select}
+            value={responseTime}
+            onChange={(e) => setResponseTime(e.target.value)}
+          >
+            <option value="1h">Per 1 val.</option>
+            <option value="24h">Per 24 val.</option>
+            <option value="48h">Per 48 val.</option>
+          </select>
         </div>
 
         <div className={styles.formGroup} style={{ marginTop: 16 }}>
@@ -484,19 +485,19 @@ export default function EditServiceForm({
               >
                 <input
                   className={styles.input}
-                  value={item.title}
+                  value={item.label}
                   onChange={(e) =>
-                    updatePriceItem(index, "title", e.target.value)
+                    updatePriceItem(index, "label", e.target.value)
                   }
-                  placeholder="Pvz. Tortai"
+                  placeholder="Pvz. Landing Page"
                 />
                 <input
                   className={styles.input}
-                  value={item.price}
+                  value={item.priceText}
                   onChange={(e) =>
-                    updatePriceItem(index, "price", e.target.value)
+                    updatePriceItem(index, "priceText", e.target.value)
                   }
-                  placeholder="Pvz. nuo 650 NOK"
+                  placeholder="Pvz. Nuo 800 NOK"
                 />
                 <input
                   className={styles.input}
@@ -504,7 +505,7 @@ export default function EditServiceForm({
                   onChange={(e) =>
                     updatePriceItem(index, "note", e.target.value)
                   }
-                  placeholder="Pvz. Priklauso nuo dydžio"
+                  placeholder="Pvz. Priklauso nuo funkcionalumo"
                 />
 
                 <div>

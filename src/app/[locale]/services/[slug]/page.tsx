@@ -20,12 +20,6 @@ type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-type PriceItem = {
-  title: string;
-  price: string;
-  note: string;
-};
-
 function stripHtml(input: string) {
   return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -34,10 +28,6 @@ function truncate(input: string, max = 160) {
   const s = input.trim();
   if (s.length <= max) return s;
   return s.slice(0, max - 1).trimEnd() + "…";
-}
-
-function formatPriceNOK(value: number) {
-  return new Intl.NumberFormat("nb-NO").format(value);
 }
 
 function initialLetter(name: string | null, email: string) {
@@ -78,21 +68,6 @@ function pickLocalizedArray(
   if (locale === "en" && Array.isArray(en) && en.length > 0) return en;
   if (locale === "no" && Array.isArray(no) && no.length > 0) return no;
   return base;
-}
-
-function normalizePriceItems(input: unknown): PriceItem[] {
-  if (!Array.isArray(input)) return [];
-
-  return input
-    .map((item) => {
-      const row = item as Record<string, unknown>;
-      return {
-        title: typeof row?.title === "string" ? row.title.trim() : "",
-        price: typeof row?.price === "string" ? row.price.trim() : "",
-        note: typeof row?.note === "string" ? row.note.trim() : "",
-      };
-    })
-    .filter((item) => item.title || item.price || item.note);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -198,7 +173,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
     },
     select: {
       id: true,
-      userId: true,
       title: true,
       titleEn: true,
       titleNo: true,
@@ -206,14 +180,27 @@ export default async function ServiceDetailsPage({ params }: Props) {
       descriptionEn: true,
       descriptionNo: true,
       slug: true,
-      priceFrom: true,
-      priceItems: true,
+      responseTime: true,
       highlighted: true,
       highlights: true,
       highlightsEn: true,
       highlightsNo: true,
       imageUrl: true,
       galleryImageUrls: true,
+      priceItems: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          label: true,
+          labelEn: true,
+          labelNo: true,
+          priceText: true,
+          priceTextEn: true,
+          priceTextNo: true,
+          note: true,
+          noteEn: true,
+          noteNo: true,
+        },
+      },
       city: {
         select: {
           name: true,
@@ -243,36 +230,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
   });
 
   if (!service) notFound();
-
-  const relatedRaw = await prisma.serviceListing.findMany({
-    where: {
-      userId: service.userId,
-      isActive: true,
-      deletedAt: null,
-      id: { not: service.id },
-    },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      titleEn: true,
-      titleNo: true,
-      imageUrl: true,
-      city: {
-        select: {
-          name: true,
-        },
-      },
-      category: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 12,
-  });
 
   const gallery = Array.isArray(service.galleryImageUrls)
     ? service.galleryImageUrls.filter(Boolean)
@@ -317,27 +274,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.highlightsNo,
   );
 
-  const priceItems = normalizePriceItems(service.priceItems);
-
-  const relatedServices = relatedRaw.map((item) => {
-    let itemCategory = item.category?.name ?? "—";
-    if (item.category?.slug) {
-      try {
-        itemCategory = tCategories(item.category.slug);
-      } catch {
-        itemCategory = item.category.name ?? item.category.slug;
-      }
-    }
-
-    return {
-      id: item.id,
-      slug: item.slug,
-      title: pickLocalizedValue(locale, item.title, item.titleEn, item.titleNo),
-      city: item.city?.name ?? "—",
-      category: itemCategory,
-      imageUrl: item.imageUrl ?? null,
-    };
-  });
+  const localizedPriceItems = (service.priceItems ?? []).map((item) => ({
+    label: pickLocalizedValue(locale, item.label, item.labelEn, item.labelNo),
+    priceText: pickLocalizedValue(
+      locale,
+      item.priceText ?? "",
+      item.priceTextEn,
+      item.priceTextNo,
+    ),
+    note: pickLocalizedValue(locale, item.note ?? "", item.noteEn, item.noteNo),
+  }));
 
   const sellerName =
     service.user.profile?.companyName?.trim() ||
@@ -355,16 +301,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
   const phone = phoneRaw || null;
   const telHref = phone ? normalizePhoneHref(phone) : null;
 
-  const priceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : t("priceNegotiable");
-
-  const mobileCompactPriceValue =
-    service.priceFrom != null
-      ? `${formatPriceNOK(service.priceFrom)} NOK`
-      : "—";
-
   const emailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
     service.user.email,
   )}&su=${encodeURIComponent(
@@ -372,6 +308,21 @@ export default async function ServiceDetailsPage({ params }: Props) {
   )}&body=${encodeURIComponent(
     t("emailBody", { title: localizedTitle }),
   )}`;
+
+  const responseTimeLabel =
+    service.responseTime === "24h"
+      ? locale === "en"
+        ? "Usually responds within 24 hours."
+        : locale === "no"
+          ? "Svarer vanligvis innen 24 timer."
+          : "Dažniausiai atsako per 24 val."
+      : service.responseTime === "48h"
+        ? locale === "en"
+          ? "Usually responds within 48 hours."
+          : locale === "no"
+            ? "Svarer vanligvis innen 48 timer."
+            : "Dažniausiai atsako per 48 val."
+        : t("respondsFast");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -386,13 +337,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       "@type": "Organization",
       name: sellerName,
     },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "NOK",
-      price: service.priceFrom ?? undefined,
-      availability: "https://schema.org/InStock",
-      url: `${siteUrl}/${locale}/services/${service.slug}`,
-    },
+    url: `${siteUrl}/${locale}/services/${service.slug}`,
   };
 
   const SellerCard = (
@@ -427,11 +372,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
             {t("active")}
           </div>
         )}
-      </div>
-
-      <div className={styles.priceBox}>
-        <div className={styles.priceBoxLabel}>{t("servicePriceLabel")}</div>
-        <div className={styles.priceBoxValue}>{priceValue}</div>
       </div>
 
       <div className={styles.sideActions}>
@@ -483,15 +423,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
           <div className={styles.tabletInlineSubtitle}>{t("provider")}</div>
         </div>
       </div>
-
-      <div className={styles.tabletInlinePrice}>
-        <div className={styles.tabletInlinePriceValue}>
-          {mobileCompactPriceValue}
-        </div>
-        <div className={styles.tabletInlinePriceLabel}>
-          {t("priceFromLabel")}
-        </div>
-      </div>
     </div>
   );
 
@@ -517,15 +448,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
           <div className={styles.mobileCompactInfo}>
             <div className={styles.mobileCompactName}>{sellerName}</div>
             <div className={styles.mobileCompactSubtitle}>{t("provider")}</div>
-          </div>
-        </div>
-
-        <div className={styles.mobileCompactPrice}>
-          <div className={styles.mobileCompactPriceValue}>
-            {mobileCompactPriceValue}
-          </div>
-          <div className={styles.mobileCompactPriceLabel}>
-            {t("priceFromLabel")}
           </div>
         </div>
       </div>
@@ -562,13 +484,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
             {t("active")}
           </div>
         )}
-      </div>
-
-      <div className={styles.mobileBottomPriceBox}>
-        <div className={styles.mobileBottomPriceLabel}>
-          {t("servicePriceLabel")}
-        </div>
-        <div className={styles.mobileBottomPriceValue}>{priceValue}</div>
       </div>
 
       <div className={styles.mobileBottomActions}>
@@ -666,7 +581,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                       <div className={styles.quickInfo}>
                         <Zap size={16} />
-                        {t("respondsFast")}
+                        {responseTimeLabel}
                       </div>
 
                       {TabletInlineSeller}
@@ -679,13 +594,11 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
               <div className={styles.contentCardWrap}>
                 <ServiceTabsClient
-                  locale={locale}
                   title={localizedTitle}
                   description={localizedDescription}
                   highlights={localizedHighlights}
                   images={images}
-                  priceItems={priceItems}
-                  services={relatedServices}
+                  priceItems={localizedPriceItems}
                 />
               </div>
 

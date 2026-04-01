@@ -13,8 +13,7 @@ export const dynamic = "force-dynamic";
 
 type RawPriceItem = {
   label?: unknown;
-  priceFrom?: unknown;
-  priceTo?: unknown;
+  priceText?: unknown;
   note?: unknown;
 };
 
@@ -69,13 +68,6 @@ function normalizeGalleryStrings(
     .map((x) => x.slice(0, maxLen));
 }
 
-function toSafeInt(value: unknown) {
-  if (value === null || value === undefined || value === "") return null;
-  const n = Number(value);
-  if (!Number.isFinite(n)) return null;
-  return Math.max(0, Math.min(10_000_000, Math.trunc(n)));
-}
-
 function normalizePriceItems(input: unknown) {
   if (!Array.isArray(input)) return [];
 
@@ -85,20 +77,22 @@ function normalizePriceItems(input: unknown) {
 
       const label =
         typeof raw.label === "string" ? raw.label.trim().slice(0, 120) : "";
+      const priceText =
+        typeof raw.priceText === "string"
+          ? raw.priceText.trim().slice(0, 120)
+          : "";
       const note =
         typeof raw.note === "string" ? raw.note.trim().slice(0, 220) : "";
 
-      const priceFrom = toSafeInt(raw.priceFrom);
-      const priceTo = toSafeInt(raw.priceTo);
-
-      if (!label) return null;
+      if (!label && !priceText && !note) return null;
 
       return {
-        label,
-        labelEn: label,
-        labelNo: label,
-        priceFrom,
-        priceTo,
+        label: label || "Paslauga",
+        labelEn: label || "Service",
+        labelNo: label || "Tjeneste",
+        priceText: priceText || null,
+        priceTextEn: priceText || null,
+        priceTextNo: priceText || null,
         note: note || null,
         noteEn: note || null,
         noteNo: note || null,
@@ -110,28 +104,14 @@ function normalizePriceItems(input: unknown) {
     label: string;
     labelEn: string;
     labelNo: string;
-    priceFrom: number | null;
-    priceTo: number | null;
+    priceText: string | null;
+    priceTextEn: string | null;
+    priceTextNo: string | null;
     note: string | null;
     noteEn: string | null;
     noteNo: string | null;
     sortOrder: number;
   }>;
-}
-
-function summarizePriceRange(priceItems: Array<{ priceFrom: number | null; priceTo: number | null }>) {
-  const fromValues = priceItems
-    .map((x) => x.priceFrom)
-    .filter((x): x is number => typeof x === "number");
-
-  const toValues = priceItems
-    .map((x) => x.priceTo)
-    .filter((x): x is number => typeof x === "number");
-
-  return {
-    priceFrom: fromValues.length ? Math.min(...fromValues) : null,
-    priceTo: toValues.length ? Math.max(...toValues) : null,
-  };
 }
 
 export async function POST(req: Request) {
@@ -233,6 +213,11 @@ export async function POST(req: Request) {
     const categoryId =
       typeof body?.categoryId === "string" ? body.categoryId : null;
 
+    const responseTime =
+      body?.responseTime === "24h" || body?.responseTime === "48h"
+        ? body.responseTime
+        : "1h";
+
     const galleryImageUrls = normalizeGalleryStrings(
       body?.galleryImageUrls,
       maxImagesPerListing,
@@ -260,7 +245,6 @@ export async function POST(req: Request) {
       : [];
 
     const priceItems = normalizePriceItems(body?.priceItems);
-    const priceSummary = summarizePriceRange(priceItems);
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -320,8 +304,9 @@ export async function POST(req: Request) {
         description,
         cityId,
         categoryId,
-        priceFrom: priceSummary.priceFrom,
-        priceTo: priceSummary.priceTo,
+        responseTime,
+        priceFrom: null,
+        priceTo: null,
         imageUrl: coverImageUrl,
         imagePath: coverImagePath,
         galleryImageUrls,
@@ -357,6 +342,7 @@ export async function POST(req: Request) {
         title,
         imageCount: galleryImageUrls.length,
         priceItemsCount: priceItems.length,
+        responseTime,
         plan: {
           slug: planSlug,
           name: planName,

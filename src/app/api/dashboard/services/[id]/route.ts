@@ -21,8 +21,7 @@ type GalleryPair = {
 
 type RawPriceItem = {
   label?: unknown;
-  priceFrom?: unknown;
-  priceTo?: unknown;
+  priceText?: unknown;
   note?: unknown;
 };
 
@@ -56,13 +55,6 @@ function normalizeGalleryPairs(
   return pairs;
 }
 
-function toSafeInt(value: unknown) {
-  if (value === null || value === undefined || value === "") return null;
-  const n = Number(value);
-  if (!Number.isFinite(n)) return null;
-  return Math.max(0, Math.min(10_000_000, Math.trunc(n)));
-}
-
 function normalizePriceItems(input: unknown) {
   if (!Array.isArray(input)) return [];
 
@@ -72,20 +64,22 @@ function normalizePriceItems(input: unknown) {
 
       const label =
         typeof raw.label === "string" ? raw.label.trim().slice(0, 120) : "";
+      const priceText =
+        typeof raw.priceText === "string"
+          ? raw.priceText.trim().slice(0, 120)
+          : "";
       const note =
         typeof raw.note === "string" ? raw.note.trim().slice(0, 220) : "";
 
-      const priceFrom = toSafeInt(raw.priceFrom);
-      const priceTo = toSafeInt(raw.priceTo);
-
-      if (!label) return null;
+      if (!label && !priceText && !note) return null;
 
       return {
-        label,
-        labelEn: label,
-        labelNo: label,
-        priceFrom,
-        priceTo,
+        label: label || "Paslauga",
+        labelEn: label || "Service",
+        labelNo: label || "Tjeneste",
+        priceText: priceText || null,
+        priceTextEn: priceText || null,
+        priceTextNo: priceText || null,
         note: note || null,
         noteEn: note || null,
         noteNo: note || null,
@@ -97,28 +91,14 @@ function normalizePriceItems(input: unknown) {
     label: string;
     labelEn: string;
     labelNo: string;
-    priceFrom: number | null;
-    priceTo: number | null;
+    priceText: string | null;
+    priceTextEn: string | null;
+    priceTextNo: string | null;
     note: string | null;
     noteEn: string | null;
     noteNo: string | null;
     sortOrder: number;
   }>;
-}
-
-function summarizePriceRange(priceItems: Array<{ priceFrom: number | null; priceTo: number | null }>) {
-  const fromValues = priceItems
-    .map((x) => x.priceFrom)
-    .filter((x): x is number => typeof x === "number");
-
-  const toValues = priceItems
-    .map((x) => x.priceTo)
-    .filter((x): x is number => typeof x === "number");
-
-  return {
-    priceFrom: fromValues.length ? Math.min(...fromValues) : null,
-    priceTo: toValues.length ? Math.max(...toValues) : null,
-  };
 }
 
 async function removeFromStorage(paths: string[]) {
@@ -176,8 +156,7 @@ export async function PATCH(
         description: true,
         cityId: true,
         categoryId: true,
-        priceFrom: true,
-        priceTo: true,
+        responseTime: true,
         isActive: true,
         imageUrl: true,
         imagePath: true,
@@ -195,8 +174,7 @@ export async function PATCH(
           orderBy: { sortOrder: "asc" },
           select: {
             label: true,
-            priceFrom: true,
-            priceTo: true,
+            priceText: true,
             note: true,
           },
         },
@@ -261,6 +239,13 @@ export async function PATCH(
         ? body.categoryId
         : service.categoryId;
 
+    const nextResponseTime =
+      body?.responseTime === "24h" || body?.responseTime === "48h"
+        ? body.responseTime
+        : body?.responseTime === "1h"
+          ? "1h"
+          : service.responseTime ?? "1h";
+
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
 
@@ -322,16 +307,15 @@ export async function PATCH(
             label: item.label,
             labelEn: item.label,
             labelNo: item.label,
-            priceFrom: item.priceFrom,
-            priceTo: item.priceTo,
+            priceText: item.priceText ?? null,
+            priceTextEn: item.priceText ?? null,
+            priceTextNo: item.priceText ?? null,
             note: item.note ?? null,
             noteEn: item.note ?? null,
             noteNo: item.note ?? null,
             sortOrder: index,
           }))
         : normalizePriceItems(body?.priceItems);
-
-    const priceSummary = summarizePriceRange(priceItems);
 
     const shouldRetranslate =
       nextTitle !== service.title ||
@@ -384,8 +368,9 @@ export async function PATCH(
         description: nextDesc,
         cityId: nextCityId ?? null,
         categoryId: nextCategoryId ?? null,
-        priceFrom: priceSummary.priceFrom,
-        priceTo: priceSummary.priceTo,
+        responseTime: nextResponseTime,
+        priceFrom: null,
+        priceTo: null,
         isActive: nextIsActive,
         imageUrl: nextGalleryImageUrls[0] ?? null,
         imagePath: nextGalleryImagePaths[0] ?? null,
@@ -431,6 +416,7 @@ export async function PATCH(
         imageCount: nextGalleryImageUrls.length,
         retranslated: shouldRetranslate,
         priceItemsCount: priceItems.length,
+        responseTime: nextResponseTime,
       },
     });
 

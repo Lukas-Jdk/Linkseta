@@ -25,7 +25,7 @@ export default async function EditServicePage({ params }: PageProps) {
       description: true,
       cityId: true,
       categoryId: true,
-      priceFrom: true,
+      responseTime: true,
       imageUrl: true,
       imagePath: true,
       galleryImageUrls: true,
@@ -36,8 +36,7 @@ export default async function EditServicePage({ params }: PageProps) {
         orderBy: { sortOrder: "asc" },
         select: {
           label: true,
-          priceFrom: true,
-          priceTo: true,
+          priceText: true,
           note: true,
         },
       },
@@ -68,7 +67,7 @@ export default async function EditServicePage({ params }: PageProps) {
     description: service.description ?? "",
     cityId: service.cityId ?? "",
     categoryId: service.categoryId ?? "",
-    priceFrom: service.priceFrom ?? null,
+    responseTime: service.responseTime ?? "1h",
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
     galleryImageUrls:
@@ -89,15 +88,8 @@ export default async function EditServicePage({ params }: PageProps) {
     isActive: service.isActive,
     priceItems: Array.isArray(service.priceItems)
       ? service.priceItems.map((item) => ({
-          title: item.label ?? "",
-          price:
-            item.priceFrom != null && item.priceTo != null
-              ? `${item.priceFrom}-${item.priceTo} NOK`
-              : item.priceFrom != null
-                ? `nuo ${item.priceFrom} NOK`
-                : item.priceTo != null
-                  ? `iki ${item.priceTo} NOK`
-                  : "",
+          label: item.label ?? "",
+          priceText: item.priceText ?? "",
           note: item.note ?? "",
         }))
       : [],

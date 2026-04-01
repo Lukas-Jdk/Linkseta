@@ -3,45 +3,31 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import styles from "./slugPage.module.css";
 
 type PriceItem = {
-  title: string;
-  price: string;
+  label: string;
+  priceText: string;
   note: string;
 };
 
-type RelatedService = {
-  id: string;
-  slug: string;
-  title: string;
-  city: string;
-  category: string;
-  imageUrl: string | null;
-};
-
 type Props = {
-  locale: string;
   title: string;
   description: string;
   highlights: string[];
   images: string[];
   priceItems: PriceItem[];
-  services: RelatedService[];
 };
 
 type TabKey = "about" | "gallery" | "prices" | "services" | "reviews";
 
 export default function ServiceTabsClient({
-  locale,
   title,
   description,
   highlights,
   images,
   priceItems,
-  services,
 }: Props) {
   const t = useTranslations("serviceDetailsTabs");
 
@@ -49,8 +35,6 @@ export default function ServiceTabsClient({
 
   const hasHighlights = highlights.length > 0;
   const hasGallery = images.length > 0;
-  const hasPrices = priceItems.length > 0;
-  const hasServices = services.length > 0;
 
   return (
     <div className={styles.contentCard}>
@@ -82,7 +66,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("prices")}
         >
-          {t("prices")}
+          Kainos
         </button>
 
         <button
@@ -92,7 +76,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("services")}
         >
-          {t("services", { count: services.length })}
+          Paslaugos (0)
         </button>
 
         <button
@@ -139,7 +123,12 @@ export default function ServiceTabsClient({
               }}
             >
               {images.map((img, index) => (
-                <a key={`${img}-${index}`} href={img} target="_blank" rel="noreferrer">
+                <a
+                  key={`${img}-${index}`}
+                  href={img}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <div
                     style={{
                       position: "relative",
@@ -170,76 +159,65 @@ export default function ServiceTabsClient({
 
       {activeTab === "prices" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("pricesTitle")}</h2>
+          <h2 className={styles.sectionTitle}>Kainos</h2>
 
-          {hasPrices ? (
-            <div className={styles.priceList}>
+          {priceItems.length > 0 ? (
+            <div style={{ display: "grid", gap: 12 }}>
               {priceItems.map((item, index) => (
-                <div key={`${item.title}-${index}`} className={styles.priceCard}>
-                  <div className={styles.priceCardTop}>
-                    <div className={styles.priceCardName}>
-                      {item.title || t("priceNameFallback")}
-                    </div>
-                    <div className={styles.priceCardValue}>
-                      {item.price || "—"}
-                    </div>
+                <div
+                  key={`${item.label}-${index}`}
+                  style={{
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
+                    borderRadius: 16,
+                    padding: 16,
+                    background: "#fff",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "1.05rem",
+                      color: "#0b1220",
+                    }}
+                  >
+                    {item.label}
                   </div>
 
+                  {item.priceText ? (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontWeight: 700,
+                        color: "#0ea5e9",
+                      }}
+                    >
+                      {item.priceText}
+                    </div>
+                  ) : null}
+
                   {item.note ? (
-                    <div className={styles.priceCardNote}>{item.note}</div>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        color: "#64748b",
+                      }}
+                    >
+                      {item.note}
+                    </div>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.descSmall}>{t("noPrices")}</p>
+            <p className={styles.descSmall}>Kainos dar nenurodytos.</p>
           )}
         </div>
       )}
 
       {activeTab === "services" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            {t("servicesTitle", { count: services.length })}
-          </h2>
-
-          {hasServices ? (
-            <div className={styles.relatedGrid}>
-              {services.map((service) => (
-                <Link
-                  key={service.id}
-                  href={`/${locale}/services/${service.slug}`}
-                  className={styles.relatedCard}
-                >
-                  <div className={styles.relatedThumb}>
-                    {service.imageUrl ? (
-                      <Image
-                        src={service.imageUrl}
-                        alt={service.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 260px"
-                        style={{ objectFit: "cover" }}
-                      />
-                    ) : (
-                      <div className={styles.relatedThumbFallback}>
-                        {service.title.slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={styles.relatedBody}>
-                    <div className={styles.relatedCategory}>
-                      {service.category}
-                    </div>
-                    <div className={styles.relatedTitle}>{service.title}</div>
-                    <div className={styles.relatedMeta}>{service.city}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.descSmall}>{t("noOtherServices")}</p>
-          )}
+          <h2 className={styles.sectionTitle}>Paslaugos</h2>
+          <p className={styles.descSmall}>Papildomos paslaugos bus netrukus.</p>
         </div>
       )}
 
