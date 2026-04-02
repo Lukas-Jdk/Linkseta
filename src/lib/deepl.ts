@@ -13,6 +13,12 @@ type TranslateServiceContentParams = {
   highlights: string[];
 };
 
+type PriceItemInput = {
+  label: string;
+  priceText?: string | null;
+  note?: string | null;
+};
+
 function getDeeplApiKey() {
   const key = process.env.DEEPL_API_KEY?.trim();
   if (!key) {
@@ -27,7 +33,7 @@ function getDeeplBaseUrl() {
   );
 }
 
-async function translateTexts({
+export async function translateTexts({
   texts,
   targetLang,
 }: TranslateTextsParams): Promise<string[]> {
@@ -43,10 +49,7 @@ async function translateTexts({
   for (const text of filtered) {
     body.append("text", text);
   }
-console.log("🔥 DeepL REQUEST:", {
-  texts,
-  targetLang,
-});
+
   const res = await fetch(`${getDeeplBaseUrl()}/v2/translate`, {
     method: "POST",
     headers: {
@@ -56,10 +59,7 @@ console.log("🔥 DeepL REQUEST:", {
     body: body.toString(),
     cache: "no-store",
   });
-console.log("🔥 DeepL REQUEST:", {
-  texts,
-  targetLang,
-});
+
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");
     throw new Error(`DeepL error: ${res.status} ${errorText}`);
@@ -68,7 +68,7 @@ console.log("🔥 DeepL REQUEST:", {
   const json = (await res.json()) as {
     translations?: Array<{ text: string }>;
   };
-console.log("🔥 DeepL RESPONSE:", JSON.stringify(json));
+
   return Array.isArray(json.translations)
     ? json.translations.map((item) => item.text ?? "")
     : [];
@@ -103,4 +103,57 @@ export async function translateServiceContent({
       highlights: noTexts.slice(2),
     },
   };
+}
+
+export async function translatePriceItems(items: PriceItemInput[]) {
+  const cleanItems = items.map((item) => ({
+    label: item.label.trim(),
+    priceText: item.priceText?.trim() || "",
+    note: item.note?.trim() || "",
+  }));
+
+  const sourceTexts = cleanItems.flatMap((item) => [
+    item.label,
+    item.priceText,
+    item.note,
+  ]);
+
+  if (sourceTexts.length === 0) {
+    return {
+      en: [] as Array<{ label: string; priceText: string; note: string }>,
+      no: [] as Array<{ label: string; priceText: string; note: string }>,
+    };
+  }
+
+  const [enTexts, noTexts] = await Promise.all([
+    translateTexts({
+      texts: sourceTexts,
+      targetLang: "EN",
+    }),
+    translateTexts({
+      texts: sourceTexts,
+      targetLang: "NB",
+    }),
+  ]);
+
+  const en: Array<{ label: string; priceText: string; note: string }> = [];
+  const no: Array<{ label: string; priceText: string; note: string }> = [];
+
+  for (let i = 0; i < cleanItems.length; i += 1) {
+    const baseIndex = i * 3;
+
+    en.push({
+      label: enTexts[baseIndex] ?? cleanItems[i].label,
+      priceText: enTexts[baseIndex + 1] ?? cleanItems[i].priceText,
+      note: enTexts[baseIndex + 2] ?? cleanItems[i].note,
+    });
+
+    no.push({
+      label: noTexts[baseIndex] ?? cleanItems[i].label,
+      priceText: noTexts[baseIndex + 1] ?? cleanItems[i].priceText,
+      note: noTexts[baseIndex + 2] ?? cleanItems[i].note,
+    });
+  }
+
+  return { en, no };
 }

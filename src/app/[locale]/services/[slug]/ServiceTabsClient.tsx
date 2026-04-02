@@ -35,6 +35,7 @@ export default function ServiceTabsClient({
 
   const hasHighlights = highlights.length > 0;
   const hasGallery = images.length > 0;
+  const hasPrices = priceItems.length > 0;
 
   return (
     <div className={styles.contentCard}>
@@ -66,7 +67,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("prices")}
         >
-          Kainos
+          {t("prices")}
         </button>
 
         <button
@@ -76,7 +77,7 @@ export default function ServiceTabsClient({
           }`}
           onClick={() => setActiveTab("services")}
         >
-          Paslaugos (0)
+          {t("servicesCount", { count: 0 })}
         </button>
 
         <button
@@ -159,65 +160,38 @@ export default function ServiceTabsClient({
 
       {activeTab === "prices" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Kainos</h2>
+          <h2 className={styles.sectionTitle}>{t("pricesTitle")}</h2>
 
-          {priceItems.length > 0 ? (
-            <div style={{ display: "grid", gap: 12 }}>
+          {hasPrices ? (
+            <div className={styles.priceList}>
               {priceItems.map((item, index) => (
-                <div
-                  key={`${item.label}-${index}`}
-                  style={{
-                    border: "1px solid rgba(15, 23, 42, 0.08)",
-                    borderRadius: 16,
-                    padding: 16,
-                    background: "#fff",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      fontSize: "1.05rem",
-                      color: "#0b1220",
-                    }}
-                  >
-                    {item.label}
+                <div key={`${item.label}-${index}`} className={styles.priceCard}>
+                  <div className={styles.priceCardTop}>
+                    <div className={styles.priceCardName}>{item.label}</div>
+
+                    {item.priceText ? (
+                      <div className={styles.priceCardValue}>
+                        {item.priceText}
+                      </div>
+                    ) : null}
                   </div>
 
-                  {item.priceText ? (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontWeight: 700,
-                        color: "#0ea5e9",
-                      }}
-                    >
-                      {item.priceText}
-                    </div>
-                  ) : null}
-
                   {item.note ? (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        color: "#64748b",
-                      }}
-                    >
-                      {item.note}
-                    </div>
+                    <div className={styles.priceCardNote}>{item.note}</div>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.descSmall}>Kainos dar nenurodytos.</p>
+            <p className={styles.descSmall}>{t("noPrices")}</p>
           )}
         </div>
       )}
 
       {activeTab === "services" && (
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Paslaugos</h2>
-          <p className={styles.descSmall}>Papildomos paslaugos bus netrukus.</p>
+          <h2 className={styles.sectionTitle}>{t("servicesTitle")}</h2>
+          <p className={styles.descSmall}>{t("servicesComing")}</p>
         </div>
       )}
 

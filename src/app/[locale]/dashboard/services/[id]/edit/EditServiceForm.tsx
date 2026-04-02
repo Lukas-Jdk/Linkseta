@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { useMemo, useState, FormEvent, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
 import { compressImageFile } from "@/lib/imageCompress";
@@ -22,6 +23,7 @@ type PriceItem = {
 
 type InitialData = {
   id: string;
+  locale: string;
   title: string;
   description: string;
   cityId: string;
@@ -65,7 +67,6 @@ function normalizeInitialGallery(
   if (!Array.isArray(urls) || !Array.isArray(paths)) return [];
 
   const len = Math.min(urls.length, paths.length);
-
   const out: GalleryItem[] = [];
 
   for (let i = 0; i < len; i += 1) {
@@ -93,9 +94,10 @@ export default function EditServiceForm({
   cities,
   categories,
 }: Props) {
+  const t = useTranslations("dashboardEditServiceForm");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
-  const locale = params?.locale ?? "lt";
+  const locale = params?.locale ?? initial.locale ?? "lt";
 
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [pending, startTransition] = useTransition();
@@ -161,7 +163,7 @@ export default function EditServiceForm({
 
     const remainingSlots = MAX_IMAGES - gallery.length;
     if (remainingSlots <= 0) {
-      setError(`Galima įkelti daugiausia ${MAX_IMAGES} nuotraukų.`);
+      setError(t("maxImages", { max: MAX_IMAGES }));
       return;
     }
 
@@ -171,7 +173,7 @@ export default function EditServiceForm({
       const { data: userData, error: userErr } = await supabase.auth.getUser();
 
       if (userErr || !userData.user) {
-        setError("Turite būti prisijungęs, kad įkeltumėte nuotraukas.");
+        setError(t("mustBeLoggedIn"));
         return;
       }
 
@@ -181,13 +183,11 @@ export default function EditServiceForm({
 
       for (const file of selected) {
         if (!file.type.startsWith("image/")) {
-          throw new Error("Pasirinkite paveikslėlį (JPG / PNG / WEBP).");
+          throw new Error(t("fileNotImage"));
         }
 
         if (file.size > 10 * 1024 * 1024) {
-          throw new Error(
-            "Nuotrauka per didelė. Maksimaliai 10MB prieš suspaudimą.",
-          );
+          throw new Error(t("fileTooLargeBefore"));
         }
 
         const random = window.crypto.randomUUID();
@@ -200,9 +200,7 @@ export default function EditServiceForm({
         });
 
         if (compressed.size > 3 * 1024 * 1024) {
-          throw new Error(
-            "Suspausta nuotrauka vis dar per didelė. Pasirinkite mažesnę.",
-          );
+          throw new Error(t("fileTooLargeAfter"));
         }
 
         const path = `${userId}/services/${random}.jpg`;
@@ -216,13 +214,13 @@ export default function EditServiceForm({
           });
 
         if (uploadError) {
-          throw new Error(uploadError.message || "Nepavyko įkelti nuotraukos.");
+          throw new Error(uploadError.message || t("uploadFailed"));
         }
 
         const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
         if (!data?.publicUrl) {
-          throw new Error("Nepavyko gauti nuotraukos URL.");
+          throw new Error(t("urlFailed"));
         }
 
         uploaded.push({
@@ -232,17 +230,15 @@ export default function EditServiceForm({
       }
 
       if (!uploaded.length) {
-        setError("Nepavyko pridėti nuotraukų.");
+        setError(t("uploadFailed"));
         return;
       }
 
       setGallery((prev) => [...prev, ...uploaded]);
-      setSuccess("Nuotraukos įkeltos. Nepamirškite išsaugoti pakeitimų.");
+      setSuccess(t("imagesUploaded"));
     } catch (e) {
       console.error(e);
-      setError(
-        e instanceof Error ? e.message : "Įvyko klaida įkeliant nuotrauką.",
-      );
+      setError(e instanceof Error ? e.message : t("genericError"));
     } finally {
       setUploading(false);
     }
@@ -272,6 +268,7 @@ export default function EditServiceForm({
       const res = await csrfFetch(`/api/dashboard/services/${initial.id}`, {
         method: "PATCH",
         body: JSON.stringify({
+          locale,
           title: title.trim(),
           description: description.trim(),
           cityId: cityId || null,
@@ -288,12 +285,12 @@ export default function EditServiceForm({
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError((json as any)?.error || "Nepavyko išsaugoti paslaugos.");
+        setError((json as any)?.error || t("saveFailed"));
         return;
       }
 
       setGallery(cleanGallery);
-      setSuccess("Paslauga sėkmingai atnaujinta.");
+      setSuccess(t("saved"));
 
       startTransition(() => {
         router.push(`/${locale}/dashboard/services`);
@@ -301,14 +298,12 @@ export default function EditServiceForm({
       });
     } catch (e) {
       console.error(e);
-      setError("Serverio klaida.");
+      setError(t("serverError"));
     }
   }
 
   async function handleDelete() {
-    const ok = window.confirm(
-      "Ar tikrai nori ištrinti šią paslaugą? (Soft delete: paslauga dings iš sąrašo.)",
-    );
+    const ok = window.confirm(t("deleteConfirm"));
     if (!ok) return;
 
     setError(null);
@@ -322,7 +317,7 @@ export default function EditServiceForm({
       const json = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError((json as any)?.error || "Nepavyko ištrinti paslaugos.");
+        setError((json as any)?.error || t("deleteFailed"));
         return;
       }
 
@@ -332,7 +327,7 @@ export default function EditServiceForm({
       });
     } catch (e) {
       console.error(e);
-      setError("Serverio klaida.");
+      setError(t("serverError"));
     }
   }
 
@@ -353,25 +348,25 @@ export default function EditServiceForm({
 
       if (!res.ok) {
         setIsActive(!next);
-        setError((json as any)?.error || "Nepavyko pakeisti aktyvumo.");
+        setError((json as any)?.error || t("toggleFailed"));
         return;
       }
 
-      setSuccess(next ? "Paslauga įjungta." : "Paslauga išjungta.");
+      setSuccess(next ? t("enabled") : t("disabled"));
     } catch (e) {
       console.error(e);
       setIsActive(!next);
-      setError("Serverio klaida.");
+      setError(t("serverError"));
     }
   }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Pagrindinė informacija</h2>
+        <h2 className={styles.sectionTitle}>{t("mainInfo")}</h2>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Paslaugos pavadinimas</label>
+          <label className={styles.label}>{t("titleLabel")}</label>
           <input
             className={styles.input}
             value={title}
@@ -381,7 +376,7 @@ export default function EditServiceForm({
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Aprašymas</label>
+          <label className={styles.label}>{t("descriptionLabel")}</label>
           <textarea
             className={styles.textarea}
             rows={6}
@@ -390,45 +385,41 @@ export default function EditServiceForm({
             required
           />
           <div className={styles.charHint}>
-            {description.length} / 2000 simbolių
+            {description.length} / 4000
           </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>
-          Kodėl verta rinktis šią paslaugą?
-        </h2>
+        <h2 className={styles.sectionTitle}>{t("whyChooseTitle")}</h2>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>
-            Privalumai (1 eilutė = 1 punktas)
-          </label>
+          <label className={styles.label}>{t("highlightsLabel")}</label>
           <textarea
             className={styles.textarea}
             rows={5}
             value={highlightsText}
             onChange={(e) => setHighlightsText(e.target.value)}
-            placeholder={"Pvz:\nGreita komunikacija\nGarantija\nAiškūs terminai"}
+            placeholder={t("highlightsPlaceholder")}
           />
           <div className={styles.charHint}>
-            Punktų: {highlightsPreview.length} / 6
+            {t("pointsCount", { count: highlightsPreview.length })}
           </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Detalės ir kainos</h2>
+        <h2 className={styles.sectionTitle}>{t("detailsAndPrices")}</h2>
 
         <div className={styles.formRow}>
           <div className={styles.formCol}>
-            <label className={styles.label}>Miestas</label>
+            <label className={styles.label}>{t("cityLabel")}</label>
             <select
               className={styles.select}
               value={cityId}
               onChange={(e) => setCityId(e.target.value)}
             >
-              <option value="">Pasirinkti miestą</option>
+              <option value="">{t("selectCity")}</option>
               {cities.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -438,13 +429,13 @@ export default function EditServiceForm({
           </div>
 
           <div className={styles.formCol}>
-            <label className={styles.label}>Kategorija</label>
+            <label className={styles.label}>{t("categoryLabel")}</label>
             <select
               className={styles.select}
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
             >
-              <option value="">Pasirinkti kategoriją</option>
+              <option value="">{t("selectCategory")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -455,20 +446,20 @@ export default function EditServiceForm({
         </div>
 
         <div className={styles.formGroup} style={{ marginTop: 16 }}>
-          <label className={styles.label}>Atsakymo laikas</label>
+          <label className={styles.label}>{t("responseTimeLabel")}</label>
           <select
             className={styles.select}
             value={responseTime}
             onChange={(e) => setResponseTime(e.target.value)}
           >
-            <option value="1h">Per 1 val.</option>
-            <option value="24h">Per 24 val.</option>
-            <option value="48h">Per 48 val.</option>
+            <option value="1h">{t("response1h")}</option>
+            <option value="24h">{t("response24h")}</option>
+            <option value="48h">{t("response48h")}</option>
           </select>
         </div>
 
         <div className={styles.formGroup} style={{ marginTop: 16 }}>
-          <label className={styles.label}>Papildomos kainų eilutės</label>
+          <label className={styles.label}>{t("priceItemsTitle")}</label>
 
           <div style={{ display: "grid", gap: 12 }}>
             {priceItems.map((item, index) => (
@@ -489,23 +480,25 @@ export default function EditServiceForm({
                   onChange={(e) =>
                     updatePriceItem(index, "label", e.target.value)
                   }
-                  placeholder="Pvz. Landing Page"
+                  placeholder={t("priceItemNamePlaceholder")}
                 />
+
                 <input
                   className={styles.input}
                   value={item.priceText}
                   onChange={(e) =>
                     updatePriceItem(index, "priceText", e.target.value)
                   }
-                  placeholder="Pvz. Nuo 800 NOK"
+                  placeholder={t("priceItemPricePlaceholder")}
                 />
+
                 <input
                   className={styles.input}
                   value={item.note}
                   onChange={(e) =>
                     updatePriceItem(index, "note", e.target.value)
                   }
-                  placeholder="Pvz. Priklauso nuo funkcionalumo"
+                  placeholder={t("priceItemNotePlaceholder")}
                 />
 
                 <div>
@@ -515,7 +508,7 @@ export default function EditServiceForm({
                     onClick={() => removePriceItem(index)}
                     disabled={priceItems.length <= 1}
                   >
-                    Pašalinti kainos eilutę
+                    {t("removePriceRow")}
                   </button>
                 </div>
               </div>
@@ -528,18 +521,18 @@ export default function EditServiceForm({
               className={styles.secondaryButton}
               onClick={addPriceItem}
             >
-              Pridėti kainos eilutę
+              {t("addPriceRow")}
             </button>
           </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Nuotraukos</h2>
+        <h2 className={styles.sectionTitle}>{t("imagesTitle")}</h2>
 
         <div className={styles.uploadRow}>
           <label className={styles.uploadBtn}>
-            {uploading ? "Įkeliama..." : "Įkelti nuotraukas"}
+            {uploading ? t("uploading") : t("uploadButton")}
             <input
               type="file"
               accept="image/*"
@@ -587,7 +580,7 @@ export default function EditServiceForm({
                 >
                   <Image
                     src={img.url}
-                    alt={`Nuotrauka ${idx + 1}`}
+                    alt={`${t("imageAlt")} ${idx + 1}`}
                     fill
                     sizes="180px"
                     style={{
@@ -606,29 +599,28 @@ export default function EditServiceForm({
                   }}
                   disabled={uploading || pending}
                 >
-                  Pašalinti
+                  {t("removeImage")}
                 </button>
               </div>
             ))
           ) : (
             <div className={styles.emptyState}>
-              <span className={styles.emptyText}>Nuotraukų nėra</span>
+              <span className={styles.emptyText}>{t("noImages")}</span>
             </div>
           )}
         </div>
 
-        <p className={styles.helpText}>
-          Galite įkelti kelias nuotraukas. Maks. 10MB prieš suspaudimą.
-        </p>
+        <p className={styles.helpText}>{t("imagesHelp")}</p>
         {error && <p className={styles.errorText}>{error}</p>}
         {success && <p className={styles.successText}>{success}</p>}
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>Aktyvumas</h2>
+        <h2 className={styles.sectionTitle}>{t("activityTitle")}</h2>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <span>
-            Statusas: <strong>{isActive ? "Aktyvi" : "Išjungta"}</strong>
+            {t("statusLabel")}{" "}
+            <strong>{isActive ? t("statusActive") : t("statusInactive")}</strong>
           </span>
           <button
             type="button"
@@ -636,7 +628,7 @@ export default function EditServiceForm({
             onClick={handleToggleActive}
             disabled={uploading || pending}
           >
-            {isActive ? "Išjungti" : "Įjungti"}
+            {isActive ? t("disableButton") : t("enableButton")}
           </button>
         </div>
       </section>
@@ -648,7 +640,7 @@ export default function EditServiceForm({
           onClick={handleDelete}
           disabled={pending || uploading}
         >
-          Ištrinti paslaugą
+          {t("deleteButton")}
         </button>
 
         <div className={styles.actionsRight}>
@@ -657,7 +649,7 @@ export default function EditServiceForm({
             className={styles.primaryButton}
             disabled={pending || uploading}
           >
-            {pending ? "Saugoma..." : "Išsaugoti pakeitimus"}
+            {pending ? t("saving") : t("saveButton")}
           </button>
         </div>
       </div>

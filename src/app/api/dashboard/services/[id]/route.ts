@@ -8,7 +8,10 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
-import { translateServiceContent } from "@/lib/deepl";
+import {
+  translatePriceItems,
+  translateServiceContent,
+} from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
@@ -75,28 +78,16 @@ function normalizePriceItems(input: unknown) {
 
       return {
         label: label || "Paslauga",
-        labelEn: label || "Service",
-        labelNo: label || "Tjeneste",
-        priceText: priceText || null,
-        priceTextEn: priceText || null,
-        priceTextNo: priceText || null,
-        note: note || null,
-        noteEn: note || null,
-        noteNo: note || null,
+        priceText: priceText || "",
+        note: note || "",
         sortOrder: index,
       };
     })
     .filter(Boolean)
     .slice(0, 20) as Array<{
     label: string;
-    labelEn: string;
-    labelNo: string;
-    priceText: string | null;
-    priceTextEn: string | null;
-    priceTextNo: string | null;
-    note: string | null;
-    noteEn: string | null;
-    noteNo: string | null;
+    priceText: string;
+    note: string;
     sortOrder: number;
   }>;
 }
@@ -174,8 +165,14 @@ export async function PATCH(
           orderBy: { sortOrder: "asc" },
           select: {
             label: true,
+            labelEn: true,
+            labelNo: true,
             priceText: true,
+            priceTextEn: true,
+            priceTextNo: true,
             note: true,
+            noteEn: true,
+            noteNo: true,
           },
         },
       },
@@ -301,18 +298,12 @@ export async function PATCH(
     const nextGalleryImageUrls = nextPairs.map((x) => x.url);
     const nextGalleryImagePaths = nextPairs.map((x) => x.path);
 
-    const priceItems =
+    const normalizedPriceItems =
       body?.priceItems === undefined
         ? service.priceItems.map((item, index) => ({
             label: item.label,
-            labelEn: item.label,
-            labelNo: item.label,
-            priceText: item.priceText ?? null,
-            priceTextEn: item.priceText ?? null,
-            priceTextNo: item.priceText ?? null,
-            note: item.note ?? null,
-            noteEn: item.note ?? null,
-            noteNo: item.note ?? null,
+            priceText: item.priceText ?? "",
+            note: item.note ?? "",
             sortOrder: index,
           }))
         : normalizePriceItems(body?.priceItems);
@@ -350,6 +341,56 @@ export async function PATCH(
         highlightsNo = translated.no.highlights;
       } catch (translationError: any) {
         logError("DeepL translate failed on service update", {
+          requestId,
+          route: "/api/dashboard/services/[id]",
+          ip,
+          meta: {
+            message: translationError?.message,
+            stack: translationError?.stack,
+          },
+        });
+      }
+    }
+
+    let priceItems = normalizedPriceItems.map((item) => ({
+      label: item.label,
+      labelEn: item.label,
+      labelNo: item.label,
+      priceText: item.priceText || null,
+      priceTextEn: item.priceText || null,
+      priceTextNo: item.priceText || null,
+      note: item.note || null,
+      noteEn: item.note || null,
+      noteNo: item.note || null,
+      sortOrder: item.sortOrder,
+    }));
+
+    if (normalizedPriceItems.length > 0) {
+      try {
+        const translatedPrices = await translatePriceItems(
+          normalizedPriceItems.map((item) => ({
+            label: item.label,
+            priceText: item.priceText,
+            note: item.note,
+          })),
+        );
+
+        priceItems = normalizedPriceItems.map((item, index) => ({
+          label: item.label,
+          labelEn: translatedPrices.en[index]?.label || item.label,
+          labelNo: translatedPrices.no[index]?.label || item.label,
+          priceText: item.priceText || null,
+          priceTextEn:
+            translatedPrices.en[index]?.priceText || item.priceText || null,
+          priceTextNo:
+            translatedPrices.no[index]?.priceText || item.priceText || null,
+          note: item.note || null,
+          noteEn: translatedPrices.en[index]?.note || item.note || null,
+          noteNo: translatedPrices.no[index]?.note || item.note || null,
+          sortOrder: item.sortOrder,
+        }));
+      } catch (translationError: any) {
+        logError("DeepL translate failed on price items update", {
           requestId,
           route: "/api/dashboard/services/[id]",
           ip,

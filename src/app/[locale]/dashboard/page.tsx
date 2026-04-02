@@ -26,6 +26,17 @@ function formatDateByLocale(date: Date, locale: string) {
   }).format(date);
 }
 
+function pickLocalizedValue(
+  locale: string,
+  base: string,
+  en?: string | null,
+  no?: string | null,
+) {
+  if (locale === "en") return en?.trim() || base;
+  if (locale === "no") return no?.trim() || base;
+  return base;
+}
+
 interface Props {
   params: Promise<{ locale: string }>;
 }
@@ -55,6 +66,8 @@ export default async function DashboardPage({ params }: Props) {
       select: {
         id: true,
         title: true,
+        titleEn: true,
+        titleNo: true,
         slug: true,
         createdAt: true,
         isActive: true,
@@ -153,13 +166,19 @@ export default async function DashboardPage({ params }: Props) {
                     locale,
                   );
                   const date = formatDateByLocale(s.createdAt, locale);
+                  const localizedTitle = pickLocalizedValue(
+                    locale,
+                    s.title,
+                    s.titleEn,
+                    s.titleNo,
+                  );
 
                   return (
                     <article key={s.id} className={styles.serviceItem}>
                       <div className={styles.serviceThumb}>
                         <Image
                           src={img}
-                          alt={s.title}
+                          alt={localizedTitle}
                           fill
                           className={styles.thumbImg}
                           sizes="120px"
@@ -171,7 +190,9 @@ export default async function DashboardPage({ params }: Props) {
 
                       <div className={styles.serviceMain}>
                         <div className={styles.serviceTopRow}>
-                          <div className={styles.serviceTitle}>{s.title}</div>
+                          <div className={styles.serviceTitle}>
+                            {localizedTitle}
+                          </div>
                           <span
                             className={
                               s.isActive
