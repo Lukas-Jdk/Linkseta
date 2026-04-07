@@ -204,6 +204,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       city: {
         select: {
           name: true,
+          postcode: true,
         },
       },
       category: {
@@ -242,7 +243,10 @@ export default async function ServiceDetailsPage({ params }: Props) {
         ? [service.imageUrl]
         : ["/def.webp"];
 
-  const city = service.city?.name ?? "—";
+  const city =
+    service.city?.name && service.city?.postcode
+      ? `${service.city.postcode} ${service.city.name}`
+      : service.city?.name ?? "—";
 
   let category = service.category?.name ?? "—";
   if (service.category?.slug) {

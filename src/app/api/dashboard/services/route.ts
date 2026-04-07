@@ -196,13 +196,16 @@ export async function POST(req: Request) {
     const title = clampText(body?.title, 120);
     const description = clampText(body?.description, 4000);
 
-    if (!title || !description) {
-      return jsonNoStore({ error: "Missing fields" }, { status: 400 });
-    }
-
-    const cityId = typeof body?.cityId === "string" ? body.cityId : null;
     const categoryId =
       typeof body?.categoryId === "string" ? body.categoryId : null;
+
+    const locationPostcode = clampText(body?.locationPostcode, 20);
+    const locationCity = clampText(body?.locationCity, 120);
+    const locationRegion = clampText(body?.locationRegion, 120);
+
+    if (!title || !description || !locationPostcode || !locationCity) {
+      return jsonNoStore({ error: "Missing fields" }, { status: 400 });
+    }
 
     const responseTime =
       body?.responseTime === "24h" || body?.responseTime === "48h"
@@ -343,7 +346,6 @@ export async function POST(req: Request) {
         title,
         slug,
         description,
-        cityId,
         categoryId,
         responseTime,
         priceFrom: null,
@@ -364,6 +366,11 @@ export async function POST(req: Request) {
         highlighted: false,
         deletedAt: null,
         planId: profile.planId ?? null,
+
+        locationPostcode,
+        locationCity,
+        locationRegion: locationRegion || null,
+
         priceItems: {
           create: priceItems,
         },
@@ -384,6 +391,9 @@ export async function POST(req: Request) {
         imageCount: galleryImageUrls.length,
         priceItemsCount: priceItems.length,
         responseTime,
+        locationPostcode,
+        locationCity,
+        locationRegion,
         plan: {
           slug: planSlug,
           name: planName,

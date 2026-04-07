@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -17,42 +16,50 @@ function slugify(input) {
 
 async function upsertCities() {
   const cities = [
-    { name: "Oslo", slug: "oslo" },
-    { name: "Lillestrøm", slug: "lillestrom" },
-    { name: "Strømmen", slug: "strommen" },
-    { name: "Lysaker", slug: "lysaker" },
-    { name: "Skøyen", slug: "skoyen" },
-    { name: "Billingstad", slug: "billingstad" },
-    { name: "Sandvika", slug: "sandvika" },
-    { name: "Asker", slug: "asker" },
-    { name: "Bærum", slug: "baerum" },
-    { name: "Fornebu", slug: "fornebu" },
-    { name: "Drammen", slug: "drammen" },
-    { name: "Bergen", slug: "bergen" },
-    { name: "Trondheim", slug: "trondheim" },
-    { name: "Stavanger", slug: "stavanger" },
-    { name: "Sandnes", slug: "sandnes" },
-    { name: "Kristiansand", slug: "kristiansand" },
-    { name: "Tromsø", slug: "tromso" },
-    { name: "Ålesund", slug: "alesund" },
-    { name: "Bodø", slug: "bodo" },
-    { name: "Haugesund", slug: "haugesund" },
-    { name: "Fredrikstad", slug: "fredrikstad" },
-    { name: "Sarpsborg", slug: "sarpsborg" },
-    { name: "Tønsberg", slug: "tonsberg" },
-    { name: "Moss", slug: "moss" },
-    { name: "Skien", slug: "skien" },
-    { name: "Arendal", slug: "arendal" },
-    { name: "Hamar", slug: "hamar" },
-    { name: "Lillehammer", slug: "lillehammer" },
+    { name: "Oslo", slug: "oslo", postcode: "0001" },
+    { name: "Lillestrøm", slug: "lillestrom", postcode: "2000" },
+    { name: "Strømmen", slug: "strommen", postcode: "2010" },
+    { name: "Lysaker", slug: "lysaker", postcode: "1366" },
+    { name: "Skøyen", slug: "skoyen", postcode: "0277" },
+    { name: "Billingstad", slug: "billingstad", postcode: "1396" },
+    { name: "Sandvika", slug: "sandvika", postcode: "1300" },
+    { name: "Asker", slug: "asker", postcode: "1383" },
+    { name: "Bærum", slug: "baerum", postcode: "1300" },
+    { name: "Fornebu", slug: "fornebu", postcode: "1360" },
+    { name: "Drammen", slug: "drammen", postcode: "3001" },
+    { name: "Bergen", slug: "bergen", postcode: "5003" },
+    { name: "Trondheim", slug: "trondheim", postcode: "7011" },
+    { name: "Stavanger", slug: "stavanger", postcode: "4001" },
+    { name: "Sandnes", slug: "sandnes", postcode: "4301" },
+    { name: "Kristiansand", slug: "kristiansand", postcode: "4608" },
+    { name: "Tromsø", slug: "tromso", postcode: "9008" },
+    { name: "Ålesund", slug: "alesund", postcode: "6001" },
+    { name: "Bodø", slug: "bodo", postcode: "8001" },
+    { name: "Haugesund", slug: "haugesund", postcode: "5501" },
+    { name: "Fredrikstad", slug: "fredrikstad", postcode: "1601" },
+    { name: "Sarpsborg", slug: "sarpsborg", postcode: "1701" },
+    { name: "Tønsberg", slug: "tonsberg", postcode: "3101" },
+    { name: "Moss", slug: "moss", postcode: "1501" },
+    { name: "Skien", slug: "skien", postcode: "3701" },
+    { name: "Arendal", slug: "arendal", postcode: "4801" },
+    { name: "Hamar", slug: "hamar", postcode: "2301" },
+    { name: "Lillehammer", slug: "lillehammer", postcode: "2601" },
   ];
 
   for (const city of cities) {
     const slug = city.slug || slugify(city.name);
+
     await prisma.city.upsert({
       where: { slug },
-      update: { name: city.name },
-      create: { name: city.name, slug },
+      update: {
+        name: city.name,
+        postcode: city.postcode,
+      },
+      create: {
+        name: city.name,
+        slug,
+        postcode: city.postcode,
+      },
     });
   }
 }

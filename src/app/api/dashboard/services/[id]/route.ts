@@ -28,6 +28,13 @@ type RawPriceItem = {
   note?: unknown;
 };
 
+type NormalizedPriceItem = {
+  label: string;
+  priceText: string;
+  note: string;
+  sortOrder: number;
+};
+
 function clampText(x: unknown, max: number) {
   if (typeof x !== "string") return null;
   const t = x.trim();
@@ -43,7 +50,6 @@ function normalizeGalleryPairs(
   const paths = Array.isArray(pathsInput) ? pathsInput : [];
 
   const maxLen = Math.min(urls.length, paths.length, maxItems);
-
   const pairs: GalleryPair[] = [];
 
   for (let i = 0; i < maxLen; i += 1) {
@@ -58,7 +64,7 @@ function normalizeGalleryPairs(
   return pairs;
 }
 
-function normalizePriceItems(input: unknown) {
+function normalizePriceItems(input: unknown): NormalizedPriceItem[] {
   if (!Array.isArray(input)) return [];
 
   return input
@@ -78,18 +84,12 @@ function normalizePriceItems(input: unknown) {
 
       return {
         label: label || "Paslauga",
-        priceText: priceText || "",
-        note: note || "",
+        priceText,
+        note,
         sortOrder: index,
       };
     })
-    .filter(Boolean)
-    .slice(0, 20) as Array<{
-    label: string;
-    priceText: string;
-    note: string;
-    sortOrder: number;
-  }>;
+    .filter(Boolean) as NormalizedPriceItem[];
 }
 
 async function removeFromStorage(paths: string[]) {
@@ -143,27 +143,35 @@ export async function PATCH(
         id: true,
         slug: true,
         userId: true,
+
         title: true,
+        titleEn: true,
+        titleNo: true,
+
         description: true,
+        descriptionEn: true,
+        descriptionNo: true,
+
         cityId: true,
         categoryId: true,
         responseTime: true,
         isActive: true,
+
         imageUrl: true,
         imagePath: true,
         galleryImageUrls: true,
         galleryImagePaths: true,
+
         highlights: true,
-        sourceLocale: true,
-        titleEn: true,
-        titleNo: true,
-        descriptionEn: true,
-        descriptionNo: true,
         highlightsEn: true,
         highlightsNo: true,
+
+        sourceLocale: true,
+
         priceItems: {
           orderBy: { sortOrder: "asc" },
           select: {
+            id: true,
             label: true,
             labelEn: true,
             labelNo: true,
@@ -173,6 +181,7 @@ export async function PATCH(
             note: true,
             noteEn: true,
             noteNo: true,
+            sortOrder: true,
           },
         },
       },
@@ -225,8 +234,10 @@ export async function PATCH(
 
     const body = await req.json().catch(() => ({} as any));
 
-    const nextTitle = clampText(body?.title, 120) ?? service.title;
-    const nextDesc = clampText(body?.description, 4000) ?? service.description;
+    const locale =
+      body?.locale === "en" || body?.locale === "no" || body?.locale === "lt"
+        ? body.locale
+        : "lt";
 
     const nextCityId =
       typeof body?.cityId === "string" ? body.cityId : service.cityId;
@@ -271,13 +282,6 @@ export async function PATCH(
       }
     }
 
-    const highlights: string[] = Array.isArray(body?.highlights)
-      ? body.highlights
-          .map((s: unknown) => String(s).trim())
-          .filter(Boolean)
-          .slice(0, 6)
-      : service.highlights;
-
     const oldPathsSet = new Set(
       [
         ...(Array.isArray(service.galleryImagePaths)
@@ -298,20 +302,17 @@ export async function PATCH(
     const nextGalleryImageUrls = nextPairs.map((x) => x.url);
     const nextGalleryImagePaths = nextPairs.map((x) => x.path);
 
-    const normalizedPriceItems =
-      body?.priceItems === undefined
-        ? service.priceItems.map((item, index) => ({
-            label: item.label,
-            priceText: item.priceText ?? "",
-            note: item.note ?? "",
-            sortOrder: index,
-          }))
-        : normalizePriceItems(body?.priceItems);
+    const nextTitle = clampText(body?.title, 120);
+    const nextDescription = clampText(body?.description, 4000);
 
-    const shouldRetranslate =
-      nextTitle !== service.title ||
-      nextDesc !== service.description ||
-      JSON.stringify(highlights) !== JSON.stringify(service.highlights);
+    const nextHighlights: string[] = Array.isArray(body?.highlights)
+      ? body.highlights
+          .map((s: unknown) => String(s).trim())
+          .filter(Boolean)
+          .slice(0, 6)
+      : [];
+
+    const normalizedIncomingPriceItems = normalizePriceItems(body?.priceItems);
 
     let titleEn = service.titleEn;
     let titleNo = service.titleNo;
@@ -324,20 +325,41 @@ export async function PATCH(
       ? service.highlightsNo
       : [];
 
-    if (shouldRetranslate) {
+    const data: Record<string, unknown> = {
+      cityId: nextCityId ?? null,
+      categoryId: nextCategoryId ?? null,
+      responseTime: nextResponseTime,
+      isActive: nextIsActive,
+      imageUrl: nextGalleryImageUrls[0] ?? null,
+      imagePath: nextGalleryImagePaths[0] ?? null,
+      galleryImageUrls: nextGalleryImageUrls,
+      galleryImagePaths: nextGalleryImagePaths,
+      sourceLocale: service.sourceLocale ?? "lt",
+    };
+
+    if (locale === "lt") {
+      const finalTitle = nextTitle ?? service.title;
+      const finalDescription = nextDescription ?? service.description;
+      const finalHighlights = Array.isArray(body?.highlights)
+        ? nextHighlights
+        : service.highlights;
+
+      data.title = finalTitle;
+      data.description = finalDescription;
+      data.highlights = finalHighlights;
+
       try {
         const translated = await translateServiceContent({
-          title: nextTitle,
-          description: nextDesc,
-          highlights,
+          title: finalTitle,
+          description: finalDescription,
+          highlights: finalHighlights,
         });
 
         titleEn = translated.en.title;
-        descriptionEn = translated.en.description;
-        highlightsEn = translated.en.highlights;
-
         titleNo = translated.no.title;
+        descriptionEn = translated.en.description;
         descriptionNo = translated.no.description;
+        highlightsEn = translated.en.highlights;
         highlightsNo = translated.no.highlights;
       } catch (translationError: any) {
         logError("DeepL translate failed on service update", {
@@ -350,94 +372,157 @@ export async function PATCH(
           },
         });
       }
+
+      data.titleEn = titleEn;
+      data.titleNo = titleNo;
+      data.descriptionEn = descriptionEn;
+      data.descriptionNo = descriptionNo;
+      data.highlightsEn = highlightsEn;
+      data.highlightsNo = highlightsNo;
     }
 
-    let priceItems = normalizedPriceItems.map((item) => ({
-      label: item.label,
-      labelEn: item.label,
-      labelNo: item.label,
-      priceText: item.priceText || null,
-      priceTextEn: item.priceText || null,
-      priceTextNo: item.priceText || null,
-      note: item.note || null,
-      noteEn: item.note || null,
-      noteNo: item.note || null,
-      sortOrder: item.sortOrder,
-    }));
+    if (locale === "en") {
+      data.titleEn = nextTitle ?? service.titleEn ?? service.title;
+      data.descriptionEn =
+        nextDescription ?? service.descriptionEn ?? service.description;
+      data.highlightsEn = Array.isArray(body?.highlights)
+        ? nextHighlights
+        : Array.isArray(service.highlightsEn)
+          ? service.highlightsEn
+          : [];
+    }
 
-    if (normalizedPriceItems.length > 0) {
-      try {
-        const translatedPrices = await translatePriceItems(
-          normalizedPriceItems.map((item) => ({
-            label: item.label,
-            priceText: item.priceText,
-            note: item.note,
-          })),
-        );
+    if (locale === "no") {
+      data.titleNo = nextTitle ?? service.titleNo ?? service.title;
+      data.descriptionNo =
+        nextDescription ?? service.descriptionNo ?? service.description;
+      data.highlightsNo = Array.isArray(body?.highlights)
+        ? nextHighlights
+        : Array.isArray(service.highlightsNo)
+          ? service.highlightsNo
+          : [];
+    }
 
-        priceItems = normalizedPriceItems.map((item, index) => ({
-          label: item.label,
-          labelEn: translatedPrices.en[index]?.label || item.label,
-          labelNo: translatedPrices.no[index]?.label || item.label,
+    let nextPriceItems:
+      | Array<{
+          serviceId: string;
+          label: string;
+          labelEn: string | null;
+          labelNo: string | null;
+          priceText: string | null;
+          priceTextEn: string | null;
+          priceTextNo: string | null;
+          note: string | null;
+          noteEn: string | null;
+          noteNo: string | null;
+          sortOrder: number;
+        }>
+      | null = null;
+
+    if (body?.priceItems !== undefined) {
+      if (locale === "lt") {
+        let translatedEn: Awaited<ReturnType<typeof translatePriceItems>>["en"] =
+          [];
+        let translatedNo: Awaited<ReturnType<typeof translatePriceItems>>["no"] =
+          [];
+
+        if (normalizedIncomingPriceItems.length > 0) {
+          try {
+            const translated = await translatePriceItems(
+              normalizedIncomingPriceItems.map((item) => ({
+                label: item.label,
+                priceText: item.priceText,
+                note: item.note,
+              })),
+            );
+            translatedEn = translated.en;
+            translatedNo = translated.no;
+          } catch (translationError: any) {
+            logError("DeepL translate failed on price items update", {
+              requestId,
+              route: "/api/dashboard/services/[id]",
+              ip,
+              meta: {
+                message: translationError?.message,
+                stack: translationError?.stack,
+              },
+            });
+          }
+        }
+
+        nextPriceItems = normalizedIncomingPriceItems.map((item, index) => ({
+          serviceId: service.id,
+          label: item.label || "Paslauga",
+          labelEn: translatedEn[index]?.label || item.label || "Service",
+          labelNo: translatedNo[index]?.label || item.label || "Tjeneste",
           priceText: item.priceText || null,
-          priceTextEn:
-            translatedPrices.en[index]?.priceText || item.priceText || null,
-          priceTextNo:
-            translatedPrices.no[index]?.priceText || item.priceText || null,
+          priceTextEn: translatedEn[index]?.priceText || item.priceText || null,
+          priceTextNo: translatedNo[index]?.priceText || item.priceText || null,
           note: item.note || null,
-          noteEn: translatedPrices.en[index]?.note || item.note || null,
-          noteNo: translatedPrices.no[index]?.note || item.note || null,
+          noteEn: translatedEn[index]?.note || item.note || null,
+          noteNo: translatedNo[index]?.note || item.note || null,
           sortOrder: item.sortOrder,
         }));
-      } catch (translationError: any) {
-        logError("DeepL translate failed on price items update", {
-          requestId,
-          route: "/api/dashboard/services/[id]",
-          ip,
-          meta: {
-            message: translationError?.message,
-            stack: translationError?.stack,
-          },
+      }
+
+      if (locale === "en") {
+        nextPriceItems = normalizedIncomingPriceItems.map((item, index) => {
+          const existing = service.priceItems[index];
+
+          return {
+            serviceId: service.id,
+            label: existing?.label || "",
+            labelEn: item.label || "Service",
+            labelNo: existing?.labelNo || null,
+            priceText: existing?.priceText || null,
+            priceTextEn: item.priceText || null,
+            priceTextNo: existing?.priceTextNo || null,
+            note: existing?.note || null,
+            noteEn: item.note || null,
+            noteNo: existing?.noteNo || null,
+            sortOrder: item.sortOrder,
+          };
+        });
+      }
+
+      if (locale === "no") {
+        nextPriceItems = normalizedIncomingPriceItems.map((item, index) => {
+          const existing = service.priceItems[index];
+
+          return {
+            serviceId: service.id,
+            label: existing?.label || "",
+            labelEn: existing?.labelEn || null,
+            labelNo: item.label || "Tjeneste",
+            priceText: existing?.priceText || null,
+            priceTextEn: existing?.priceTextEn || null,
+            priceTextNo: item.priceText || null,
+            note: existing?.note || null,
+            noteEn: existing?.noteEn || null,
+            noteNo: item.note || null,
+            sortOrder: item.sortOrder,
+          };
         });
       }
     }
 
-    const updated = await prisma.serviceListing.update({
-      where: { id: service.id },
-      data: {
-        title: nextTitle,
-        description: nextDesc,
-        cityId: nextCityId ?? null,
-        categoryId: nextCategoryId ?? null,
-        responseTime: nextResponseTime,
-        priceFrom: null,
-        priceTo: null,
-        isActive: nextIsActive,
-        imageUrl: nextGalleryImageUrls[0] ?? null,
-        imagePath: nextGalleryImagePaths[0] ?? null,
-        galleryImageUrls: nextGalleryImageUrls,
-        galleryImagePaths: nextGalleryImagePaths,
-        highlights,
-        sourceLocale: service.sourceLocale ?? "lt",
-        titleEn,
-        titleNo,
-        descriptionEn,
-        descriptionNo,
-        highlightsEn,
-        highlightsNo,
-        priceItems: {
-          deleteMany: {},
-          create: priceItems,
-        },
-      },
-      select: {
-        id: true,
-        slug: true,
-        isActive: true,
-        title: true,
-        galleryImageUrls: true,
-        galleryImagePaths: true,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.serviceListing.update({
+        where: { id: service.id },
+        data,
+      });
+
+      if (nextPriceItems) {
+        await tx.servicePriceItem.deleteMany({
+          where: { serviceId: service.id },
+        });
+
+        if (nextPriceItems.length > 0) {
+          await tx.servicePriceItem.createMany({
+            data: nextPriceItems,
+          });
+        }
+      }
     });
 
     if (toDelete.length) {
@@ -447,26 +532,26 @@ export async function PATCH(
     await auditLog({
       action: "SERVICE_UPDATE",
       entity: "ServiceListing",
-      entityId: updated.id,
+      entityId: service.id,
       userId: user.id,
       ip,
       userAgent: ua,
       metadata: {
+        locale,
         changedKeys: Object.keys(body ?? {}),
         deletedImagesCount: toDelete.length,
         imageCount: nextGalleryImageUrls.length,
-        retranslated: shouldRetranslate,
-        priceItemsCount: priceItems.length,
+        priceItemsCount: normalizedIncomingPriceItems.length,
         responseTime: nextResponseTime,
       },
     });
 
-    revalidateServicePaths(updated.slug);
+    revalidateServicePaths(service.slug);
 
     return NextResponse.json({
       ok: true,
-      galleryImageUrls: updated.galleryImageUrls,
-      galleryImagePaths: updated.galleryImagePaths,
+      galleryImageUrls: nextGalleryImageUrls,
+      galleryImagePaths: nextGalleryImagePaths,
     });
   } catch (e: any) {
     if (e instanceof Response) return e;

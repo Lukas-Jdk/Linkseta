@@ -90,12 +90,18 @@ model ServiceListing {
   galleryImageUrls  String[] @default([])
   galleryImagePaths String[] @default([])
 
+  // SENI LAUKAI - paliekam dėl suderinamumo
   why1       String?
   why2       String?
   why3       String?
   cityId     String?
   categoryId String?
   planId     String?
+
+  // NAUJI LOCATION LAUKAI
+  locationPostcode String?
+  locationCity     String?
+  locationRegion   String?
 
   deletedAt DateTime?
 
@@ -113,6 +119,8 @@ model ServiceListing {
   @@index([cityId])
   @@index([categoryId])
   @@index([userId])
+  @@index([locationPostcode])
+  @@index([locationCity])
 }
 
 model ServicePriceItem {
@@ -166,9 +174,10 @@ model JobListing {
 }
 
 model City {
-  id   String @id @default(cuid())
-  name String
-  slug String @unique
+  id       String  @id @default(cuid())
+  name     String
+  postcode String?
+  slug     String  @unique
 
   services         ServiceListing[]
   jobs             JobListing[]

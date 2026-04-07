@@ -13,6 +13,7 @@ import styles from "./edit.module.css";
 type Option = {
   id: string;
   name: string;
+  postcode?: string | null;
 };
 
 type PriceItem = {
@@ -87,6 +88,11 @@ function emptyPriceItem(): PriceItem {
     priceText: "",
     note: "",
   };
+}
+
+function formatCityLabel(city: Option) {
+  if (city.postcode && city.name) return `${city.postcode} ${city.name}`;
+  return city.name;
 }
 
 export default function EditServiceForm({
@@ -362,274 +368,269 @@ export default function EditServiceForm({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>{t("mainInfo")}</h2>
+      {(error || success) && (
+        <div className={styles.messageStack}>
+          {error && <p className={styles.errorText}>{error}</p>}
+          {success && <p className={styles.successText}>{success}</p>}
+        </div>
+      )}
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>{t("titleLabel")}</label>
-          <input
-            className={styles.input}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>1</div>
+          <h2 className={styles.sectionTitle}>{t("mainInfo")}</h2>
         </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>{t("descriptionLabel")}</label>
-          <textarea
-            className={styles.textarea}
-            rows={6}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-          <div className={styles.charHint}>
-            {description.length} / 4000
+        <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("titleLabel")}</label>
+            <input
+              className={styles.input}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("descriptionLabel")}</label>
+            <textarea
+              className={styles.textarea}
+              rows={6}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+            />
+            <div className={styles.charHint}>{description.length} / 4000</div>
           </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>{t("whyChooseTitle")}</h2>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>2</div>
+          <h2 className={styles.sectionTitle}>{t("whyChooseTitle")}</h2>
+        </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>{t("highlightsLabel")}</label>
-          <textarea
-            className={styles.textarea}
-            rows={5}
-            value={highlightsText}
-            onChange={(e) => setHighlightsText(e.target.value)}
-            placeholder={t("highlightsPlaceholder")}
-          />
-          <div className={styles.charHint}>
-            {t("pointsCount", { count: highlightsPreview.length })}
+        <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("highlightsLabel")}</label>
+            <textarea
+              className={styles.textarea}
+              rows={5}
+              value={highlightsText}
+              onChange={(e) => setHighlightsText(e.target.value)}
+              placeholder={t("highlightsPlaceholder")}
+            />
+            <div className={styles.charHint}>
+              {t("pointsCount", { count: highlightsPreview.length })}
+            </div>
           </div>
         </div>
       </section>
 
       <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>{t("detailsAndPrices")}</h2>
-
-        <div className={styles.formRow}>
-          <div className={styles.formCol}>
-            <label className={styles.label}>{t("cityLabel")}</label>
-            <select
-              className={styles.select}
-              value={cityId}
-              onChange={(e) => setCityId(e.target.value)}
-            >
-              <option value="">{t("selectCity")}</option>
-              {cities.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.formCol}>
-            <label className={styles.label}>{t("categoryLabel")}</label>
-            <select
-              className={styles.select}
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">{t("selectCategory")}</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>3</div>
+          <h2 className={styles.sectionTitle}>{t("detailsAndPrices")}</h2>
         </div>
 
-        <div className={styles.formGroup} style={{ marginTop: 16 }}>
-          <label className={styles.label}>{t("responseTimeLabel")}</label>
-          <select
-            className={styles.select}
-            value={responseTime}
-            onChange={(e) => setResponseTime(e.target.value)}
-          >
-            <option value="1h">{t("response1h")}</option>
-            <option value="24h">{t("response24h")}</option>
-            <option value="48h">{t("response48h")}</option>
-          </select>
-        </div>
-
-        <div className={styles.formGroup} style={{ marginTop: 16 }}>
-          <label className={styles.label}>{t("priceItemsTitle")}</label>
-
-          <div style={{ display: "grid", gap: 12 }}>
-            {priceItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid rgba(15, 23, 42, 0.08)",
-                  borderRadius: 14,
-                  padding: 12,
-                  display: "grid",
-                  gap: 10,
-                  background: "#fff",
-                }}
+        <div className={styles.sectionBody}>
+          <div className={styles.formRow}>
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("cityLabel")}</label>
+              <select
+                className={styles.select}
+                value={cityId}
+                onChange={(e) => setCityId(e.target.value)}
               >
-                <input
-                  className={styles.input}
-                  value={item.label}
-                  onChange={(e) =>
-                    updatePriceItem(index, "label", e.target.value)
-                  }
-                  placeholder={t("priceItemNamePlaceholder")}
-                />
+                <option value="">{t("selectCity")}</option>
+               {(cities ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {formatCityLabel(c)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                <input
-                  className={styles.input}
-                  value={item.priceText}
-                  onChange={(e) =>
-                    updatePriceItem(index, "priceText", e.target.value)
-                  }
-                  placeholder={t("priceItemPricePlaceholder")}
-                />
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("categoryLabel")}</label>
+              <select
+                className={styles.select}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">{t("selectCategory")}</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-                <input
-                  className={styles.input}
-                  value={item.note}
-                  onChange={(e) =>
-                    updatePriceItem(index, "note", e.target.value)
-                  }
-                  placeholder={t("priceItemNotePlaceholder")}
-                />
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("responseTimeLabel")}</label>
+            <select
+              className={styles.select}
+              value={responseTime}
+              onChange={(e) => setResponseTime(e.target.value)}
+            >
+              <option value="1h">{t("response1h")}</option>
+              <option value="24h">{t("response24h")}</option>
+              <option value="48h">{t("response48h")}</option>
+            </select>
+          </div>
 
-                <div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("priceItemsTitle")}</label>
+
+            <div className={styles.priceList}>
+              {priceItems.map((item, index) => (
+                <div key={index} className={styles.priceCard}>
+                  <input
+                    className={styles.input}
+                    value={item.label}
+                    onChange={(e) =>
+                      updatePriceItem(index, "label", e.target.value)
+                    }
+                    placeholder={t("priceItemNamePlaceholder")}
+                  />
+
+                  <input
+                    className={styles.input}
+                    value={item.priceText}
+                    onChange={(e) =>
+                      updatePriceItem(index, "priceText", e.target.value)
+                    }
+                    placeholder={t("priceItemPricePlaceholder")}
+                  />
+
+                  <input
+                    className={styles.input}
+                    value={item.note}
+                    onChange={(e) =>
+                      updatePriceItem(index, "note", e.target.value)
+                    }
+                    placeholder={t("priceItemNotePlaceholder")}
+                  />
+
+                  <div className={styles.inlineActions}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => removePriceItem(index)}
+                      disabled={priceItems.length <= 1}
+                    >
+                      {t("removePriceRow")}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.inlineActions}>
+              <button
+                type="button"
+                className={styles.addRowButton}
+                onClick={addPriceItem}
+              >
+                + {t("addPriceRow")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>4</div>
+          <h2 className={styles.sectionTitle}>{t("imagesTitle")}</h2>
+        </div>
+
+        <div className={styles.sectionBody}>
+          <div className={styles.uploadRow}>
+            <label className={styles.uploadBtn}>
+              {uploading ? t("uploading") : t("uploadButton")}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading || pending}
+                onChange={(e) => {
+                  const files = e.currentTarget.files
+                    ? Array.from(e.currentTarget.files)
+                    : [];
+
+                  e.currentTarget.value = "";
+                  void handleUpload(files);
+                }}
+              />
+            </label>
+          </div>
+
+          <div className={styles.imagePreview}>
+            {gallery.length > 0 ? (
+              gallery.map((img, idx) => (
+                <div key={img.path} className={styles.imageCard}>
+                  <div className={styles.imageThumb}>
+                    <Image
+                      src={img.url}
+                      alt={`${t("imageAlt")} ${idx + 1}`}
+                      fill
+                      sizes="180px"
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+
                   <button
                     type="button"
                     className={styles.secondaryButton}
-                    onClick={() => removePriceItem(index)}
-                    disabled={priceItems.length <= 1}
+                    onClick={() => {
+                      setGallery((prev) =>
+                        prev.filter((x) => x.path !== img.path),
+                      );
+                    }}
+                    disabled={uploading || pending}
                   >
-                    {t("removePriceRow")}
+                    {t("removeImage")}
                   </button>
                 </div>
+              ))
+            ) : (
+              <div className={styles.emptyState}>
+                <span className={styles.emptyText}>{t("noImages")}</span>
               </div>
-            ))}
+            )}
           </div>
 
-          <div style={{ marginTop: 12 }}>
+          <p className={styles.helpText}>{t("imagesHelp")}</p>
+        </div>
+      </section>
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>5</div>
+          <h2 className={styles.sectionTitle}>{t("activityTitle")}</h2>
+        </div>
+
+        <div className={styles.sectionBody}>
+          <div className={styles.activityRow}>
+            <span className={styles.statusText}>
+              {t("statusLabel")}{" "}
+              <strong>{isActive ? t("statusActive") : t("statusInactive")}</strong>
+            </span>
+
             <button
               type="button"
               className={styles.secondaryButton}
-              onClick={addPriceItem}
+              onClick={handleToggleActive}
+              disabled={uploading || pending}
             >
-              {t("addPriceRow")}
+              {isActive ? t("disableButton") : t("enableButton")}
             </button>
           </div>
-        </div>
-      </section>
-
-      <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>{t("imagesTitle")}</h2>
-
-        <div className={styles.uploadRow}>
-          <label className={styles.uploadBtn}>
-            {uploading ? t("uploading") : t("uploadButton")}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              disabled={uploading || pending}
-              onChange={(e) => {
-                const files = e.currentTarget.files
-                  ? Array.from(e.currentTarget.files)
-                  : [];
-
-                e.currentTarget.value = "";
-                void handleUpload(files);
-              }}
-            />
-          </label>
-        </div>
-
-        <div
-          className={styles.imagePreview}
-          style={{
-            height: "auto",
-            minHeight: 240,
-            padding: 12,
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "flex-start",
-            justifyContent: "flex-start",
-          }}
-        >
-          {gallery.length > 0 ? (
-            gallery.map((img, idx) => (
-              <div
-                key={img.path}
-                style={{ display: "flex", flexDirection: "column", gap: 8 }}
-              >
-                <div
-                  style={{
-                    position: "relative",
-                    width: 180,
-                    height: 130,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                  }}
-                >
-                  <Image
-                    src={img.url}
-                    alt={`${t("imageAlt")} ${idx + 1}`}
-                    fill
-                    sizes="180px"
-                    style={{
-                      objectFit: "cover",
-                    }}
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() => {
-                    setGallery((prev) =>
-                      prev.filter((x) => x.path !== img.path),
-                    );
-                  }}
-                  disabled={uploading || pending}
-                >
-                  {t("removeImage")}
-                </button>
-              </div>
-            ))
-          ) : (
-            <div className={styles.emptyState}>
-              <span className={styles.emptyText}>{t("noImages")}</span>
-            </div>
-          )}
-        </div>
-
-        <p className={styles.helpText}>{t("imagesHelp")}</p>
-        {error && <p className={styles.errorText}>{error}</p>}
-        {success && <p className={styles.successText}>{success}</p>}
-      </section>
-
-      <section className={styles.sectionCard}>
-        <h2 className={styles.sectionTitle}>{t("activityTitle")}</h2>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <span>
-            {t("statusLabel")}{" "}
-            <strong>{isActive ? t("statusActive") : t("statusInactive")}</strong>
-          </span>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={handleToggleActive}
-            disabled={uploading || pending}
-          >
-            {isActive ? t("disableButton") : t("enableButton")}
-          </button>
         </div>
       </section>
 

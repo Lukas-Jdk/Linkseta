@@ -139,9 +139,10 @@
 
 .localeCode {
   font-size: 0.82rem;
-  font-weight: 800;
+font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1;
+  font-family: var(--font-primary);
 }
 
 .localeChevron {
@@ -191,7 +192,7 @@
   color: #e5edff;
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .localeMenuItem:hover {

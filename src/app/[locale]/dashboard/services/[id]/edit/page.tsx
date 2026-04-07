@@ -66,7 +66,6 @@ export default async function EditServicePage({ params }: PageProps) {
       descriptionEn: true,
       descriptionNo: true,
 
-      cityId: true,
       categoryId: true,
       responseTime: true,
 
@@ -80,6 +79,10 @@ export default async function EditServicePage({ params }: PageProps) {
       highlightsNo: true,
 
       isActive: true,
+
+      locationPostcode: true,
+      locationCity: true,
+      locationRegion: true,
 
       priceItems: {
         orderBy: { sortOrder: "asc" },
@@ -104,17 +107,11 @@ export default async function EditServicePage({ params }: PageProps) {
     redirect(`/${locale}/dashboard/services`);
   }
 
-  const [cities, categories] = await Promise.all([
-    prisma.city.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.category.findMany({
-      where: { type: "SERVICE" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-  ]);
+  const categories = await prisma.category.findMany({
+    where: { type: "SERVICE" },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
 
   const localizedPriceItems: LocalizedPriceItem[] = Array.isArray(service.priceItems)
     ? service.priceItems.map((item) => ({
@@ -141,9 +138,12 @@ export default async function EditServicePage({ params }: PageProps) {
       service.descriptionNo,
     ),
 
-    cityId: service.cityId ?? "",
     categoryId: service.categoryId ?? "",
     responseTime: service.responseTime ?? "1h",
+
+    locationPostcode: service.locationPostcode ?? "",
+    locationCity: service.locationCity ?? "",
+    locationRegion: service.locationRegion ?? "",
 
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
@@ -188,7 +188,6 @@ export default async function EditServicePage({ params }: PageProps) {
         <div className={styles.formCard}>
           <EditServiceForm
             initial={initial}
-            cities={cities.map((c) => ({ id: c.id, name: c.name }))}
             categories={categories.map((c) => ({ id: c.id, name: c.name }))}
           />
         </div>

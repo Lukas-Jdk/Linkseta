@@ -36,6 +36,11 @@ function buildLanguageAlternates(path: string) {
   };
 }
 
+function formatCityLabel(name?: string | null, postcode?: string | null) {
+  if (name && postcode) return `${postcode} ${name}`;
+  return name ?? "";
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -158,7 +163,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     city
       ? prisma.city.findUnique({
           where: { id: city },
-          select: { name: true },
+          select: { name: true, postcode: true },
         })
       : Promise.resolve(null),
     category
@@ -177,7 +182,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         slug: true,
         highlighted: true,
         imageUrl: true,
-        city: { select: { name: true } },
+        city: { select: { name: true, postcode: true } },
         category: { select: { name: true } },
       },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
@@ -188,7 +193,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const activeCityName = activeCity?.name ?? "";
+  const activeCityName = formatCityLabel(activeCity?.name, activeCity?.postcode);
   const activeCategoryName = activeCategory?.name ?? "";
 
   let heading = t("headingAll");
@@ -208,7 +213,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     id: service.id,
     title: service.title,
     description: service.description,
-    city: service.city?.name ?? "",
+    city: formatCityLabel(service.city?.name, service.city?.postcode),
     category: service.category?.name ?? "",
     priceFrom: service.priceFrom,
     slug: service.slug,

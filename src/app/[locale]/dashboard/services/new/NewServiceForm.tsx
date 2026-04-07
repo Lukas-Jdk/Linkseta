@@ -8,13 +8,17 @@ import { useTranslations } from "next-intl";
 import { csrfFetch } from "@/lib/csrfClient";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { compressImageFile } from "@/lib/imageCompress";
-import styles from "./NewServiceForm.module.css";
+import styles from "./newService.module.css";
 
-type Option = { id: string; name: string; slug?: string };
+type Option = {
+  id: string;
+  name: string;
+  postcode?: string | null;
+};
 
 type Props = {
   cities: Option[];
-  categories: Option[];
+  categories: { id: string; name: string }[];
 };
 
 type GalleryItem = {
@@ -44,6 +48,11 @@ function emptyPriceItem(): PriceItem {
     priceText: "",
     note: "",
   };
+}
+
+function formatCityLabel(city: Option) {
+  if (city.postcode && city.name) return `${city.postcode} ${city.name}`;
+  return city.name;
 }
 
 export default function NewServiceForm({ cities, categories }: Props) {
@@ -241,214 +250,229 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
   return (
     <form className={styles.form} onSubmit={onSubmit}>
-      <div className={styles.grid}>
-        <div className={styles.field}>
-          <label className={styles.label}>{t("titleLabel")}</label>
-          <input
-            className={styles.input}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("titlePlaceholder")}
-            autoComplete="off"
-          />
+      {error && <div className={styles.errorText}>{error}</div>}
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>1</div>
+          <h2 className={styles.sectionTitle}>{t("titleLabel")}</h2>
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.label}>{t("cityLabel")}</label>
-          <select
-            className={styles.select}
-            value={cityId}
-            onChange={(e) => setCityId(e.target.value)}
-          >
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>{t("categoryLabel")}</label>
-          <select
-            className={styles.select}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>Atsakymo laikas</label>
-          <select
-            className={styles.select}
-            value={responseTime}
-            onChange={(e) => setResponseTime(e.target.value)}
-          >
-            <option value="1h">Per 1 val.</option>
-            <option value="24h">Per 24 val.</option>
-            <option value="48h">Per 48 val.</option>
-          </select>
-        </div>
-
-        <div className={styles.fieldFull}>
-          <label className={styles.label}>{t("descriptionLabel")}</label>
-          <textarea
-            className={styles.textarea}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t("descriptionPlaceholder")}
-            rows={6}
-          />
-        </div>
-
-        <div className={styles.fieldFull}>
-          <div className={styles.highHeader}>
-            <div className={styles.highTitle}>{t("highlightsTitle")}</div>
-            <div className={styles.highHint}>{t("highlightsHint")}</div>
+        <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("titleLabel")}</label>
+            <input
+              className={styles.input}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("titlePlaceholder")}
+              autoComplete="off"
+            />
           </div>
 
-          <div className={styles.highList}>
-            <div className={styles.highRow}>
-              <span className={styles.tick}>✅</span>
-              <input
-                className={styles.input}
-                value={h1}
-                onChange={(e) => setH1(e.target.value)}
-                placeholder={t("highlightPlaceholder1")}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className={styles.highRow}>
-              <span className={styles.tick}>✅</span>
-              <input
-                className={styles.input}
-                value={h2}
-                onChange={(e) => setH2(e.target.value)}
-                placeholder={t("highlightPlaceholder2")}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className={styles.highRow}>
-              <span className={styles.tick}>✅</span>
-              <input
-                className={styles.input}
-                value={h3}
-                onChange={(e) => setH3(e.target.value)}
-                placeholder={t("highlightPlaceholder3")}
-                autoComplete="off"
-              />
-            </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("descriptionLabel")}</label>
+            <textarea
+              className={styles.textarea}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("descriptionPlaceholder")}
+              rows={6}
+            />
+            <div className={styles.charHint}>{description.length} / 4000</div>
           </div>
         </div>
+      </section>
 
-        <div className={styles.fieldFull}>
-          <label className={styles.label}>Kainos</label>
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>2</div>
+          <h2 className={styles.sectionTitle}>{t("highlightsTitle")}</h2>
+        </div>
 
-          <div style={{ display: "grid", gap: 12 }}>
-            {priceItems.map((item, index) => (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid rgba(15, 23, 42, 0.08)",
-                  borderRadius: 14,
-                  padding: 12,
-                  display: "grid",
-                  gap: 10,
-                  background: "#fff",
-                }}
-              >
+        <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <div className={styles.highHeader}>
+              <div className={styles.highHint}>{t("highlightsHint")}</div>
+            </div>
+
+            <div className={styles.highList}>
+              <div className={styles.highRow}>
+                <span className={styles.tick}>✅</span>
                 <input
                   className={styles.input}
-                  value={item.label}
-                  onChange={(e) =>
-                    updatePriceItem(index, "label", e.target.value)
-                  }
-                  placeholder="Pvz. Landing Page"
+                  value={h1}
+                  onChange={(e) => setH1(e.target.value)}
+                  placeholder={t("highlightPlaceholder1")}
+                  autoComplete="off"
                 />
-
-                <input
-                  className={styles.input}
-                  value={item.priceText}
-                  onChange={(e) =>
-                    updatePriceItem(index, "priceText", e.target.value)
-                  }
-                  placeholder="Pvz. Nuo 800 NOK"
-                />
-
-                <input
-                  className={styles.input}
-                  value={item.note}
-                  onChange={(e) =>
-                    updatePriceItem(index, "note", e.target.value)
-                  }
-                  placeholder="Pvz. Priklauso nuo funkcionalumo"
-                />
-
-                <div>
-                  <button
-                    type="button"
-                    className={styles.removeBtn}
-                    onClick={() => removePriceItem(index)}
-                    disabled={priceItems.length <= 1}
-                  >
-                    Pašalinti kainos eilutę
-                  </button>
-                </div>
               </div>
-            ))}
-          </div>
 
-          <div style={{ marginTop: 12 }}>
-            <button
-              type="button"
-              className={styles.removeBtn}
-              onClick={addPriceItem}
-            >
-              Pridėti kainos eilutę
-            </button>
+              <div className={styles.highRow}>
+                <span className={styles.tick}>✅</span>
+                <input
+                  className={styles.input}
+                  value={h2}
+                  onChange={(e) => setH2(e.target.value)}
+                  placeholder={t("highlightPlaceholder2")}
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className={styles.highRow}>
+                <span className={styles.tick}>✅</span>
+                <input
+                  className={styles.input}
+                  value={h3}
+                  onChange={(e) => setH3(e.target.value)}
+                  placeholder={t("highlightPlaceholder3")}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className={styles.fieldFull}>
-          <label className={styles.label}>{t("galleryLabel")}</label>
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>3</div>
+          <h2 className={styles.sectionTitle}>{t("priceItemsTitle")}</h2>
+        </div>
 
-          <input
-            className={styles.file}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              void handlePickImages(e.target.files);
-              e.currentTarget.value = "";
-            }}
-          />
+        <div className={styles.sectionBody}>
+          <div className={styles.formRow}>
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("cityLabel")}</label>
+              <select
+                className={styles.select}
+                value={cityId}
+                onChange={(e) => setCityId(e.target.value)}
+              >
+                {cities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {formatCityLabel(c)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {uploading && <div className={styles.muted}>{t("uploading")}</div>}
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("categoryLabel")}</label>
+              <select
+                className={styles.select}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-          {gallery.length > 0 && (
-            <div className={styles.preview} style={{ flexWrap: "wrap" }}>
-              {gallery.map((img, idx) => (
-                <div
-                  key={img.path}
-                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                >
-                  <div
-                    style={{
-                      position: "relative",
-                      width: 180,
-                      height: 130,
-                      borderRadius: 12,
-                      overflow: "hidden",
-                    }}
-                  >
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Atsakymo laikas</label>
+            <select
+              className={styles.select}
+              value={responseTime}
+              onChange={(e) => setResponseTime(e.target.value)}
+            >
+              <option value="1h">Per 1 val.</option>
+              <option value="24h">Per 24 val.</option>
+              <option value="48h">Per 48 val.</option>
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Kainos</label>
+
+            <div className={styles.priceList}>
+              {priceItems.map((item, index) => (
+                <div key={index} className={styles.priceCard}>
+                  <input
+                    className={styles.input}
+                    value={item.label}
+                    onChange={(e) =>
+                      updatePriceItem(index, "label", e.target.value)
+                    }
+                    placeholder="Pvz. Landing Page"
+                  />
+
+                  <input
+                    className={styles.input}
+                    value={item.priceText}
+                    onChange={(e) =>
+                      updatePriceItem(index, "priceText", e.target.value)
+                    }
+                    placeholder="Pvz. Nuo 800 NOK"
+                  />
+
+                  <input
+                    className={styles.input}
+                    value={item.note}
+                    onChange={(e) =>
+                      updatePriceItem(index, "note", e.target.value)
+                    }
+                    placeholder="Pvz. Priklauso nuo funkcionalumo"
+                  />
+
+                  <div className={styles.inlineActions}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => removePriceItem(index)}
+                      disabled={priceItems.length <= 1}
+                    >
+                      Pašalinti kainos eilutę
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.inlineActions}>
+              <button
+                type="button"
+                className={styles.addRowButton}
+                onClick={addPriceItem}
+              >
+                + Pridėti kainos eilutę
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>4</div>
+          <h2 className={styles.sectionTitle}>{t("galleryLabel")}</h2>
+        </div>
+
+        <div className={styles.sectionBody}>
+          <div className={styles.uploadRow}>
+            <label className={styles.uploadBtn}>
+              {uploading ? t("uploading") : "Įkelti nuotraukas"}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  void handlePickImages(e.target.files);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
+          </div>
+
+          <div className={styles.imagePreview}>
+            {gallery.length > 0 ? (
+              gallery.map((img, idx) => (
+                <div key={img.path} className={styles.imageCard}>
+                  <div className={styles.imageThumb}>
                     <Image
                       src={img.url}
                       alt={t("previewAlt", { index: idx + 1 })}
@@ -461,7 +485,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
                   <button
                     type="button"
-                    className={styles.removeBtn}
+                    className={styles.secondaryButton}
                     onClick={() => {
                       setGallery((prev) =>
                         prev.filter((x) => x.path !== img.path),
@@ -471,17 +495,24 @@ export default function NewServiceForm({ cities, categories }: Props) {
                     {t("remove")}
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <div className={styles.emptyState}>
+                <span className={styles.emptyText}>Nuotraukų dar nėra</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div className={styles.actionsBar}>
+        <div />
+        <div className={styles.actionsRight}>
+          <button className={styles.primaryButton} type="submit" disabled={!canSubmit}>
+            {submitting ? t("creating") : t("submit")}
+          </button>
         </div>
       </div>
-
-      {error && <div className={styles.errorInline}>{error}</div>}
-
-      <button className={styles.submit} type="submit" disabled={!canSubmit}>
-        {submitting ? t("creating") : t("submit")}
-      </button>
     </form>
   );
 }
