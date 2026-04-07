@@ -13,7 +13,6 @@ import styles from "./edit.module.css";
 type Option = {
   id: string;
   name: string;
-  postcode?: string | null;
 };
 
 type PriceItem = {
@@ -27,9 +26,13 @@ type InitialData = {
   locale: string;
   title: string;
   description: string;
-  cityId: string;
   categoryId: string;
   responseTime?: string | null;
+
+  locationPostcode: string;
+  locationCity: string;
+  locationRegion?: string;
+
   priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
@@ -41,7 +44,6 @@ type InitialData = {
 
 type Props = {
   initial: InitialData;
-  cities: Option[];
   categories: Option[];
 };
 
@@ -90,14 +92,8 @@ function emptyPriceItem(): PriceItem {
   };
 }
 
-function formatCityLabel(city: Option) {
-  if (city.postcode && city.name) return `${city.postcode} ${city.name}`;
-  return city.name;
-}
-
 export default function EditServiceForm({
   initial,
-  cities,
   categories,
 }: Props) {
   const t = useTranslations("dashboardEditServiceForm");
@@ -110,9 +106,19 @@ export default function EditServiceForm({
 
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
-  const [cityId, setCityId] = useState(initial.cityId || "");
+
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [responseTime, setResponseTime] = useState(initial.responseTime ?? "1h");
+
+  const [locationPostcode, setLocationPostcode] = useState(
+    initial.locationPostcode || "",
+  );
+  const [locationCity, setLocationCity] = useState(
+    initial.locationCity || "",
+  );
+  const [locationRegion, setLocationRegion] = useState(
+    initial.locationRegion || "",
+  );
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>(
     Array.isArray(initial.priceItems) && initial.priceItems.length > 0
@@ -277,7 +283,9 @@ export default function EditServiceForm({
           locale,
           title: title.trim(),
           description: description.trim(),
-          cityId: cityId || null,
+          locationPostcode: locationPostcode.trim(),
+          locationCity: locationCity.trim(),
+          locationRegion: locationRegion.trim(),
           categoryId: categoryId || null,
           responseTime,
           priceItems: cleanPriceItems,
@@ -438,36 +446,52 @@ export default function EditServiceForm({
         <div className={styles.sectionBody}>
           <div className={styles.formRow}>
             <div className={styles.formCol}>
-              <label className={styles.label}>{t("cityLabel")}</label>
-              <select
-                className={styles.select}
-                value={cityId}
-                onChange={(e) => setCityId(e.target.value)}
-              >
-                <option value="">{t("selectCity")}</option>
-               {(cities ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {formatCityLabel(c)}
-                  </option>
-                ))}
-              </select>
+              <label className={styles.label}>Postcode *</label>
+              <input
+                className={styles.input}
+                value={locationPostcode}
+                onChange={(e) => setLocationPostcode(e.target.value)}
+                placeholder="1396"
+                required
+              />
             </div>
 
             <div className={styles.formCol}>
-              <label className={styles.label}>{t("categoryLabel")}</label>
-              <select
-                className={styles.select}
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                <option value="">{t("selectCategory")}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <label className={styles.label}>City *</label>
+              <input
+                className={styles.input}
+                value={locationCity}
+                onChange={(e) => setLocationCity(e.target.value)}
+                placeholder="Billingstad"
+                required
+              />
             </div>
+
+            <div className={styles.formCol}>
+              <label className={styles.label}>Region</label>
+              <input
+                className={styles.input}
+                value={locationRegion}
+                onChange={(e) => setLocationRegion(e.target.value)}
+                placeholder="Akershus"
+              />
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("categoryLabel")}</label>
+            <select
+              className={styles.select}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">{t("selectCategory")}</option>
+              {(categories ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.formGroup}>
