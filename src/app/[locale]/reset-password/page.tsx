@@ -3,6 +3,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "../login/login.module.css";
 
@@ -11,6 +12,7 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+  const t = useTranslations("resetPasswordPage");
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -24,12 +26,12 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (password.length < 8) {
-      setError("Slaptažodis turi būti bent 8 simbolių.");
+      setError(t("errors.passwordTooShort"));
       return;
     }
 
     if (password !== confirm) {
-      setError("Slaptažodžiai nesutampa.");
+      setError(t("errors.passwordMismatch"));
       return;
     }
 
@@ -41,18 +43,18 @@ export default function ResetPasswordPage() {
 
       if (error) {
         console.error(error);
-        setError("Nepavyko atnaujinti slaptažodžio.");
+        setError(t("errors.updateFailed"));
         return;
       }
 
-      setMessage("Slaptažodis sėkmingai pakeistas. Po kelių sekundžių būsite nukreipti į prisijungimą.");
+      setMessage(t("success"));
 
       setTimeout(() => {
         router.replace(`/${locale}/login?reset=1`);
       }, 3000);
     } catch (err) {
       console.error(err);
-      setError("Serverio klaida. Bandykite dar kartą.");
+      setError(t("errors.server"));
     } finally {
       setLoading(false);
     }
@@ -61,8 +63,8 @@ export default function ResetPasswordPage() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Naujas slaptažodis</h1>
-        <p className={styles.subtitle}>Įveskite naują slaptažodį savo paskyrai.</p>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <p className={styles.subtitle}>{t("subtitle")}</p>
 
         {error && <p className={styles.error}>{error}</p>}
         {message && <p className={styles.success}>{message}</p>}
@@ -72,7 +74,7 @@ export default function ResetPasswordPage() {
             <input
               className={styles.input}
               type="password"
-              placeholder="Naujas slaptažodis"
+              placeholder={t("passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -83,7 +85,7 @@ export default function ResetPasswordPage() {
             <input
               className={styles.input}
               type="password"
-              placeholder="Pakartokite slaptažodį"
+              placeholder={t("confirmPlaceholder")}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
@@ -91,7 +93,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? "Saugoma..." : "Išsaugoti naują slaptažodį"}
+            {loading ? t("loading") : t("submit")}
           </button>
         </form>
       </div>

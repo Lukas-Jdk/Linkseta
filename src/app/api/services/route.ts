@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { withApi } from "@/lib/withApi";
 import { withRateLimit } from "@/lib/apiGuard";
-import { validatePaginationParams, sanitizeStringParam } from "@/lib/validation";
+import {
+  validatePaginationParams,
+  sanitizeStringParam,
+} from "@/lib/validation";
 
 async function ensureUniqueSlugGlobal(slug: string) {
   let s = slug;
@@ -19,6 +22,10 @@ async function ensureUniqueSlugGlobal(slug: string) {
     s = `${slug}-${i}`;
     i += 1;
   }
+}
+
+function isCuidLike(value: string) {
+  return value.length >= 20 && value.length <= 40;
 }
 
 export async function GET(req: Request) {
@@ -43,8 +50,14 @@ export async function GET(req: Request) {
         const pageNum = paginationResult.page;
         const pageSize = paginationResult.pageSize;
 
-        const city = sanitizeStringParam(searchParams.get("city") ?? undefined, 80);
-        const category = sanitizeStringParam(searchParams.get("category") ?? undefined, 80);
+        const city = sanitizeStringParam(
+          searchParams.get("city") ?? undefined,
+          80,
+        );
+        const category = sanitizeStringParam(
+          searchParams.get("category") ?? undefined,
+          80,
+        );
         const q = sanitizeStringParam(searchParams.get("q") ?? undefined, 120);
 
         const skip = (pageNum - 1) * pageSize;
@@ -52,12 +65,22 @@ export async function GET(req: Request) {
         const where = {
           deletedAt: null,
           isActive: true,
-          ...(city && { city: { slug: city } }),
-          ...(category && { category: { slug: category } }),
+          ...(city &&
+            (isCuidLike(city)
+              ? { cityId: city }
+              : { city: { slug: city } })),
+          ...(category &&
+            (isCuidLike(category)
+              ? { categoryId: category }
+              : { category: { slug: category } })),
           ...(q && {
             OR: [
               { title: { contains: q, mode: "insensitive" as const } },
               { description: { contains: q, mode: "insensitive" as const } },
+              { titleEn: { contains: q, mode: "insensitive" as const } },
+              { descriptionEn: { contains: q, mode: "insensitive" as const } },
+              { titleNo: { contains: q, mode: "insensitive" as const } },
+              { descriptionNo: { contains: q, mode: "insensitive" as const } },
             ],
           }),
         };
@@ -82,13 +105,17 @@ export async function GET(req: Request) {
           select: {
             id: true,
             title: true,
+            titleEn: true,
+            titleNo: true,
             slug: true,
             description: true,
+            descriptionEn: true,
+            descriptionNo: true,
             priceFrom: true,
             imageUrl: true,
             highlighted: true,
             createdAt: true,
-            city: { select: { name: true, slug: true } },
+            city: { select: { name: true, slug: true, postcode: true } },
             category: { select: { name: true, slug: true } },
             user: { select: { id: true, name: true } },
           },
@@ -119,16 +146,27 @@ export async function POST(req: Request) {
       async () => {
         const { user, response } = await requireAdmin();
         if (response || !user) {
-          return response ?? NextResponse.json({ error: "Forbidden" }, { status: 403 });
+          return (
+            response ??
+            NextResponse.json({ error: "Forbidden" }, { status: 403 })
+          );
         }
 
         const body = await req.json().catch(() => ({} as any));
 
         const userId = typeof body?.userId === "string" ? body.userId : null;
-        const title = typeof body?.title === "string" ? body.title.trim().slice(0, 120) : null;
-        const slugRaw = typeof body?.slug === "string" ? body.slug.trim().slice(0, 80) : null;
+        const title =
+          typeof body?.title === "string"
+            ? body.title.trim().slice(0, 120)
+            : null;
+        const slugRaw =
+          typeof body?.slug === "string"
+            ? body.slug.trim().slice(0, 80)
+            : null;
         const description =
-          typeof body?.description === "string" ? body.description.trim().slice(0, 4000) : null;
+          typeof body?.description === "string"
+            ? body.description.trim().slice(0, 4000)
+            : null;
 
         if (!userId || !title || !slugRaw || !description) {
           return NextResponse.json({ error: "Missing fields" }, { status: 400 });

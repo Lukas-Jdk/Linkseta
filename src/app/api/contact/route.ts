@@ -1,8 +1,8 @@
 // src/app/api/contact/route.ts
-
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { verifyRecaptchaV3 } from "@/lib/recaptcha";
+import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,20 @@ function escapeHtml(value: string) {
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req) || "unknown";
+
+    await rateLimitOrThrow({
+      key: `public:contact:${ip}`,
+      limit: 8,
+      windowMs: 60_000,
+    });
+
     const body = await req.json().catch(() => null);
+
+    const website = cleanText(body?.website, 200);
+    if (website) {
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
 
     const name = cleanText(body?.name, 80);
     const email = cleanText(body?.email, 160).toLowerCase();
@@ -55,25 +68,31 @@ export async function POST(req: Request) {
       );
     }
 
-    if (process.env.RECAPTCHA_SECRET_KEY) {
-      if (!recaptchaToken) {
-        return NextResponse.json(
-          { error: "Trūksta reCAPTCHA token." },
-          { status: 400 },
-        );
-      }
+    if (!process.env.RECAPTCHA_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Apsauga nuo botų nesukonfigūruota." },
+        { status: 500 },
+      );
+    }
 
-      const captcha = await verifyRecaptchaV3({
-        token: recaptchaToken,
-        expectedAction: "contact_form",
-      });
+    if (!recaptchaToken) {
+      return NextResponse.json(
+        { error: "Trūksta reCAPTCHA token." },
+        { status: 400 },
+      );
+    }
 
-      if (!captcha.ok) {
-        return NextResponse.json(
-          { error: "reCAPTCHA patikra nepavyko." },
-          { status: 400 },
-        );
-      }
+    const captcha = await verifyRecaptchaV3({
+      token: recaptchaToken,
+      expectedAction: "contact_form",
+      ip: ip === "unknown" ? null : ip,
+    });
+
+    if (!captcha.ok) {
+      return NextResponse.json(
+        { error: "reCAPTCHA patikra nepavyko." },
+        { status: 400 },
+      );
     }
 
     const host = process.env.EMAIL_SMTP_HOST;
@@ -127,6 +146,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof Response) return error;
+
     console.error("POST /api/contact error", error);
     return NextResponse.json(
       { error: "Serverio klaida. Pabandykite vėliau." },

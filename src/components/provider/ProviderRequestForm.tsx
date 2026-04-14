@@ -2,6 +2,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import styles from "./ProviderRequestForm.module.css";
 
 type Option = {
@@ -24,6 +25,8 @@ declare global {
 }
 
 export default function ProviderRequestForm({ cities, categories }: Props) {
+  const t = useTranslations("providerRequestForm");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,7 +34,6 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
   const [categoryId, setCategoryId] = useState("");
   const [message, setMessage] = useState("");
 
-  // honeypot
   const [website, setWebsite] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,8 +56,8 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     return await new Promise<string | null>((resolve) => {
       g.ready(async () => {
         try {
-          const t = await g.execute(siteKey, { action: "provider_request" });
-          resolve(t);
+          const token = await g.execute(siteKey, { action: "provider_request" });
+          resolve(token);
         } catch {
           resolve(null);
         }
@@ -68,9 +70,8 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     setError(null);
     setSuccess(null);
 
-    // honeypot: jeigu užpildyta - laikom botu, bet atsakom "ok"
     if (website.trim()) {
-      setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
+      setSuccess(t("success"));
       setName("");
       setEmail("");
       setPhone("");
@@ -87,7 +88,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     const cleanMsg = message.trim();
 
     if (!cleanName || !cleanEmail) {
-      setError("Vardas ir el. paštas yra privalomi.");
+      setError(t("errors.requiredFields"));
       return;
     }
 
@@ -99,9 +100,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
       const recaptchaToken = await getRecaptchaToken();
       if (!recaptchaToken) {
-        setError(
-          "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą.",
-        );
+        setError(t("errors.recaptcha"));
         return;
       }
 
@@ -116,7 +115,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
           cityId: cityId || null,
           categoryId: categoryId || null,
           message: cleanMsg || null,
-          website: "", // honeypot neperduodam (arba perduodam tuščią)
+          website: "",
           recaptchaToken,
         }),
       });
@@ -124,11 +123,11 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       const data = await res.json().catch(() => ({} as any));
 
       if (!res.ok) {
-        setError(data?.error || "Įvyko klaida siunčiant paraišką. Bandykite vėliau.");
+        setError(data?.error || t("errors.sendFailed"));
         return;
       }
 
-      setSuccess("Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.");
+      setSuccess(t("success"));
       setName("");
       setEmail("");
       setPhone("");
@@ -139,7 +138,7 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
     } catch (err: any) {
       if (err?.name === "AbortError") return;
       console.error(err);
-      setError("Serverio klaida. Bandykite dar kartą vėliau.");
+      setError(t("errors.server"));
     } finally {
       setIsSubmitting(false);
     }
@@ -147,7 +146,6 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
   return (
     <form className={`card ${styles.card}`} onSubmit={handleSubmit}>
-      {/* honeypot off-screen */}
       <div
         aria-hidden="true"
         style={{
@@ -174,12 +172,17 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
       <div className={styles.row}>
         <label className={styles.label}>
-          Vardas / įmonės pavadinimas*
-          <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} required />
+          {t("nameLabel")}
+          <input
+            className={styles.input}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
         </label>
 
         <label className={styles.label}>
-          El. paštas*
+          {t("emailLabel")}
           <input
             className={styles.input}
             type="email"
@@ -192,14 +195,22 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
       <div className={styles.row}>
         <label className={styles.label}>
-          Telefonas
-          <input className={styles.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          {t("phoneLabel")}
+          <input
+            className={styles.input}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </label>
 
         <label className={styles.label}>
-          Miestas
-          <select className={styles.input} value={cityId} onChange={(e) => setCityId(e.target.value)}>
-            <option value="">Pasirinkti...</option>
+          {t("cityLabel")}
+          <select
+            className={styles.input}
+            value={cityId}
+            onChange={(e) => setCityId(e.target.value)}
+          >
+            <option value="">{t("selectPlaceholder")}</option>
             {cities.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -211,9 +222,13 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
 
       <div className={styles.row}>
         <label className={styles.label}>
-          Kategorija
-          <select className={styles.input} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">Pasirinkti...</option>
+          {t("categoryLabel")}
+          <select
+            className={styles.input}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          >
+            <option value="">{t("selectPlaceholder")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -224,21 +239,25 @@ export default function ProviderRequestForm({ cities, categories }: Props) {
       </div>
 
       <label className={styles.label}>
-        Papildoma informacija
+        {t("messageLabel")}
         <textarea
           className={styles.textarea}
           rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Trumpai aprašykite, kokias paslaugas teikiate."
+          placeholder={t("messagePlaceholder")}
         />
       </label>
 
       {error && <p className={styles.error}>{error}</p>}
       {success && <p className={styles.success}>{success}</p>}
 
-      <button className={`btn btn-primary ${styles.submitButton}`} type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Siunčiama..." : "Siųsti paraišką"}
+      <button
+        className={`btn btn-primary ${styles.submitButton}`}
+        type="submit"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? t("submitting") : t("submit")}
       </button>
     </form>
   );

@@ -1,6 +1,5 @@
 // src/app/[locale]/admin/page.tsx
 import { redirect } from "next/navigation";
-import AdminGuard from "@/components/auth/AdminGuard";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -21,7 +20,9 @@ function safeLocale(locale: string) {
 }
 
 function startOfDayUTC(d: Date) {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+  );
 }
 
 function addDaysUTC(d: Date, days: number) {
@@ -124,53 +125,51 @@ export default async function AdminHomePage({ params }: PageProps) {
   ]);
 
   return (
-    <AdminGuard>
-      <main className={styles.wrapper}>
-        <h1 className={styles.title}>Admin valdymo skydas</h1>
+    <main className={styles.wrapper}>
+      <h1 className={styles.title}>Admin valdymo skydas</h1>
 
-        <div style={{ marginBottom: "24px" }}>
-          <Metrics7Days
-            days={days}
-            series={[
-              { label: "Vartotojai", values: users7 },
-              { label: "Paslaugos", values: services7 },
-              { label: "Paraiškos", values: requests7 },
-            ]}
-          />
-        </div>
+      <div style={{ marginBottom: "24px" }}>
+        <Metrics7Days
+          days={days}
+          series={[
+            { label: "Vartotojai", values: users7 },
+            { label: "Paslaugos", values: services7 },
+            { label: "Paraiškos", values: requests7 },
+          ]}
+        />
+      </div>
 
-        <section className={styles.card} style={{ marginBottom: "24px" }}>
-          <h2 className={styles.subtitle}>Greita statistika</h2>
-          <p className={styles.text}>
-            Vartotojai: <strong>{usersCount}</strong> • Patvirtinti teikėjai:{" "}
-            <strong>{providersCount}</strong> • Paslaugos:{" "}
-            <strong>{servicesCount}</strong> (aktyvios:{" "}
-            <strong>{activeServices}</strong>)
-          </p>
-        </section>
+      <section className={styles.card} style={{ marginBottom: "24px" }}>
+        <h2 className={styles.subtitle}>Greita statistika</h2>
+        <p className={styles.text}>
+          Vartotojai: <strong>{usersCount}</strong> • Patvirtinti teikėjai:{" "}
+          <strong>{providersCount}</strong> • Paslaugos:{" "}
+          <strong>{servicesCount}</strong> (aktyvios:{" "}
+          <strong>{activeServices}</strong>)
+        </p>
+      </section>
 
-        <section className={styles.card} style={{ marginBottom: "24px" }}>
-          <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
-          <p className={styles.text}>
-            Peržiūrėk visas paslaugas, jas įjunk / išjunk, pažymėk kaip TOP ir
-            sutvarkyk netinkamas.
-          </p>
-          <LocalizedLink href="/admin/services" className={styles.button}>
-            Eiti į paslaugų sąrašą
-          </LocalizedLink>
-        </section>
+      <section className={styles.card} style={{ marginBottom: "24px" }}>
+        <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
+        <p className={styles.text}>
+          Peržiūrėk visas paslaugas, jas įjunk / išjunk, pažymėk kaip TOP ir
+          sutvarkyk netinkamas.
+        </p>
+        <LocalizedLink href="/admin/services" className={styles.button}>
+          Eiti į paslaugų sąrašą
+        </LocalizedLink>
+      </section>
 
-        <section className={styles.card}>
-          <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
-          <p className={styles.text}>
-            Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų
-            teikėjo profilį.
-          </p>
-          <LocalizedLink href="/admin/users" className={styles.button}>
-            Eiti į vartotojų sąrašą
-          </LocalizedLink>
-        </section>
-      </main>
-    </AdminGuard>
+      <section className={styles.card}>
+        <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
+        <p className={styles.text}>
+          Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų
+          teikėjo profilį.
+        </p>
+        <LocalizedLink href="/admin/users" className={styles.button}>
+          Eiti į vartotojų sąrašą
+        </LocalizedLink>
+      </section>
+    </main>
   );
 }

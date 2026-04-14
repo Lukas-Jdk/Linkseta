@@ -530,5 +530,56 @@
     "missingFields": "Įveskite el. paštą ir slaptažodį.",
     "withReason": "Prisijungti nepavyko: {reason}"
   }
+},
+"forgotPasswordPage": {
+  "title": "Atstatyti slaptažodį",
+  "subtitle": "Įveskite el. paštą ir išsiųsime slaptažodžio atstatymo nuorodą.",
+  "emailPlaceholder": "El. paštas",
+  "loading": "Siunčiama...",
+  "submit": "Siųsti nuorodą",
+  "success": "Jei toks el. paštas egzistuoja, išsiuntėme slaptažodžio atstatymo nuorodą. Patikrinkite ir „Spam“ aplanką.",
+  "errors": {
+    "missingEmail": "Įveskite el. paštą.",
+    "sendFailed": "Nepavyko išsiųsti slaptažodžio atstatymo laiško.",
+    "invalidEmail": "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.",
+    "tooManyRequests": "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.",
+    "network": "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.",
+    "server": "Serverio klaida. Bandykite dar kartą.",
+    "withReason": "Nepavyko išsiųsti laiško: {reason}"
+  }
+},
+"resetPasswordPage": {
+  "title": "Naujas slaptažodis",
+  "subtitle": "Įveskite naują slaptažodį savo paskyrai.",
+  "passwordPlaceholder": "Naujas slaptažodis",
+  "confirmPlaceholder": "Pakartokite slaptažodį",
+  "loading": "Saugoma...",
+  "submit": "Išsaugoti naują slaptažodį",
+  "success": "Slaptažodis sėkmingai pakeistas. Po kelių sekundžių būsite nukreipti į prisijungimą.",
+  "errors": {
+    "passwordTooShort": "Slaptažodis turi būti bent 8 simbolių.",
+    "passwordMismatch": "Slaptažodžiai nesutampa.",
+    "updateFailed": "Nepavyko atnaujinti slaptažodžio.",
+    "server": "Serverio klaida. Bandykite dar kartą."
+  }
+},
+"providerRequestForm": {
+  "nameLabel": "Vardas / įmonės pavadinimas*",
+  "emailLabel": "El. paštas*",
+  "phoneLabel": "Telefonas",
+  "cityLabel": "Miestas",
+  "categoryLabel": "Kategorija",
+  "messageLabel": "Papildoma informacija",
+  "messagePlaceholder": "Trumpai aprašykite, kokias paslaugas teikiate.",
+  "selectPlaceholder": "Pasirinkti...",
+  "submit": "Siųsti paraišką",
+  "submitting": "Siunčiama...",
+  "success": "Paraiška sėkmingai išsiųsta! Susisieksime su jumis el. paštu.",
+  "errors": {
+    "requiredFields": "Vardas ir el. paštas yra privalomi.",
+    "recaptcha": "Nepavyko patvirtinti, kad esate žmogus (reCAPTCHA). Perkraukite puslapį ir bandykite dar kartą.",
+    "sendFailed": "Įvyko klaida siunčiant paraišką. Bandykite vėliau.",
+    "server": "Serverio klaida. Bandykite dar kartą vėliau."
+  }
 }
 }

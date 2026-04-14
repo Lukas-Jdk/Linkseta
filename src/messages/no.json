@@ -580,6 +580,55 @@
       "a": "Basic- og Premium-planene blir tilgjengelige snart."
     }
   }
+},"forgotPasswordPage": {
+  "title": "Tilbakestill passord",
+  "subtitle": "Skriv inn e-posten din, så sender vi deg en lenke for å tilbakestille passordet.",
+  "emailPlaceholder": "E-post",
+  "loading": "Sender...",
+  "submit": "Send lenke",
+  "success": "Hvis denne e-posten finnes, har vi sendt en lenke for å tilbakestille passordet. Sjekk også Spam-mappen.",
+  "errors": {
+    "missingEmail": "Skriv inn e-post.",
+    "sendFailed": "Kunne ikke sende e-post for tilbakestilling av passord.",
+    "invalidEmail": "E-postadressen er ugyldig. Sjekk den og prøv igjen.",
+    "tooManyRequests": "For mange forsøk på kort tid. Vent noen minutter og prøv igjen.",
+    "network": "Kunne ikke kontakte serveren. Sjekk internettforbindelsen og prøv igjen.",
+    "server": "Serverfeil. Prøv igjen.",
+    "withReason": "Kunne ikke sende e-post: {reason}"
+  }
+},
+"resetPasswordPage": {
+  "title": "Nytt passord",
+  "subtitle": "Skriv inn et nytt passord for kontoen din.",
+  "passwordPlaceholder": "Nytt passord",
+  "confirmPlaceholder": "Gjenta passord",
+  "loading": "Lagrer...",
+  "submit": "Lagre nytt passord",
+  "success": "Passordet ble endret. Du blir sendt til innlogging om noen sekunder.",
+  "errors": {
+    "passwordTooShort": "Passordet må være minst 8 tegn.",
+    "passwordMismatch": "Passordene er ikke like.",
+    "updateFailed": "Kunne ikke oppdatere passordet.",
+    "server": "Serverfeil. Prøv igjen."
+  }
+},
+"providerRequestForm": {
+  "nameLabel": "Navn / firmanavn*",
+  "emailLabel": "E-post*",
+  "phoneLabel": "Telefon",
+  "cityLabel": "By",
+  "categoryLabel": "Kategori",
+  "messageLabel": "Tilleggsinformasjon",
+  "messagePlaceholder": "Beskriv kort hvilke tjenester du tilbyr.",
+  "selectPlaceholder": "Velg...",
+  "submit": "Send forespørsel",
+  "submitting": "Sender...",
+  "success": "Forespørselen ble sendt! Vi kontakter deg på e-post.",
+  "errors": {
+    "requiredFields": "Navn og e-post er påkrevd.",
+    "recaptcha": "Kunne ikke bekrefte at du er et menneske (reCAPTCHA). Last siden på nytt og prøv igjen.",
+    "sendFailed": "Det oppstod en feil under sending av forespørselen. Prøv igjen senere.",
+    "server": "Serverfeil. Prøv igjen senere."
+  }
 }
-
 }

@@ -41,6 +41,17 @@ function formatCityLabel(name?: string | null, postcode?: string | null) {
   return name ?? "";
 }
 
+function pickLocalizedValue(
+  locale: string,
+  base: string,
+  en?: string | null,
+  no?: string | null,
+) {
+  if (locale === "en") return en?.trim() || base;
+  if (locale === "no") return no?.trim() || base;
+  return base;
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -69,17 +80,6 @@ export async function generateMetadata({
       ? `${siteUrl}/${locale}/services${queryString ? `?${queryString}` : ""}`
       : `${siteUrl}/${locale}/services${baseQueryString}page=${pageNum}`;
 
-  const prevLink =
-    pageNum > 1
-      ? {
-          rel: "prev" as const,
-          href:
-            pageNum === 2
-              ? `${siteUrl}/${locale}/services${queryString ? `?${queryString}` : ""}`
-              : `${siteUrl}/${locale}/services${baseQueryString}page=${pageNum - 1}`,
-        }
-      : null;
-
   return {
     title,
     description,
@@ -99,11 +99,6 @@ export async function generateMetadata({
       title,
       description,
     },
-    ...(prevLink && {
-      other: {
-        prev: prevLink.href,
-      },
-    }),
   };
 }
 
@@ -111,10 +106,16 @@ export default async function ServicesPage({ params, searchParams }: Props) {
   const [{ locale }, resolved] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
-  const t = await getTranslations({
-    locale,
-    namespace: "servicesPage",
-  });
+  const [t, tCategories] = await Promise.all([
+    getTranslations({
+      locale,
+      namespace: "servicesPage",
+    }),
+    getTranslations({
+      locale,
+      namespace: "categories",
+    }),
+  ]);
 
   const paginationResult = validatePaginationParams(
     resolved.page,
@@ -152,6 +153,10 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     where.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
+      { titleEn: { contains: q, mode: "insensitive" } },
+      { descriptionEn: { contains: q, mode: "insensitive" } },
+      { titleNo: { contains: q, mode: "insensitive" } },
+      { descriptionNo: { contains: q, mode: "insensitive" } },
     ];
   }
 
@@ -169,7 +174,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     category
       ? prisma.category.findUnique({
           where: { id: category },
-          select: { name: true },
+          select: { name: true, slug: true },
         })
       : Promise.resolve(null),
     prisma.serviceListing.findMany({
@@ -177,13 +182,17 @@ export default async function ServicesPage({ params, searchParams }: Props) {
       select: {
         id: true,
         title: true,
+        titleEn: true,
+        titleNo: true,
         description: true,
+        descriptionEn: true,
+        descriptionNo: true,
         priceFrom: true,
         slug: true,
         highlighted: true,
         imageUrl: true,
         city: { select: { name: true, postcode: true } },
-        category: { select: { name: true } },
+        category: { select: { name: true, slug: true } },
       },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
       skip,
@@ -193,8 +202,19 @@ export default async function ServicesPage({ params, searchParams }: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const activeCityName = formatCityLabel(activeCity?.name, activeCity?.postcode);
-  const activeCategoryName = activeCategory?.name ?? "";
+  const activeCityName = formatCityLabel(
+    activeCity?.name,
+    activeCity?.postcode,
+  );
+
+  let activeCategoryName = activeCategory?.name ?? "";
+  if (activeCategory?.slug) {
+    try {
+      activeCategoryName = tCategories(activeCategory.slug);
+    } catch {
+      activeCategoryName = activeCategory.name ?? activeCategory.slug;
+    }
+  }
 
   let heading = t("headingAll");
 
@@ -209,17 +229,38 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     heading = t("headingCategory", { category: activeCategoryName });
   }
 
-  const items = services.map((service) => ({
-    id: service.id,
-    title: service.title,
-    description: service.description,
-    city: formatCityLabel(service.city?.name, service.city?.postcode),
-    category: service.category?.name ?? "",
-    priceFrom: service.priceFrom,
-    slug: service.slug,
-    highlighted: service.highlighted ?? false,
-    imageUrl: service.imageUrl,
-  }));
+  const items = services.map((service) => {
+    let localizedCategory = service.category?.name ?? "";
+    if (service.category?.slug) {
+      try {
+        localizedCategory = tCategories(service.category.slug);
+      } catch {
+        localizedCategory = service.category.name ?? service.category.slug;
+      }
+    }
+
+    return {
+      id: service.id,
+      title: pickLocalizedValue(
+        locale,
+        service.title,
+        service.titleEn,
+        service.titleNo,
+      ),
+      description: pickLocalizedValue(
+        locale,
+        service.description,
+        service.descriptionEn,
+        service.descriptionNo,
+      ),
+      city: formatCityLabel(service.city?.name, service.city?.postcode),
+      category: localizedCategory,
+      priceFrom: service.priceFrom,
+      slug: service.slug,
+      highlighted: service.highlighted ?? false,
+      imageUrl: service.imageUrl,
+    };
+  });
 
   const queryParams = new URLSearchParams();
   if (q) queryParams.set("q", q);

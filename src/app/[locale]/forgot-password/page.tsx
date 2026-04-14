@@ -3,14 +3,18 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import styles from "../login/login.module.css";
 
-function mapForgotPasswordError(raw: string | null | undefined) {
+function mapForgotPasswordError(
+  raw: string | null | undefined,
+  t: ReturnType<typeof useTranslations<"forgotPasswordPage">>,
+) {
   const msg = (raw || "").toLowerCase().trim();
 
   if (!msg) {
-    return "Nepavyko išsiųsti slaptažodžio atstatymo laiško.";
+    return t("errors.sendFailed");
   }
 
   if (
@@ -18,7 +22,7 @@ function mapForgotPasswordError(raw: string | null | undefined) {
     msg.includes("invalid email") ||
     msg.includes("unable to validate email address")
   ) {
-    return "Įvestas neteisingas el. pašto adresas. Patikrinkite ir bandykite dar kartą.";
+    return t("errors.invalidEmail");
   }
 
   if (
@@ -27,7 +31,7 @@ function mapForgotPasswordError(raw: string | null | undefined) {
     msg.includes("too many requests") ||
     msg.includes("over_email_send_rate_limit")
   ) {
-    return "Per daug bandymų per trumpą laiką. Palaukite kelias minutes ir bandykite dar kartą.";
+    return t("errors.tooManyRequests");
   }
 
   if (
@@ -35,16 +39,17 @@ function mapForgotPasswordError(raw: string | null | undefined) {
     msg.includes("failed to fetch") ||
     msg.includes("fetch")
   ) {
-    return "Nepavyko susisiekti su serveriu. Patikrinkite interneto ryšį ir bandykite dar kartą.";
+    return t("errors.network");
   }
 
-  return `Nepavyko išsiųsti laiško: ${raw}`;
+  return t("errors.withReason", { reason: raw || "" });
 }
 
 export default function ForgotPasswordPage() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
+  const t = useTranslations("forgotPasswordPage");
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -57,7 +62,7 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     if (!email.trim()) {
-      setError("Įveskite el. paštą.");
+      setError(t("errors.missingEmail"));
       return;
     }
 
@@ -71,15 +76,13 @@ export default function ForgotPasswordPage() {
 
       if (error) {
         console.error("forgot password error:", error);
-        setError(mapForgotPasswordError(error.message));
+        setError(mapForgotPasswordError(error.message, t));
       } else {
-        setMessage(
-          "Jei toks el. paštas egzistuoja, išsiuntėme slaptažodžio atstatymo nuorodą. Patikrinkite ir „Spam“ aplanką."
-        );
+        setMessage(t("success"));
       }
     } catch (err) {
       console.error(err);
-      setError("Serverio klaida. Bandykite dar kartą.");
+      setError(t("errors.server"));
     } finally {
       setLoading(false);
     }
@@ -88,10 +91,8 @@ export default function ForgotPasswordPage() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Atstatyti slaptažodį</h1>
-        <p className={styles.subtitle}>
-          Įveskite el. paštą ir išsiųsime slaptažodžio atstatymo nuorodą.
-        </p>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <p className={styles.subtitle}>{t("subtitle")}</p>
 
         {error && <p className={styles.error}>{error}</p>}
         {message && <p className={styles.success}>{message}</p>}
@@ -101,7 +102,7 @@ export default function ForgotPasswordPage() {
             <input
               className={styles.input}
               type="email"
-              placeholder="El. paštas"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -109,7 +110,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? "Siunčiama..." : "Siųsti nuorodą"}
+            {loading ? t("loading") : t("submit")}
           </button>
         </form>
       </div>

@@ -1,12 +1,12 @@
 // src/lib/logger.ts
 import crypto from "crypto";
 
-type LogLevel = "info" | "warn" | "error";
+export type LoggerLevel = "debug" | "info" | "warn" | "error";
 
 type LogBase = {
-  level: LogLevel;
+  level: LoggerLevel;
   msg: string;
-  at: string; // ISO
+  at: string;
   requestId?: string;
   route?: string;
   ip?: string;
@@ -26,7 +26,10 @@ export function newRequestId() {
   return crypto.randomUUID?.() ?? crypto.randomBytes(16).toString("hex");
 }
 
-export function log(level: LogLevel, data: Omit<LogBase, "level" | "at">) {
+export function writeLog(
+  level: LoggerLevel,
+  data: Omit<LogBase, "level" | "at">,
+) {
   const payload: LogBase = {
     level,
     at: new Date().toISOString(),
@@ -34,22 +37,38 @@ export function log(level: LogLevel, data: Omit<LogBase, "level" | "at">) {
     meta: data.meta !== undefined ? safeJson(data.meta) : undefined,
   };
 
-  // Vercel/Node geriausiai suvalgo JSON logs
   const line = JSON.stringify(payload);
 
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
-  else console.log(line);
+  else if (level === "info") console.info(line);
+  else console.debug(line);
 }
 
-export function logInfo(msg: string, meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown }) {
-  log("info", { msg, ...meta });
+export function logInfo(
+  msg: string,
+  meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown },
+) {
+  writeLog("info", { msg, ...meta });
 }
 
-export function logWarn(msg: string, meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown }) {
-  log("warn", { msg, ...meta });
+export function logWarn(
+  msg: string,
+  meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown },
+) {
+  writeLog("warn", { msg, ...meta });
 }
 
-export function logError(msg: string, meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown }) {
-  log("error", { msg, ...meta });
+export function logError(
+  msg: string,
+  meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown },
+) {
+  writeLog("error", { msg, ...meta });
+}
+
+export function logDebug(
+  msg: string,
+  meta?: Omit<LogBase, "level" | "msg" | "at" | "meta"> & { meta?: unknown },
+) {
+  writeLog("debug", { msg, ...meta });
 }

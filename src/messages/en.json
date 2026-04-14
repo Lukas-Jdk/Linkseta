@@ -556,6 +556,56 @@
       "a": "Basic and Premium plans will be available soon."
     }
   }
+},
+"forgotPasswordPage": {
+  "title": "Reset password",
+  "subtitle": "Enter your email and we will send you a password reset link.",
+  "emailPlaceholder": "Email",
+  "loading": "Sending...",
+  "submit": "Send link",
+  "success": "If this email exists, we sent a password reset link. Please also check your Spam folder.",
+  "errors": {
+    "missingEmail": "Enter your email.",
+    "sendFailed": "Failed to send password reset email.",
+    "invalidEmail": "The email address is invalid. Please check it and try again.",
+    "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
+    "network": "Could not reach the server. Check your internet connection and try again.",
+    "server": "Server error. Please try again.",
+    "withReason": "Failed to send email: {reason}"
+  }
+},
+"resetPasswordPage": {
+  "title": "New password",
+  "subtitle": "Enter a new password for your account.",
+  "passwordPlaceholder": "New password",
+  "confirmPlaceholder": "Repeat password",
+  "loading": "Saving...",
+  "submit": "Save new password",
+  "success": "Password changed successfully. You will be redirected to login in a few seconds.",
+  "errors": {
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "updateFailed": "Failed to update password.",
+    "server": "Server error. Please try again."
+  }
+},
+"providerRequestForm": {
+  "nameLabel": "Name / company name*",
+  "emailLabel": "Email*",
+  "phoneLabel": "Phone",
+  "cityLabel": "City",
+  "categoryLabel": "Category",
+  "messageLabel": "Additional information",
+  "messagePlaceholder": "Briefly describe the services you provide.",
+  "selectPlaceholder": "Select...",
+  "submit": "Send request",
+  "submitting": "Sending...",
+  "success": "Request sent successfully! We will contact you by email.",
+  "errors": {
+    "requiredFields": "Name and email are required.",
+    "recaptcha": "Could not verify that you are human (reCAPTCHA). Reload the page and try again.",
+    "sendFailed": "An error occurred while sending the request. Please try again later.",
+    "server": "Server error. Please try again later."
+  }
 }
-
 }

@@ -105,6 +105,20 @@ function normalizePriceItems(input: unknown) {
   }>;
 }
 
+function revalidateServicePages(slug: string) {
+  revalidatePath("/lt");
+  revalidatePath("/en");
+  revalidatePath("/no");
+
+  revalidatePath("/lt/services");
+  revalidatePath("/en/services");
+  revalidatePath("/no/services");
+
+  revalidatePath(`/lt/services/${slug}`);
+  revalidatePath(`/en/services/${slug}`);
+  revalidatePath(`/no/services/${slug}`);
+}
+
 export async function POST(req: Request) {
   const requestId = newRequestId();
   const ip = getClientIp(req);
@@ -403,10 +417,7 @@ export async function POST(req: Request) {
       },
     });
 
-    revalidatePath("/[locale]", "page");
-    revalidatePath("/[locale]/services", "page");
-    revalidatePath("/[locale]/services/[slug]", "page");
-    revalidatePath(`/${created.slug}`);
+    revalidateServicePages(created.slug);
 
     return jsonNoStore(
       { ok: true, id: created.id, slug: created.slug },
