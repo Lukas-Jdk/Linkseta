@@ -33,6 +33,7 @@ type Labels = {
   logout: string;
   home: string;
   services: string;
+  plans: string;
   contact: string;
   admin: string;
   navAria: string;
@@ -583,6 +584,13 @@ export default function HeaderClient({ locale, labels }: Props) {
                 onClick={closeAllMenus}
               >
                 {labels.services}
+              </Link>
+              <Link
+                href={`/${locale}/tapti-teikeju`}
+                className={styles.drawerNavItem}
+                onClick={closeAllMenus}
+              >
+                {labels.plans}
               </Link>
               <Link
                 href={`/${locale}/susisiekite`}

@@ -406,10 +406,6 @@
     }
   }
 },
-  "dashboardNewServicePage": {
-    "title": "Nauja paslauga",
-    "subtitle": "Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą."
-  },
   "profileCard": {
     "provider": "Paslaugų teikėjas",
     "user": "Vartotojas",
@@ -436,6 +432,10 @@
       "generic": "Įvyko klaida."
     }
   },
+  "dashboardNewServicePage": {
+    "title": "Nauja paslauga",
+    "subtitle": "Užpildykite formą ir sukurkite savo paslaugos skelbimą. Vėliau galėsite jį redaguoti per savo paskyrą."
+  },
   "dashboardNewServiceForm": {
   "titleLabel": "Pavadinimas",
   "titlePlaceholder": "Pvz. Elektrikas Osle",
@@ -448,6 +448,7 @@
   "priceItemPricePlaceholder": "Pvz. nuo 650 NOK",
   "priceItemNotePlaceholder": "Pvz. Kaina priklauso nuo dydžio",
   "addPriceItem": "Pridėti kainos eilutę",
+  "addPriceRow": "Pridėti kainos eilutę",
   "descriptionLabel": "Aprašymas",
   "descriptionPlaceholder": "Parašyk kuo aiškiau, ką siūlai.",
   "highlightsTitle": "Kodėl rinktis mane? (nebūtina)",
@@ -461,6 +462,25 @@
   "remove": "Pašalinti",
   "creating": "Kuriama...",
   "submit": "Sukurti paslaugą",
+
+  "detailsLocationTitle": "Detalės ir lokacija",
+  "selectCategory": "Pasirinkite kategoriją",
+  "selectCity": "Pasirinkite miestą",
+  "responseTimeLabel": "Atsakymo laikas",
+  "response1h": "Per 1 val.",
+  "response24h": "Per 24 val.",
+  "response48h": "Per 48 val.",
+  "postcodeLabel": "Postcode",
+  "postcodePlaceholder": "Pvz. 0001",
+  "regionLabel": "Rajonas (nebūtina)",
+  "regionPlaceholder": "Pvz. Sentrum",
+  "pricesSectionTitle": "Kainos",
+  "removePriceRow": "Pašalinti kainos eilutę",
+  "uploadButton": "Įkelti nuotraukas",
+  "uploadSuccess": "Nuotraukos sėkmingai įkeltos. Nepamiršk išsaugoti paslaugos.",
+  "createSuccess": "Paslauga sėkmingai sukurta.",
+  "noImagesYet": "Nuotraukų dar nėra",
+
   "errors": {
     "maxImages": "Galima įkelti daugiausia {max} nuotraukų.",
     "mustBeLoggedIn": "Turite būti prisijungęs, kad įkeltumėte nuotraukas.",
@@ -470,8 +490,10 @@
     "uploadOneFailed": "Nepavyko įkelti vienos iš nuotraukų.",
     "uploadGeneric": "Įvyko klaida keliant nuotraukas.",
     "csrfOrForbidden": "Saugumo klaida. Perkraukite puslapį ir bandykite dar kartą.",
-    "createFailed": "Nepavyko sukurti paslaugos",
-    "generic": "Įvyko klaida"
+    "createFailed": "Nepavyko sukurti paslaugos.",
+    "generic": "Įvyko klaida.",
+    "invalidCityPostcode": "Pasirinkite miestą su galiojančiu postcode.",
+    "missingRequired": "Patikrinkite formą – trūksta privalomų laukų."
   }
 },
  "categories": {

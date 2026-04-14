@@ -31,6 +31,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-main);
+  font-family: var(--font-primary);
   min-width: 0;
 }
 
@@ -46,6 +47,7 @@
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 500;
+  font-family: var(--font-primary);
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
@@ -88,6 +90,7 @@
 .serviceTitle {
   font-weight: 600;
   color: #111827;
+  font-family: var(--font-primary);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -106,6 +109,7 @@
   justify-content: flex-end;
   flex: 0 1 auto;
   min-width: 0;
+  font-family: var(--font-primary);
 }
 
 .linkButton {

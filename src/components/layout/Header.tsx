@@ -9,12 +9,20 @@ type Props = {
   locale: string;
 };
 
+function getPlansLabel(locale: string) {
+  if (locale === "en") return "Plans";
+  if (locale === "no") return "Planer";
+  return "Planai";
+}
+
 export default async function Header({ locale }: Props) {
   const [tHeader, tNav, tAuth] = await Promise.all([
     getTranslations({ locale, namespace: "header" }),
     getTranslations({ locale, namespace: "nav" }),
     getTranslations({ locale, namespace: "auth" }),
   ]);
+
+  const plansLabel = getPlansLabel(locale);
 
   return (
     <>
@@ -42,6 +50,7 @@ export default async function Header({ locale }: Props) {
               <div className={styles.navLinks}>
                 <Link href={`/${locale}`}>{tNav("home")}</Link>
                 <Link href={`/${locale}/services`}>{tNav("services")}</Link>
+                <Link href={`/${locale}/tapti-teikeju`}>{plansLabel}</Link>
                 <Link href={`/${locale}/susisiekite`}>{tNav("contact")}</Link>
               </div>
             </nav>
@@ -58,6 +67,7 @@ export default async function Header({ locale }: Props) {
                 logout: tAuth("logout"),
                 home: tNav("home"),
                 services: tNav("services"),
+                plans: plansLabel,
                 contact: tNav("contact"),
                 admin: tNav("admin"),
                 navAria: tNav("aria"),

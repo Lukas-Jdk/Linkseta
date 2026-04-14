@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { translateCategoryName } from "@/lib/categoryTranslations";
 
 import NewServiceForm from "./NewServiceForm";
 import styles from "./newService.module.css";
@@ -20,7 +21,7 @@ export default async function NewServicePage({ params }: Props) {
 
   setRequestLocale(locale);
 
-  const t = await getTranslations({
+  const tPage = await getTranslations({
     locale,
     namespace: "dashboardNewServicePage",
   });
@@ -40,17 +41,23 @@ export default async function NewServicePage({ params }: Props) {
       select: {
         id: true,
         name: true,
+        slug: true,
       },
     }),
   ]);
+
+  const localizedCategories = categories.map((c) => ({
+    id: c.id,
+    name: translateCategoryName(c.slug, c.name, locale),
+  }));
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
         <header className={styles.header}>
           <div>
-            <h1 className={styles.pageTitle}>{t("title")}</h1>
-            <p className={styles.pageSubtitle}>{t("subtitle")}</p>
+            <h1 className={styles.pageTitle}>{tPage("title")}</h1>
+            <p className={styles.pageSubtitle}>{tPage("subtitle")}</p>
           </div>
         </header>
 
@@ -61,10 +68,7 @@ export default async function NewServicePage({ params }: Props) {
               name: c.name,
               postcode: c.postcode,
             }))}
-            categories={categories.map((c) => ({
-              id: c.id,
-              name: c.name,
-            }))}
+            categories={localizedCategories}
           />
         </div>
       </div>

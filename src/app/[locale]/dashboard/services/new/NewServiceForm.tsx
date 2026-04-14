@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { csrfFetch } from "@/lib/csrfClient";
@@ -50,11 +50,6 @@ function emptyPriceItem(): PriceItem {
   };
 }
 
-function formatCityLabel(city: Option) {
-  if (city.postcode && city.name) return `${city.postcode} ${city.name}`;
-  return city.name;
-}
-
 export default function NewServiceForm({ cities, categories }: Props) {
   const t = useTranslations("dashboardNewServiceForm");
   const router = useRouter();
@@ -64,10 +59,13 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const [title, setTitle] = useState("");
-  const [cityId, setCityId] = useState(cities?.[0]?.id ?? "");
-  const [categoryId, setCategoryId] = useState(categories?.[0]?.id ?? "");
+  const [cityId, setCityId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
   const [responseTime, setResponseTime] = useState("1h");
+
+  const [locationPostcode, setLocationPostcode] = useState("");
+  const [locationRegion, setLocationRegion] = useState("");
 
   const [h1, setH1] = useState("");
   const [h2, setH2] = useState("");
@@ -82,6 +80,16 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const feedbackRef = useRef<HTMLDivElement | null>(null);
+
+  const selectedCity = useMemo(
+    () => cities.find((c) => c.id === cityId) ?? null,
+    [cities, cityId],
+  );
+
+  const locationCity = selectedCity?.name?.trim() ?? "";
 
   const highlights = useMemo(() => {
     return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
@@ -93,10 +101,30 @@ export default function NewServiceForm({ cities, categories }: Props) {
       description.trim().length >= 10 &&
       Boolean(cityId) &&
       Boolean(categoryId) &&
+      Boolean(locationCity) &&
+      Boolean(locationPostcode.trim()) &&
       !submitting &&
       !uploading
     );
-  }, [title, description, cityId, categoryId, submitting, uploading]);
+  }, [
+    title,
+    description,
+    cityId,
+    categoryId,
+    locationCity,
+    locationPostcode,
+    submitting,
+    uploading,
+  ]);
+
+  useEffect(() => {
+    if (!error && !success) return;
+
+    feedbackRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [error, success]);
 
   function updatePriceItem(
     index: number,
@@ -116,10 +144,22 @@ export default function NewServiceForm({ cities, categories }: Props) {
     setPriceItems((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleCityChange(nextCityId: string) {
+    const nextCity = cities.find((c) => c.id === nextCityId) ?? null;
+    const nextCityPostcode = nextCity?.postcode?.trim() ?? "";
+
+    setCityId(nextCityId);
+
+    if (!locationPostcode.trim()) {
+      setLocationPostcode(nextCityPostcode);
+    }
+  }
+
   async function handlePickImages(files: FileList | null) {
     if (!files || files.length === 0) return;
 
     setError(null);
+    setSuccess(null);
 
     const remainingSlots = MAX_IMAGES - gallery.length;
     if (remainingSlots <= 0) {
@@ -186,6 +226,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
       }
 
       setGallery((prev) => [...prev, ...uploaded]);
+      setSuccess(t("uploadSuccess"));
     } catch (e) {
       setError(e instanceof Error ? e.message : t("errors.uploadGeneric"));
     } finally {
@@ -196,10 +237,20 @@ export default function NewServiceForm({ cities, categories }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
-    if (!canSubmit) return;
+    if (!locationCity || !locationPostcode.trim()) {
+      setError(t("errors.invalidCityPostcode"));
+      return;
+    }
+
+    if (!canSubmit) {
+      setError(t("errors.missingRequired"));
+      return;
+    }
 
     setSubmitting(true);
+
     try {
       const cleanPriceItems = priceItems
         .map((item) => ({
@@ -212,7 +263,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       const payload = {
         title: title.trim(),
-        cityId,
         categoryId,
         description: description.trim(),
         responseTime,
@@ -220,6 +270,10 @@ export default function NewServiceForm({ cities, categories }: Props) {
         priceItems: cleanPriceItems,
         galleryImageUrls: gallery.map((x) => x.url),
         galleryImagePaths: gallery.map((x) => x.path),
+        locationPostcode: locationPostcode.trim(),
+        locationCity,
+        locationRegion: locationRegion.trim(),
+        cityId,
       };
 
       const res = await csrfFetch("/api/dashboard/services", {
@@ -229,8 +283,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
         const msg =
           data?.error ??
           (res.status === 403
@@ -239,6 +294,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
         throw new Error(msg);
       }
 
+      setSuccess(t("createSuccess"));
       router.push(`/${locale}/dashboard/services`);
       router.refresh();
     } catch (err) {
@@ -250,8 +306,6 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
   return (
     <form className={styles.form} onSubmit={onSubmit}>
-      {error && <div className={styles.errorText}>{error}</div>}
-
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionNumber}>1</div>
@@ -337,57 +391,88 @@ export default function NewServiceForm({ cities, categories }: Props) {
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionNumber}>3</div>
-          <h2 className={styles.sectionTitle}>{t("priceItemsTitle")}</h2>
+          <h2 className={styles.sectionTitle}>{t("detailsLocationTitle")}</h2>
         </div>
 
         <div className={styles.sectionBody}>
-          <div className={styles.formRow}>
-            <div className={styles.formCol}>
-              <label className={styles.label}>{t("cityLabel")}</label>
-              <select
-                className={styles.select}
-                value={cityId}
-                onChange={(e) => setCityId(e.target.value)}
-              >
-                {cities.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {formatCityLabel(c)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.formCol}>
-              <label className={styles.label}>{t("categoryLabel")}</label>
-              <select
-                className={styles.select}
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("categoryLabel")}</label>
+            <select
+              className={styles.select}
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">{t("selectCategory")}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Atsakymo laikas</label>
+            <label className={styles.label}>{t("responseTimeLabel")}</label>
             <select
               className={styles.select}
               value={responseTime}
               onChange={(e) => setResponseTime(e.target.value)}
             >
-              <option value="1h">Per 1 val.</option>
-              <option value="24h">Per 24 val.</option>
-              <option value="48h">Per 48 val.</option>
+              <option value="1h">{t("response1h")}</option>
+              <option value="24h">{t("response24h")}</option>
+              <option value="48h">{t("response48h")}</option>
             </select>
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Kainos</label>
+            <label className={styles.label}>{t("cityLabel")}</label>
+            <select
+              className={styles.select}
+              value={cityId}
+              onChange={(e) => handleCityChange(e.target.value)}
+            >
+              <option value="">{t("selectCity")}</option>
+              {cities.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("postcodeLabel")}</label>
+              <input
+                className={styles.input}
+                value={locationPostcode}
+                onChange={(e) => setLocationPostcode(e.target.value)}
+                placeholder={t("postcodePlaceholder")}
+              />
+            </div>
+
+            <div className={styles.formCol}>
+              <label className={styles.label}>{t("regionLabel")}</label>
+              <input
+                className={styles.input}
+                value={locationRegion}
+                onChange={(e) => setLocationRegion(e.target.value)}
+                placeholder={t("regionPlaceholder")}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionNumber}>4</div>
+          <h2 className={styles.sectionTitle}>{t("pricesSectionTitle")}</h2>
+        </div>
+
+        <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t("priceItemsTitle")}</label>
 
             <div className={styles.priceList}>
               {priceItems.map((item, index) => (
@@ -398,7 +483,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                     onChange={(e) =>
                       updatePriceItem(index, "label", e.target.value)
                     }
-                    placeholder="Pvz. Landing Page"
+                    placeholder={t("priceItemNamePlaceholder")}
                   />
 
                   <input
@@ -407,7 +492,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                     onChange={(e) =>
                       updatePriceItem(index, "priceText", e.target.value)
                     }
-                    placeholder="Pvz. Nuo 800 NOK"
+                    placeholder={t("priceItemPricePlaceholder")}
                   />
 
                   <input
@@ -416,7 +501,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                     onChange={(e) =>
                       updatePriceItem(index, "note", e.target.value)
                     }
-                    placeholder="Pvz. Priklauso nuo funkcionalumo"
+                    placeholder={t("priceItemNotePlaceholder")}
                   />
 
                   <div className={styles.inlineActions}>
@@ -426,7 +511,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                       onClick={() => removePriceItem(index)}
                       disabled={priceItems.length <= 1}
                     >
-                      Pašalinti kainos eilutę
+                      {t("removePriceRow")}
                     </button>
                   </div>
                 </div>
@@ -439,7 +524,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
                 className={styles.addRowButton}
                 onClick={addPriceItem}
               >
-                + Pridėti kainos eilutę
+                + {t("addPriceRow")}
               </button>
             </div>
           </div>
@@ -448,14 +533,14 @@ export default function NewServiceForm({ cities, categories }: Props) {
 
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
-          <div className={styles.sectionNumber}>4</div>
+          <div className={styles.sectionNumber}>5</div>
           <h2 className={styles.sectionTitle}>{t("galleryLabel")}</h2>
         </div>
 
         <div className={styles.sectionBody}>
           <div className={styles.uploadRow}>
             <label className={styles.uploadBtn}>
-              {uploading ? t("uploading") : "Įkelti nuotraukas"}
+              {uploading ? t("uploading") : t("uploadButton")}
               <input
                 type="file"
                 accept="image/*"
@@ -498,17 +583,25 @@ export default function NewServiceForm({ cities, categories }: Props) {
               ))
             ) : (
               <div className={styles.emptyState}>
-                <span className={styles.emptyText}>Nuotraukų dar nėra</span>
+                <span className={styles.emptyText}>{t("noImagesYet")}</span>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <div className={styles.actionsBar}>
-        <div />
+      <div className={styles.actionsBar} ref={feedbackRef}>
+        <div style={{ flex: 1 }}>
+          {error && <div className={styles.errorText}>{error}</div>}
+          {success && <div className={styles.successText}>{success}</div>}
+        </div>
+
         <div className={styles.actionsRight}>
-          <button className={styles.primaryButton} type="submit" disabled={!canSubmit}>
+          <button
+            className={styles.primaryButton}
+            type="submit"
+            disabled={!canSubmit}
+          >
             {submitting ? t("creating") : t("submit")}
           </button>
         </div>

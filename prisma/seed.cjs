@@ -9,6 +9,8 @@ function slugify(input) {
     .replace(/å/g, "a")
     .replace(/æ/g, "ae")
     .replace(/ø/g, "o")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
@@ -64,42 +66,78 @@ async function upsertCities() {
   }
 }
 
-async function upsertCategories() {
+async function resetServiceCategories() {
   const names = [
-    "Statybos",
-    "Remontas",
-    "Santechnika",
-    "Elektra",
-    "Buitinė technika",
-    "Automobiliai",
-    "Transportas",
-    "Valymas",
-    "Grožis",
-    "Sveikata",
-    "Sportas",
-    "Mityba",
-    "Maistas",
-    "Konditerija",
-    "Renginiai",
     "Apskaita",
-    "Teisinės paslaugos",
-    "IT paslaugos",
+    "Automobiliai",
+    "Buitinė technika",
+    "Elektra",
     "Fotografija",
-    "Mokymai",
-    "Vaikų priežiūra",
+    "Grožis",
     "Gyvūnų priežiūra",
-    "Namų ūkis",
+    "IT paslaugos",
     "Kita",
+    "Konditerija",
+    "Maistas",
+    "Mityba",
+    "Mokymai",
+    "Namų ūkis",
+    "Remontas",
+    "Renginiai",
+    "Santechnika",
+    "Sportas",
+    "Statybos",
+    "Sveikata",
+    "Teisinės paslaugos",
+    "Transportas",
+    "Vaikų priežiūra",
+    "Valymas",
   ];
 
-  for (const name of names) {
-    const slug = slugify(name);
-    await prisma.category.upsert({
-      where: { slug },
-      update: { name, type: "SERVICE" },
-      create: { name, slug, type: "SERVICE" },
+  const wantedSlugs = names.map((name) => slugify(name));
+
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.category.findMany({
+      where: { type: "SERVICE" },
+      select: { id: true, slug: true },
     });
-  }
+
+    const toDelete = existing.filter((c) => !wantedSlugs.includes(c.slug));
+    const toDeleteIds = toDelete.map((c) => c.id);
+
+    if (toDeleteIds.length > 0) {
+      await tx.serviceListing.updateMany({
+        where: { categoryId: { in: toDeleteIds } },
+        data: { categoryId: null },
+      });
+
+      await tx.providerRequest.updateMany({
+        where: { categoryId: { in: toDeleteIds } },
+        data: { categoryId: null },
+      });
+
+      await tx.category.deleteMany({
+        where: { id: { in: toDeleteIds } },
+      });
+    }
+
+    for (const name of names) {
+      const slug = slugify(name);
+
+      await tx.category.upsert({
+        where: { slug },
+        update: {
+          name,
+          type: "SERVICE",
+        },
+        create: {
+          name,
+          slug,
+          type: "SERVICE",
+        },
+      });
+    }
+  });
 }
 
 async function upsertPlans() {
@@ -171,7 +209,7 @@ async function upsertPlans() {
 async function main() {
   console.log("Seeding duomenis...");
   await upsertCities();
-  await upsertCategories();
+  await resetServiceCategories();
   await upsertPlans();
   console.log("Seed pabaigta ✅");
 }

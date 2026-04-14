@@ -406,10 +406,6 @@
     }
   }
 },
-  "dashboardNewServicePage": {
-    "title": "Ny tjeneste",
-    "subtitle": "Fyll ut skjemaet og opprett tjenesteannonsen din. Du kan redigere den senere fra kontoen din."
-  },
   "profileCard": {
     "provider": "Tjenesteleverandør",
     "user": "Bruker",
@@ -436,6 +432,10 @@
       "generic": "Det oppstod en feil."
     }
   },
+   "dashboardNewServicePage": {
+    "title": "Ny tjeneste",
+    "subtitle": "Fyll ut skjemaet og opprett tjenesteannonsen din. Du kan redigere den senere fra kontoen din."
+  },
   "dashboardNewServiceForm": {
   "titleLabel": "Tittel",
   "titlePlaceholder": "F.eks. Elektriker i Oslo",
@@ -446,8 +446,9 @@
   "priceItemsTitle": "Flere prislinjer",
   "priceItemNamePlaceholder": "F.eks. Kaker",
   "priceItemPricePlaceholder": "F.eks. fra 650 NOK",
-  "priceItemNotePlaceholder": "F.eks. Avhenger av størrelse",
+  "priceItemNotePlaceholder": "F.eks. Pris avhenger av størrelse",
   "addPriceItem": "Legg til prislinje",
+  "addPriceRow": "Legg til prislinje",
   "descriptionLabel": "Beskrivelse",
   "descriptionPlaceholder": "Beskriv så tydelig som mulig hva du tilbyr.",
   "highlightsTitle": "Hvorfor velge meg? (valgfritt)",
@@ -461,17 +462,38 @@
   "remove": "Fjern",
   "creating": "Oppretter...",
   "submit": "Opprett tjeneste",
+
+  "detailsLocationTitle": "Detaljer og lokasjon",
+  "selectCategory": "Velg kategori",
+  "selectCity": "Velg by",
+  "responseTimeLabel": "Responstid",
+  "response1h": "Innen 1 time",
+  "response24h": "Innen 24 timer",
+  "response48h": "Innen 48 timer",
+  "postcodeLabel": "Postnummer",
+  "postcodePlaceholder": "F.eks. 0001",
+  "regionLabel": "Område (valgfritt)",
+  "regionPlaceholder": "F.eks. Sentrum",
+  "pricesSectionTitle": "Priser",
+  "removePriceRow": "Fjern prislinje",
+  "uploadButton": "Last opp bilder",
+  "uploadSuccess": "Bildene ble lastet opp. Husk å lagre tjenesten.",
+  "createSuccess": "Tjenesten ble opprettet.",
+  "noImagesYet": "Ingen bilder ennå",
+
   "errors": {
     "maxImages": "Du kan laste opp maks {max} bilder.",
     "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
-    "fileNotImage": "En av filene er ikke et bilde.",
+    "fileNotImage": "En av de valgte filene er ikke et bilde.",
     "fileTooLargeBeforeCompression": "Ett av bildene er for stort (maks ca. 10MB før komprimering).",
     "fileTooLargeAfterCompression": "Ett av de komprimerte bildene er fortsatt for stort.",
     "uploadOneFailed": "Kunne ikke laste opp ett av bildene.",
     "uploadGeneric": "Det oppstod en feil ved opplasting av bilder.",
-    "csrfOrForbidden": "Sikkerhetssjekken feilet. Last inn siden på nytt og prøv igjen.",
-    "createFailed": "Kunne ikke opprette tjenesten",
-    "generic": "Det oppstod en feil"
+    "csrfOrForbidden": "Sikkerhetssjekken feilet. Last siden på nytt og prøv igjen.",
+    "createFailed": "Kunne ikke opprette tjenesten.",
+    "generic": "Det oppstod en feil.",
+    "invalidCityPostcode": "Velg en by med gyldig postnummer.",
+    "missingRequired": "Sjekk skjemaet — noen påkrevde felt mangler."
   }
 },
 "categories": {
@@ -630,5 +652,27 @@
     "sendFailed": "Det oppstod en feil under sending av forespørselen. Prøv igjen senere.",
     "server": "Serverfeil. Prøv igjen senere."
   }
-}
+},
+"detailsLocationTitle": "Detaljer og lokasjon",
+  "selectCategory": "Velg kategori",
+  "selectCity": "Velg by",
+  "responseTimeLabel": "Responstid",
+  "response1h": "Innen 1 time",
+  "response24h": "Innen 24 timer",
+  "response48h": "Innen 48 timer",
+  "postcodeLabel": "Postnummer",
+  "postcodePlaceholder": "F.eks. 0001",
+  "regionLabel": "Område (valgfritt)",
+  "regionPlaceholder": "F.eks. Sentrum",
+  "pricesSectionTitle": "Priser",
+  "removePriceRow": "Fjern prislinje",
+  "addPriceRow": "Legg til prislinje",
+  "uploadButton": "Last opp bilder",
+  "uploadSuccess": "Bildene ble lastet opp. Husk å lagre tjenesten.",
+  "createSuccess": "Tjenesten ble opprettet.",
+  "noImagesYet": "Ingen bilder ennå",
+  "errors": {
+    "invalidCityPostcode": "Velg en by med gyldig postnummer.",
+    "missingRequired": "Sjekk skjemaet — påkrevde felt mangler."
+  }
 }

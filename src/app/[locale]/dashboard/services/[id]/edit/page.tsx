@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { translateCategoryName } from "@/lib/categoryTranslations";
 import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";
 
@@ -110,7 +111,7 @@ export default async function EditServicePage({ params }: PageProps) {
   const categories = await prisma.category.findMany({
     where: { type: "SERVICE" },
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, slug: true },
   });
 
   const localizedPriceItems: LocalizedPriceItem[] = Array.isArray(service.priceItems)
@@ -175,6 +176,11 @@ export default async function EditServicePage({ params }: PageProps) {
     priceItems: localizedPriceItems,
   };
 
+  const localizedCategories = categories.map((c) => ({
+    id: c.id,
+    name: translateCategoryName(c.slug, c.name, locale),
+  }));
+
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
@@ -188,7 +194,7 @@ export default async function EditServicePage({ params }: PageProps) {
         <div className={styles.formCard}>
           <EditServiceForm
             initial={initial}
-            categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+            categories={localizedCategories}
           />
         </div>
       </div>

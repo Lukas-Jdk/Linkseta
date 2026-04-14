@@ -406,36 +406,10 @@
     }
   }
 },
-  "dashboardNewServicePage": {
-    "title": "New service",
-    "subtitle": "Fill in the form and create your service listing. You will be able to edit it later from your account."
-  },
-  "profileCard": {
-    "provider": "Service provider",
-    "user": "User",
-    "admin": "Administrator",
-    "listings": "listings",
-    "activeProvider": "Active provider",
-    "inactiveProvider": "Inactive provider",
-    "becomeProvider": "Become a provider"
-  },
-  "contactForm": {
-    "nameLabel": "Name",
-    "namePlaceholder": "Your name",
-    "emailLabel": "Email",
-    "emailPlaceholder": "your@email.com",
-    "messageLabel": "Message",
-    "messagePlaceholder": "Briefly describe your question or idea",
-    "submit": "Send message",
-    "submitting": "Sending...",
-    "success": "Message sent successfully. We will reply soon.",
-    "errors": {
-      "recaptchaNotLoaded": "reCAPTCHA has not loaded yet. Please wait a few seconds and try again.",
-      "recaptchaFailed": "Failed to get reCAPTCHA token.",
-      "sendFailed": "Failed to send message.",
-      "generic": "An error occurred."
-    }
-  },
+"dashboardNewServicePage": {
+  "title": "New service",
+  "subtitle": "Fill in the form and create your service listing. You will be able to edit it later from your account."
+},
   "dashboardNewServiceForm": {
   "titleLabel": "Title",
   "titlePlaceholder": "E.g. Electrician in Oslo",
@@ -446,8 +420,9 @@
   "priceItemsTitle": "Additional price rows",
   "priceItemNamePlaceholder": "E.g. Cakes",
   "priceItemPricePlaceholder": "E.g. from 650 NOK",
-  "priceItemNotePlaceholder": "E.g. Depends on size",
+  "priceItemNotePlaceholder": "E.g. Price depends on size",
   "addPriceItem": "Add price row",
+  "addPriceRow": "Add price row",
   "descriptionLabel": "Description",
   "descriptionPlaceholder": "Describe as clearly as possible what you offer.",
   "highlightsTitle": "Why choose me? (optional)",
@@ -461,6 +436,25 @@
   "remove": "Remove",
   "creating": "Creating...",
   "submit": "Create service",
+
+  "detailsLocationTitle": "Details and location",
+  "selectCategory": "Select category",
+  "selectCity": "Select city",
+  "responseTimeLabel": "Response time",
+  "response1h": "Within 1 hour",
+  "response24h": "Within 24 hours",
+  "response48h": "Within 48 hours",
+  "postcodeLabel": "Postcode",
+  "postcodePlaceholder": "E.g. 0001",
+  "regionLabel": "District (optional)",
+  "regionPlaceholder": "E.g. Sentrum",
+  "pricesSectionTitle": "Prices",
+  "removePriceRow": "Remove price row",
+  "uploadButton": "Upload images",
+  "uploadSuccess": "Images uploaded successfully. Do not forget to save the service.",
+  "createSuccess": "Service created successfully.",
+  "noImagesYet": "No images yet",
+
   "errors": {
     "maxImages": "You can upload up to {max} images.",
     "mustBeLoggedIn": "You must be logged in to upload images.",
@@ -470,8 +464,10 @@
     "uploadOneFailed": "Failed to upload one of the images.",
     "uploadGeneric": "An error occurred while uploading images.",
     "csrfOrForbidden": "Security check failed. Refresh the page and try again.",
-    "createFailed": "Failed to create service",
-    "generic": "An error occurred"
+    "createFailed": "Failed to create service.",
+    "generic": "An error occurred.",
+    "invalidCityPostcode": "Please select a city with a valid postcode.",
+    "missingRequired": "Please check the form — some required fields are missing."
   }
 },
   "categories": {
@@ -607,5 +603,27 @@
     "sendFailed": "An error occurred while sending the request. Please try again later.",
     "server": "Server error. Please try again later."
   }
-}
+},
+  "detailsLocationTitle": "Details and location",
+  "selectCategory": "Select category",
+  "selectCity": "Select city",
+  "responseTimeLabel": "Response time",
+  "response1h": "Within 1 hour",
+  "response24h": "Within 24 hours",
+  "response48h": "Within 48 hours",
+  "postcodeLabel": "Postcode",
+  "postcodePlaceholder": "E.g. 0001",
+  "regionLabel": "District (optional)",
+  "regionPlaceholder": "E.g. Sentrum",
+  "pricesSectionTitle": "Prices",
+  "removePriceRow": "Remove price row",
+  "addPriceRow": "Add price row",
+  "uploadButton": "Upload images",
+  "uploadSuccess": "Images uploaded successfully. Do not forget to save the service.",
+  "createSuccess": "Service created successfully.",
+  "noImagesYet": "No images yet",
+  "errors": {
+    "invalidCityPostcode": "Please select a city with a valid postcode.",
+    "missingRequired": "Check the form — required fields are missing."
+  }
 }

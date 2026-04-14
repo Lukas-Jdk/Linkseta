@@ -70,6 +70,33 @@ function pickLocalizedArray(
   return base;
 }
 
+function formatServiceLocation(args: {
+  locationPostcode?: string | null;
+  locationCity?: string | null;
+  locationRegion?: string | null;
+  cityName?: string | null;
+  cityPostcode?: string | null;
+}) {
+  const postcode = args.locationPostcode?.trim() ?? "";
+  const city = args.locationCity?.trim() ?? "";
+  const region = args.locationRegion?.trim() ?? "";
+
+  if (postcode && city && region) return `${postcode} ${city}, ${region}`;
+  if (postcode && city) return `${postcode} ${city}`;
+  if (city && region) return `${city}, ${region}`;
+  if (city) return city;
+  if (postcode) return postcode;
+  if (region) return region;
+
+  const fallbackCity = args.cityName?.trim() ?? "";
+  const fallbackPostcode = args.cityPostcode?.trim() ?? "";
+
+  if (fallbackPostcode && fallbackCity) return `${fallbackPostcode} ${fallbackCity}`;
+  if (fallbackCity) return fallbackCity;
+
+  return "—";
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -187,6 +214,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
       highlightsNo: true,
       imageUrl: true,
       galleryImageUrls: true,
+      locationPostcode: true,
+      locationCity: true,
+      locationRegion: true,
       priceItems: {
         orderBy: { sortOrder: "asc" },
         select: {
@@ -243,10 +273,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
         ? [service.imageUrl]
         : ["/def.webp"];
 
-  const city =
-    service.city?.name && service.city?.postcode
-      ? `${service.city.postcode} ${service.city.name}`
-      : service.city?.name ?? "—";
+  const city = formatServiceLocation({
+    locationPostcode: service.locationPostcode,
+    locationCity: service.locationCity,
+    locationRegion: service.locationRegion,
+    cityName: service.city?.name,
+    cityPostcode: service.city?.postcode,
+  });
 
   let category = service.category?.name ?? "—";
   if (service.category?.slug) {

@@ -271,7 +271,7 @@
   height: 40px;
   padding: 0 14px;
   border-radius: 999px;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 0.95rem;
   font-family: var(--font-primary);
   cursor: pointer;
@@ -1103,9 +1103,9 @@
 }
 
 .priceCardValue {
-  font-size: 0.98rem;
-  font-weight: 900;
-  color: #0ea5e9;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #000000;
   white-space: nowrap;
   font-family: var(--font-primary);
 }
