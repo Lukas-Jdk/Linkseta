@@ -14,6 +14,9 @@ export type CardGridItem = {
   slug: string;
   highlighted?: boolean;
   imageUrl: string | null;
+  locationPostcode?: string;
+  locationCity?: string;
+  locationRegion?: string;
 };
 
 type Props = {
@@ -56,6 +59,9 @@ export default function CardGrid({
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
               locale={locale}
+              locationPostcode={item.locationPostcode}
+              locationCity={item.locationCity}
+              locationRegion={item.locationRegion}
             />
           ) : (
             <ServiceCard
@@ -69,6 +75,9 @@ export default function CardGrid({
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
               locale={locale}
+              locationPostcode={item.locationPostcode}
+              locationCity={item.locationCity}
+              locationRegion={item.locationRegion}
             />
           ),
         )}

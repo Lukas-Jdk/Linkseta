@@ -16,6 +16,9 @@ export interface PremiumServiceCardProps {
   highlighted?: boolean;
   imageUrl?: string;
   locale: string;
+  locationPostcode?: string;
+  locationCity?: string;
+  locationRegion?: string;
 }
 
 function formatPriceNOK(value: number) {
@@ -36,6 +39,28 @@ function formatTodayLikeCard(locale: string) {
   }).format(new Date());
 }
 
+function formatLocationLabel(args: {
+  locationPostcode?: string;
+  locationCity?: string;
+  locationRegion?: string;
+  fallbackCity?: string;
+}) {
+  const postcode = args.locationPostcode?.trim() ?? "";
+  const city = args.locationCity?.trim() ?? "";
+  const region = args.locationRegion?.trim() ?? "";
+  const fallbackCity = args.fallbackCity?.trim() ?? "";
+
+  const primary = [postcode, city].filter(Boolean).join(" ");
+  const withRegion = [primary, region].filter(Boolean).join(", ");
+
+  if (withRegion) return withRegion;
+  if (primary) return primary;
+  if (city) return city;
+  if (fallbackCity) return fallbackCity;
+
+  return "—";
+}
+
 export default function PremiumServiceCard({
   id,
   title,
@@ -46,6 +71,9 @@ export default function PremiumServiceCard({
   highlighted = false,
   imageUrl,
   locale,
+  locationPostcode,
+  locationCity,
+  locationRegion,
 }: PremiumServiceCardProps) {
   const t = useTranslations("serviceCard");
   const currentLocale = useLocale();
@@ -60,6 +88,13 @@ export default function PremiumServiceCard({
     priceFrom != null
       ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
       : t("priceNegotiable");
+
+  const locationLabel = formatLocationLabel({
+    locationPostcode,
+    locationCity,
+    locationRegion,
+    fallbackCity: city,
+  });
 
   return (
     <div className={styles.cardContainer} data-id={id}>
@@ -125,7 +160,7 @@ export default function PremiumServiceCard({
           <div className={styles.infoRow}>
             <span className={styles.infoItem}>
               <MapPin className={styles.infoIcon} />
-              {city || "—"}
+              {locationLabel}
             </span>
 
             <span className={styles.infoItem}>

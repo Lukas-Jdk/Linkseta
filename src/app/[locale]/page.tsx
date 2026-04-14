@@ -40,6 +40,13 @@ function pickLocalizedValue(
   return base;
 }
 
+function formatLocationCity(args: {
+  locationCity?: string | null;
+  fallbackCity?: string | null;
+}) {
+  return args.locationCity?.trim() || args.fallbackCity?.trim() || "";
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -122,6 +129,9 @@ export default async function HomePage({ params, searchParams }: Props) {
       slug: true,
       highlighted: true,
       imageUrl: true,
+      locationPostcode: true,
+      locationCity: true,
+      locationRegion: true,
       city: {
         select: {
           name: true,
@@ -167,12 +177,18 @@ export default async function HomePage({ params, searchParams }: Props) {
       id: s.id,
       title: localizedTitle,
       description: localizedDescription,
-      city: s.city?.name ?? "",
+      city: formatLocationCity({
+        locationCity: s.locationCity,
+        fallbackCity: s.city?.name,
+      }),
       category: localizedCategory,
       priceFrom: s.priceFrom,
       slug: s.slug,
       highlighted: s.highlighted ?? false,
       imageUrl: s.imageUrl,
+      locationPostcode: s.locationPostcode ?? "",
+      locationCity: s.locationCity ?? s.city?.name ?? "",
+      locationRegion: s.locationRegion ?? "",
     };
   });
 

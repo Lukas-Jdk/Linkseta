@@ -52,6 +52,13 @@ function pickLocalizedValue(
   return base;
 }
 
+function formatLocationCity(args: {
+  locationCity?: string | null;
+  fallbackCity?: string | null;
+}) {
+  return args.locationCity?.trim() || args.fallbackCity?.trim() || "";
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -191,6 +198,9 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         slug: true,
         highlighted: true,
         imageUrl: true,
+        locationPostcode: true,
+        locationCity: true,
+        locationRegion: true,
         city: { select: { name: true, postcode: true } },
         category: { select: { name: true, slug: true } },
       },
@@ -253,12 +263,18 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         service.descriptionEn,
         service.descriptionNo,
       ),
-      city: formatCityLabel(service.city?.name, service.city?.postcode),
+      city: formatLocationCity({
+        locationCity: service.locationCity,
+        fallbackCity: service.city?.name,
+      }),
       category: localizedCategory,
       priceFrom: service.priceFrom,
       slug: service.slug,
       highlighted: service.highlighted ?? false,
       imageUrl: service.imageUrl,
+      locationPostcode: service.locationPostcode ?? "",
+      locationCity: service.locationCity ?? service.city?.name ?? "",
+      locationRegion: service.locationRegion ?? "",
     };
   });
 
