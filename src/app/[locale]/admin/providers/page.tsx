@@ -22,39 +22,93 @@ export default async function AdminProvidersPage({ params }: Props) {
     redirect(`/${locale}`);
   }
 
-  const users = await prisma.user.findMany({
-    where: {
-      role: {
-        in: ["USER", "ADMIN"],
-      },
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      profile: {
-        select: {
-          isApproved: true,
-          lifetimeFree: true,
-          lifetimeFreeGrantedAt: true,
+  const [users, plans] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        role: {
+          in: ["USER", "ADMIN"],
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        profile: {
+          select: {
+            isApproved: true,
+            lifetimeFree: true,
+            lifetimeFreeGrantedAt: true,
+            plan: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                priceNok: true,
+                period: true,
+                highlight: true,
+                isTrial: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            services: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.plan.findMany({
+      orderBy: [{ priceNok: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        priceNok: true,
+        period: true,
+        highlight: true,
+        isTrial: true,
+      },
+    }),
+  ]);
 
   const rows = users.map((user) => ({
     userId: user.id,
     email: user.email,
     name: user.name,
+    createdAt: user.createdAt.toISOString(),
+    servicesCount: user._count.services,
     isApproved: Boolean(user.profile?.isApproved),
     lifetimeFree: Boolean(user.profile?.lifetimeFree),
     lifetimeFreeGrantedAt: user.profile?.lifetimeFreeGrantedAt
       ? user.profile.lifetimeFreeGrantedAt.toISOString()
       : null,
+    currentPlan: user.profile?.plan
+      ? {
+          id: user.profile.plan.id,
+          slug: user.profile.plan.slug,
+          name: user.profile.plan.name,
+          priceNok: user.profile.plan.priceNok,
+          period: user.profile.plan.period,
+          highlight: user.profile.plan.highlight,
+          isTrial: user.profile.plan.isTrial,
+        }
+      : null,
   }));
 
-  return <ProvidersAdminClient rows={rows} />;
+  const safePlans = plans.map((plan) => ({
+    id: plan.id,
+    slug: plan.slug,
+    name: plan.name,
+    priceNok: plan.priceNok,
+    period: plan.period,
+    highlight: plan.highlight,
+    isTrial: plan.isTrial,
+  }));
+
+  return <ProvidersAdminClient rows={rows} plans={safePlans} />;
 }

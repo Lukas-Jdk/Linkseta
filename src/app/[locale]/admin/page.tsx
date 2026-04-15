@@ -160,7 +160,7 @@ export default async function AdminHomePage({ params }: PageProps) {
         </LocalizedLink>
       </section>
 
-      <section className={styles.card}>
+      <section className={styles.card} style={{ marginBottom: "24px" }}>
         <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
         <p className={styles.text}>
           Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų
@@ -168,6 +168,17 @@ export default async function AdminHomePage({ params }: PageProps) {
         </p>
         <LocalizedLink href="/admin/users" className={styles.button}>
           Eiti į vartotojų sąrašą
+        </LocalizedLink>
+      </section>
+
+      <section className={styles.card}>
+        <h2 className={styles.subtitle}>Planai ir akcijos</h2>
+        <p className={styles.text}>
+          Rankiniu būdu priskirk Free Trial, Basic, Premium ar Beta planą,
+          įjunk lifetime free pirmiems klientams ir pasiruošk payment integracijai.
+        </p>
+        <LocalizedLink href="/admin/providers" className={styles.button}>
+          Eiti į planų valdymą
         </LocalizedLink>
       </section>
     </main>

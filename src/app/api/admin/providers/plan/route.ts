@@ -1,5 +1,4 @@
-// src/app/api/admin/providers/lifetime-free/route.ts
-import { NextResponse } from "next/server";
+// src/app/api/admin/providers/plan/route.ts
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { requireCsrf } from "@/lib/csrf";
@@ -10,7 +9,7 @@ import { jsonNoStore } from "@/lib/http";
 
 type Body = {
   userId?: string;
-  enabled?: boolean;
+  planSlug?: string | null;
 };
 
 export const dynamic = "force-dynamic";
@@ -20,14 +19,14 @@ function isCuidLike(id: string) {
 }
 
 export async function POST(req: Request) {
-  return withApi(req, "POST /api/admin/providers/lifetime-free", async () => {
+  return withApi(req, "POST /api/admin/providers/plan", async () => {
     const csrfErr = requireCsrf(req);
     if (csrfErr) return csrfErr;
 
     const ip = getClientIp(req);
 
     await rateLimitOrThrow({
-      key: `admin:providers:lifetime-free:${ip}`,
+      key: `admin:providers:plan:${ip}`,
       limit: 30,
       windowMs: 60_000,
     });
@@ -39,27 +38,45 @@ export async function POST(req: Request) {
 
     const body = (await req.json().catch(() => null)) as Body | null;
 
-    if (!body?.userId || typeof body.enabled !== "boolean") {
-      return jsonNoStore({ error: "Invalid payload" }, { status: 400 });
+    if (!body?.userId || !isCuidLike(body.userId)) {
+      return jsonNoStore({ error: "Invalid userId" }, { status: 400 });
     }
 
-    if (!isCuidLike(body.userId)) {
-      return jsonNoStore({ error: "Invalid userId" }, { status: 400 });
+    let planId: string | null = null;
+    let selectedPlan:
+      | {
+          id: string;
+          slug: string;
+          name: string;
+        }
+      | null = null;
+
+    if (body.planSlug) {
+      selectedPlan = await prisma.plan.findUnique({
+        where: { slug: body.planSlug },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+        },
+      });
+
+      if (!selectedPlan) {
+        return jsonNoStore({ error: "Plan not found" }, { status: 404 });
+      }
+
+      planId = selectedPlan.id;
     }
 
     const updated = await prisma.providerProfile.upsert({
       where: { userId: body.userId },
       update: {
-        lifetimeFree: body.enabled,
-        lifetimeFreeGrantedAt: body.enabled ? new Date() : null,
-        lifetimeFreeGrantedBy: body.enabled ? user.id : null,
+        planId,
       },
       create: {
         userId: body.userId,
         isApproved: false,
-        lifetimeFree: body.enabled,
-        lifetimeFreeGrantedAt: body.enabled ? new Date() : null,
-        lifetimeFreeGrantedBy: body.enabled ? user.id : null,
+        planId,
       },
       select: {
         userId: true,
@@ -78,17 +95,15 @@ export async function POST(req: Request) {
     });
 
     await auditLog({
-      action: body.enabled
-        ? "ADMIN_PROVIDER_LIFETIME_FREE_ENABLE"
-        : "ADMIN_PROVIDER_LIFETIME_FREE_DISABLE",
+      action: "ADMIN_PROVIDER_PLAN_SET",
       entity: "ProviderProfile",
       entityId: updated.userId,
       userId: user.id,
       ip,
       userAgent: req.headers.get("user-agent") ?? null,
       metadata: {
-        enabled: body.enabled,
         targetUserId: body.userId,
+        planSlug: body.planSlug ?? null,
       },
     });
 

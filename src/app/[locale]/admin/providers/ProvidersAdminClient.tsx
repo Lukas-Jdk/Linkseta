@@ -1,39 +1,97 @@
 // src/app/[locale]/admin/providers/ProvidersAdminClient.tsx
-
 "use client";
 
 import { useMemo, useState } from "react";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./providersAdmin.module.css";
 
+type PlanRow = {
+  id: string;
+  slug: string;
+  name: string;
+  priceNok: number;
+  period: "MONTHLY" | "YEARLY";
+  highlight: boolean;
+  isTrial: boolean;
+};
+
 type ProviderRow = {
   userId: string;
   email: string;
   name: string | null;
+  createdAt: string;
+  servicesCount: number;
   isApproved: boolean;
   lifetimeFree: boolean;
   lifetimeFreeGrantedAt: string | null;
+  currentPlan: {
+    id: string;
+    slug: string;
+    name: string;
+    priceNok: number;
+    period: "MONTHLY" | "YEARLY";
+    highlight: boolean;
+    isTrial: boolean;
+  } | null;
 };
 
 type Props = {
   rows: ProviderRow[];
+  plans: PlanRow[];
 };
 
-export default function ProvidersAdminClient({ rows }: Props) {
+type Feedback =
+  | { type: "success"; text: string }
+  | { type: "error"; text: string };
+
+function formatPlanLabel(plan: PlanRow) {
+  if (plan.isTrial) {
+    return `${plan.name} · ${plan.priceNok} NOK · trial`;
+  }
+
+  const period = plan.period === "YEARLY" ? "yearly" : "monthly";
+  return `${plan.name} · ${plan.priceNok} NOK/${period}`;
+}
+
+export default function ProvidersAdminClient({ rows, plans }: Props) {
   const [items, setItems] = useState(rows);
-  const [busyUserId, setBusyUserId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [query, setQuery] = useState("");
 
   const sorted = useMemo(() => {
-    return [...items].sort((a, b) => {
-      if (a.lifetimeFree === b.lifetimeFree) return a.email.localeCompare(b.email);
-      return a.lifetimeFree ? -1 : 1;
+    const normalized = query.trim().toLowerCase();
+
+    const filtered = items.filter((item) => {
+      if (!normalized) return true;
+
+      const haystack = [
+        item.name ?? "",
+        item.email,
+        item.currentPlan?.name ?? "",
+        item.currentPlan?.slug ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalized);
     });
-  }, [items]);
+
+    return [...filtered].sort((a, b) => {
+      const aPremium = a.currentPlan?.slug === "premium";
+      const bPremium = b.currentPlan?.slug === "premium";
+
+      if (aPremium !== bPremium) return aPremium ? -1 : 1;
+      if (a.lifetimeFree !== b.lifetimeFree) return a.lifetimeFree ? -1 : 1;
+
+      return a.email.localeCompare(b.email);
+    });
+  }, [items, query]);
 
   async function toggleLifetimeFree(userId: string, enabled: boolean) {
-    setBusyUserId(userId);
-    setError(null);
+    const key = `lifetime:${userId}`;
+    setBusyKey(key);
+    setFeedback(null);
 
     try {
       const res = await csrfFetch("/api/admin/providers/lifetime-free", {
@@ -50,7 +108,7 @@ export default function ProvidersAdminClient({ rows }: Props) {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Nepavyko atnaujinti statuso.");
+        throw new Error(data?.error || "Nepavyko atnaujinti lifetime statuso.");
       }
 
       setItems((prev) =>
@@ -66,12 +124,90 @@ export default function ProvidersAdminClient({ rows }: Props) {
             : item,
         ),
       );
+
+      setFeedback({
+        type: "success",
+        text: enabled
+          ? "Lifetime free sėkmingai įjungtas."
+          : "Lifetime free sėkmingai nuimtas.",
+      });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Įvyko klaida atnaujinant statusą.",
-      );
+      setFeedback({
+        type: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Įvyko klaida atnaujinant lifetime statusą.",
+      });
     } finally {
-      setBusyUserId(null);
+      setBusyKey(null);
+    }
+  }
+
+  async function setPlan(userId: string, planSlug: string | null) {
+    const key = `plan:${userId}`;
+    setBusyKey(key);
+    setFeedback(null);
+
+    try {
+      const res = await csrfFetch("/api/admin/providers/plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          planSlug,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Nepavyko atnaujinti plano.");
+      }
+
+      const selectedPlan = planSlug
+        ? plans.find((plan) => plan.slug === planSlug) ?? null
+        : null;
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.userId === userId
+            ? {
+                ...item,
+                currentPlan: selectedPlan
+                  ? {
+                      id: selectedPlan.id,
+                      slug: selectedPlan.slug,
+                      name: selectedPlan.name,
+                      priceNok: selectedPlan.priceNok,
+                      period: selectedPlan.period,
+                      highlight: selectedPlan.highlight,
+                      isTrial: selectedPlan.isTrial,
+                    }
+                  : null,
+              }
+            : item,
+        ),
+      );
+
+      setFeedback({
+        type: "success",
+        text: selectedPlan
+          ? `Planas pakeistas į „${selectedPlan.name}“.`
+          : "Planas sėkmingai nuimtas.",
+      });
+    } catch (err) {
+      setFeedback({
+        type: "error",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Įvyko klaida atnaujinant planą.",
+      });
+    } finally {
+      setBusyKey(null);
     }
   }
 
@@ -79,37 +215,68 @@ export default function ProvidersAdminClient({ rows }: Props) {
     <div className={styles.wrapper}>
       <div className={styles.topBar}>
         <div>
-          <h1 className={styles.title}>Providerių valdymas</h1>
+          <h1 className={styles.title}>Planų ir providerių valdymas</h1>
           <p className={styles.subtitle}>
-            Čia gali pirmiems teikėjams suteikti nemokamą naudojimą visam laikui.
+            Čia gali priskirti planą, suteikti premium ranka ir aktyvuoti
+            lifetime free pirmiems klientams.
           </p>
         </div>
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      <div className={styles.toolbar}>
+        <input
+          className={styles.searchInput}
+          placeholder="Ieškoti pagal vardą, el. paštą ar planą..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {feedback && (
+        <div
+          className={
+            feedback.type === "error" ? styles.error : styles.success
+          }
+        >
+          {feedback.text}
+        </div>
+      )}
 
       <div className={styles.card}>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Vardas</th>
-                <th>El. paštas</th>
+                <th>Vartotojas</th>
                 <th>Patvirtintas</th>
+                <th>Skelbimai</th>
+                <th>Dabartinis planas</th>
                 <th>Lifetime free</th>
                 <th>Suteikta</th>
-                <th>Veiksmas</th>
+                <th>Priskirti planą</th>
+                <th>Lifetime veiksmas</th>
               </tr>
             </thead>
 
             <tbody>
               {sorted.map((row) => {
-                const busy = busyUserId === row.userId;
+                const planBusy = busyKey === `plan:${row.userId}`;
+                const lifetimeBusy = busyKey === `lifetime:${row.userId}`;
 
                 return (
                   <tr key={row.userId}>
-                    <td>{row.name?.trim() || "—"}</td>
-                    <td>{row.email}</td>
+                    <td>
+                      <div className={styles.userBlock}>
+                        <div className={styles.userName}>
+                          {row.name?.trim() || "—"}
+                        </div>
+                        <div className={styles.userEmail}>{row.email}</div>
+                        <div className={styles.userMeta}>
+                          Sukurta: {new Date(row.createdAt).toLocaleString("lt-LT")}
+                        </div>
+                      </div>
+                    </td>
+
                     <td>
                       <span
                         className={
@@ -119,6 +286,39 @@ export default function ProvidersAdminClient({ rows }: Props) {
                         {row.isApproved ? "Taip" : "Ne"}
                       </span>
                     </td>
+
+                    <td>
+                      <span className={styles.countBadge}>{row.servicesCount}</span>
+                    </td>
+
+                    <td>
+                      {row.currentPlan ? (
+                        <div className={styles.planCell}>
+                          <span
+                            className={
+                              row.currentPlan.slug === "premium"
+                                ? styles.badgePremium
+                                : row.currentPlan.isTrial
+                                  ? styles.badgeTrial
+                                  : styles.badgePlan
+                            }
+                          >
+                            {row.currentPlan.name}
+                          </span>
+
+                          <div className={styles.planMeta}>
+                            {row.currentPlan.priceNok} NOK ·{" "}
+                            {row.currentPlan.period === "YEARLY"
+                              ? "yearly"
+                              : "monthly"}
+                            {row.currentPlan.highlight ? " · TOP" : ""}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className={styles.badgeMuted}>Be plano</span>
+                      )}
+                    </td>
+
                     <td>
                       <span
                         className={
@@ -130,29 +330,61 @@ export default function ProvidersAdminClient({ rows }: Props) {
                         {row.lifetimeFree ? "Aktyvuota" : "Ne"}
                       </span>
                     </td>
+
                     <td>
                       {row.lifetimeFreeGrantedAt
                         ? new Date(row.lifetimeFreeGrantedAt).toLocaleString("lt-LT")
                         : "—"}
                     </td>
+
+                    <td>
+                      <div className={styles.planActions}>
+                        <select
+                          className={styles.select}
+                          value={row.currentPlan?.slug ?? ""}
+                          disabled={planBusy || lifetimeBusy}
+                          onChange={(e) => {
+                            const value = e.target.value.trim();
+                            void setPlan(row.userId, value || null);
+                          }}
+                        >
+                          <option value="">Be plano</option>
+                          {plans.map((plan) => (
+                            <option key={plan.id} value={plan.slug}>
+                              {formatPlanLabel(plan)}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          className={`${styles.actionBtn} ${styles.neutralBtn}`}
+                          disabled={planBusy || lifetimeBusy}
+                          onClick={() => void setPlan(row.userId, null)}
+                        >
+                          {planBusy ? "Vykdoma..." : "Nuimti planą"}
+                        </button>
+                      </div>
+                    </td>
+
                     <td>
                       {row.lifetimeFree ? (
                         <button
                           type="button"
                           className={`${styles.actionBtn} ${styles.removeBtn}`}
-                          disabled={busy}
-                          onClick={() => toggleLifetimeFree(row.userId, false)}
+                          disabled={planBusy || lifetimeBusy}
+                          onClick={() => void toggleLifetimeFree(row.userId, false)}
                         >
-                          {busy ? "Vykdoma..." : "Nuimti"}
+                          {lifetimeBusy ? "Vykdoma..." : "Nuimti lifetime"}
                         </button>
                       ) : (
                         <button
                           type="button"
                           className={`${styles.actionBtn} ${styles.addBtn}`}
-                          disabled={busy}
-                          onClick={() => toggleLifetimeFree(row.userId, true)}
+                          disabled={planBusy || lifetimeBusy}
+                          onClick={() => void toggleLifetimeFree(row.userId, true)}
                         >
-                          {busy ? "Vykdoma..." : "Suteikti visam laikui"}
+                          {lifetimeBusy ? "Vykdoma..." : "Suteikti lifetime"}
                         </button>
                       )}
                     </td>
@@ -162,7 +394,7 @@ export default function ProvidersAdminClient({ rows }: Props) {
 
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={6} className={styles.empty}>
+                  <td colSpan={8} className={styles.empty}>
                     Providerių nerasta.
                   </td>
                 </tr>
