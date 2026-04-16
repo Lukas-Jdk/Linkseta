@@ -1,4 +1,3 @@
-// src/app/[locale]/admin/users/page.tsx
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
@@ -114,6 +113,13 @@ export default async function AdminUsersPage({
           isApproved: true,
           lifetimeFree: true,
           lifetimeFreeGrantedAt: true,
+          plan: {
+            select: {
+              slug: true,
+              name: true,
+              isTrial: true,
+            },
+          },
         },
       },
       _count: { select: { services: true } },
@@ -134,7 +140,13 @@ export default async function AdminUsersPage({
       ? u.profile.lifetimeFreeGrantedAt.toISOString()
       : null,
     servicesCount: u._count.services,
+    planSlug: u.profile?.plan?.slug ?? null,
+    planName: u.profile?.plan?.name ?? null,
+    isTrial: u.profile?.plan?.isTrial ?? false,
   }));
+
+  const providersCount = safeUsers.filter((u) => u.isProvider).length;
+  const lifetimeCount = safeUsers.filter((u) => u.lifetimeFree).length;
 
   const basePath = `/${locale}/admin/users`;
   const buildPageHref = (nextPage: number) =>
@@ -142,16 +154,32 @@ export default async function AdminUsersPage({
 
   return (
     <main className={styles.wrapper}>
-      <h1 className={styles.heading}>Vartotojų sąrašas</h1>
-      <p className={styles.subheading}>
-        Čia matosi visi registruoti vartotojai, jų rolės ir ar jie turi
-        patvirtintą paslaugų teikėjo profilį.
-      </p>
+      <section className={styles.heroCard}>
+        <div className={styles.heroText}>
+          <div className={styles.eyebrow}>USERS</div>
+          <h1 className={styles.heading}>Vartotojų sąrašas</h1>
+          <p className={styles.subheading}>
+            Čia matysi visus registruotus vartotojus, jų rolę, provider statusą,
+            planą ir galėsi greitai suteikti arba nuimti lifetime free.
+          </p>
+        </div>
+        <div className={styles.heroGlow} aria-hidden="true" />
+      </section>
 
-      <p className={styles.subheading}>
-        Rodoma: <strong>{safeUsers.length}</strong> iš <strong>{totalUsers}</strong> •
-        {" "}Puslapis <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
-      </p>
+      <div className={styles.metaRow}>
+        <span className={styles.metaChip}>
+          Viso vartotojų: <strong>&nbsp;{totalUsers}</strong>
+        </span>
+        <span className={styles.metaChip}>
+          Teikėjai: <strong>&nbsp;{providersCount}</strong>
+        </span>
+        <span className={styles.metaChip}>
+          Lifetime free: <strong>&nbsp;{lifetimeCount}</strong>
+        </span>
+        <span className={styles.metaChip}>
+          Puslapis: <strong>&nbsp;{currentPage}</strong> / {totalPages}
+        </span>
+      </div>
 
       {safeUsers.length === 0 ? (
         <p className={styles.empty}>Kol kas nėra nė vieno vartotojo.</p>
@@ -161,80 +189,124 @@ export default async function AdminUsersPage({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>El. paštas</th>
-                  <th>Vardas</th>
+                  <th>Vartotojas</th>
                   <th>Telefonas</th>
                   <th>Rolė</th>
                   <th>Teikėjas</th>
-                  <th>Skelbimų sk.</th>
+                  <th>Planas</th>
+                  <th>Skelbimai</th>
+                  <th>Lifetime</th>
                   <th>Veiksmas</th>
                 </tr>
               </thead>
               <tbody>
                 {safeUsers.map((u) => (
                   <tr key={u.id}>
-                    <td>{new Date(u.createdAt).toLocaleString("lt-LT")}</td>
-                    <td>{u.email}</td>
-                    <td>{u.name ?? "—"}</td>
-                    <td>{u.phone ?? "—"}</td>
-                    <td>{u.role}</td>
                     <td>
-                      {u.isProvider ? (
-                        <>
-                          <div>
-                            {u.isApprovedProvider
-                              ? "Aktyvus teikėjas"
-                              : "Neaktyvus teikėjas"}
-                          </div>
+                      <div className={styles.userCell}>
+                        <div className={styles.userName}>{u.name ?? "—"}</div>
+                        <div className={styles.userEmail}>{u.email}</div>
+                        <div className={styles.userMeta}>
+                          Sukurta: {new Date(u.createdAt).toLocaleString("lt-LT")}
+                        </div>
+                      </div>
+                    </td>
 
-                          {u.lifetimeFree && (
-                            <div
-                              style={{
-                                marginTop: 4,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                color: "#15803d",
-                              }}
-                            >
-                              ⭐ Lifetime free
-                            </div>
-                          )}
-                        </>
+                    <td>{u.phone ?? "—"}</td>
+
+                    <td>
+                      {u.role === "ADMIN" ? (
+                        <span className={styles.badgePremium}>ADMIN</span>
                       ) : (
-                        "Ne teikėjas"
+                        <span className={styles.badgeNeutral}>USER</span>
                       )}
                     </td>
-                    <td>{u.servicesCount}</td>
+
                     <td>
                       {u.isProvider ? (
-                        <form action={toggleLifetimeFreeAction}>
-                          <input type="hidden" name="locale" value={locale} />
-                          <input type="hidden" name="userId" value={u.id} />
-                          <input
-                            type="hidden"
-                            name="nextValue"
-                            value={u.lifetimeFree ? "false" : "true"}
-                          />
-
-                          <button
-                            type="submit"
-                            className={styles.button}
-                            style={{
-                              padding: "8px 12px",
-                              minWidth: 150,
-                              background: u.lifetimeFree
-                                ? "#dc2626"
-                                : undefined,
-                            }}
-                          >
-                            {u.lifetimeFree
-                              ? "Nuimti lifetime"
-                              : "Duoti lifetime"}
-                          </button>
-                        </form>
+                        u.isApprovedProvider ? (
+                          <span className={styles.statusActive}>
+                            Aktyvus teikėjas
+                          </span>
+                        ) : (
+                          <span className={styles.statusInactive}>
+                            Neaktyvus teikėjas
+                          </span>
+                        )
                       ) : (
-                        <span style={{ color: "#94a3b8" }}>—</span>
+                        <span className={styles.badgeNeutral}>Ne teikėjas</span>
+                      )}
+                    </td>
+
+                    <td>
+                      {u.planSlug ? (
+                        u.planSlug === "premium" ? (
+                          <span className={styles.badgePremium}>
+                            {u.planName ?? "Premium"}
+                          </span>
+                        ) : u.isTrial ? (
+                          <span className={styles.badgeTrial}>
+                            {u.planName ?? "Trial"}
+                          </span>
+                        ) : (
+                          <span className={styles.badgeNeutral}>
+                            {u.planName ?? u.planSlug}
+                          </span>
+                        )
+                      ) : (
+                        <span className={styles.badgeNeutral}>Be plano</span>
+                      )}
+                    </td>
+
+                    <td>{u.servicesCount}</td>
+
+                    <td>
+                      {u.lifetimeFree ? (
+                        <div className={styles.userCell}>
+                          <span className={styles.badgeLifetime}>
+                            ⭐ Lifetime free
+                          </span>
+                          <div className={styles.userMeta}>
+                            {u.lifetimeFreeGrantedAt
+                              ? new Date(u.lifetimeFreeGrantedAt).toLocaleString(
+                                  "lt-LT",
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className={styles.badgeNeutral}>Ne</span>
+                      )}
+                    </td>
+
+                    <td>
+                      {u.isProvider ? (
+                        <div className={styles.actionCell}>
+                          <form action={toggleLifetimeFreeAction}>
+                            <input type="hidden" name="locale" value={locale} />
+                            <input type="hidden" name="userId" value={u.id} />
+                            <input
+                              type="hidden"
+                              name="nextValue"
+                              value={u.lifetimeFree ? "false" : "true"}
+                            />
+
+                            <button
+                              type="submit"
+                              className={
+                                u.lifetimeFree
+                                  ? styles.dangerButton
+                                  : styles.button
+                              }
+                            >
+                              {u.lifetimeFree
+                                ? "Nuimti lifetime"
+                                : "Duoti lifetime"}
+                            </button>
+                          </form>
+                        </div>
+                      ) : (
+                        <span className={styles.badgeNeutral}>—</span>
                       )}
                     </td>
                   </tr>
@@ -244,7 +316,7 @@ export default async function AdminUsersPage({
           </div>
 
           {totalPages > 1 && (
-            <div className={styles.filtersRow} style={{ marginTop: 14 }}>
+            <div className={styles.paginationRow}>
               {currentPage > 1 ? (
                 <LocalizedLink
                   href={buildPageHref(currentPage - 1)}
@@ -256,8 +328,8 @@ export default async function AdminUsersPage({
                 <span />
               )}
 
-              <span className={styles.subheading}>
-                Puslapis {currentPage} iš {totalPages}
+              <span className={styles.metaChip}>
+                Puslapis <strong>&nbsp;{currentPage}</strong> iš {totalPages}
               </span>
 
               {currentPage < totalPages ? (
@@ -272,6 +344,10 @@ export default async function AdminUsersPage({
               )}
             </div>
           )}
+
+          <LocalizedLink href="/admin" className={styles.backLink}>
+            ← Grįžti į admin pradžią
+          </LocalizedLink>
         </>
       )}
     </main>

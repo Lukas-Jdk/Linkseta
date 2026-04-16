@@ -115,8 +115,14 @@ export default async function HomePage({ params, searchParams }: Props) {
   if (city) where.cityId = city;
   if (category) where.categoryId = category;
 
-  const services = await prisma.serviceListing.findMany({
-    where,
+  const premiumServices = await prisma.serviceListing.findMany({
+    where: {
+      ...where,
+      highlighted: true,
+      plan: {
+        slug: "premium",
+      },
+    },
     select: {
       id: true,
       title: true,
@@ -144,9 +150,58 @@ export default async function HomePage({ params, searchParams }: Props) {
         },
       },
     },
-    orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
+    orderBy: {
+      createdAt: "desc",
+    },
     take: 6,
   });
+
+  const premiumIds = premiumServices.map((service) => service.id);
+
+  const fallbackServices =
+    premiumServices.length < 6
+      ? await prisma.serviceListing.findMany({
+          where: {
+            ...where,
+            id: {
+              notIn: premiumIds.length ? premiumIds : undefined,
+            },
+          },
+          select: {
+            id: true,
+            title: true,
+            titleEn: true,
+            titleNo: true,
+            description: true,
+            descriptionEn: true,
+            descriptionNo: true,
+            priceFrom: true,
+            slug: true,
+            highlighted: true,
+            imageUrl: true,
+            locationPostcode: true,
+            locationCity: true,
+            locationRegion: true,
+            city: {
+              select: {
+                name: true,
+              },
+            },
+            category: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 6 - premiumServices.length,
+        })
+      : [];
+
+  const services = [...premiumServices, ...fallbackServices];
 
   const items = services.map((s) => {
     const localizedTitle = pickLocalizedValue(

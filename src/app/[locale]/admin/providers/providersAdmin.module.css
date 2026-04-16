@@ -1,38 +1,163 @@
 /* src/app/[locale]/admin/providers/providersAdmin.module.css */
 
 .wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 28px 16px 60px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.topBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 20px;
+.heroCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 28px 26px;
+  background:
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.14), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.10), transparent 32%),
+    linear-gradient(135deg, #ffffff 0%, #fffaf5 100%);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.heroText {
+  position: relative;
+  z-index: 2;
+  max-width: 840px;
+}
+
+.heroGlow {
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.18), transparent 68%);
+  pointer-events: none;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.10);
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  color: #ea580c;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
 }
 
 .title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 2.1rem;
+  line-height: 1.08;
   font-weight: 900;
   color: #0f172a;
 }
 
 .subtitle {
-  margin: 8px 0 0;
-  color: #475569;
+  margin: 10px 0 0;
+  color: #64748b;
+  line-height: 1.68;
+  max-width: 78ch;
   font-size: 0.98rem;
-  max-width: 760px;
-  line-height: 1.6;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.statCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 134px;
+  border-radius: 22px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
+}
+
+.statCard::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  opacity: 0.95;
+}
+
+.statAll {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.statAll::after {
+  background: linear-gradient(90deg, #0f172a, #334155);
+}
+
+.statPremium {
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.statPremium::after {
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.statLifetime {
+  background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+}
+
+.statLifetime::after {
+  background: linear-gradient(90deg, #8b5cf6, #6366f1);
+}
+
+.statApproved {
+  background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+}
+
+.statApproved::after {
+  background: linear-gradient(90deg, #10b981, #22c55e);
+}
+
+.statLabel {
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.statValue {
+  margin-top: 10px;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.statHint {
+  margin-top: 12px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #64748b;
 }
 
 .toolbar {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .searchInput {
@@ -48,13 +173,13 @@
 }
 
 .searchInput:focus {
-  border-color: rgba(14, 165, 233, 0.45);
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.10);
 }
 
 .error,
 .success {
-  margin-bottom: 16px;
+  margin-bottom: 2px;
   padding: 12px 14px;
   border-radius: 14px;
   font-weight: 700;
@@ -73,22 +198,24 @@
 }
 
 .card {
+  width: 100%;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
   overflow: hidden;
 }
 
 .tableWrap {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .table {
   width: 100%;
+  min-width: 1500px;
   border-collapse: collapse;
-  min-width: 1350px;
 }
 
 .table th,
@@ -101,11 +228,12 @@
 
 .table th {
   background: #f8fafc;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 900;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #334155;
+  color: #475569;
+  white-space: nowrap;
 }
 
 .table td {
@@ -117,10 +245,11 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 200px;
 }
 
 .userName {
-  font-weight: 800;
+  font-weight: 900;
   color: #0f172a;
 }
 
@@ -138,6 +267,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 150px;
 }
 
 .planMeta {
@@ -160,6 +290,7 @@
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .badgeApproved {
@@ -217,12 +348,12 @@
 }
 
 .select:focus {
-  border-color: rgba(14, 165, 233, 0.45);
-  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.10);
 }
 
 .actionBtn {
-  min-height: 38px;
+  min-height: 40px;
   border: none;
   border-radius: 999px;
   padding: 0 14px;
@@ -230,6 +361,7 @@
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
 }
 
 .actionBtn:hover:not(:disabled) {
@@ -242,7 +374,7 @@
 }
 
 .addBtn {
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
   color: white;
 }
 
@@ -260,4 +392,48 @@
   text-align: center;
   color: #64748b;
   padding: 24px !important;
+}
+
+.backLink {
+  display: inline-flex;
+  color: #0ea5e9;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1080px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wrapper {
+    padding: 24px 16px 56px;
+  }
+}
+
+@media (max-width: 720px) {
+  .wrapper {
+    padding: 20px 12px 44px;
+  }
+
+  .heroCard {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .title {
+    font-size: 1.7rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .table {
+    min-width: 1180px;
+  }
 }

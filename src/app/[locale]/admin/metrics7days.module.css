@@ -1,94 +1,174 @@
-/*  src/app/[locale]/admin/metrics7days.module.css */
+/* src/app/[locale]/admin/metrics7days.module.css */
 
 .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 26%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  padding: 20px 18px 18px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
 }
 
 .header {
-  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 .title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 900;
   color: #0f172a;
 }
 
 .subtitle {
-  margin: 6px 0 0;
-  color: #475569;
-  font-size: 13px;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.94rem;
+  line-height: 1.6;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
-@media (min-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.block {
+  border-radius: 20px;
+  padding: 16px 14px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
 }
 
-.block {
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 14px;
-  padding: 12px;
-  background: rgba(248, 250, 252, 0.6);
+.block:nth-child(1) {
+  background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.block:nth-child(2) {
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.block:nth-child(3) {
+  background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
 }
 
 .blockHeader {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .blockTitle {
-  font-weight: 800;
+  font-weight: 900;
   color: #0f172a;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .blockTotal {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
   font-weight: 900;
-  color: #0ea5e9;
-  font-size: 16px;
+  font-size: 1rem;
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.block:nth-child(1) .blockTotal {
+  background: linear-gradient(135deg, #06b6d4, #2563eb);
+}
+
+.block:nth-child(2) .blockTotal {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.block:nth-child(3) .blockTotal {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
 }
 
 .chart {
+  margin-top: auto;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: end;
-  height: 120px;
+  gap: 10px;
+  min-height: 140px;
 }
 
 .barCol {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  align-items: end;
-  justify-items: center;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  height: 100%;
 }
 
 .bar {
-  width: 100%;
-  max-width: 24px;
-  border-radius: 10px;
-  background: rgba(14, 165, 233, 0.85);
-  box-shadow: 0 8px 18px rgba(14, 165, 233, 0.18);
-  min-height: 4px;
+  width: 20px;
+  min-height: 6px;
+  border-radius: 999px;
+  transition: height 0.2s ease;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+}
+
+.block:nth-child(1) .bar {
+  background: linear-gradient(180deg, #22d3ee 0%, #0ea5e9 100%);
+}
+
+.block:nth-child(2) .bar {
+  background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%);
+}
+
+.block:nth-child(3) .bar {
+  background: linear-gradient(180deg, #a78bfa 0%, #6366f1 100%);
 }
 
 .day {
-  font-size: 11px;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: #64748b;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .block {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 20px;
+    padding: 16px 14px;
+  }
+
+  .chart {
+    gap: 8px;
+  }
+
+  .bar {
+    width: 16px;
+  }
+
+  .day {
+    font-size: 0.68rem;
+  }
 }

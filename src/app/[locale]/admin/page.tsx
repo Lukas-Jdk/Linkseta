@@ -126,9 +126,47 @@ export default async function AdminHomePage({ params }: PageProps) {
 
   return (
     <main className={styles.wrapper}>
-      <h1 className={styles.title}>Admin valdymo skydas</h1>
+      <section className={styles.heroCard}>
+        <div className={styles.heroText}>
+          <div className={styles.eyebrow}>ADMIN</div>
+          <h1 className={styles.title}>Admin valdymo skydas</h1>
+          <p className={styles.subtitle}>
+            Čia greitai matysi pagrindinę statistiką, naujų įrašų judėjimą ir
+            svarbiausius veiksmus: paslaugų moderavimą, vartotojų priežiūrą bei
+            planų valdymą.
+          </p>
+        </div>
 
-      <div style={{ marginBottom: "24px" }}>
+        <div className={styles.heroGlow} aria-hidden="true" />
+      </section>
+
+      <section className={styles.statsGrid}>
+        <div className={`${styles.statCard} ${styles.statUsers}`}>
+          <div className={styles.statLabel}>Vartotojai</div>
+          <div className={styles.statValue}>{usersCount}</div>
+          <div className={styles.statHint}>Visi registruoti vartotojai</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statProviders}`}>
+          <div className={styles.statLabel}>Patvirtinti teikėjai</div>
+          <div className={styles.statValue}>{providersCount}</div>
+          <div className={styles.statHint}>Aktyvūs provider profiliai</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statServices}`}>
+          <div className={styles.statLabel}>Paslaugos</div>
+          <div className={styles.statValue}>{servicesCount}</div>
+          <div className={styles.statHint}>Visi neištrinti skelbimai</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statActive}`}>
+          <div className={styles.statLabel}>Aktyvios paslaugos</div>
+          <div className={styles.statValue}>{activeServices}</div>
+          <div className={styles.statHint}>Šiuo metu viešai rodomos</div>
+        </div>
+      </section>
+
+      <section className={styles.sectionBlock}>
         <Metrics7Days
           days={days}
           series={[
@@ -137,49 +175,48 @@ export default async function AdminHomePage({ params }: PageProps) {
             { label: "Paraiškos", values: requests7 },
           ]}
         />
-      </div>
-
-      <section className={styles.card} style={{ marginBottom: "24px" }}>
-        <h2 className={styles.subtitle}>Greita statistika</h2>
-        <p className={styles.text}>
-          Vartotojai: <strong>{usersCount}</strong> • Patvirtinti teikėjai:{" "}
-          <strong>{providersCount}</strong> • Paslaugos:{" "}
-          <strong>{servicesCount}</strong> (aktyvios:{" "}
-          <strong>{activeServices}</strong>)
-        </p>
       </section>
 
-      <section className={styles.card} style={{ marginBottom: "24px" }}>
-        <h2 className={styles.subtitle}>Paslaugų moderavimas</h2>
-        <p className={styles.text}>
-          Peržiūrėk visas paslaugas, jas įjunk / išjunk, pažymėk kaip TOP ir
-          sutvarkyk netinkamas.
-        </p>
-        <LocalizedLink href="/admin/services" className={styles.button}>
-          Eiti į paslaugų sąrašą
-        </LocalizedLink>
-      </section>
+      <section className={styles.actionsGrid}>
+        <article className={`${styles.actionCard} ${styles.actionCardBlue}`}>
+          <div className={styles.actionBadge}>01</div>
+          <h2 className={styles.actionTitle}>Paslaugų moderavimas</h2>
+          <p className={styles.text}>
+            Peržiūrėk visas paslaugas, įjunk arba išjunk jų aktyvumą, pažymėk
+            TOP ir greitai susitvarkyk netinkamą turinį.
+          </p>
+          <LocalizedLink href="/admin/services" className={styles.actionButton}>
+            Eiti į paslaugų sąrašą
+          </LocalizedLink>
+        </article>
 
-      <section className={styles.card} style={{ marginBottom: "24px" }}>
-        <h2 className={styles.subtitle}>Vartotojai ir teikėjai</h2>
-        <p className={styles.text}>
-          Peržiūrėk registruotus vartotojus, jų rolę ir ar jie turi paslaugų
-          teikėjo profilį.
-        </p>
-        <LocalizedLink href="/admin/users" className={styles.button}>
-          Eiti į vartotojų sąrašą
-        </LocalizedLink>
-      </section>
+        <article className={`${styles.actionCard} ${styles.actionCardViolet}`}>
+          <div className={styles.actionBadge}>02</div>
+          <h2 className={styles.actionTitle}>Vartotojai ir teikėjai</h2>
+          <p className={styles.text}>
+            Matyk registruotus vartotojus, jų rolę, ar jie turi provider profilį
+            ir kiek paslaugų yra sukūrę.
+          </p>
+          <LocalizedLink href="/admin/users" className={styles.actionButton}>
+            Eiti į vartotojų sąrašą
+          </LocalizedLink>
+        </article>
 
-      <section className={styles.card}>
-        <h2 className={styles.subtitle}>Planai ir akcijos</h2>
-        <p className={styles.text}>
-          Rankiniu būdu priskirk Free Trial, Basic, Premium ar Beta planą,
-          įjunk lifetime free pirmiems klientams ir pasiruošk payment integracijai.
-        </p>
-        <LocalizedLink href="/admin/providers" className={styles.button}>
-          Eiti į planų valdymą
-        </LocalizedLink>
+        <article className={`${styles.actionCard} ${styles.actionCardOrange}`}>
+          <div className={styles.actionBadge}>03</div>
+          <h2 className={styles.actionTitle}>Planai ir akcijos</h2>
+          <p className={styles.text}>
+            Rankiniu būdu priskirk Free Trial, Basic, Premium ar Beta planą,
+            įjunk lifetime free pirmiems klientams ir pasiruošk payment
+            integracijai.
+          </p>
+          <LocalizedLink
+            href="/admin/providers"
+            className={styles.actionButton}
+          >
+            Eiti į planų valdymą
+          </LocalizedLink>
+        </article>
       </section>
     </main>
   );

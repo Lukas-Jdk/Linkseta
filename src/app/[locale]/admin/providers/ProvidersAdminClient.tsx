@@ -1,6 +1,7 @@
 // src/app/[locale]/admin/providers/ProvidersAdminClient.tsx
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./providersAdmin.module.css";
@@ -87,6 +88,13 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
       return a.email.localeCompare(b.email);
     });
   }, [items, query]);
+
+  const totalProviders = items.length;
+  const premiumCount = items.filter(
+    (item) => item.currentPlan?.slug === "premium",
+  ).length;
+  const lifetimeCount = items.filter((item) => item.lifetimeFree).length;
+  const approvedCount = items.filter((item) => item.isApproved).length;
 
   async function toggleLifetimeFree(userId: string, enabled: boolean) {
     const key = `lifetime:${userId}`;
@@ -213,15 +221,43 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.topBar}>
-        <div>
+      <section className={styles.heroCard}>
+        <div className={styles.heroText}>
+          <div className={styles.eyebrow}>PLANS</div>
           <h1 className={styles.title}>Planų ir providerių valdymas</h1>
           <p className={styles.subtitle}>
-            Čia gali priskirti planą, suteikti premium ranka ir aktyvuoti
-            lifetime free pirmiems klientams.
+            Čia gali priskirti planus rankiniu būdu, duoti Premium, aktyvuoti
+            lifetime free ir pasiruošti Stripe arba Vipps integracijai.
           </p>
         </div>
-      </div>
+        <div className={styles.heroGlow} aria-hidden="true" />
+      </section>
+
+      <section className={styles.statsGrid}>
+        <div className={`${styles.statCard} ${styles.statAll}`}>
+          <div className={styles.statLabel}>Provideriai</div>
+          <div className={styles.statValue}>{totalProviders}</div>
+          <div className={styles.statHint}>Visi rodomi provideriai</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statPremium}`}>
+          <div className={styles.statLabel}>Premium</div>
+          <div className={styles.statValue}>{premiumCount}</div>
+          <div className={styles.statHint}>Šiuo metu su premium planu</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statLifetime}`}>
+          <div className={styles.statLabel}>Lifetime free</div>
+          <div className={styles.statValue}>{lifetimeCount}</div>
+          <div className={styles.statHint}>Ranka suteiktas visam laikui</div>
+        </div>
+
+        <div className={`${styles.statCard} ${styles.statApproved}`}>
+          <div className={styles.statLabel}>Patvirtinti</div>
+          <div className={styles.statValue}>{approvedCount}</div>
+          <div className={styles.statHint}>Patvirtinti paslaugų teikėjai</div>
+        </div>
+      </section>
 
       <div className={styles.toolbar}>
         <input
@@ -272,7 +308,8 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
                         </div>
                         <div className={styles.userEmail}>{row.email}</div>
                         <div className={styles.userMeta}>
-                          Sukurta: {new Date(row.createdAt).toLocaleString("lt-LT")}
+                          Sukurta:{" "}
+                          {new Date(row.createdAt).toLocaleString("lt-LT")}
                         </div>
                       </div>
                     </td>
@@ -280,7 +317,9 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
                     <td>
                       <span
                         className={
-                          row.isApproved ? styles.badgeApproved : styles.badgeMuted
+                          row.isApproved
+                            ? styles.badgeApproved
+                            : styles.badgeMuted
                         }
                       >
                         {row.isApproved ? "Taip" : "Ne"}
@@ -288,7 +327,9 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
                     </td>
 
                     <td>
-                      <span className={styles.countBadge}>{row.servicesCount}</span>
+                      <span className={styles.countBadge}>
+                        {row.servicesCount}
+                      </span>
                     </td>
 
                     <td>
@@ -333,7 +374,9 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
 
                     <td>
                       {row.lifetimeFreeGrantedAt
-                        ? new Date(row.lifetimeFreeGrantedAt).toLocaleString("lt-LT")
+                        ? new Date(row.lifetimeFreeGrantedAt).toLocaleString(
+                            "lt-LT",
+                          )
                         : "—"}
                     </td>
 
@@ -373,7 +416,9 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
                           type="button"
                           className={`${styles.actionBtn} ${styles.removeBtn}`}
                           disabled={planBusy || lifetimeBusy}
-                          onClick={() => void toggleLifetimeFree(row.userId, false)}
+                          onClick={() =>
+                            void toggleLifetimeFree(row.userId, false)
+                          }
                         >
                           {lifetimeBusy ? "Vykdoma..." : "Nuimti lifetime"}
                         </button>
@@ -382,7 +427,9 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
                           type="button"
                           className={`${styles.actionBtn} ${styles.addBtn}`}
                           disabled={planBusy || lifetimeBusy}
-                          onClick={() => void toggleLifetimeFree(row.userId, true)}
+                          onClick={() =>
+                            void toggleLifetimeFree(row.userId, true)
+                          }
                         >
                           {lifetimeBusy ? "Vykdoma..." : "Suteikti lifetime"}
                         </button>
@@ -403,6 +450,10 @@ export default function ProvidersAdminClient({ rows, plans }: Props) {
           </table>
         </div>
       </div>
+
+      <Link href="/lt/admin" className={styles.backLink}>
+        ← Grįžti į admin pradžią
+      </Link>
     </div>
   );
 }
