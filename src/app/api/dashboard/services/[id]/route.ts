@@ -41,6 +41,24 @@ function clampText(x: unknown, max: number) {
   return t ? t.slice(0, max) : null;
 }
 
+function parsePositiveInt(x: unknown) {
+  if (typeof x === "number" && Number.isFinite(x) && x > 0) {
+    return Math.floor(x);
+  }
+
+  if (typeof x === "string") {
+    const digits = x.replace(/[^\d]/g, "");
+    if (!digits) return null;
+
+    const parsed = Number.parseInt(digits, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 function normalizeGalleryPairs(
   urlsInput: unknown,
   pathsInput: unknown,
@@ -157,6 +175,9 @@ export async function PATCH(
         responseTime: true,
         isActive: true,
 
+        priceFrom: true,
+        priceTo: true,
+
         imageUrl: true,
         imagePath: true,
         galleryImageUrls: true,
@@ -167,6 +188,10 @@ export async function PATCH(
         highlightsNo: true,
 
         sourceLocale: true,
+
+        locationPostcode: true,
+        locationCity: true,
+        locationRegion: true,
 
         priceItems: {
           orderBy: { sortOrder: "asc" },
@@ -245,7 +270,9 @@ export async function PATCH(
     const nextCategoryId =
       typeof body?.categoryId === "string"
         ? body.categoryId
-        : service.categoryId;
+        : body?.categoryId === null
+          ? null
+          : service.categoryId;
 
     const nextResponseTime =
       body?.responseTime === "24h" || body?.responseTime === "48h"
@@ -256,6 +283,29 @@ export async function PATCH(
 
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
+
+    const nextLocationPostcode =
+      body?.locationPostcode !== undefined
+        ? clampText(body.locationPostcode, 20)
+        : service.locationPostcode;
+
+    const nextLocationCity =
+      body?.locationCity !== undefined
+        ? clampText(body.locationCity, 120)
+        : service.locationCity;
+
+    const nextLocationRegion =
+      body?.locationRegion !== undefined
+        ? clampText(body.locationRegion, 120)
+        : service.locationRegion;
+
+    const hasPriceUpdate =
+      body?.priceMode !== undefined || body?.mainPrice !== undefined;
+
+    const nextPriceMode = body?.priceMode === "fixed" ? "fixed" : "from";
+    const nextMainPrice = hasPriceUpdate
+      ? parsePositiveInt(body?.mainPrice)
+      : service.priceFrom;
 
     const currentPairs = normalizeGalleryPairs(
       service.galleryImageUrls ?? [],
@@ -335,7 +385,18 @@ export async function PATCH(
       galleryImageUrls: nextGalleryImageUrls,
       galleryImagePaths: nextGalleryImagePaths,
       sourceLocale: service.sourceLocale ?? "lt",
+      locationPostcode: nextLocationPostcode,
+      locationCity: nextLocationCity,
+      locationRegion: nextLocationRegion,
     };
+
+    if (hasPriceUpdate) {
+      data.priceFrom = nextMainPrice;
+      data.priceTo =
+        nextPriceMode === "fixed" && nextMainPrice != null
+          ? nextMainPrice
+          : null;
+    }
 
     if (locale === "lt") {
       const finalTitle = nextTitle ?? service.title;
@@ -543,6 +604,8 @@ export async function PATCH(
         imageCount: nextGalleryImageUrls.length,
         priceItemsCount: normalizedIncomingPriceItems.length,
         responseTime: nextResponseTime,
+        priceMode: hasPriceUpdate ? nextPriceMode : undefined,
+        mainPrice: hasPriceUpdate ? nextMainPrice : undefined,
       },
     });
 

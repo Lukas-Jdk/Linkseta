@@ -50,6 +50,16 @@ function emptyPriceItem(): PriceItem {
   };
 }
 
+function normalizePriceNumber(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  if (!digits) return null;
+
+  const parsed = Number.parseInt(digits, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+
+  return parsed;
+}
+
 export default function NewServiceForm({ cities, categories }: Props) {
   const t = useTranslations("dashboardNewServiceForm");
   const router = useRouter();
@@ -64,6 +74,9 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [description, setDescription] = useState("");
   const [responseTime, setResponseTime] = useState("1h");
 
+  const [priceMode, setPriceMode] = useState<"fixed" | "from">("from");
+  const [mainPrice, setMainPrice] = useState("");
+
   const [locationPostcode, setLocationPostcode] = useState("");
   const [locationRegion, setLocationRegion] = useState("");
 
@@ -71,9 +84,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const [h2, setH2] = useState("");
   const [h3, setH3] = useState("");
 
-  const [priceItems, setPriceItems] = useState<PriceItem[]>([
-    emptyPriceItem(),
-  ]);
+  const [priceItems, setPriceItems] = useState<PriceItem[]>([emptyPriceItem()]);
 
   const [uploading, setUploading] = useState(false);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
@@ -94,6 +105,11 @@ export default function NewServiceForm({ cities, categories }: Props) {
   const highlights = useMemo(() => {
     return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
   }, [h1, h2, h3]);
+
+  const normalizedMainPrice = useMemo(
+    () => normalizePriceNumber(mainPrice),
+    [mainPrice],
+  );
 
   const canSubmit = useMemo(() => {
     return (
@@ -126,11 +142,7 @@ export default function NewServiceForm({ cities, categories }: Props) {
     });
   }, [error, success]);
 
-  function updatePriceItem(
-    index: number,
-    key: keyof PriceItem,
-    value: string,
-  ) {
+  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
     setPriceItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
     );
@@ -267,6 +279,8 @@ export default function NewServiceForm({ cities, categories }: Props) {
         description: description.trim(),
         responseTime,
         highlights,
+        priceMode,
+        mainPrice: normalizedMainPrice,
         priceItems: cleanPriceItems,
         galleryImageUrls: gallery.map((x) => x.url),
         galleryImagePaths: gallery.map((x) => x.path),
@@ -471,6 +485,55 @@ export default function NewServiceForm({ cities, categories }: Props) {
         </div>
 
         <div className={styles.sectionBody}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Orientacinė kaina kortelėje</label>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 12,
+              }}
+            >
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPriceMode("from")}
+                style={{
+                  background: priceMode === "from" ? "#0f172a" : undefined,
+                  color: priceMode === "from" ? "#fff" : undefined,
+                }}
+              >
+                Nuo
+              </button>
+
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPriceMode("fixed")}
+                style={{
+                  background: priceMode === "fixed" ? "#0f172a" : undefined,
+                  color: priceMode === "fixed" ? "#fff" : undefined,
+                }}
+              >
+                Fiksuota
+              </button>
+            </div>
+
+            <input
+              className={styles.input}
+              value={mainPrice}
+              onChange={(e) => setMainPrice(e.target.value)}
+              placeholder="Pvz. 600"
+              inputMode="numeric"
+            />
+
+            <div className={styles.charHint}>
+              Ši kaina bus rodoma kortelėje prieš atidarant paslaugą.
+            </div>
+          </div>
+
           <div className={styles.formGroup}>
             <label className={styles.label}>{t("priceItemsTitle")}</label>
 

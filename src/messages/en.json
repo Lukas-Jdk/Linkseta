@@ -210,22 +210,22 @@
     "photosCount": "{count} photos",
     "respondsFast": "Usually responds within 1 hour."
   },
- "serviceDetailsTabs": {
-  "about": "About",
-  "gallery": "Gallery",
-  "reviews": "Reviews",
-  "descriptionTitle": "Description",
-  "whyChoose": "Why choose this service?",
-  "noGallery": "No gallery images yet.",
-  "reviewsComing": "Reviews will be added later.",
-  "photoAlt": "{title} photo {index}",
-  "prices": "Prices",
-  "pricesTitle": "Prices",
-  "noPrices": "Prices have not been provided yet.",
-  "servicesTitle": "Services",
-  "servicesComing": "Additional services will be available soon.",
-  "servicesCount": "Services ({count})"
-},
+  "serviceDetailsTabs": {
+    "about": "About",
+    "gallery": "Gallery",
+    "reviews": "Reviews",
+    "descriptionTitle": "Description",
+    "whyChoose": "Why choose this service?",
+    "noGallery": "No gallery images yet.",
+    "reviewsComing": "Reviews will be added later.",
+    "photoAlt": "{title} photo {index}",
+    "prices": "Prices",
+    "pricesTitle": "Prices",
+    "noPrices": "Prices have not been provided yet.",
+    "servicesTitle": "Services",
+    "servicesComing": "Additional services will be available soon.",
+    "servicesCount": "Services ({count})"
+  },
   "gallery": {
     "openImage": "Open image",
     "close": "Close",
@@ -241,24 +241,24 @@
     "emailLabel": "Email",
     "shortMessageTitle": "Short message"
   },
- "dashboardPage": {
-  "title": "My account",
-  "subtitle": "Manage your profile and service listings in one place.",
-  "newService": "New service",
-  "myServices": "My services",
-  "active": "active",
-  "emptyApproved": "You do not have any service listings yet. Create your first listing.",
-  "createFirst": "Create listing",
-  "emptyNotProvider": "To create services, you need to become an approved provider.",
-  "becomeProvider": "Become a provider",
-  "statusActive": "Active",
-  "statusInactive": "Disabled",
-  "view": "View",
-  "edit": "Edit",
-  "viewServiceAria": "View service",
-  "editServiceAria": "Edit service",
-  "manageAll": "Manage all services"
-},
+  "dashboardPage": {
+    "title": "My account",
+    "subtitle": "Manage your profile and service listings in one place.",
+    "newService": "New service",
+    "myServices": "My services",
+    "active": "active",
+    "emptyApproved": "You do not have any service listings yet. Create your first listing.",
+    "createFirst": "Create listing",
+    "emptyNotProvider": "To create services, you need to become an approved provider.",
+    "becomeProvider": "Become a provider",
+    "statusActive": "Active",
+    "statusInactive": "Disabled",
+    "view": "View",
+    "edit": "Edit",
+    "viewServiceAria": "View service",
+    "editServiceAria": "Edit service",
+    "manageAll": "Manage all services"
+  },
   "dashboardServicesPage": {
     "title": "My services",
     "newService": "New service",
@@ -270,116 +270,266 @@
     "view": "View",
     "edit": "Edit"
   },
-"dashboardEditServicePage": {
-  "title": "Edit service",
-  "subtitle": "Update service information, gallery, prices or delete the listing."
-},
-"dashboardEditServiceForm": {
-  "mainInfo": "Main information",
-  "titleLabel": "Service title",
-  "descriptionLabel": "Description",
-  "whyChooseTitle": "Why choose this service?",
-  "highlightsLabel": "Highlights (1 line = 1 point)",
-  "highlightsPlaceholder": "Example:\nFast communication\nGuarantee\nClear deadlines",
-  "pointsCount": "Points: {count} / 6",
-  "detailsAndPrices": "Details and prices",
-  "cityLabel": "City",
-  "selectCity": "Select city",
-  "categoryLabel": "Category",
-  "selectCategory": "Select category",
-  "responseTimeLabel": "Response time",
-  "response1h": "Within 1 hour",
-  "response24h": "Within 24 hours",
-  "response48h": "Within 48 hours",
-  "priceItemsTitle": "Additional price rows",
-  "priceItemNamePlaceholder": "E.g. Landing Page",
-  "priceItemPricePlaceholder": "E.g. Starting at 800 NOK",
-  "priceItemNotePlaceholder": "E.g. Depends on features and style",
-  "removePriceRow": "Remove price row",
-  "addPriceRow": "Add price row",
-  "imagesTitle": "Images",
-  "uploadButton": "Upload images",
-  "uploading": "Uploading...",
-  "imageAlt": "Image",
-  "removeImage": "Remove",
-  "noImages": "No images",
-  "imagesHelp": "You can upload multiple images. Max 10MB before compression.",
-  "activityTitle": "Activity",
-  "statusLabel": "Status:",
-  "statusActive": "Active",
-  "statusInactive": "Disabled",
-  "disableButton": "Disable",
-  "enableButton": "Enable",
-  "deleteButton": "Delete service",
-  "saveButton": "Save changes",
-  "saving": "Saving...",
-  "saved": "Service updated successfully.",
-  "saveFailed": "Failed to save service.",
-  "deleteFailed": "Failed to delete service.",
-  "toggleFailed": "Failed to change activity.",
-  "enabled": "Service enabled.",
-  "disabled": "Service disabled.",
-  "serverError": "Server error.",
-  "deleteConfirm": "Are you sure you want to delete this service? (Soft delete: the service will disappear from the list.)",
-  "maxImages": "You can upload up to {max} images.",
-  "mustBeLoggedIn": "You must be logged in to upload images.",
-  "fileNotImage": "Please choose an image (JPG / PNG / WEBP).",
-  "fileTooLargeBefore": "Image is too large. Maximum 10MB before compression.",
-  "fileTooLargeAfter": "Compressed image is still too large. Choose a smaller one.",
-  "uploadFailed": "Failed to upload image.",
-  "urlFailed": "Failed to get image URL.",
-  "imagesUploaded": "Images uploaded. Do not forget to save changes.",
-  "genericError": "An error occurred while uploading image."
-},
-  "becomeProviderPage": {
-  "title": "Become a service provider on Linkseta",
-  "lead": "Choose a plan and get the ability to create your service listings so people in Norway can easily find you.",
-  "noteStrong": "Free Trial is currently active.",
-  "noteText": "Basic and Premium plans will be enabled later.",
-  "recommended": "Recommended",
-  "comingSoon": "Coming soon",
-  "inactivePlanTitle": "This plan is not active yet",
-  "buttonBusy": "Processing...",
-  "buttonSoon": "Soon",
-  "buttonStartTrial": "Start Free Trial",
-  "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 3 photos in the gallery.",
-  "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
-  "errors": {
-    "chooseFailed": "Could not select the plan. Please try again.",
-    "server": "Server error. Please try again."
+  "dashboardEditServicePage": {
+    "title": "Edit service",
+    "subtitle": "Update service information, gallery, prices or delete the listing."
   },
-  "plans": {
-    "freeTrial": {
-      "name": "Free Trial",
-      "priceLabel": "0 NOK / 30 days",
-      "description": "Try Linkseta risk-free and see whether the platform fits your services.",
-      "features": [
-        "1 active listing",
-        "Up to 3 gallery photos",
-        "30-day free trial"
-      ]
+  "dashboardEditServiceForm": {
+    "mainInfo": "Main information",
+    "titleLabel": "Service title",
+    "descriptionLabel": "Description",
+    "whyChooseTitle": "Why choose this service?",
+    "highlightsLabel": "Highlights (1 line = 1 point)",
+    "highlightsPlaceholder": "Example:\nFast communication\nGuarantee\nClear deadlines",
+    "pointsCount": "Points: {count} / 6",
+    "detailsAndPrices": "Details and prices",
+    "cityLabel": "City",
+    "selectCity": "Select city",
+    "categoryLabel": "Category",
+    "selectCategory": "Select category",
+    "responseTimeLabel": "Response time",
+    "response1h": "Within 1 hour",
+    "response24h": "Within 24 hours",
+    "response48h": "Within 48 hours",
+    "priceItemsTitle": "Additional price rows",
+    "priceItemNamePlaceholder": "E.g. Landing Page",
+    "priceItemPricePlaceholder": "E.g. Starting at 800 NOK",
+    "priceItemNotePlaceholder": "E.g. Depends on features and style",
+    "removePriceRow": "Remove price row",
+    "addPriceRow": "Add price row",
+    "imagesTitle": "Images",
+    "uploadButton": "Upload images",
+    "uploading": "Uploading...",
+    "imageAlt": "Image",
+    "removeImage": "Remove",
+    "noImages": "No images",
+    "imagesHelp": "You can upload multiple images. Max 10MB before compression.",
+    "activityTitle": "Activity",
+    "statusLabel": "Status:",
+    "statusActive": "Active",
+    "statusInactive": "Disabled",
+    "disableButton": "Disable",
+    "enableButton": "Enable",
+    "deleteButton": "Delete service",
+    "saveButton": "Save changes",
+    "saving": "Saving...",
+    "saved": "Service updated successfully.",
+    "saveFailed": "Failed to save service.",
+    "deleteFailed": "Failed to delete service.",
+    "toggleFailed": "Failed to change activity.",
+    "enabled": "Service enabled.",
+    "disabled": "Service disabled.",
+    "serverError": "Server error.",
+    "deleteConfirm": "Are you sure you want to delete this service? (Soft delete: the service will disappear from the list.)",
+    "maxImages": "You can upload up to {max} images.",
+    "mustBeLoggedIn": "You must be logged in to upload images.",
+    "fileNotImage": "Please choose an image (JPG / PNG / WEBP).",
+    "fileTooLargeBefore": "Image is too large. Maximum 10MB before compression.",
+    "fileTooLargeAfter": "Compressed image is still too large. Choose a smaller one.",
+    "uploadFailed": "Failed to upload image.",
+    "urlFailed": "Failed to get image URL.",
+    "imagesUploaded": "Images uploaded. Do not forget to save changes.",
+    "genericError": "An error occurred while uploading image."
+  },
+  "becomeProviderPage": {
+    "title": "Become a service provider on Linkseta",
+    "lead": "Choose a plan and get the ability to create your service listings so people in Norway can easily find you.",
+    "noteStrong": "Free Trial is currently active.",
+    "noteText": "Basic and Premium plans will be enabled later.",
+    "recommended": "Recommended",
+    "comingSoon": "Coming soon",
+    "inactivePlanTitle": "This plan is not active yet",
+    "buttonBusy": "Processing...",
+    "buttonSoon": "Soon",
+    "buttonStartTrial": "Start Free Trial",
+    "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 3 photos in the gallery.",
+    "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
+    "errors": {
+      "chooseFailed": "Could not select the plan. Please try again.",
+      "server": "Server error. Please try again."
     },
-    "basic": {
-      "name": "Basic",
-      "priceLabel": "149 NOK / month",
-      "description": "A good option for an individual service provider who wants more visibility.",
-      "features": [
-        "Up to 3 active listings",
-        "Up to 5 photos per listing",
-        "Simple management from the dashboard"
-      ]
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 days",
+        "description": "Try Linkseta risk-free and see whether the platform fits your services.",
+        "features": [
+          "1 active listing",
+          "Up to 3 gallery photos",
+          "30-day free trial"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "149 NOK / month",
+        "description": "A good option for an individual service provider who wants more visibility.",
+        "features": [
+          "Up to 3 active listings",
+          "Up to 5 photos per listing",
+          "Simple management from the dashboard"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "299 NOK / month",
+        "description": "For those who want maximum freedom and stronger visibility.",
+        "features": [
+          "Up to 10 active listings",
+          "Up to 15 photos per listing",
+          "TOP status"
+        ]
+      }
     },
-    "premium": {
-      "name": "Premium",
-      "priceLabel": "299 NOK / month",
-      "description": "For those who want maximum freedom and stronger visibility.",
-      "features": [
-        "Up to 10 active listings",
-        "Up to 15 photos per listing",
-        "TOP status"
-      ]
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": {
+        "first": {
+          "q": "Will money be charged automatically after the Free Trial?",
+          "a": "No. After the 30-day period ends, no payment will be charged automatically. You will continue only if you choose to."
+        },
+        "second": {
+          "q": "Do I need to enter card details?",
+          "a": "No. You can start the Free Trial without payment information."
+        },
+        "third": {
+          "q": "How can I stop using it?",
+          "a": "You can stop using it at any time – there are no obligations."
+        },
+        "fourth": {
+          "q": "What do I get during the Free Trial?",
+          "a": "You will be able to create 1 active listing and upload up to 3 photos to try the platform."
+        },
+        "fifth": {
+          "q": "When will paid plans be available?",
+          "a": "Basic and Premium plans will be available soon."
+        }
+      }
     }
   },
+  "dashboardNewServicePage": {
+    "title": "New service",
+    "subtitle": "Fill in the form and create your service listing. You will be able to edit it later from your account."
+  },
+  "dashboardNewServiceForm": {
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g. Electrician in Oslo",
+    "cityLabel": "City",
+    "categoryLabel": "Category",
+    "priceLabel": "Main starting price: (NOK)",
+    "pricePlaceholder": "E.g. 500",
+    "priceItemsTitle": "Additional price rows",
+    "priceItemNamePlaceholder": "E.g. Cakes",
+    "priceItemPricePlaceholder": "E.g. from 650 NOK",
+    "priceItemNotePlaceholder": "E.g. Price depends on size",
+    "addPriceItem": "Add price row",
+    "addPriceRow": "Add price row",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe as clearly as possible what you offer.",
+    "highlightsTitle": "Why choose me? (optional)",
+    "highlightsHint": "You can add 1–3 points with ✅",
+    "highlightPlaceholder1": "E.g. Fast arrival",
+    "highlightPlaceholder2": "E.g. 5 years of experience",
+    "highlightPlaceholder3": "E.g. Work guarantee",
+    "galleryLabel": "Gallery images (optional)",
+    "uploading": "Images are being compressed and uploaded...",
+    "previewAlt": "Preview {index}",
+    "remove": "Remove",
+    "creating": "Creating...",
+    "submit": "Create service",
+
+    "detailsLocationTitle": "Details and location",
+    "selectCategory": "Select category",
+    "selectCity": "Select city",
+    "responseTimeLabel": "Response time",
+    "response1h": "Within 1 hour",
+    "response24h": "Within 24 hours",
+    "response48h": "Within 48 hours",
+    "postcodeLabel": "Postcode",
+    "postcodePlaceholder": "E.g. 0001",
+    "regionLabel": "District (optional)",
+    "regionPlaceholder": "E.g. Sentrum",
+    "pricesSectionTitle": "Prices",
+    "removePriceRow": "Remove price row",
+    "uploadButton": "Upload images",
+    "uploadSuccess": "Images uploaded successfully. Do not forget to save the service.",
+    "createSuccess": "Service created successfully.",
+    "noImagesYet": "No images yet",
+
+    "errors": {
+      "maxImages": "You can upload up to {max} images.",
+      "mustBeLoggedIn": "You must be logged in to upload images.",
+      "fileNotImage": "One of the selected files is not an image.",
+      "fileTooLargeBeforeCompression": "One of the images is too large (max ~10MB before compression).",
+      "fileTooLargeAfterCompression": "One of the compressed images is still too large.",
+      "uploadOneFailed": "Failed to upload one of the images.",
+      "uploadGeneric": "An error occurred while uploading images.",
+      "csrfOrForbidden": "Security check failed. Refresh the page and try again.",
+      "createFailed": "Failed to create service.",
+      "generic": "An error occurred.",
+      "invalidCityPostcode": "Please select a city with a valid postcode.",
+      "missingRequired": "Please check the form — some required fields are missing."
+    }
+  },
+  "categories": {
+    "konditerija": "Confectionery",
+    "it-paslaugos": "IT services"
+  },
+  "registerPage": {
+    "title": "Register",
+    "subtitle": "Create a new account to use our services and features.",
+    "namePlaceholder": "First name",
+    "surnamePlaceholder": "Last name",
+    "phonePlaceholder": "Phone",
+    "emailPlaceholder": "Email",
+    "companyNamePlaceholder": "Company name",
+    "passwordPlaceholder": "Password",
+    "passwordHint": "*Password must be at least 8 characters long",
+    "loading": "Creating...",
+    "submit": "Register",
+    "success": "Registration successful! We sent a confirmation email. Please check your inbox, including Spam or Promotions.",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Log in",
+    "legalStart": "By registering, you agree to our",
+    "legalAnd": "and",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "errors": {
+      "generic": "Failed to register account. Please try again.",
+      "emailInUse": "This email is already in use. Try logging in or resetting your password.",
+      "invalidEmail": "The email address is invalid. Please check it and try again.",
+      "weakPassword": "Password is too weak. Use at least 8 characters, preferably with letters and numbers.",
+      "signupDisabled": "Registration is temporarily disabled. Please try again later.",
+      "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
+      "network": "Could not connect to the server. Check your internet connection and try again.",
+      "server": "A server error occurred. Please try again.",
+      "withReason": "Registration failed: {reason}"
+    }
+  },
+  "loginPage": {
+    "title": "Login",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "loading": "Signing in...",
+    "submit": "Log in",
+    "forgotPassword": "Forgot your password?",
+    "resetLink": "Reset",
+    "confirmedMessage": "Email confirmed successfully. You can now log in.",
+    "confirmErrorMessage": "Failed to confirm email or the link has expired.",
+    "resetMessage": "Password changed successfully. You can now log in.",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Register",
+    "errors": {
+      "generic": "Failed to sign in. Check your details and try again.",
+      "invalidCredentials": "Incorrect email or password.",
+      "emailNotConfirmed": "Email has not been confirmed yet. Check your inbox.",
+      "tooManyRequests": "Too many login attempts. Please wait a few minutes and try again.",
+      "network": "Could not connect to the server. Check your internet connection and try again.",
+      "server": "Server error. Please try again.",
+      "missingFields": "Enter your email and password.",
+      "withReason": "Login failed: {reason}"
+    }
+  },
+  "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
   "faq": {
     "title": "Frequently asked questions",
     "items": {
@@ -404,206 +554,58 @@
         "a": "Basic and Premium plans will be available soon."
       }
     }
-  }
-},
-"dashboardNewServicePage": {
-  "title": "New service",
-  "subtitle": "Fill in the form and create your service listing. You will be able to edit it later from your account."
-},
-  "dashboardNewServiceForm": {
-  "titleLabel": "Title",
-  "titlePlaceholder": "E.g. Electrician in Oslo",
-  "cityLabel": "City",
-  "categoryLabel": "Category",
-  "priceLabel": "Main starting price: (NOK)",
-  "pricePlaceholder": "E.g. 500",
-  "priceItemsTitle": "Additional price rows",
-  "priceItemNamePlaceholder": "E.g. Cakes",
-  "priceItemPricePlaceholder": "E.g. from 650 NOK",
-  "priceItemNotePlaceholder": "E.g. Price depends on size",
-  "addPriceItem": "Add price row",
-  "addPriceRow": "Add price row",
-  "descriptionLabel": "Description",
-  "descriptionPlaceholder": "Describe as clearly as possible what you offer.",
-  "highlightsTitle": "Why choose me? (optional)",
-  "highlightsHint": "You can add 1–3 points with ✅",
-  "highlightPlaceholder1": "E.g. Fast arrival",
-  "highlightPlaceholder2": "E.g. 5 years of experience",
-  "highlightPlaceholder3": "E.g. Work guarantee",
-  "galleryLabel": "Gallery images (optional)",
-  "uploading": "Images are being compressed and uploaded...",
-  "previewAlt": "Preview {index}",
-  "remove": "Remove",
-  "creating": "Creating...",
-  "submit": "Create service",
-
-  "detailsLocationTitle": "Details and location",
-  "selectCategory": "Select category",
-  "selectCity": "Select city",
-  "responseTimeLabel": "Response time",
-  "response1h": "Within 1 hour",
-  "response24h": "Within 24 hours",
-  "response48h": "Within 48 hours",
-  "postcodeLabel": "Postcode",
-  "postcodePlaceholder": "E.g. 0001",
-  "regionLabel": "District (optional)",
-  "regionPlaceholder": "E.g. Sentrum",
-  "pricesSectionTitle": "Prices",
-  "removePriceRow": "Remove price row",
-  "uploadButton": "Upload images",
-  "uploadSuccess": "Images uploaded successfully. Do not forget to save the service.",
-  "createSuccess": "Service created successfully.",
-  "noImagesYet": "No images yet",
-
-  "errors": {
-    "maxImages": "You can upload up to {max} images.",
-    "mustBeLoggedIn": "You must be logged in to upload images.",
-    "fileNotImage": "One of the selected files is not an image.",
-    "fileTooLargeBeforeCompression": "One of the images is too large (max ~10MB before compression).",
-    "fileTooLargeAfterCompression": "One of the compressed images is still too large.",
-    "uploadOneFailed": "Failed to upload one of the images.",
-    "uploadGeneric": "An error occurred while uploading images.",
-    "csrfOrForbidden": "Security check failed. Refresh the page and try again.",
-    "createFailed": "Failed to create service.",
-    "generic": "An error occurred.",
-    "invalidCityPostcode": "Please select a city with a valid postcode.",
-    "missingRequired": "Please check the form — some required fields are missing."
-  }
-},
-  "categories": {
-  "konditerija": "Confectionery",
-  "it-paslaugos": "IT services"
-},
-"registerPage": {
-  "title": "Register",
-  "subtitle": "Create a new account to use our services and features.",
-  "namePlaceholder": "First name",
-  "surnamePlaceholder": "Last name",
-  "phonePlaceholder": "Phone",
-  "emailPlaceholder": "Email",
-  "companyNamePlaceholder": "Company name",
-  "passwordPlaceholder": "Password",
-  "passwordHint": "*Password must be at least 8 characters long",
-  "loading": "Creating...",
-  "submit": "Register",
-  "success": "Registration successful! We sent a confirmation email. Please check your inbox, including Spam or Promotions.",
-  "alreadyHaveAccount": "Already have an account?",
-  "loginLink": "Log in",
-  "legalStart": "By registering, you agree to our",
-  "legalAnd": "and",
-  "terms": "Terms of Service",
-  "privacy": "Privacy Policy",
-  "errors": {
-    "generic": "Failed to register account. Please try again.",
-    "emailInUse": "This email is already in use. Try logging in or resetting your password.",
-    "invalidEmail": "The email address is invalid. Please check it and try again.",
-    "weakPassword": "Password is too weak. Use at least 8 characters, preferably with letters and numbers.",
-    "signupDisabled": "Registration is temporarily disabled. Please try again later.",
-    "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
-    "network": "Could not connect to the server. Check your internet connection and try again.",
-    "server": "A server error occurred. Please try again.",
-    "withReason": "Registration failed: {reason}"
-  }
-},
-"loginPage": {
-  "title": "Login",
-  "emailPlaceholder": "Email",
-  "passwordPlaceholder": "Password",
-  "loading": "Signing in...",
-  "submit": "Log in",
-  "forgotPassword": "Forgot your password?",
-  "resetLink": "Reset",
-  "confirmedMessage": "Email confirmed successfully. You can now log in.",
-  "confirmErrorMessage": "Failed to confirm email or the link has expired.",
-  "resetMessage": "Password changed successfully. You can now log in.",
-  "errors": {
-    "generic": "Failed to sign in. Check your details and try again.",
-    "invalidCredentials": "Incorrect email or password.",
-    "emailNotConfirmed": "Email has not been confirmed yet. Check your inbox.",
-    "tooManyRequests": "Too many login attempts. Please wait a few minutes and try again.",
-    "network": "Could not connect to the server. Check your internet connection and try again.",
-    "server": "Server error. Please try again.",
-    "missingFields": "Enter your email and password.",
-    "withReason": "Login failed: {reason}"
-  }
-},
-"trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
-"faq": {
-  "title": "Frequently asked questions",
-  "items": {
-    "first": {
-      "q": "Will money be charged automatically after the Free Trial?",
-      "a": "No. After the 30-day period ends, no payment will be charged automatically. You will continue only if you choose to."
-    },
-    "second": {
-      "q": "Do I need to enter card details?",
-      "a": "No. You can start the Free Trial without payment information."
-    },
-    "third": {
-      "q": "How can I stop using it?",
-      "a": "You can stop using it at any time – there are no obligations."
-    },
-    "fourth": {
-      "q": "What do I get during the Free Trial?",
-      "a": "You will be able to create 1 active listing and upload up to 3 photos to try the platform."
-    },
-    "fifth": {
-      "q": "When will paid plans be available?",
-      "a": "Basic and Premium plans will be available soon."
+  },
+  "forgotPasswordPage": {
+    "title": "Reset password",
+    "subtitle": "Enter your email and we will send you a password reset link.",
+    "emailPlaceholder": "Email",
+    "loading": "Sending...",
+    "submit": "Send link",
+    "success": "If this email exists, we sent a password reset link. Please also check your Spam folder.",
+    "errors": {
+      "missingEmail": "Enter your email.",
+      "sendFailed": "Failed to send password reset email.",
+      "invalidEmail": "The email address is invalid. Please check it and try again.",
+      "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
+      "network": "Could not reach the server. Check your internet connection and try again.",
+      "server": "Server error. Please try again.",
+      "withReason": "Failed to send email: {reason}"
     }
-  }
-},
-"forgotPasswordPage": {
-  "title": "Reset password",
-  "subtitle": "Enter your email and we will send you a password reset link.",
-  "emailPlaceholder": "Email",
-  "loading": "Sending...",
-  "submit": "Send link",
-  "success": "If this email exists, we sent a password reset link. Please also check your Spam folder.",
-  "errors": {
-    "missingEmail": "Enter your email.",
-    "sendFailed": "Failed to send password reset email.",
-    "invalidEmail": "The email address is invalid. Please check it and try again.",
-    "tooManyRequests": "Too many attempts in a short time. Please wait a few minutes and try again.",
-    "network": "Could not reach the server. Check your internet connection and try again.",
-    "server": "Server error. Please try again.",
-    "withReason": "Failed to send email: {reason}"
-  }
-},
-"resetPasswordPage": {
-  "title": "New password",
-  "subtitle": "Enter a new password for your account.",
-  "passwordPlaceholder": "New password",
-  "confirmPlaceholder": "Repeat password",
-  "loading": "Saving...",
-  "submit": "Save new password",
-  "success": "Password changed successfully. You will be redirected to login in a few seconds.",
-  "errors": {
-    "passwordTooShort": "Password must be at least 8 characters.",
-    "passwordMismatch": "Passwords do not match.",
-    "updateFailed": "Failed to update password.",
-    "server": "Server error. Please try again."
-  }
-},
-"providerRequestForm": {
-  "nameLabel": "Name / company name*",
-  "emailLabel": "Email*",
-  "phoneLabel": "Phone",
-  "cityLabel": "City",
-  "categoryLabel": "Category",
-  "messageLabel": "Additional information",
-  "messagePlaceholder": "Briefly describe the services you provide.",
-  "selectPlaceholder": "Select...",
-  "submit": "Send request",
-  "submitting": "Sending...",
-  "success": "Request sent successfully! We will contact you by email.",
-  "errors": {
-    "requiredFields": "Name and email are required.",
-    "recaptcha": "Could not verify that you are human (reCAPTCHA). Reload the page and try again.",
-    "sendFailed": "An error occurred while sending the request. Please try again later.",
-    "server": "Server error. Please try again later."
-  }
-},
+  },
+  "resetPasswordPage": {
+    "title": "New password",
+    "subtitle": "Enter a new password for your account.",
+    "passwordPlaceholder": "New password",
+    "confirmPlaceholder": "Repeat password",
+    "loading": "Saving...",
+    "submit": "Save new password",
+    "success": "Password changed successfully. You will be redirected to login in a few seconds.",
+    "errors": {
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "updateFailed": "Failed to update password.",
+      "server": "Server error. Please try again."
+    }
+  },
+  "providerRequestForm": {
+    "nameLabel": "Name / company name*",
+    "emailLabel": "Email*",
+    "phoneLabel": "Phone",
+    "cityLabel": "City",
+    "categoryLabel": "Category",
+    "messageLabel": "Additional information",
+    "messagePlaceholder": "Briefly describe the services you provide.",
+    "selectPlaceholder": "Select...",
+    "submit": "Send request",
+    "submitting": "Sending...",
+    "success": "Request sent successfully! We will contact you by email.",
+    "errors": {
+      "requiredFields": "Name and email are required.",
+      "recaptcha": "Could not verify that you are human (reCAPTCHA). Reload the page and try again.",
+      "sendFailed": "An error occurred while sending the request. Please try again later.",
+      "server": "Server error. Please try again later."
+    }
+  },
   "detailsLocationTitle": "Details and location",
   "selectCategory": "Select category",
   "selectCity": "Select city",

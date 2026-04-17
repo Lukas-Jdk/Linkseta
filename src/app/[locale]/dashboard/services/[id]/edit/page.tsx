@@ -70,6 +70,9 @@ export default async function EditServicePage({ params }: PageProps) {
       categoryId: true,
       responseTime: true,
 
+      priceFrom: true,
+      priceTo: true,
+
       imageUrl: true,
       imagePath: true,
       galleryImageUrls: true,
@@ -127,6 +130,13 @@ export default async function EditServicePage({ params }: PageProps) {
       }))
     : [];
 
+  const priceMode: "fixed" | "from" =
+    service.priceFrom != null &&
+    service.priceTo != null &&
+    service.priceFrom === service.priceTo
+      ? "fixed"
+      : "from";
+
   const initial = {
     id: service.id,
     locale,
@@ -145,6 +155,9 @@ export default async function EditServicePage({ params }: PageProps) {
     locationPostcode: service.locationPostcode ?? "",
     locationCity: service.locationCity ?? "",
     locationRegion: service.locationRegion ?? "",
+
+    priceMode,
+    mainPrice: service.priceFrom != null ? String(service.priceFrom) : "",
 
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
@@ -192,10 +205,7 @@ export default async function EditServicePage({ params }: PageProps) {
         </header>
 
         <div className={styles.formCard}>
-          <EditServiceForm
-            initial={initial}
-            categories={localizedCategories}
-          />
+          <EditServiceForm initial={initial} categories={localizedCategories} />
         </div>
       </div>
     </main>

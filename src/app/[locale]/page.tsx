@@ -132,6 +132,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       descriptionEn: true,
       descriptionNo: true,
       priceFrom: true,
+      priceTo: true,
       slug: true,
       highlighted: true,
       imageUrl: true,
@@ -156,17 +157,10 @@ export default async function HomePage({ params, searchParams }: Props) {
     take: 6,
   });
 
-  const premiumIds = premiumServices.map((service) => service.id);
-
   const fallbackServices =
     premiumServices.length < 6
       ? await prisma.serviceListing.findMany({
-          where: {
-            ...where,
-            id: {
-              notIn: premiumIds.length ? premiumIds : undefined,
-            },
-          },
+          where,
           select: {
             id: true,
             title: true,
@@ -176,6 +170,7 @@ export default async function HomePage({ params, searchParams }: Props) {
             descriptionEn: true,
             descriptionNo: true,
             priceFrom: true,
+            priceTo: true,
             slug: true,
             highlighted: true,
             imageUrl: true,
@@ -238,6 +233,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       }),
       category: localizedCategory,
       priceFrom: s.priceFrom,
+      priceTo: s.priceTo,
       slug: s.slug,
       highlighted: s.highlighted ?? false,
       imageUrl: s.imageUrl,

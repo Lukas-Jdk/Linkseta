@@ -20,7 +20,7 @@ type Props = {
   priceItems: PriceItem[];
 };
 
-type TabKey = "about" | "gallery" | "prices" | "services" | "reviews";
+type TabKey = "about" | "gallery" | "prices";
 
 export default function ServiceTabsClient({
   title,
@@ -70,25 +70,8 @@ export default function ServiceTabsClient({
           {t("prices")}
         </button>
 
-        <button
-          type="button"
-          className={`${styles.tab} ${
-            activeTab === "services" ? styles.tabActive : ""
-          }`}
-          onClick={() => setActiveTab("services")}
-        >
-          {t("servicesCount", { count: 0 })}
-        </button>
+       
 
-        <button
-          type="button"
-          className={`${styles.tab} ${
-            activeTab === "reviews" ? styles.tabActive : ""
-          }`}
-          onClick={() => setActiveTab("reviews")}
-        >
-          {t("reviews")}
-        </button>
       </div>
 
       {activeTab === "about" && (
@@ -185,20 +168,6 @@ export default function ServiceTabsClient({
           ) : (
             <p className={styles.descSmall}>{t("noPrices")}</p>
           )}
-        </div>
-      )}
-
-      {activeTab === "services" && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("servicesTitle")}</h2>
-          <p className={styles.descSmall}>{t("servicesComing")}</p>
-        </div>
-      )}
-
-      {activeTab === "reviews" && (
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("reviews")}</h2>
-          <p className={styles.descSmall}>{t("reviewsComing")}</p>
         </div>
       )}
     </div>

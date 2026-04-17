@@ -1,8 +1,8 @@
 // src/components/cards/PremiumServiceCard.tsx
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
-import { MapPin, CalendarDays, ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { MapPin, ShieldCheck } from "lucide-react";
 import styles from "./PremiumServiceCard.module.css";
 
 export interface PremiumServiceCardProps {
@@ -12,6 +12,7 @@ export interface PremiumServiceCardProps {
   city: string;
   category: string;
   priceFrom: number | null;
+  priceTo: number | null;
   slug: string;
   highlighted?: boolean;
   imageUrl?: string;
@@ -23,20 +24,6 @@ export interface PremiumServiceCardProps {
 
 function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
-}
-
-function formatTodayLikeCard(locale: string) {
-  const map: Record<string, string> = {
-    lt: "lt-LT",
-    en: "en-GB",
-    no: "nb-NO",
-  };
-
-  return new Intl.DateTimeFormat(map[locale] ?? "lt-LT", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
 }
 
 function formatLocationLabel(args: {
@@ -61,12 +48,27 @@ function formatLocationLabel(args: {
   return "—";
 }
 
+function formatCardPrice(
+  t: ReturnType<typeof useTranslations>,
+  priceFrom: number | null,
+  priceTo: number | null,
+) {
+  if (priceFrom == null) return null;
+
+  if (priceTo != null && priceTo === priceFrom) {
+    return `${formatPriceNOK(priceFrom)} NOK`;
+  }
+
+  return t("priceFrom", { price: formatPriceNOK(priceFrom) });
+}
+
 export default function PremiumServiceCard({
   id,
   title,
   city,
   category,
   priceFrom,
+  priceTo,
   slug,
   highlighted = false,
   imageUrl,
@@ -76,7 +78,6 @@ export default function PremiumServiceCard({
   locationRegion,
 }: PremiumServiceCardProps) {
   const t = useTranslations("serviceCard");
-  const currentLocale = useLocale();
 
   const hasUserImage = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultCenterImg = "/logo.webp";
@@ -84,10 +85,7 @@ export default function PremiumServiceCard({
   const serviceHref = `/${locale}/services/${slug}`;
   const contactHref = `/${locale}/services/${slug}#kontaktai`;
 
-  const formattedPrice =
-    priceFrom != null
-      ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
-      : t("priceNegotiable");
+  const formattedPrice = formatCardPrice(t, priceFrom, priceTo);
 
   const locationLabel = formatLocationLabel({
     locationPostcode,
@@ -136,7 +134,7 @@ export default function PremiumServiceCard({
             </>
           )}
 
-          {priceFrom != null && (
+          {formattedPrice && (
             <div className={styles.priceBadge}>{formattedPrice}</div>
           )}
 
@@ -161,11 +159,6 @@ export default function PremiumServiceCard({
             <span className={styles.infoItem}>
               <MapPin className={styles.infoIcon} />
               {locationLabel}
-            </span>
-
-            <span className={styles.infoItem}>
-              <CalendarDays className={styles.infoIcon} />
-              {formatTodayLikeCard(currentLocale)}
             </span>
           </div>
 

@@ -33,6 +33,9 @@ type InitialData = {
   locationCity: string;
   locationRegion?: string;
 
+  priceMode: "fixed" | "from";
+  mainPrice: string;
+
   priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
@@ -92,10 +95,17 @@ function emptyPriceItem(): PriceItem {
   };
 }
 
-export default function EditServiceForm({
-  initial,
-  categories,
-}: Props) {
+function normalizePriceNumber(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  if (!digits) return null;
+
+  const parsed = Number.parseInt(digits, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+
+  return parsed;
+}
+
+export default function EditServiceForm({ initial, categories }: Props) {
   const t = useTranslations("dashboardEditServiceForm");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
@@ -113,12 +123,15 @@ export default function EditServiceForm({
   const [locationPostcode, setLocationPostcode] = useState(
     initial.locationPostcode || "",
   );
-  const [locationCity, setLocationCity] = useState(
-    initial.locationCity || "",
-  );
+  const [locationCity, setLocationCity] = useState(initial.locationCity || "");
   const [locationRegion, setLocationRegion] = useState(
     initial.locationRegion || "",
   );
+
+  const [priceMode, setPriceMode] = useState<"fixed" | "from">(
+    initial.priceMode ?? "from",
+  );
+  const [mainPrice, setMainPrice] = useState(initial.mainPrice ?? "");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>(
     Array.isArray(initial.priceItems) && initial.priceItems.length > 0
@@ -149,11 +162,7 @@ export default function EditServiceForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  function updatePriceItem(
-    index: number,
-    key: keyof PriceItem,
-    value: string,
-  ) {
+  function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
     setPriceItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
     );
@@ -262,6 +271,7 @@ export default function EditServiceForm({
     setSuccess(null);
 
     const highlights = parseHighlights(highlightsText);
+    const normalizedMainPrice = normalizePriceNumber(mainPrice);
 
     const cleanGallery = gallery.filter(
       (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
@@ -288,6 +298,8 @@ export default function EditServiceForm({
           locationRegion: locationRegion.trim(),
           categoryId: categoryId || null,
           responseTime,
+          priceMode,
+          mainPrice: normalizedMainPrice,
           priceItems: cleanPriceItems,
           galleryImageUrls: cleanGallery.map((x) => x.url),
           galleryImagePaths: cleanGallery.map((x) => x.path),
@@ -505,6 +517,55 @@ export default function EditServiceForm({
               <option value="24h">{t("response24h")}</option>
               <option value="48h">{t("response48h")}</option>
             </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Orientacinė kaina kortelėje</label>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                marginBottom: 12,
+              }}
+            >
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPriceMode("from")}
+                style={{
+                  background: priceMode === "from" ? "#0f172a" : undefined,
+                  color: priceMode === "from" ? "#fff" : undefined,
+                }}
+              >
+                Nuo
+              </button>
+
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setPriceMode("fixed")}
+                style={{
+                  background: priceMode === "fixed" ? "#0f172a" : undefined,
+                  color: priceMode === "fixed" ? "#fff" : undefined,
+                }}
+              >
+                Fiksuota
+              </button>
+            </div>
+
+            <input
+              className={styles.input}
+              value={mainPrice}
+              onChange={(e) => setMainPrice(e.target.value)}
+              placeholder="Pvz. 600"
+              inputMode="numeric"
+            />
+
+            <div className={styles.charHint}>
+              Ši kaina bus rodoma kortelėje prieš atidarant paslaugą.
+            </div>
           </div>
 
           <div className={styles.formGroup}>

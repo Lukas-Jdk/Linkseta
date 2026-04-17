@@ -210,22 +210,22 @@
     "photosCount": "{count} bilder",
     "respondsFast": "Svarar vanligvis innen 1 time."
   },
-"serviceDetailsTabs": {
-  "about": "Om tjenesten",
-  "gallery": "Galleri",
-  "reviews": "Anmeldelser",
-  "descriptionTitle": "Beskrivelse",
-  "whyChoose": "Hvorfor velge denne tjenesten?",
-  "noGallery": "Ingen bilder ennå.",
-  "reviewsComing": "Anmeldelser kommer senere.",
-  "photoAlt": "{title} bilde {index}",
-  "prices": "Priser",
-  "pricesTitle": "Priser",
-  "noPrices": "Priser er ikke oppgitt ennå.",
-  "servicesTitle": "Tjenester",
-  "servicesComing": "Flere tjenester kommer snart.",
-  "servicesCount": "Tjenester ({count})"
-},
+  "serviceDetailsTabs": {
+    "about": "Om tjenesten",
+    "gallery": "Galleri",
+    "reviews": "Anmeldelser",
+    "descriptionTitle": "Beskrivelse",
+    "whyChoose": "Hvorfor velge denne tjenesten?",
+    "noGallery": "Ingen bilder ennå.",
+    "reviewsComing": "Anmeldelser kommer senere.",
+    "photoAlt": "{title} bilde {index}",
+    "prices": "Priser",
+    "pricesTitle": "Priser",
+    "noPrices": "Priser er ikke oppgitt ennå.",
+    "servicesTitle": "Tjenester",
+    "servicesComing": "Flere tjenester kommer snart.",
+    "servicesCount": "Tjenester ({count})"
+  },
   "gallery": {
     "openImage": "Åpne bilde",
     "close": "Lukk",
@@ -241,24 +241,24 @@
     "emailLabel": "E-post",
     "shortMessageTitle": "Kort melding"
   },
- "dashboardPage": {
-  "title": "Min konto",
-  "subtitle": "Administrer profilen din og tjenesteannonsene dine på ett sted.",
-  "newService": "Ny tjeneste",
-  "myServices": "Mine tjenester",
-  "active": "aktive",
-  "emptyApproved": "Du har ingen tjenesteannonser ennå. Opprett din første annonse.",
-  "createFirst": "Opprett annonse",
-  "emptyNotProvider": "For å opprette tjenester må du bli en godkjent leverandør.",
-  "becomeProvider": "Bli leverandør",
-  "statusActive": "Aktiv",
-  "statusInactive": "Deaktivert",
-  "view": "Vis",
-  "edit": "Rediger",
-  "viewServiceAria": "Vis tjeneste",
-  "editServiceAria": "Rediger tjeneste",
-  "manageAll": "Administrer alle tjenester"
-},
+  "dashboardPage": {
+    "title": "Min konto",
+    "subtitle": "Administrer profilen din og tjenesteannonsene dine på ett sted.",
+    "newService": "Ny tjeneste",
+    "myServices": "Mine tjenester",
+    "active": "aktive",
+    "emptyApproved": "Du har ingen tjenesteannonser ennå. Opprett din første annonse.",
+    "createFirst": "Opprett annonse",
+    "emptyNotProvider": "For å opprette tjenester må du bli en godkjent leverandør.",
+    "becomeProvider": "Bli leverandør",
+    "statusActive": "Aktiv",
+    "statusInactive": "Deaktivert",
+    "view": "Vis",
+    "edit": "Rediger",
+    "viewServiceAria": "Vis tjeneste",
+    "editServiceAria": "Rediger tjeneste",
+    "manageAll": "Administrer alle tjenester"
+  },
   "dashboardServicesPage": {
     "title": "Mine tjenester",
     "newService": "Ny tjeneste",
@@ -270,142 +270,142 @@
     "view": "Vis",
     "edit": "Rediger"
   },
- "dashboardEditServicePage": {
-  "title": "Rediger tjeneste",
-  "subtitle": "Oppdater tjenesteinformasjon, galleri, priser eller slett annonsen."
-},
-"dashboardEditServiceForm": {
-  "mainInfo": "Hovedinformasjon",
-  "titleLabel": "Tjenestetittel",
-  "descriptionLabel": "Beskrivelse",
-  "whyChooseTitle": "Hvorfor velge denne tjenesten?",
-  "highlightsLabel": "Fordeler (1 linje = 1 punkt)",
-  "highlightsPlaceholder": "For eksempel:\nRask kommunikasjon\nGaranti\nTydelige frister",
-  "pointsCount": "Punkter: {count} / 6",
-  "detailsAndPrices": "Detaljer og priser",
-  "cityLabel": "By",
-  "selectCity": "Velg by",
-  "categoryLabel": "Kategori",
-  "selectCategory": "Velg kategori",
-  "responseTimeLabel": "Responstid",
-  "response1h": "Innen 1 time",
-  "response24h": "Innen 24 timer",
-  "response48h": "Innen 48 timer",
-  "priceItemsTitle": "Flere prislinjer",
-  "priceItemNamePlaceholder": "F.eks. Landingsside",
-  "priceItemPricePlaceholder": "F.eks. Fra 800 NOK",
-  "priceItemNotePlaceholder": "F.eks. Avhenger av funksjon og stil",
-  "removePriceRow": "Fjern prislinje",
-  "addPriceRow": "Legg til prislinje",
-  "imagesTitle": "Bilder",
-  "uploadButton": "Last opp bilder",
-  "uploading": "Laster opp...",
-  "imageAlt": "Bilde",
-  "removeImage": "Fjern",
-  "noImages": "Ingen bilder",
-  "imagesHelp": "Du kan laste opp flere bilder. Maks 10MB før komprimering.",
-  "activityTitle": "Aktivitet",
-  "statusLabel": "Status:",
-  "statusActive": "Aktiv",
-  "statusInactive": "Deaktivert",
-  "disableButton": "Deaktiver",
-  "enableButton": "Aktiver",
-  "deleteButton": "Slett tjeneste",
-  "saveButton": "Lagre endringer",
-  "saving": "Lagrer...",
-  "saved": "Tjenesten ble oppdatert.",
-  "saveFailed": "Kunne ikke lagre tjenesten.",
-  "deleteFailed": "Kunne ikke slette tjenesten.",
-  "toggleFailed": "Kunne ikke endre aktivitet.",
-  "enabled": "Tjenesten ble aktivert.",
-  "disabled": "Tjenesten ble deaktivert.",
-  "serverError": "Serverfeil.",
-  "deleteConfirm": "Er du sikker på at du vil slette denne tjenesten? (Soft delete: tjenesten forsvinner fra listen.)",
-  "maxImages": "Du kan laste opp maks {max} bilder.",
-  "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
-  "fileNotImage": "Velg et bilde (JPG / PNG / WEBP).",
-  "fileTooLargeBefore": "Bildet er for stort. Maks 10MB før komprimering.",
-  "fileTooLargeAfter": "Det komprimerte bildet er fortsatt for stort. Velg et mindre bilde.",
-  "uploadFailed": "Kunne ikke laste opp bilde.",
-  "urlFailed": "Kunne ikke hente bilde-URL.",
-  "imagesUploaded": "Bildene er lastet opp. Husk å lagre endringene.",
-  "genericError": "Det oppstod en feil ved opplasting av bilde."
-},
+  "dashboardEditServicePage": {
+    "title": "Rediger tjeneste",
+    "subtitle": "Oppdater tjenesteinformasjon, galleri, priser eller slett annonsen."
+  },
+  "dashboardEditServiceForm": {
+    "mainInfo": "Hovedinformasjon",
+    "titleLabel": "Tjenestetittel",
+    "descriptionLabel": "Beskrivelse",
+    "whyChooseTitle": "Hvorfor velge denne tjenesten?",
+    "highlightsLabel": "Fordeler (1 linje = 1 punkt)",
+    "highlightsPlaceholder": "For eksempel:\nRask kommunikasjon\nGaranti\nTydelige frister",
+    "pointsCount": "Punkter: {count} / 6",
+    "detailsAndPrices": "Detaljer og priser",
+    "cityLabel": "By",
+    "selectCity": "Velg by",
+    "categoryLabel": "Kategori",
+    "selectCategory": "Velg kategori",
+    "responseTimeLabel": "Responstid",
+    "response1h": "Innen 1 time",
+    "response24h": "Innen 24 timer",
+    "response48h": "Innen 48 timer",
+    "priceItemsTitle": "Flere prislinjer",
+    "priceItemNamePlaceholder": "F.eks. Landingsside",
+    "priceItemPricePlaceholder": "F.eks. Fra 800 NOK",
+    "priceItemNotePlaceholder": "F.eks. Avhenger av funksjon og stil",
+    "removePriceRow": "Fjern prislinje",
+    "addPriceRow": "Legg til prislinje",
+    "imagesTitle": "Bilder",
+    "uploadButton": "Last opp bilder",
+    "uploading": "Laster opp...",
+    "imageAlt": "Bilde",
+    "removeImage": "Fjern",
+    "noImages": "Ingen bilder",
+    "imagesHelp": "Du kan laste opp flere bilder. Maks 10MB før komprimering.",
+    "activityTitle": "Aktivitet",
+    "statusLabel": "Status:",
+    "statusActive": "Aktiv",
+    "statusInactive": "Deaktivert",
+    "disableButton": "Deaktiver",
+    "enableButton": "Aktiver",
+    "deleteButton": "Slett tjeneste",
+    "saveButton": "Lagre endringer",
+    "saving": "Lagrer...",
+    "saved": "Tjenesten ble oppdatert.",
+    "saveFailed": "Kunne ikke lagre tjenesten.",
+    "deleteFailed": "Kunne ikke slette tjenesten.",
+    "toggleFailed": "Kunne ikke endre aktivitet.",
+    "enabled": "Tjenesten ble aktivert.",
+    "disabled": "Tjenesten ble deaktivert.",
+    "serverError": "Serverfeil.",
+    "deleteConfirm": "Er du sikker på at du vil slette denne tjenesten? (Soft delete: tjenesten forsvinner fra listen.)",
+    "maxImages": "Du kan laste opp maks {max} bilder.",
+    "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
+    "fileNotImage": "Velg et bilde (JPG / PNG / WEBP).",
+    "fileTooLargeBefore": "Bildet er for stort. Maks 10MB før komprimering.",
+    "fileTooLargeAfter": "Det komprimerte bildet er fortsatt for stort. Velg et mindre bilde.",
+    "uploadFailed": "Kunne ikke laste opp bilde.",
+    "urlFailed": "Kunne ikke hente bilde-URL.",
+    "imagesUploaded": "Bildene er lastet opp. Husk å lagre endringene.",
+    "genericError": "Det oppstod en feil ved opplasting av bilde."
+  },
   "becomeProviderPage": {
-  "title": "Bli tjenesteleverandør på Linkseta",
-  "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
-  "noteStrong": "Free Trial er aktiv nå.",
-  "noteText": "Basic- og Premium-planene blir aktivert senere.",
-  "recommended": "Anbefalt",
-  "comingSoon": "Kommer snart",
-  "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
-  "buttonBusy": "Behandler...",
-  "buttonSoon": "Snart",
-  "buttonStartTrial": "Start Free Trial",
-  "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 3 bilder i galleriet.",
-  "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
-  "errors": {
-    "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
-    "server": "Serverfeil. Prøv igjen."
-  },
-  "plans": {
-    "freeTrial": {
-      "name": "Free Trial",
-      "priceLabel": "0 NOK / 30 dager",
-      "description": "Prøv Linkseta uten risiko og se om plattformen passer tjenestene dine.",
-      "features": [
-        "1 aktiv annonse",
-        "Opptil 3 bilder i galleriet",
-        "30 dagers gratis prøveperiode"
-      ]
+    "title": "Bli tjenesteleverandør på Linkseta",
+    "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
+    "noteStrong": "Free Trial er aktiv nå.",
+    "noteText": "Basic- og Premium-planene blir aktivert senere.",
+    "recommended": "Anbefalt",
+    "comingSoon": "Kommer snart",
+    "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
+    "buttonBusy": "Behandler...",
+    "buttonSoon": "Snart",
+    "buttonStartTrial": "Start Free Trial",
+    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 3 bilder i galleriet.",
+    "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
+    "errors": {
+      "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
+      "server": "Serverfeil. Prøv igjen."
     },
-    "basic": {
-      "name": "Basic",
-      "priceLabel": "149 NOK / måned",
-      "description": "Et godt valg for en individuell leverandør som ønsker mer synlighet.",
-      "features": [
-        "Opptil 3 aktive annonser",
-        "Opptil 5 bilder per annonse",
-        "Enkel administrasjon fra panelet"
-      ]
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 dager",
+        "description": "Prøv Linkseta uten risiko og se om plattformen passer tjenestene dine.",
+        "features": [
+          "1 aktiv annonse",
+          "Opptil 3 bilder i galleriet",
+          "30 dagers gratis prøveperiode"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "149 NOK / måned",
+        "description": "Et godt valg for en individuell leverandør som ønsker mer synlighet.",
+        "features": [
+          "Opptil 3 aktive annonser",
+          "Opptil 5 bilder per annonse",
+          "Enkel administrasjon fra panelet"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "299 NOK / måned",
+        "description": "For dem som ønsker maksimal frihet og sterkere synlighet.",
+        "features": [
+          "Opptil 10 aktive annonser",
+          "Opptil 15 bilder per annonse",
+          "TOP-status"
+        ]
+      }
     },
-    "premium": {
-      "name": "Premium",
-      "priceLabel": "299 NOK / måned",
-      "description": "For dem som ønsker maksimal frihet og sterkere synlighet.",
-      "features": [
-        "Opptil 10 aktive annonser",
-        "Opptil 15 bilder per annonse",
-        "TOP-status"
-      ]
-    }
-  },
-  "faq": {
-    "title": "Ofte stilte spørsmål",
-    "items": {
-      "first": {
-        "q": "Blir penger trukket automatisk etter Free Trial?",
-        "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
-      },
-      "second": {
-        "q": "Må jeg oppgi kortinformasjon?",
-        "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
-      },
-      "third": {
-        "q": "Hvordan kan jeg slutte å bruke det?",
-        "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
-      },
-      "fourth": {
-        "q": "Hva får jeg i Free Trial?",
-        "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 3 bilder for å teste plattformen."
-      },
-      "fifth": {
-        "q": "Når blir de betalte planene tilgjengelige?",
-        "a": "Basic- og Premium-planene blir tilgjengelige snart."
+    "faq": {
+      "title": "Ofte stilte spørsmål",
+      "items": {
+        "first": {
+          "q": "Blir penger trukket automatisk etter Free Trial?",
+          "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
+        },
+        "second": {
+          "q": "Må jeg oppgi kortinformasjon?",
+          "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
+        },
+        "third": {
+          "q": "Hvordan kan jeg slutte å bruke det?",
+          "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
+        },
+        "fourth": {
+          "q": "Hva får jeg i Free Trial?",
+          "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 3 bilder for å teste plattformen."
+        },
+        "fifth": {
+          "q": "Når blir de betalte planene tilgjengelige?",
+          "a": "Basic- og Premium-planene blir tilgjengelige snart."
+        }
       }
     }
-  }
-},
+  },
   "profileCard": {
     "provider": "Tjenesteleverandør",
     "user": "Bruker",
@@ -432,228 +432,231 @@
       "generic": "Det oppstod en feil."
     }
   },
-   "dashboardNewServicePage": {
+  "dashboardNewServicePage": {
     "title": "Ny tjeneste",
     "subtitle": "Fyll ut skjemaet og opprett tjenesteannonsen din. Du kan redigere den senere fra kontoen din."
   },
   "dashboardNewServiceForm": {
-  "titleLabel": "Tittel",
-  "titlePlaceholder": "F.eks. Elektriker i Oslo",
-  "cityLabel": "By",
-  "categoryLabel": "Kategori",
-  "priceLabel": "Hovedpris fra: (NOK)",
-  "pricePlaceholder": "F.eks. 500",
-  "priceItemsTitle": "Flere prislinjer",
-  "priceItemNamePlaceholder": "F.eks. Kaker",
-  "priceItemPricePlaceholder": "F.eks. fra 650 NOK",
-  "priceItemNotePlaceholder": "F.eks. Pris avhenger av størrelse",
-  "addPriceItem": "Legg til prislinje",
-  "addPriceRow": "Legg til prislinje",
-  "descriptionLabel": "Beskrivelse",
-  "descriptionPlaceholder": "Beskriv så tydelig som mulig hva du tilbyr.",
-  "highlightsTitle": "Hvorfor velge meg? (valgfritt)",
-  "highlightsHint": "Du kan skrive inn 1–3 punkter med ✅",
-  "highlightPlaceholder1": "F.eks. Rask oppmøte",
-  "highlightPlaceholder2": "F.eks. 5 års erfaring",
-  "highlightPlaceholder3": "F.eks. Garanti på arbeid",
-  "galleryLabel": "Galleri-bilder (valgfritt)",
-  "uploading": "Bildene komprimeres og lastes opp...",
-  "previewAlt": "Forhåndsvisning {index}",
-  "remove": "Fjern",
-  "creating": "Oppretter...",
-  "submit": "Opprett tjeneste",
+    "titleLabel": "Tittel",
+    "titlePlaceholder": "F.eks. Elektriker i Oslo",
+    "cityLabel": "By",
+    "categoryLabel": "Kategori",
+    "priceLabel": "Hovedpris fra: (NOK)",
+    "pricePlaceholder": "F.eks. 500",
+    "priceItemsTitle": "Flere prislinjer",
+    "priceItemNamePlaceholder": "F.eks. Kaker",
+    "priceItemPricePlaceholder": "F.eks. fra 650 NOK",
+    "priceItemNotePlaceholder": "F.eks. Pris avhenger av størrelse",
+    "addPriceItem": "Legg til prislinje",
+    "addPriceRow": "Legg til prislinje",
+    "descriptionLabel": "Beskrivelse",
+    "descriptionPlaceholder": "Beskriv så tydelig som mulig hva du tilbyr.",
+    "highlightsTitle": "Hvorfor velge meg? (valgfritt)",
+    "highlightsHint": "Du kan skrive inn 1–3 punkter med ✅",
+    "highlightPlaceholder1": "F.eks. Rask oppmøte",
+    "highlightPlaceholder2": "F.eks. 5 års erfaring",
+    "highlightPlaceholder3": "F.eks. Garanti på arbeid",
+    "galleryLabel": "Galleri-bilder (valgfritt)",
+    "uploading": "Bildene komprimeres og lastes opp...",
+    "previewAlt": "Forhåndsvisning {index}",
+    "remove": "Fjern",
+    "creating": "Oppretter...",
+    "submit": "Opprett tjeneste",
 
-  "detailsLocationTitle": "Detaljer og lokasjon",
-  "selectCategory": "Velg kategori",
-  "selectCity": "Velg by",
-  "responseTimeLabel": "Responstid",
-  "response1h": "Innen 1 time",
-  "response24h": "Innen 24 timer",
-  "response48h": "Innen 48 timer",
-  "postcodeLabel": "Postnummer",
-  "postcodePlaceholder": "F.eks. 0001",
-  "regionLabel": "Område (valgfritt)",
-  "regionPlaceholder": "F.eks. Sentrum",
-  "pricesSectionTitle": "Priser",
-  "removePriceRow": "Fjern prislinje",
-  "uploadButton": "Last opp bilder",
-  "uploadSuccess": "Bildene ble lastet opp. Husk å lagre tjenesten.",
-  "createSuccess": "Tjenesten ble opprettet.",
-  "noImagesYet": "Ingen bilder ennå",
+    "detailsLocationTitle": "Detaljer og lokasjon",
+    "selectCategory": "Velg kategori",
+    "selectCity": "Velg by",
+    "responseTimeLabel": "Responstid",
+    "response1h": "Innen 1 time",
+    "response24h": "Innen 24 timer",
+    "response48h": "Innen 48 timer",
+    "postcodeLabel": "Postnummer",
+    "postcodePlaceholder": "F.eks. 0001",
+    "regionLabel": "Område (valgfritt)",
+    "regionPlaceholder": "F.eks. Sentrum",
+    "pricesSectionTitle": "Priser",
+    "removePriceRow": "Fjern prislinje",
+    "uploadButton": "Last opp bilder",
+    "uploadSuccess": "Bildene ble lastet opp. Husk å lagre tjenesten.",
+    "createSuccess": "Tjenesten ble opprettet.",
+    "noImagesYet": "Ingen bilder ennå",
 
-  "errors": {
-    "maxImages": "Du kan laste opp maks {max} bilder.",
-    "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
-    "fileNotImage": "En av de valgte filene er ikke et bilde.",
-    "fileTooLargeBeforeCompression": "Ett av bildene er for stort (maks ca. 10MB før komprimering).",
-    "fileTooLargeAfterCompression": "Ett av de komprimerte bildene er fortsatt for stort.",
-    "uploadOneFailed": "Kunne ikke laste opp ett av bildene.",
-    "uploadGeneric": "Det oppstod en feil ved opplasting av bilder.",
-    "csrfOrForbidden": "Sikkerhetssjekken feilet. Last siden på nytt og prøv igjen.",
-    "createFailed": "Kunne ikke opprette tjenesten.",
-    "generic": "Det oppstod en feil.",
-    "invalidCityPostcode": "Velg en by med gyldig postnummer.",
-    "missingRequired": "Sjekk skjemaet — noen påkrevde felt mangler."
-  }
-},
-"categories": {
-  "apskaita": "Regnskap",
-  "automobiliai": "Bil",
-  "nt": "Eiendom",
-  "statybos": "Bygg",
-  "remontas": "Reparasjon",
-  "santechnika": "Rørlegger",
-  "elektra": "Elektriker",
-  "buitin-technika": "Hvitevarer",
-  "transportas": "Transport",
-  "valymas": "Rengjøring",
-  "grois": "Skjønnhet",
-  "sveikata": "Helse",
-  "teisins-paslaugos": "Juridiske tjenester",
-  "it-paslaugos": "IT-tjenester",
-  "fotografija": "Fotografi",
-  "mokymai": "Kurs",
-  "vaik-prieira": "Barnepass",
-  "gyvn-prieira": "Dyrepass",
-  "maistas": "Mat",
-  "nam-kis": "Husholdning",
-  "kita": "Annet",
-
-  "konditerija": "Konditori",
-  "mat": "Mat",
-  "maistas-kateris": "Mat og catering",
-  "mityba": "Ernæring"
-},
-"registerPage": {
-  "title": "Registrering",
-  "subtitle": "Opprett en ny konto for å bruke tjenestene og funksjonene våre.",
-  "namePlaceholder": "Fornavn",
-  "surnamePlaceholder": "Etternavn",
-  "phonePlaceholder": "Telefon",
-  "emailPlaceholder": "E-post",
-  "companyNamePlaceholder": "Firmanavn",
-  "passwordPlaceholder": "Passord",
-  "passwordHint": "*Passordet må være minst 8 tegn langt",
-  "loading": "Oppretter...",
-  "submit": "Registrer deg",
-  "success": "Registreringen var vellykket! Vi har sendt en bekreftelsesmail. Sjekk e-posten din, også Spam eller Promotions.",
-  "alreadyHaveAccount": "Har du allerede en konto?",
-  "loginLink": "Logg inn",
-  "legalStart": "Ved å registrere deg godtar du våre",
-  "legalAnd": "og",
-  "terms": "Bruksvilkår",
-  "privacy": "Personvernerklæring",
-  "errors": {
-    "generic": "Kunne ikke registrere kontoen. Prøv igjen.",
-    "emailInUse": "Denne e-posten er allerede i bruk. Prøv å logge inn eller tilbakestille passordet.",
-    "invalidEmail": "E-postadressen er ugyldig. Sjekk den og prøv igjen.",
-    "weakPassword": "Passordet er for svakt. Bruk minst 8 tegn, helst med bokstaver og tall.",
-    "signupDisabled": "Registrering er midlertidig deaktivert. Prøv igjen senere.",
-    "tooManyRequests": "For mange forsøk på kort tid. Vent noen minutter og prøv igjen.",
-    "network": "Kunne ikke koble til serveren. Sjekk internettforbindelsen og prøv igjen.",
-    "server": "Det oppstod en serverfeil. Prøv igjen.",
-    "withReason": "Registrering mislyktes: {reason}"
-  }
-},
-"loginPage": {
-  "title": "Logg inn",
-  "emailPlaceholder": "E-post",
-  "passwordPlaceholder": "Passord",
-  "loading": "Logger inn...",
-  "submit": "Logg inn",
-  "forgotPassword": "Glemt passordet?",
-  "resetLink": "Tilbakestill",
-  "confirmedMessage": "E-posten ble bekreftet. Du kan nå logge inn.",
-  "confirmErrorMessage": "Kunne ikke bekrefte e-posten eller lenken er utløpt.",
-  "resetMessage": "Passordet ble endret. Du kan nå logge inn.",
-  "errors": {
-    "generic": "Kunne ikke logge inn. Sjekk opplysningene og prøv igjen.",
-    "invalidCredentials": "Feil e-post eller passord.",
-    "emailNotConfirmed": "E-posten er ikke bekreftet ennå. Sjekk innboksen din.",
-    "tooManyRequests": "For mange innloggingsforsøk. Vent noen minutter og prøv igjen.",
-    "network": "Kunne ikke koble til serveren. Sjekk internettforbindelsen og prøv igjen.",
-    "server": "Serverfeil. Prøv igjen.",
-    "missingFields": "Skriv inn e-post og passord.",
-    "withReason": "Innlogging mislyktes: {reason}"
-  }
-},
-"trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
-"faq": {
-  "title": "Ofte stilte spørsmål",
-  "items": {
-    "first": {
-      "q": "Blir penger trukket automatisk etter Free Trial?",
-      "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
-    },
-    "second": {
-      "q": "Må jeg oppgi kortinformasjon?",
-      "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
-    },
-    "third": {
-      "q": "Hvordan kan jeg slutte å bruke det?",
-      "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
-    },
-    "fourth": {
-      "q": "Hva får jeg i Free Trial?",
-      "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 3 bilder for å teste plattformen."
-    },
-    "fifth": {
-      "q": "Når blir de betalte planene tilgjengelige?",
-      "a": "Basic- og Premium-planene blir tilgjengelige snart."
+    "errors": {
+      "maxImages": "Du kan laste opp maks {max} bilder.",
+      "mustBeLoggedIn": "Du må være logget inn for å laste opp bilder.",
+      "fileNotImage": "En av de valgte filene er ikke et bilde.",
+      "fileTooLargeBeforeCompression": "Ett av bildene er for stort (maks ca. 10MB før komprimering).",
+      "fileTooLargeAfterCompression": "Ett av de komprimerte bildene er fortsatt for stort.",
+      "uploadOneFailed": "Kunne ikke laste opp ett av bildene.",
+      "uploadGeneric": "Det oppstod en feil ved opplasting av bilder.",
+      "csrfOrForbidden": "Sikkerhetssjekken feilet. Last siden på nytt og prøv igjen.",
+      "createFailed": "Kunne ikke opprette tjenesten.",
+      "generic": "Det oppstod en feil.",
+      "invalidCityPostcode": "Velg en by med gyldig postnummer.",
+      "missingRequired": "Sjekk skjemaet — noen påkrevde felt mangler."
     }
-  }
-},"forgotPasswordPage": {
-  "title": "Tilbakestill passord",
-  "subtitle": "Skriv inn e-posten din, så sender vi deg en lenke for å tilbakestille passordet.",
-  "emailPlaceholder": "E-post",
-  "loading": "Sender...",
-  "submit": "Send lenke",
-  "success": "Hvis denne e-posten finnes, har vi sendt en lenke for å tilbakestille passordet. Sjekk også Spam-mappen.",
-  "errors": {
-    "missingEmail": "Skriv inn e-post.",
-    "sendFailed": "Kunne ikke sende e-post for tilbakestilling av passord.",
-    "invalidEmail": "E-postadressen er ugyldig. Sjekk den og prøv igjen.",
-    "tooManyRequests": "For mange forsøk på kort tid. Vent noen minutter og prøv igjen.",
-    "network": "Kunne ikke kontakte serveren. Sjekk internettforbindelsen og prøv igjen.",
-    "server": "Serverfeil. Prøv igjen.",
-    "withReason": "Kunne ikke sende e-post: {reason}"
-  }
-},
-"resetPasswordPage": {
-  "title": "Nytt passord",
-  "subtitle": "Skriv inn et nytt passord for kontoen din.",
-  "passwordPlaceholder": "Nytt passord",
-  "confirmPlaceholder": "Gjenta passord",
-  "loading": "Lagrer...",
-  "submit": "Lagre nytt passord",
-  "success": "Passordet ble endret. Du blir sendt til innlogging om noen sekunder.",
-  "errors": {
-    "passwordTooShort": "Passordet må være minst 8 tegn.",
-    "passwordMismatch": "Passordene er ikke like.",
-    "updateFailed": "Kunne ikke oppdatere passordet.",
-    "server": "Serverfeil. Prøv igjen."
-  }
-},
-"providerRequestForm": {
-  "nameLabel": "Navn / firmanavn*",
-  "emailLabel": "E-post*",
-  "phoneLabel": "Telefon",
-  "cityLabel": "By",
-  "categoryLabel": "Kategori",
-  "messageLabel": "Tilleggsinformasjon",
-  "messagePlaceholder": "Beskriv kort hvilke tjenester du tilbyr.",
-  "selectPlaceholder": "Velg...",
-  "submit": "Send forespørsel",
-  "submitting": "Sender...",
-  "success": "Forespørselen ble sendt! Vi kontakter deg på e-post.",
-  "errors": {
-    "requiredFields": "Navn og e-post er påkrevd.",
-    "recaptcha": "Kunne ikke bekrefte at du er et menneske (reCAPTCHA). Last siden på nytt og prøv igjen.",
-    "sendFailed": "Det oppstod en feil under sending av forespørselen. Prøv igjen senere.",
-    "server": "Serverfeil. Prøv igjen senere."
-  }
-},
-"detailsLocationTitle": "Detaljer og lokasjon",
+  },
+  "categories": {
+    "apskaita": "Regnskap",
+    "automobiliai": "Bil",
+    "nt": "Eiendom",
+    "statybos": "Bygg",
+    "remontas": "Reparasjon",
+    "santechnika": "Rørlegger",
+    "elektra": "Elektriker",
+    "buitin-technika": "Hvitevarer",
+    "transportas": "Transport",
+    "valymas": "Rengjøring",
+    "grois": "Skjønnhet",
+    "sveikata": "Helse",
+    "teisins-paslaugos": "Juridiske tjenester",
+    "it-paslaugos": "IT-tjenester",
+    "fotografija": "Fotografi",
+    "mokymai": "Kurs",
+    "vaik-prieira": "Barnepass",
+    "gyvn-prieira": "Dyrepass",
+    "maistas": "Mat",
+    "nam-kis": "Husholdning",
+    "kita": "Annet",
+
+    "konditerija": "Konditori",
+    "mat": "Mat",
+    "maistas-kateris": "Mat og catering",
+    "mityba": "Ernæring"
+  },
+  "registerPage": {
+    "title": "Registrering",
+    "subtitle": "Opprett en ny konto for å bruke tjenestene og funksjonene våre.",
+    "namePlaceholder": "Fornavn",
+    "surnamePlaceholder": "Etternavn",
+    "phonePlaceholder": "Telefon",
+    "emailPlaceholder": "E-post",
+    "companyNamePlaceholder": "Firmanavn",
+    "passwordPlaceholder": "Passord",
+    "passwordHint": "*Passordet må være minst 8 tegn langt",
+    "loading": "Oppretter...",
+    "submit": "Registrer deg",
+    "success": "Registreringen var vellykket! Vi har sendt en bekreftelsesmail. Sjekk e-posten din, også Spam eller Promotions.",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "loginLink": "Logg inn",
+    "legalStart": "Ved å registrere deg godtar du våre",
+    "legalAnd": "og",
+    "terms": "Bruksvilkår",
+    "privacy": "Personvernerklæring",
+    "errors": {
+      "generic": "Kunne ikke registrere kontoen. Prøv igjen.",
+      "emailInUse": "Denne e-posten er allerede i bruk. Prøv å logge inn eller tilbakestille passordet.",
+      "invalidEmail": "E-postadressen er ugyldig. Sjekk den og prøv igjen.",
+      "weakPassword": "Passordet er for svakt. Bruk minst 8 tegn, helst med bokstaver og tall.",
+      "signupDisabled": "Registrering er midlertidig deaktivert. Prøv igjen senere.",
+      "tooManyRequests": "For mange forsøk på kort tid. Vent noen minutter og prøv igjen.",
+      "network": "Kunne ikke koble til serveren. Sjekk internettforbindelsen og prøv igjen.",
+      "server": "Det oppstod en serverfeil. Prøv igjen.",
+      "withReason": "Registrering mislyktes: {reason}"
+    }
+  },
+  "loginPage": {
+    "title": "Logg inn",
+    "emailPlaceholder": "E-post",
+    "passwordPlaceholder": "Passord",
+    "loading": "Logger inn...",
+    "submit": "Logg inn",
+    "forgotPassword": "Glemt passordet?",
+    "resetLink": "Tilbakestill",
+    "confirmedMessage": "E-posten ble bekreftet. Du kan nå logge inn.",
+    "confirmErrorMessage": "Kunne ikke bekrefte e-posten eller lenken er utløpt.",
+    "resetMessage": "Passordet ble endret. Du kan nå logge inn.",
+    "noAccount": "Har du ikke en konto?",
+    "registerLink": "Registrer deg",
+    "errors": {
+      "generic": "Kunne ikke logge inn. Sjekk opplysningene og prøv igjen.",
+      "invalidCredentials": "Feil e-post eller passord.",
+      "emailNotConfirmed": "E-posten er ikke bekreftet ennå. Sjekk innboksen din.",
+      "tooManyRequests": "For mange innloggingsforsøk. Vent noen minutter og prøv igjen.",
+      "network": "Kunne ikke koble til serveren. Sjekk internettforbindelsen og prøv igjen.",
+      "server": "Serverfeil. Prøv igjen.",
+      "missingFields": "Skriv inn e-post og passord.",
+      "withReason": "Innlogging mislyktes: {reason}"
+    }
+  },
+  "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
+  "faq": {
+    "title": "Ofte stilte spørsmål",
+    "items": {
+      "first": {
+        "q": "Blir penger trukket automatisk etter Free Trial?",
+        "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
+      },
+      "second": {
+        "q": "Må jeg oppgi kortinformasjon?",
+        "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
+      },
+      "third": {
+        "q": "Hvordan kan jeg slutte å bruke det?",
+        "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
+      },
+      "fourth": {
+        "q": "Hva får jeg i Free Trial?",
+        "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 3 bilder for å teste plattformen."
+      },
+      "fifth": {
+        "q": "Når blir de betalte planene tilgjengelige?",
+        "a": "Basic- og Premium-planene blir tilgjengelige snart."
+      }
+    }
+  },
+  "forgotPasswordPage": {
+    "title": "Tilbakestill passord",
+    "subtitle": "Skriv inn e-posten din, så sender vi deg en lenke for å tilbakestille passordet.",
+    "emailPlaceholder": "E-post",
+    "loading": "Sender...",
+    "submit": "Send lenke",
+    "success": "Hvis denne e-posten finnes, har vi sendt en lenke for å tilbakestille passordet. Sjekk også Spam-mappen.",
+    "errors": {
+      "missingEmail": "Skriv inn e-post.",
+      "sendFailed": "Kunne ikke sende e-post for tilbakestilling av passord.",
+      "invalidEmail": "E-postadressen er ugyldig. Sjekk den og prøv igjen.",
+      "tooManyRequests": "For mange forsøk på kort tid. Vent noen minutter og prøv igjen.",
+      "network": "Kunne ikke kontakte serveren. Sjekk internettforbindelsen og prøv igjen.",
+      "server": "Serverfeil. Prøv igjen.",
+      "withReason": "Kunne ikke sende e-post: {reason}"
+    }
+  },
+  "resetPasswordPage": {
+    "title": "Nytt passord",
+    "subtitle": "Skriv inn et nytt passord for kontoen din.",
+    "passwordPlaceholder": "Nytt passord",
+    "confirmPlaceholder": "Gjenta passord",
+    "loading": "Lagrer...",
+    "submit": "Lagre nytt passord",
+    "success": "Passordet ble endret. Du blir sendt til innlogging om noen sekunder.",
+    "errors": {
+      "passwordTooShort": "Passordet må være minst 8 tegn.",
+      "passwordMismatch": "Passordene er ikke like.",
+      "updateFailed": "Kunne ikke oppdatere passordet.",
+      "server": "Serverfeil. Prøv igjen."
+    }
+  },
+  "providerRequestForm": {
+    "nameLabel": "Navn / firmanavn*",
+    "emailLabel": "E-post*",
+    "phoneLabel": "Telefon",
+    "cityLabel": "By",
+    "categoryLabel": "Kategori",
+    "messageLabel": "Tilleggsinformasjon",
+    "messagePlaceholder": "Beskriv kort hvilke tjenester du tilbyr.",
+    "selectPlaceholder": "Velg...",
+    "submit": "Send forespørsel",
+    "submitting": "Sender...",
+    "success": "Forespørselen ble sendt! Vi kontakter deg på e-post.",
+    "errors": {
+      "requiredFields": "Navn og e-post er påkrevd.",
+      "recaptcha": "Kunne ikke bekrefte at du er et menneske (reCAPTCHA). Last siden på nytt og prøv igjen.",
+      "sendFailed": "Det oppstod en feil under sending av forespørselen. Prøv igjen senere.",
+      "server": "Serverfeil. Prøv igjen senere."
+    }
+  },
+  "detailsLocationTitle": "Detaljer og lokasjon",
   "selectCategory": "Velg kategori",
   "selectCity": "Velg by",
   "responseTimeLabel": "Responstid",

@@ -35,6 +35,24 @@ function clampText(x: unknown, max: number) {
   return x.trim().slice(0, max);
 }
 
+function parsePositiveInt(x: unknown) {
+  if (typeof x === "number" && Number.isFinite(x) && x > 0) {
+    return Math.floor(x);
+  }
+
+  if (typeof x === "string") {
+    const digits = x.replace(/[^\d]/g, "");
+    if (!digits) return null;
+
+    const parsed = Number.parseInt(digits, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 async function uniqueSlugGlobal(base: string) {
   let slug = base;
   let i = 2;
@@ -213,9 +231,14 @@ export async function POST(req: Request) {
     const categoryId =
       typeof body?.categoryId === "string" ? body.categoryId : null;
 
+    const cityId = typeof body?.cityId === "string" ? body.cityId : null;
+
     const locationPostcode = clampText(body?.locationPostcode, 20);
     const locationCity = clampText(body?.locationCity, 120);
     const locationRegion = clampText(body?.locationRegion, 120);
+
+    const priceMode = body?.priceMode === "fixed" ? "fixed" : "from";
+    const mainPrice = parsePositiveInt(body?.mainPrice);
 
     if (!title || !description || !locationPostcode || !locationCity) {
       return jsonNoStore({ error: "Missing fields" }, { status: 400 });
@@ -361,9 +384,10 @@ export async function POST(req: Request) {
         slug,
         description,
         categoryId,
+        cityId,
         responseTime,
-        priceFrom: null,
-        priceTo: null,
+        priceFrom: mainPrice,
+        priceTo: priceMode === "fixed" && mainPrice != null ? mainPrice : null,
         imageUrl: coverImageUrl,
         imagePath: coverImagePath,
         galleryImageUrls,
@@ -408,6 +432,8 @@ export async function POST(req: Request) {
         locationPostcode,
         locationCity,
         locationRegion,
+        priceMode,
+        mainPrice,
         plan: {
           slug: planSlug,
           name: planName,

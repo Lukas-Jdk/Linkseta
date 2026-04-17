@@ -3,9 +3,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import styles from "./ServiceCard.module.css";
-import { MapPin, CalendarDays, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 
 type Props = {
   title: string;
@@ -13,6 +13,7 @@ type Props = {
   city: string;
   category: string;
   priceFrom: number | null;
+  priceTo: number | null;
   slug: string;
   highlighted?: boolean;
   imageUrl?: string;
@@ -24,20 +25,6 @@ type Props = {
 
 function formatPriceNOK(value: number) {
   return new Intl.NumberFormat("nb-NO").format(value);
-}
-
-function formatCardDate(locale: string) {
-  const map: Record<string, string> = {
-    lt: "lt-LT",
-    en: "en-GB",
-    no: "nb-NO",
-  };
-
-  return new Intl.DateTimeFormat(map[locale] ?? "lt-LT", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
 }
 
 function formatLocationLabel(args: {
@@ -62,11 +49,26 @@ function formatLocationLabel(args: {
   return "—";
 }
 
+function formatCardPrice(
+  t: ReturnType<typeof useTranslations>,
+  priceFrom: number | null,
+  priceTo: number | null,
+) {
+  if (priceFrom == null) return null;
+
+  if (priceTo != null && priceTo === priceFrom) {
+    return `${formatPriceNOK(priceFrom)} NOK`;
+  }
+
+  return t("priceFrom", { price: formatPriceNOK(priceFrom) });
+}
+
 export default function ServiceCard({
   title,
   city,
   category,
   priceFrom,
+  priceTo,
   slug,
   highlighted = false,
   imageUrl,
@@ -76,15 +78,11 @@ export default function ServiceCard({
   locationRegion,
 }: Props) {
   const t = useTranslations("serviceCard");
-  const currentLocale = useLocale();
 
   const hasCover = Boolean(imageUrl && imageUrl.trim().length > 0);
   const defaultArt = "/logo.webp";
 
-  const priceValue =
-    priceFrom != null
-      ? t("priceFrom", { price: formatPriceNOK(priceFrom) })
-      : t("priceNegotiable");
+  const priceValue = formatCardPrice(t, priceFrom, priceTo);
 
   const locationLabel = formatLocationLabel({
     locationPostcode,
@@ -123,9 +121,7 @@ export default function ServiceCard({
           </>
         )}
 
-        {priceFrom != null && (
-          <div className={styles.priceBadge}>{priceValue}</div>
-        )}
+        {priceValue && <div className={styles.priceBadge}>{priceValue}</div>}
 
         {highlighted && (
           <div className={styles.topBadge}>
@@ -148,13 +144,6 @@ export default function ServiceCard({
           <span className={styles.infoItem}>
             <MapPin className={styles.infoIcon} />
             <span className={styles.infoText}>{locationLabel}</span>
-          </span>
-
-          <span className={styles.infoItem}>
-            <CalendarDays className={styles.infoIcon} />
-            <span className={styles.infoText}>
-              {formatCardDate(currentLocale)}
-            </span>
           </span>
         </div>
 

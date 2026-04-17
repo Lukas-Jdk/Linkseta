@@ -52,13 +52,6 @@ function pickLocalizedValue(
   return base;
 }
 
-function formatLocationCity(args: {
-  locationCity?: string | null;
-  fallbackCity?: string | null;
-}) {
-  return args.locationCity?.trim() || args.fallbackCity?.trim() || "";
-}
-
 export async function generateMetadata({
   params,
   searchParams,
@@ -195,6 +188,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         descriptionEn: true,
         descriptionNo: true,
         priceFrom: true,
+        priceTo: true,
         slug: true,
         highlighted: true,
         imageUrl: true,
@@ -263,12 +257,10 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         service.descriptionEn,
         service.descriptionNo,
       ),
-      city: formatLocationCity({
-        locationCity: service.locationCity,
-        fallbackCity: service.city?.name,
-      }),
+      city: formatCityLabel(service.city?.name, service.city?.postcode),
       category: localizedCategory,
       priceFrom: service.priceFrom,
+      priceTo: service.priceTo,
       slug: service.slug,
       highlighted: service.highlighted ?? false,
       imageUrl: service.imageUrl,

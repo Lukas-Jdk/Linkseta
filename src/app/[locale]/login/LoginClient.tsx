@@ -76,9 +76,7 @@ export default function LoginClient() {
   }, [searchParams, t]);
 
   const resetMessage = useMemo(() => {
-    return searchParams.get("reset") === "1"
-      ? t("resetMessage")
-      : null;
+    return searchParams.get("reset") === "1" ? t("resetMessage") : null;
   }, [searchParams, t]);
 
   const [email, setEmail] = useState("");
@@ -162,12 +160,21 @@ export default function LoginClient() {
             {loading ? t("loading") : t("submit")}
           </button>
 
-          <p className={styles.helperText}>
-            {t("forgotPassword")}{" "}
-            <LocalizedLink href="/forgot-password" className={styles.link}>
-              {t("resetLink")}
-            </LocalizedLink>
-          </p>
+          <div className={styles.linksBlock}>
+            <p className={styles.helperText}>
+              {t("forgotPassword")}{" "}
+              <LocalizedLink href="/forgot-password" className={styles.link}>
+                {t("resetLink")}
+              </LocalizedLink>
+            </p>
+
+            <p className={styles.helperText}>
+              {t("noAccount")}{" "}
+              <LocalizedLink href="/register" className={styles.link}>
+                {t("registerLink")}
+              </LocalizedLink>
+            </p>
+          </div>
         </form>
       </div>
     </main>

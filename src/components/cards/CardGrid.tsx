@@ -11,6 +11,7 @@ export type CardGridItem = {
   city: string;
   category: string;
   priceFrom: number | null;
+  priceTo: number | null;
   slug: string;
   highlighted?: boolean;
   imageUrl: string | null;
@@ -55,6 +56,7 @@ export default function CardGrid({
               city={item.city}
               category={item.category}
               priceFrom={item.priceFrom}
+              priceTo={item.priceTo}
               slug={item.slug}
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
@@ -71,6 +73,7 @@ export default function CardGrid({
               city={item.city}
               category={item.category}
               priceFrom={item.priceFrom}
+              priceTo={item.priceTo}
               slug={item.slug}
               highlighted={item.highlighted}
               imageUrl={item.imageUrl || ""}
