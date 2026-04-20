@@ -342,7 +342,7 @@
     "buttonBusy": "Processing...",
     "buttonSoon": "Soon",
     "buttonStartTrial": "Start Free Trial",
-    "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 3 photos in the gallery.",
+    "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 5 photos in the gallery.",
     "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
     "errors": {
       "chooseFailed": "Could not select the plan. Please try again.",
@@ -352,31 +352,32 @@
       "freeTrial": {
         "name": "Free Trial",
         "priceLabel": "0 NOK / 30 days",
-        "description": "Try Linkseta risk-free and see whether the platform fits your services.",
+        "description": "Try Linkseta risk-free.",
         "features": [
-          "1 active listing",
-          "Up to 3 gallery photos",
-          "30-day free trial"
+          "✓ 1 active listing",
+          "✓ Up to 5 gallery photos",
+          "✓ 30-day free trial"
         ]
       },
       "basic": {
         "name": "Basic",
         "priceLabel": "149 NOK / month",
-        "description": "A good option for an individual service provider who wants more visibility.",
+        "description": "",
         "features": [
-          "Up to 3 active listings",
-          "Up to 5 photos per listing",
-          "Simple management from the dashboard"
+          "✓ Up to 3 active listings",
+          "✓ Up to 15 photos per listing"
         ]
       },
       "premium": {
         "name": "Premium",
         "priceLabel": "299 NOK / month",
-        "description": "For those who want maximum freedom and stronger visibility.",
+        "description": "",
         "features": [
-          "Up to 10 active listings",
-          "Up to 15 photos per listing",
-          "TOP status"
+          "🔥 Featured on homepage",
+          "⭐ TOP position – awarded based on reviews",
+          "🚀 Increased visibility",
+          "✓ Up to 5 active listings",
+          "✓ Up to 30 photos per listing"
         ]
       }
     },

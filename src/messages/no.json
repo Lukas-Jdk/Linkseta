@@ -342,44 +342,45 @@
     "buttonBusy": "Behandler...",
     "buttonSoon": "Snart",
     "buttonStartTrial": "Start Free Trial",
-    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 3 bilder i galleriet.",
+    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 5 bilder i galleriet.",
     "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
     "errors": {
       "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
       "server": "Serverfeil. Prøv igjen."
     },
     "plans": {
-      "freeTrial": {
-        "name": "Free Trial",
-        "priceLabel": "0 NOK / 30 dager",
-        "description": "Prøv Linkseta uten risiko og se om plattformen passer tjenestene dine.",
-        "features": [
-          "1 aktiv annonse",
-          "Opptil 3 bilder i galleriet",
-          "30 dagers gratis prøveperiode"
-        ]
-      },
-      "basic": {
-        "name": "Basic",
-        "priceLabel": "149 NOK / måned",
-        "description": "Et godt valg for en individuell leverandør som ønsker mer synlighet.",
-        "features": [
-          "Opptil 3 aktive annonser",
-          "Opptil 5 bilder per annonse",
-          "Enkel administrasjon fra panelet"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "priceLabel": "299 NOK / måned",
-        "description": "For dem som ønsker maksimal frihet og sterkere synlighet.",
-        "features": [
-          "Opptil 10 aktive annonser",
-          "Opptil 15 bilder per annonse",
-          "TOP-status"
-        ]
-      }
-    },
+  "freeTrial": {
+    "name": "Free Trial",
+    "priceLabel": "0 NOK / 30 dager",
+    "description": "Prøv Linkseta uten forpliktelser.",
+    "features": [
+      "✓ 1 aktiv annonse",
+      "✓ Opptil 5 bilder i galleri",
+      "✓ 30 dagers gratis prøveperiode"
+    ]
+  },
+  "basic": {
+    "name": "Basic",
+    "priceLabel": "149 NOK / måned",
+    "description": "",
+    "features": [
+      "✓ Opptil 3 aktive annonser",
+      "✓ Opptil 15 bilder per annonse"
+    ]
+  },
+  "premium": {
+    "name": "Premium",
+    "priceLabel": "299 NOK / måned",
+    "description": "",
+    "features": [
+      "🔥 Vises på forsiden",
+      "⭐ TOPP-posisjon – bestemmes av anmeldelser",
+      "🚀 Økt synlighet",
+      "✓ Opptil 5 aktive annonser",
+      "✓ Opptil 30 bilder per annonse"
+    ]
+  }
+},
     "faq": {
       "title": "Ofte stilte spørsmål",
       "items": {

@@ -342,7 +342,7 @@
     "buttonBusy": "Vykdoma...",
     "buttonSoon": "Netrukus",
     "buttonStartTrial": "Pradėti Free Trial",
-    "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 3 nuotraukų galerijoje.",
+    "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 5 nuotraukų galerijoje.",
     "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai",
     "errors": {
       "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
@@ -352,31 +352,32 @@
       "freeTrial": {
         "name": "Free Trial",
         "priceLabel": "0 NOK / 30 dienų",
-        "description": "Išbandyk Linksetą be rizikos ir pasižiūrėk, ar platforma tinka tavo paslaugoms.",
+        "description": "Išbandyk Linksetą be įsipareigojimų.",
         "features": [
-          "1 aktyvus skelbimas",
-          "Iki 3 nuotraukų galerijoje",
-          "30 dienų nemokamas išbandymas"
+          "✓ 1 aktyvus skelbimas",
+          "✓ Iki 5 nuotraukų galerijoje",
+          "✓ 30 dienų nemokamas išbandymas"
         ]
       },
       "basic": {
         "name": "Basic",
         "priceLabel": "149 NOK / mėn",
-        "description": "Geras variantas individualiam paslaugų teikėjui, kuris nori daugiau matomumo.",
+        "description": "",
         "features": [
-          "Iki 3 aktyvių skelbimų",
-          "Iki 5 nuotraukų kiekvienam skelbimui",
-          "Paprastas valdymas iš panelės"
+          "✓ Iki 3 aktyvių skelbimų",
+          "✓ Iki 15 nuotraukų kiekvienam skelbimui"
         ]
       },
       "premium": {
         "name": "Premium",
         "priceLabel": "299 NOK / mėn",
-        "description": "Skirta tiems, kas nori maksimalios laisvės ir stipresnio matomumo.",
+        "description": "",
         "features": [
-          "Iki 10 aktyvių skelbimų",
-          "Iki 15 nuotraukų kiekvienam skelbimui",
-          "TOP statusas"
+          "🔥 Matomas pagrindiniame puslapyje",
+          "⭐ TOP pozicija - skiriama pagal atsiliepimus",
+          "🚀 Didesnis matomumas",
+          "✓ Iki 5 aktyvių skelbimų",
+          "✓ Iki 30 nuotraukų kiekvienam skelbimui"
         ]
       }
     },
