@@ -208,6 +208,8 @@ model Plan {
   maxListings         Int?
   maxImagesPerListing Int        @default(1)
   highlight           Boolean    @default(false)
+  canAppearOnHomepage Boolean    @default(false)
+  canBecomeTop        Boolean    @default(false)
   isTrial             Boolean    @default(false)
   trialDays           Int?
 

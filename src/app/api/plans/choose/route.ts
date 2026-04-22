@@ -17,16 +17,6 @@ function jsonNoStore(data: any, init?: ResponseInit) {
   return res;
 }
 
-function isAllowedPlanInBetaMode(
-  user: { role: "USER" | "ADMIN"; betaAccess: boolean },
-  planSlug: string,
-) {
-  if (user.role === "ADMIN") return true;
-  if (planSlug === "free-trial") return true;
-  if (planSlug === "beta") return Boolean(user.betaAccess);
-  return false;
-}
-
 export async function POST(req: Request) {
   return withApi(req, "POST /api/plans/choose", async () => {
     const csrfErr = requireCsrf(req);
@@ -52,22 +42,14 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Missing planSlug" }, { status: 400 });
     }
 
-    const betaOnly = process.env.BETA_ONLY === "true";
-
-    if (betaOnly) {
-      if (!isAllowedPlanInBetaMode(user, planSlug)) {
-        return jsonNoStore(
-          { error: "Šiuo metu viešai galimas tik Free Trial planas." },
-          { status: 409 },
-        );
-      }
-    } else {
-      if (planSlug === "basic" || planSlug === "premium") {
-        return jsonNoStore(
-          { error: "Apmokėjimai dar neįjungti. Kol kas galite naudoti tik Free Trial." },
-          { status: 409 },
-        );
-      }
+    if (planSlug !== "free-trial") {
+      return jsonNoStore(
+        {
+          error:
+            "Apmokėjimai dar neįjungti. Kol kas galite naudoti tik Free Trial.",
+        },
+        { status: 409 },
+      );
     }
 
     const plan = await prisma.plan.findUnique({
@@ -122,7 +104,6 @@ export async function POST(req: Request) {
       metadata: {
         planSlug: plan.slug,
         planName: plan.name,
-        betaOnly,
         autoApproved: true,
         trialEndsAt: providerProfile.trialEndsAt,
       },

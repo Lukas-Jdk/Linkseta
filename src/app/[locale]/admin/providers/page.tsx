@@ -39,6 +39,7 @@ export default async function AdminProvidersPage({ params }: Props) {
             isApproved: true,
             lifetimeFree: true,
             lifetimeFreeGrantedAt: true,
+            trialEndsAt: true,
             plan: {
               select: {
                 id: true,
@@ -48,6 +49,11 @@ export default async function AdminProvidersPage({ params }: Props) {
                 period: true,
                 highlight: true,
                 isTrial: true,
+                trialDays: true,
+                maxListings: true,
+                maxImagesPerListing: true,
+                canAppearOnHomepage: true,
+                canBecomeTop: true,
               },
             },
           },
@@ -63,6 +69,11 @@ export default async function AdminProvidersPage({ params }: Props) {
       },
     }),
     prisma.plan.findMany({
+      where: {
+        slug: {
+          in: ["free-trial", "basic", "premium"],
+        },
+      },
       orderBy: [{ priceNok: "asc" }, { name: "asc" }],
       select: {
         id: true,
@@ -72,6 +83,11 @@ export default async function AdminProvidersPage({ params }: Props) {
         period: true,
         highlight: true,
         isTrial: true,
+        trialDays: true,
+        maxListings: true,
+        maxImagesPerListing: true,
+        canAppearOnHomepage: true,
+        canBecomeTop: true,
       },
     }),
   ]);
@@ -87,6 +103,9 @@ export default async function AdminProvidersPage({ params }: Props) {
     lifetimeFreeGrantedAt: user.profile?.lifetimeFreeGrantedAt
       ? user.profile.lifetimeFreeGrantedAt.toISOString()
       : null,
+    trialEndsAt: user.profile?.trialEndsAt
+      ? user.profile.trialEndsAt.toISOString()
+      : null,
     currentPlan: user.profile?.plan
       ? {
           id: user.profile.plan.id,
@@ -96,6 +115,11 @@ export default async function AdminProvidersPage({ params }: Props) {
           period: user.profile.plan.period,
           highlight: user.profile.plan.highlight,
           isTrial: user.profile.plan.isTrial,
+          trialDays: user.profile.plan.trialDays,
+          maxListings: user.profile.plan.maxListings,
+          maxImagesPerListing: user.profile.plan.maxImagesPerListing,
+          canAppearOnHomepage: user.profile.plan.canAppearOnHomepage,
+          canBecomeTop: user.profile.plan.canBecomeTop,
         }
       : null,
   }));
@@ -108,7 +132,18 @@ export default async function AdminProvidersPage({ params }: Props) {
     period: plan.period,
     highlight: plan.highlight,
     isTrial: plan.isTrial,
+    trialDays: plan.trialDays,
+    maxListings: plan.maxListings,
+    maxImagesPerListing: plan.maxImagesPerListing,
+    canAppearOnHomepage: plan.canAppearOnHomepage,
+    canBecomeTop: plan.canBecomeTop,
   }));
 
-  return <ProvidersAdminClient rows={rows} plans={safePlans} />;
+  return (
+    <ProvidersAdminClient
+      locale={locale}
+      rows={rows}
+      plans={safePlans}
+    />
+  );
 }

@@ -98,6 +98,13 @@ export default async function AdminServicesPage({
       city: { select: { name: true } },
       category: { select: { name: true } },
       user: { select: { email: true, name: true } },
+      plan: {
+        select: {
+          slug: true,
+          name: true,
+          canAppearOnHomepage: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
     skip: (currentPage - 1) * PAGE_SIZE,
@@ -148,8 +155,7 @@ export default async function AdminServicesPage({
 
       <p className={styles.subheading} style={{ marginTop: 10 }}>
         Rodoma: <strong>{shownCount}</strong> iš <strong>{totalMatching}</strong>{" "}
-        • Puslapis <strong>{currentPage}</strong> /{" "}
-        <strong>{totalPages}</strong>
+        • Puslapis <strong>{currentPage}</strong> / <strong>{totalPages}</strong>
         {q ? (
           <>
             {" "}
@@ -174,6 +180,8 @@ export default async function AdminServicesPage({
                   <th>Kategorija</th>
                   <th>Kaina nuo</th>
                   <th>Vartotojas</th>
+                  <th>Planas</th>
+                  <th>Homepage</th>
                   <th>Statusas</th>
                   <th>Veiksmai</th>
                 </tr>
@@ -190,6 +198,10 @@ export default async function AdminServicesPage({
                       {s.user?.name
                         ? `${s.user.name} (${s.user.email ?? "be el. pašto"})`
                         : s.user?.email ?? "—"}
+                    </td>
+                    <td>{s.plan?.name ?? "—"}</td>
+                    <td>
+                      {s.plan?.canAppearOnHomepage ? "Automatiškai" : "Ne"}
                     </td>
                     <td>
                       {s.isActive ? (

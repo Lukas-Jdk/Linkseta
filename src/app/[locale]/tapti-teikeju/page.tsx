@@ -22,10 +22,28 @@ function loginUrl(locale: string, nextPath: string) {
   return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
 }
 
+function getPlanBadge(locale: string, slug: PlanSlug) {
+  if (locale === "en") {
+    if (slug === "premium") return "Best value";
+    if (slug === "basic") return "Good choice";
+    return "Easy start";
+  }
+
+  if (locale === "no") {
+    if (slug === "premium") return "Best verdi";
+    if (slug === "basic") return "Godt valg";
+    return "Enkel start";
+  }
+
+  if (slug === "premium") return "Geriausias pasirinkimas";
+  if (slug === "basic") return "Geras pasirinkimas";
+  return "Lengva pradžia";
+}
+
 function getDisabledButtonLabel(locale: string) {
-  if (locale === "en") return "Choose plan";
-  if (locale === "no") return "Velg plan";
-  return "Pasirinkti planą";
+  if (locale === "en") return "Coming soon";
+  if (locale === "no") return "Kommer snart";
+  return "Netrukus";
 }
 
 export default function TaptiTeikejuPage() {
@@ -159,11 +177,7 @@ export default function TaptiTeikejuPage() {
                 >
                   <div className={styles.planTop}>
                     <span className={styles.planBadge}>
-                      {plan.slug === "premium"
-                        ? "Best value"
-                        : plan.slug === "basic"
-                          ? "Good choice"
-                          : "Easy start"}
+                      {getPlanBadge(locale, plan.slug)}
                     </span>
 
                     {plan.recommended && (
@@ -176,12 +190,13 @@ export default function TaptiTeikejuPage() {
                   <div className={styles.planHeader}>
                     <h2 className={styles.planName}>{plan.name}</h2>
                     <p className={styles.planPrice}>{plan.priceLabel}</p>
-                    <p className={styles.planDescription}>
-                      {plan.description}
-                    </p>
+                    {plan.description ? (
+                      <p className={styles.planDescription}>
+                        {plan.description}
+                      </p>
+                    ) : null}
                   </div>
 
-                  {/* FEATURES */}
                   <ul className={styles.featuresList}>
                     {plan.features.map((feature, i) => (
                       <li key={i} className={styles.featureItem}>

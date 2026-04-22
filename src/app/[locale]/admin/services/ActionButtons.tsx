@@ -32,7 +32,7 @@ async function readJsonIfPossible(res: Response): Promise<unknown | null> {
   }
 }
 
-export default function ActionButtons({ id, isActive, highlighted }: ActionProps) {
+export default function ActionButtons({ id, isActive }: ActionProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +44,7 @@ export default function ActionButtons({ id, isActive, highlighted }: ActionProps
     };
   }, []);
 
-  async function doPatch(
-    payload: { isActive?: boolean; highlighted?: boolean },
-    fallbackMsg: string,
-  ) {
+  async function doPatch(payload: { isActive?: boolean }, fallbackMsg: string) {
     try {
       if (mountedRef.current) setError(null);
 
@@ -90,17 +87,6 @@ export default function ActionButtons({ id, isActive, highlighted }: ActionProps
         className={isActive ? styles.btnSecondary : styles.btnPrimary}
       >
         {isActive ? "Išjungti" : "Įjungti"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() =>
-          doPatch({ highlighted: !highlighted }, "Nepavyko atnaujinti TOP statuso.")
-        }
-        disabled={pending}
-        className={highlighted ? styles.btnSecondary : styles.btnHighlight}
-      >
-        {highlighted ? "Nuimti TOP" : "Pažymėti TOP"}
       </button>
 
       {error && <p className={styles.inlineError}>{error}</p>}

@@ -342,8 +342,8 @@
     "buttonBusy": "Vykdoma...",
     "buttonSoon": "Netrukus",
     "buttonStartTrial": "Pradėti Free Trial",
-    "smallInfo": "Pasirinkus Free Trial būsite nukreiptas į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 5 nuotraukų galerijoje.",
-    "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai",
+    "smallInfo": "Pasirinkus Free Trial būsite nukreipti į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 5 nuotraukų galerijoje.",
+    "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai.",
     "errors": {
       "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
       "server": "Serverio klaida. Bandykite dar kartą."
@@ -362,7 +362,7 @@
       "basic": {
         "name": "Basic",
         "priceLabel": "149 NOK / mėn",
-        "description": "",
+        "description": "Patogus planas norintiems turėti daugiau aktyvių skelbimų ir daugiau nuotraukų.",
         "features": [
           "✓ Iki 3 aktyvių skelbimų",
           "✓ Iki 15 nuotraukų kiekvienam skelbimui"
@@ -371,10 +371,10 @@
       "premium": {
         "name": "Premium",
         "priceLabel": "299 NOK / mėn",
-        "description": "",
+        "description": "Skirta tiems, kas nori didesnio matomumo ir daugiau šansų būti pastebėtiems.",
         "features": [
-          "🔥 Matomas pagrindiniame puslapyje",
-          "⭐ TOP pozicija - skiriama pagal atsiliepimus",
+          "🔥 Rodomas pagrindiniame puslapyje rotacijos principu",
+          "⭐ TOP galimybė pagal atsiliepimus",
           "🚀 Didesnis matomumas",
           "✓ Iki 5 aktyvių skelbimų",
           "✓ Iki 30 nuotraukų kiekvienam skelbimui"
@@ -398,7 +398,7 @@
         },
         "fourth": {
           "q": "Ką gaunu per Free Trial?",
-          "a": "Galėsite sukurti 1 aktyvų skelbimą ir įkelti iki 3 nuotraukų, kad išbandytumėte platformą."
+          "a": "Galėsite sukurti 1 aktyvų skelbimą ir įkelti iki 5 nuotraukų, kad išbandytumėte platformą."
         },
         "fifth": {
           "q": "Kada bus prieinami mokami planai?",

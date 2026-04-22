@@ -1,4 +1,5 @@
 // src/app/api/admin/services/[id]/route.ts
+
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
@@ -15,7 +16,6 @@ function isCuidLike(id: string) {
   return typeof id === "string" && id.length >= 20 && id.length <= 40;
 }
 
-// PATCH /api/admin/services/:id
 export async function PATCH(req: Request, { params }: { params: Promise<Params> }) {
   return withApi(req, "PATCH /api/admin/services/[id]", async () => {
     const csrfErr = requireCsrf(req);
@@ -36,9 +36,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
 
     const body = await req.json().catch(() => ({} as any));
 
-    const data: { isActive?: boolean; highlighted?: boolean } = {};
+    const data: { isActive?: boolean } = {};
     if (typeof body?.isActive === "boolean") data.isActive = body.isActive;
-    if (typeof body?.highlighted === "boolean") data.highlighted = body.highlighted;
 
     if (Object.keys(data).length === 0) {
       return jsonNoStore({ error: "Nėra laukų atnaujinimui" }, { status: 400 });
@@ -48,7 +47,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
 
     const existing = await prisma.serviceListing.findUnique({
       where: { id },
-      select: { id: true, deletedAt: true, isActive: true, highlighted: true },
+      select: { id: true, deletedAt: true, isActive: true },
     });
 
     if (!existing) return jsonNoStore({ error: "Paslauga nerasta" }, { status: 404 });
@@ -59,7 +58,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
     const updated = await prisma.serviceListing.update({
       where: { id },
       data,
-      select: { id: true, isActive: true, highlighted: true },
+      select: { id: true, isActive: true },
     });
 
     await auditLog({
@@ -80,7 +79,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<Params> 
   });
 }
 
-// DELETE /api/admin/services/:id
 export async function DELETE(req: Request, { params }: { params: Promise<Params> }) {
   return withApi(req, "DELETE /api/admin/services/[id]", async () => {
     const csrfErr = requireCsrf(req);
@@ -131,7 +129,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<Params>
   });
 }
 
-// GET /api/admin/services/:id
 export async function GET(req: Request, { params }: { params: Promise<Params> }) {
   return withApi(req, "GET /api/admin/services/[id]", async () => {
     const ip = getClientIp(req);

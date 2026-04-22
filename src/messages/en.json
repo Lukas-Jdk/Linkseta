@@ -352,7 +352,7 @@
       "freeTrial": {
         "name": "Free Trial",
         "priceLabel": "0 NOK / 30 days",
-        "description": "Try Linkseta risk-free.",
+        "description": "Try Linkseta without commitment.",
         "features": [
           "✓ 1 active listing",
           "✓ Up to 5 gallery photos",
@@ -362,7 +362,7 @@
       "basic": {
         "name": "Basic",
         "priceLabel": "149 NOK / month",
-        "description": "",
+        "description": "A practical plan for providers who want more active listings and more photos.",
         "features": [
           "✓ Up to 3 active listings",
           "✓ Up to 15 photos per listing"
@@ -371,10 +371,10 @@
       "premium": {
         "name": "Premium",
         "priceLabel": "299 NOK / month",
-        "description": "",
+        "description": "Made for providers who want stronger visibility and more chances to be noticed.",
         "features": [
-          "🔥 Featured on homepage",
-          "⭐ TOP position – awarded based on reviews",
+          "🔥 Featured on homepage through rotation",
+          "⭐ TOP eligibility based on reviews",
           "🚀 Increased visibility",
           "✓ Up to 5 active listings",
           "✓ Up to 30 photos per listing"
@@ -398,7 +398,7 @@
         },
         "fourth": {
           "q": "What do I get during the Free Trial?",
-          "a": "You will be able to create 1 active listing and upload up to 3 photos to try the platform."
+          "a": "You will be able to create 1 active listing and upload up to 5 photos to try the platform."
         },
         "fifth": {
           "q": "When will paid plans be available?",

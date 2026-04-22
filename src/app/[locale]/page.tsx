@@ -1,4 +1,5 @@
 // src/app/[locale]/page.tsx
+
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
@@ -25,6 +26,9 @@ type Props = {
   searchParams: Promise<SearchParams>;
 };
 
+const HOMEPAGE_LIMIT = 6;
+const ROTATION_WINDOW_HOURS = 6;
+
 function cleanParam(value?: string) {
   return value?.trim() ?? "";
 }
@@ -45,6 +49,19 @@ function formatLocationCity(args: {
   fallbackCity?: string | null;
 }) {
   return args.locationCity?.trim() || args.fallbackCity?.trim() || "";
+}
+
+function rotateIds(ids: string[], offset: number) {
+  if (ids.length === 0) return [];
+  const normalizedOffset = ((offset % ids.length) + ids.length) % ids.length;
+  return [...ids.slice(normalizedOffset), ...ids.slice(0, normalizedOffset)];
+}
+
+function sortByIdOrder<T extends { id: string }>(items: T[], orderedIds: string[]) {
+  const order = new Map(orderedIds.map((id, index) => [id, index]));
+  return [...items].sort((a, b) => {
+    return (order.get(a.id) ?? 9999) - (order.get(b.id) ?? 9999);
+  });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -96,13 +113,13 @@ export default async function HomePage({ params, searchParams }: Props) {
   const city = cleanParam(resolved.city);
   const category = cleanParam(resolved.category);
 
-  const where: Prisma.ServiceListingWhereInput = {
+  const baseWhere: Prisma.ServiceListingWhereInput = {
     isActive: true,
     deletedAt: null,
   };
 
   if (q) {
-    where.OR = [
+    baseWhere.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { description: { contains: q, mode: "insensitive" } },
       { titleEn: { contains: q, mode: "insensitive" } },
@@ -112,91 +129,91 @@ export default async function HomePage({ params, searchParams }: Props) {
     ];
   }
 
-  if (city) where.cityId = city;
-  if (category) where.categoryId = category;
+  if (city) baseWhere.cityId = city;
+  if (category) baseWhere.categoryId = category;
 
-  const premiumServices = await prisma.serviceListing.findMany({
+  // SVARBU:
+  // homepage entitlement tikrinam pagal dabartinį provider profile planą,
+  // o ne pagal serviceListing.planId snapshot.
+  const premiumHomepageIds = await prisma.serviceListing.findMany({
     where: {
-      ...where,
-      highlighted: true,
-      plan: {
-        slug: "premium",
+      ...baseWhere,
+      user: {
+        profile: {
+          isApproved: true,
+          plan: {
+            slug: "premium",
+            canAppearOnHomepage: true,
+          },
+        },
       },
     },
     select: {
       id: true,
-      title: true,
-      titleEn: true,
-      titleNo: true,
-      description: true,
-      descriptionEn: true,
-      descriptionNo: true,
-      priceFrom: true,
-      priceTo: true,
-      slug: true,
-      highlighted: true,
-      imageUrl: true,
-      locationPostcode: true,
-      locationCity: true,
-      locationRegion: true,
-      city: {
-        select: {
-          name: true,
-        },
-      },
-      category: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 6,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 
-  const fallbackServices =
-    premiumServices.length < 6
-      ? await prisma.serviceListing.findMany({
-          where,
-          select: {
-            id: true,
-            title: true,
-            titleEn: true,
-            titleNo: true,
-            description: true,
-            descriptionEn: true,
-            descriptionNo: true,
-            priceFrom: true,
-            priceTo: true,
-            slug: true,
-            highlighted: true,
-            imageUrl: true,
-            locationPostcode: true,
-            locationCity: true,
-            locationRegion: true,
-            city: {
-              select: {
-                name: true,
-              },
-            },
-            category: {
-              select: {
-                name: true,
-                slug: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 6 - premiumServices.length,
-        })
-      : [];
+  let selectedIds = premiumHomepageIds.map((x) => x.id);
 
-  const services = [...premiumServices, ...fallbackServices];
+  if (selectedIds.length > 0) {
+    const rotationIndex =
+      Math.floor(Date.now() / (ROTATION_WINDOW_HOURS * 60 * 60 * 1000)) %
+      selectedIds.length;
+
+    selectedIds = rotateIds(selectedIds, rotationIndex).slice(0, HOMEPAGE_LIMIT);
+  }
+
+  const services =
+    selectedIds.length > 0
+      ? sortByIdOrder(
+          await prisma.serviceListing.findMany({
+            where: {
+              id: { in: selectedIds },
+              isActive: true,
+              deletedAt: null,
+              user: {
+                profile: {
+                  isApproved: true,
+                  plan: {
+                    slug: "premium",
+                    canAppearOnHomepage: true,
+                  },
+                },
+              },
+            },
+            select: {
+              id: true,
+              title: true,
+              titleEn: true,
+              titleNo: true,
+              description: true,
+              descriptionEn: true,
+              descriptionNo: true,
+              priceFrom: true,
+              priceTo: true,
+              slug: true,
+              highlighted: true,
+              imageUrl: true,
+              locationPostcode: true,
+              locationCity: true,
+              locationRegion: true,
+              city: {
+                select: {
+                  name: true,
+                },
+              },
+              category: {
+                select: {
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          }),
+          selectedIds,
+        )
+      : [];
 
   const items = services.map((s) => {
     const localizedTitle = pickLocalizedValue(

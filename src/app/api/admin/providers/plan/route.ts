@@ -1,4 +1,5 @@
 // src/app/api/admin/providers/plan/route.ts
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { requireCsrf } from "@/lib/csrf";
@@ -16,6 +17,20 @@ export const dynamic = "force-dynamic";
 
 function isCuidLike(id: string) {
   return typeof id === "string" && id.length >= 20 && id.length <= 40;
+}
+
+function revalidatePlanRelatedPages() {
+  revalidatePath("/lt");
+  revalidatePath("/en");
+  revalidatePath("/no");
+
+  revalidatePath("/lt/dashboard");
+  revalidatePath("/en/dashboard");
+  revalidatePath("/no/dashboard");
+
+  revalidatePath("/lt/admin/providers");
+  revalidatePath("/en/admin/providers");
+  revalidatePath("/no/admin/providers");
 }
 
 export async function POST(req: Request) {
@@ -48,6 +63,8 @@ export async function POST(req: Request) {
           id: string;
           slug: string;
           name: string;
+          isTrial: boolean;
+          trialDays: number | null;
         }
       | null = null;
 
@@ -58,6 +75,8 @@ export async function POST(req: Request) {
           id: true,
           slug: true,
           name: true,
+          isTrial: true,
+          trialDays: true,
         },
       });
 
@@ -68,30 +87,52 @@ export async function POST(req: Request) {
       planId = selectedPlan.id;
     }
 
-    const updated = await prisma.providerProfile.upsert({
-      where: { userId: body.userId },
-      update: {
-        planId,
-      },
-      create: {
-        userId: body.userId,
-        isApproved: false,
-        planId,
-      },
-      select: {
-        userId: true,
-        isApproved: true,
-        lifetimeFree: true,
-        lifetimeFreeGrantedAt: true,
-        lifetimeFreeGrantedBy: true,
-        plan: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
+    const trialEndsAt =
+      selectedPlan?.isTrial && typeof selectedPlan.trialDays === "number"
+        ? new Date(Date.now() + selectedPlan.trialDays * 24 * 60 * 60 * 1000)
+        : null;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const profile = await tx.providerProfile.upsert({
+        where: { userId: body.userId! },
+        update: {
+          planId,
+          trialEndsAt,
+        },
+        create: {
+          userId: body.userId!,
+          isApproved: false,
+          planId,
+          trialEndsAt,
+        },
+        select: {
+          userId: true,
+          isApproved: true,
+          lifetimeFree: true,
+          lifetimeFreeGrantedAt: true,
+          lifetimeFreeGrantedBy: true,
+          trialEndsAt: true,
+          plan: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+            },
           },
         },
-      },
+      });
+
+      await tx.serviceListing.updateMany({
+        where: {
+          userId: body.userId!,
+          deletedAt: null,
+        },
+        data: {
+          planId,
+        },
+      });
+
+      return profile;
     });
 
     await auditLog({
@@ -104,8 +145,12 @@ export async function POST(req: Request) {
       metadata: {
         targetUserId: body.userId,
         planSlug: body.planSlug ?? null,
+        trialEndsAt,
+        syncedServiceListingsPlanId: true,
       },
     });
+
+    revalidatePlanRelatedPages();
 
     return jsonNoStore(
       {

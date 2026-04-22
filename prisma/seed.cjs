@@ -140,6 +140,40 @@ async function resetServiceCategories() {
   });
 }
 
+async function removeBetaPlan() {
+  const betaPlan = await prisma.plan.findUnique({
+    where: { slug: "beta" },
+    select: { id: true },
+  });
+
+  if (!betaPlan) return;
+
+  await prisma.$transaction(async (tx) => {
+    const freeTrial = await tx.plan.findUnique({
+      where: { slug: "free-trial" },
+      select: { id: true },
+    });
+
+    if (!freeTrial) {
+      throw new Error("free-trial plan not found while removing beta");
+    }
+
+    await tx.providerProfile.updateMany({
+      where: { planId: betaPlan.id },
+      data: { planId: freeTrial.id },
+    });
+
+    await tx.serviceListing.updateMany({
+      where: { planId: betaPlan.id },
+      data: { planId: freeTrial.id },
+    });
+
+    await tx.plan.delete({
+      where: { id: betaPlan.id },
+    });
+  });
+}
+
 async function upsertPlans() {
   const plans = [
     {
@@ -148,8 +182,10 @@ async function upsertPlans() {
       priceNok: 0,
       period: "MONTHLY",
       maxListings: 1,
-      maxImagesPerListing: 3,
+      maxImagesPerListing: 5,
       highlight: false,
+      canAppearOnHomepage: false,
+      canBecomeTop: false,
       isTrial: true,
       trialDays: 30,
     },
@@ -159,8 +195,10 @@ async function upsertPlans() {
       priceNok: 149,
       period: "MONTHLY",
       maxListings: 3,
-      maxImagesPerListing: 5,
+      maxImagesPerListing: 15,
       highlight: false,
+      canAppearOnHomepage: false,
+      canBecomeTop: false,
       isTrial: false,
       trialDays: null,
     },
@@ -169,20 +207,11 @@ async function upsertPlans() {
       slug: "premium",
       priceNok: 299,
       period: "MONTHLY",
-      maxListings: 10,
-      maxImagesPerListing: 15,
+      maxListings: 5,
+      maxImagesPerListing: 30,
       highlight: true,
-      isTrial: false,
-      trialDays: null,
-    },
-    {
-      name: "Beta (tester)",
-      slug: "beta",
-      priceNok: 0,
-      period: "MONTHLY",
-      maxListings: 10,
-      maxImagesPerListing: 15,
-      highlight: true,
+      canAppearOnHomepage: true,
+      canBecomeTop: true,
       isTrial: false,
       trialDays: null,
     },
@@ -198,10 +227,24 @@ async function upsertPlans() {
         maxListings: plan.maxListings,
         maxImagesPerListing: plan.maxImagesPerListing,
         highlight: plan.highlight,
+        canAppearOnHomepage: plan.canAppearOnHomepage,
+        canBecomeTop: plan.canBecomeTop,
         isTrial: plan.isTrial,
         trialDays: plan.trialDays,
       },
-      create: plan,
+      create: {
+        name: plan.name,
+        slug: plan.slug,
+        priceNok: plan.priceNok,
+        period: plan.period,
+        maxListings: plan.maxListings,
+        maxImagesPerListing: plan.maxImagesPerListing,
+        highlight: plan.highlight,
+        canAppearOnHomepage: plan.canAppearOnHomepage,
+        canBecomeTop: plan.canBecomeTop,
+        isTrial: plan.isTrial,
+        trialDays: plan.trialDays,
+      },
     });
   }
 }
@@ -211,6 +254,7 @@ async function main() {
   await upsertCities();
   await resetServiceCategories();
   await upsertPlans();
+  await removeBetaPlan();
   console.log("Seed pabaigta ✅");
 }
 
