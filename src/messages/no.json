@@ -361,7 +361,7 @@
     },
     "basic": {
       "name": "Basic",
-      "priceLabel": "149 NOK / måned",
+      "priceLabel": "119 NOK / måned",
       "description": "En praktisk plan for dem som vil ha flere aktive annonser og flere bilder.",
       "features": [
         "✓ Opptil 3 aktive annonser",
@@ -370,11 +370,11 @@
     },
     "premium": {
       "name": "Premium",
-      "priceLabel": "299 NOK / måned",
+      "priceLabel": "249 NOK / måned",
       "description": "For dem som ønsker sterkere synlighet og flere sjanser til å bli lagt merke til.",
       "features": [
         "🔥 Vises på forsiden gjennom rotasjon",
-        "⭐ TOPP-mulighet basert på anmeldelser",
+        "⭐ TOPP mulighet basert på anmeldelser",
         "🚀 Økt synlighet",
         "✓ Opptil 5 aktive annonser",
         "✓ Opptil 30 bilder per annonse"

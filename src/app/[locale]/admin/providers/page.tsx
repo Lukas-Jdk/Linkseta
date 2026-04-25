@@ -40,6 +40,12 @@ export default async function AdminProvidersPage({ params }: Props) {
             lifetimeFree: true,
             lifetimeFreeGrantedAt: true,
             trialEndsAt: true,
+
+            stripeCustomerId: true,
+            stripeSubscriptionId: true,
+            subscriptionStatus: true,
+            currentPeriodEnd: true,
+
             plan: {
               select: {
                 id: true,
@@ -68,6 +74,7 @@ export default async function AdminProvidersPage({ params }: Props) {
         createdAt: "desc",
       },
     }),
+
     prisma.plan.findMany({
       where: {
         slug: {
@@ -92,37 +99,52 @@ export default async function AdminProvidersPage({ params }: Props) {
     }),
   ]);
 
-  const rows = users.map((user) => ({
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-    createdAt: user.createdAt.toISOString(),
-    servicesCount: user._count.services,
-    isApproved: Boolean(user.profile?.isApproved),
-    lifetimeFree: Boolean(user.profile?.lifetimeFree),
-    lifetimeFreeGrantedAt: user.profile?.lifetimeFreeGrantedAt
-      ? user.profile.lifetimeFreeGrantedAt.toISOString()
-      : null,
-    trialEndsAt: user.profile?.trialEndsAt
-      ? user.profile.trialEndsAt.toISOString()
-      : null,
-    currentPlan: user.profile?.plan
-      ? {
-          id: user.profile.plan.id,
-          slug: user.profile.plan.slug,
-          name: user.profile.plan.name,
-          priceNok: user.profile.plan.priceNok,
-          period: user.profile.plan.period,
-          highlight: user.profile.plan.highlight,
-          isTrial: user.profile.plan.isTrial,
-          trialDays: user.profile.plan.trialDays,
-          maxListings: user.profile.plan.maxListings,
-          maxImagesPerListing: user.profile.plan.maxImagesPerListing,
-          canAppearOnHomepage: user.profile.plan.canAppearOnHomepage,
-          canBecomeTop: user.profile.plan.canBecomeTop,
-        }
-      : null,
-  }));
+  const rows = users.map((user) => {
+    const profile = user.profile;
+
+    return {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      createdAt: user.createdAt.toISOString(),
+      servicesCount: user._count.services,
+
+      isApproved: Boolean(profile?.isApproved),
+
+      lifetimeFree: Boolean(profile?.lifetimeFree),
+      lifetimeFreeGrantedAt: profile?.lifetimeFreeGrantedAt
+        ? profile.lifetimeFreeGrantedAt.toISOString()
+        : null,
+
+      trialEndsAt: profile?.trialEndsAt
+        ? profile.trialEndsAt.toISOString()
+        : null,
+
+      stripeCustomerId: profile?.stripeCustomerId ?? null,
+      stripeSubscriptionId: profile?.stripeSubscriptionId ?? null,
+      subscriptionStatus: profile?.subscriptionStatus ?? null,
+      currentPeriodEnd: profile?.currentPeriodEnd
+        ? profile.currentPeriodEnd.toISOString()
+        : null,
+
+      currentPlan: profile?.plan
+        ? {
+            id: profile.plan.id,
+            slug: profile.plan.slug,
+            name: profile.plan.name,
+            priceNok: profile.plan.priceNok,
+            period: profile.plan.period,
+            highlight: profile.plan.highlight,
+            isTrial: profile.plan.isTrial,
+            trialDays: profile.plan.trialDays,
+            maxListings: profile.plan.maxListings,
+            maxImagesPerListing: profile.plan.maxImagesPerListing,
+            canAppearOnHomepage: profile.plan.canAppearOnHomepage,
+            canBecomeTop: profile.plan.canBecomeTop,
+          }
+        : null,
+    };
+  });
 
   const safePlans = plans.map((plan) => ({
     id: plan.id,
@@ -140,10 +162,6 @@ export default async function AdminProvidersPage({ params }: Props) {
   }));
 
   return (
-    <ProvidersAdminClient
-      locale={locale}
-      rows={rows}
-      plans={safePlans}
-    />
+    <ProvidersAdminClient locale={locale} rows={rows} plans={safePlans} />
   );
 }

@@ -192,7 +192,7 @@ async function upsertPlans() {
     {
       name: "Basic",
       slug: "basic",
-      priceNok: 149,
+      priceNok: 119,
       period: "MONTHLY",
       maxListings: 3,
       maxImagesPerListing: 15,
@@ -205,7 +205,7 @@ async function upsertPlans() {
     {
       name: "Premium",
       slug: "premium",
-      priceNok: 299,
+      priceNok: 249,
       period: "MONTHLY",
       maxListings: 5,
       maxImagesPerListing: 30,

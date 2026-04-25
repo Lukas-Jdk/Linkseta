@@ -57,6 +57,11 @@ model ProviderProfile {
   plan   Plan?   @relation(fields: [planId], references: [id])
 
   user User @relation(fields: [userId], references: [id])
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?
+  currentPeriodEnd     DateTime?
 }
 
 model ServiceListing {

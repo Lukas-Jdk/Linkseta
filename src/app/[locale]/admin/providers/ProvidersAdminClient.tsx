@@ -31,6 +31,10 @@ type ProviderRow = {
   lifetimeFree: boolean;
   lifetimeFreeGrantedAt: string | null;
   trialEndsAt: string | null;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  subscriptionStatus: string | null;
+  currentPeriodEnd: string | null;
   currentPlan: {
     id: string;
     slug: string;
@@ -59,7 +63,9 @@ type Feedback =
 
 function formatPlanLabel(plan: PlanRow) {
   if (plan.isTrial) {
-    return `${plan.name} · ${plan.priceNok} NOK · ${plan.trialDays ?? 0} d. trial`;
+    return `${plan.name} · ${plan.priceNok} NOK · ${
+      plan.trialDays ?? 0
+    } d. trial`;
   }
 
   const period = plan.period === "YEARLY" ? "yearly" : "monthly";
@@ -80,6 +86,41 @@ function planPrioritySlug(slug?: string | null) {
   if (slug === "basic") return 1;
   if (slug === "free-trial") return 2;
   return 9;
+}
+
+function getBillingLabel(row: ProviderRow) {
+  if (row.stripeSubscriptionId) {
+    if (row.subscriptionStatus === "active") return "Stripe aktyvus";
+    if (row.subscriptionStatus === "trialing") return "Stripe trial";
+    if (row.subscriptionStatus === "past_due") return "Stripe vėluoja";
+    if (row.subscriptionStatus === "canceled") return "Stripe atšauktas";
+    return `Stripe: ${row.subscriptionStatus ?? "nežinoma"}`;
+  }
+
+  if (row.lifetimeFree) return "Lifetime free";
+  if (row.currentPlan?.isTrial) return "Free Trial";
+  if (row.currentPlan) return "Rankinis planas";
+  return "Nėra";
+}
+
+function getBillingClass(row: ProviderRow) {
+  if (row.stripeSubscriptionId && row.subscriptionStatus === "active") {
+    return styles.badgeApproved;
+  }
+
+  if (row.stripeSubscriptionId) {
+    return styles.badgePlan;
+  }
+
+  if (row.lifetimeFree) {
+    return styles.badgeLifetime;
+  }
+
+  if (row.currentPlan?.isTrial) {
+    return styles.badgeTrial;
+  }
+
+  return styles.badgeMuted;
 }
 
 export default function ProvidersAdminClient({
@@ -103,6 +144,7 @@ export default function ProvidersAdminClient({
         item.email,
         item.currentPlan?.name ?? "",
         item.currentPlan?.slug ?? "",
+        item.subscriptionStatus ?? "",
       ]
         .join(" ")
         .toLowerCase();
@@ -283,8 +325,9 @@ export default function ProvidersAdminClient({
           <div className={styles.eyebrow}>PLANS</div>
           <h1 className={styles.title}>Planų ir providerių valdymas</h1>
           <p className={styles.subtitle}>
-            Čia gali rankiniu būdu priskirti Free Trial, Basic arba Premium planą,
-            stebėti trial pabaigą ir valdyti lifetime free kaip billing išimtį.
+            Čia gali rankiniu būdu priskirti Free Trial, Basic arba Premium
+            planą, stebėti trial pabaigą ir valdyti lifetime free kaip billing
+            išimtį.
           </p>
         </div>
         <div className={styles.heroGlow} aria-hidden="true" />
@@ -338,7 +381,9 @@ export default function ProvidersAdminClient({
       </div>
 
       {feedback && (
-        <div className={feedback.type === "error" ? styles.error : styles.success}>
+        <div
+          className={feedback.type === "error" ? styles.error : styles.success}
+        >
           {feedback.text}
         </div>
       )}
@@ -352,6 +397,7 @@ export default function ProvidersAdminClient({
                 <th>Patvirtintas</th>
                 <th>Skelbimai</th>
                 <th>Dabartinis planas</th>
+                <th>Apmokėjimas</th>
                 <th>Plano galimybės</th>
                 <th>Trial pabaiga</th>
                 <th>Lifetime free</th>
@@ -375,7 +421,8 @@ export default function ProvidersAdminClient({
                         </div>
                         <div className={styles.userEmail}>{row.email}</div>
                         <div className={styles.userMeta}>
-                          Sukurta: {new Date(row.createdAt).toLocaleString("lt-LT")}
+                          Sukurta:{" "}
+                          {new Date(row.createdAt).toLocaleString("lt-LT")}
                         </div>
                       </div>
                     </td>
@@ -393,7 +440,9 @@ export default function ProvidersAdminClient({
                     </td>
 
                     <td>
-                      <span className={styles.countBadge}>{row.servicesCount}</span>
+                      <span className={styles.countBadge}>
+                        {row.servicesCount}
+                      </span>
                     </td>
 
                     <td>
@@ -419,6 +468,20 @@ export default function ProvidersAdminClient({
                       ) : (
                         <span className={styles.badgeMuted}>Be plano</span>
                       )}
+                    </td>
+
+                    <td>
+                      <div className={styles.planCell}>
+                        <span className={getBillingClass(row)}>
+                          {getBillingLabel(row)}
+                        </span>
+
+                        {row.currentPeriodEnd ? (
+                          <div className={styles.planMeta}>
+                            Iki: {formatDateTime(row.currentPeriodEnd)}
+                          </div>
+                        ) : null}
+                      </div>
                     </td>
 
                     <td>
@@ -522,7 +585,7 @@ export default function ProvidersAdminClient({
 
               {filteredAndSorted.length === 0 && (
                 <tr>
-                  <td colSpan={10} className={styles.empty}>
+                  <td colSpan={11} className={styles.empty}>
                     Providerių nerasta.
                   </td>
                 </tr>

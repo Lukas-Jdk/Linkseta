@@ -361,7 +361,7 @@
       },
       "basic": {
         "name": "Basic",
-        "priceLabel": "149 NOK / mėn",
+        "priceLabel": "119 NOK / mėn",
         "description": "Patogus planas norintiems turėti daugiau aktyvių skelbimų ir daugiau nuotraukų.",
         "features": [
           "✓ Iki 3 aktyvių skelbimų",
@@ -370,7 +370,7 @@
       },
       "premium": {
         "name": "Premium",
-        "priceLabel": "299 NOK / mėn",
+        "priceLabel": "249 NOK / mėn",
         "description": "Skirta tiems, kas nori didesnio matomumo ir daugiau šansų būti pastebėtiems.",
         "features": [
           "🔥 Rodomas pagrindiniame puslapyje rotacijos principu",

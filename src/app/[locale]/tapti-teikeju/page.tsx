@@ -40,10 +40,10 @@ function getPlanBadge(locale: string, slug: PlanSlug) {
   return "Lengva pradžia";
 }
 
-function getDisabledButtonLabel(locale: string) {
-  if (locale === "en") return "Coming soon";
-  if (locale === "no") return "Kommer snart";
-  return "Netrukus";
+function getPaidButtonLabel(locale: string) {
+  if (locale === "en") return "Choose plan";
+  if (locale === "no") return "Velg plan";
+  return "Pasirinkti planą";
 }
 
 export default function TaptiTeikejuPage() {
@@ -85,15 +85,16 @@ export default function TaptiTeikejuPage() {
   );
 
   async function handleChoose(planSlug: PlanSlug) {
-    if (planSlug !== "free-trial") return;
-
     setError(null);
     setLoadingSlug(planSlug);
 
     try {
-      const res = await csrfFetch("/api/plans/choose", {
+      const endpoint =
+        planSlug === "free-trial" ? "/api/plans/choose" : "/api/stripe/checkout";
+
+      const res = await csrfFetch(endpoint, {
         method: "POST",
-        body: JSON.stringify({ planSlug }),
+        body: JSON.stringify({ planSlug, locale }),
       });
 
       if (res.status === 401) {
@@ -112,6 +113,16 @@ export default function TaptiTeikejuPage() {
         return;
       }
 
+      if (planSlug === "basic" || planSlug === "premium") {
+        if (typeof json?.url === "string") {
+          window.location.href = json.url;
+          return;
+        }
+
+        setError("Nepavyko atidaryti Stripe Checkout.");
+        return;
+      }
+
       router.push(`/${locale}/dashboard`);
       router.refresh();
     } catch (e) {
@@ -123,26 +134,11 @@ export default function TaptiTeikejuPage() {
   }
 
   const faqItems = [
-    {
-      q: t("faq.items.first.q"),
-      a: t("faq.items.first.a"),
-    },
-    {
-      q: t("faq.items.second.q"),
-      a: t("faq.items.second.a"),
-    },
-    {
-      q: t("faq.items.third.q"),
-      a: t("faq.items.third.a"),
-    },
-    {
-      q: t("faq.items.fourth.q"),
-      a: t("faq.items.fourth.a"),
-    },
-    {
-      q: t("faq.items.fifth.q"),
-      a: t("faq.items.fifth.a"),
-    },
+    { q: t("faq.items.first.q"), a: t("faq.items.first.a") },
+    { q: t("faq.items.second.q"), a: t("faq.items.second.a") },
+    { q: t("faq.items.third.q"), a: t("faq.items.third.a") },
+    { q: t("faq.items.fourth.q"), a: t("faq.items.fourth.a") },
+    { q: t("faq.items.fifth.q"), a: t("faq.items.fifth.a") },
   ];
 
   return (
@@ -162,7 +158,6 @@ export default function TaptiTeikejuPage() {
           <div className={styles.plansGrid}>
             {plans.map((plan) => {
               const busy = loadingSlug === plan.slug;
-              const disabled = plan.slug !== "free-trial";
 
               return (
                 <article
@@ -190,6 +185,7 @@ export default function TaptiTeikejuPage() {
                   <div className={styles.planHeader}>
                     <h2 className={styles.planName}>{plan.name}</h2>
                     <p className={styles.planPrice}>{plan.priceLabel}</p>
+
                     {plan.description ? (
                       <p className={styles.planDescription}>
                         {plan.description}
@@ -222,13 +218,13 @@ export default function TaptiTeikejuPage() {
                             : styles.planButtonTrial
                       }`}
                       onClick={() => handleChoose(plan.slug)}
-                      disabled={disabled || busy}
+                      disabled={busy}
                     >
                       {busy
                         ? t("buttonBusy")
-                        : disabled
-                          ? getDisabledButtonLabel(locale)
-                          : t("buttonStartTrial")}
+                        : plan.slug === "free-trial"
+                          ? t("buttonStartTrial")
+                          : getPaidButtonLabel(locale)}
                     </button>
                   </div>
                 </article>

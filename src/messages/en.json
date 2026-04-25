@@ -361,7 +361,7 @@
       },
       "basic": {
         "name": "Basic",
-        "priceLabel": "149 NOK / month",
+        "priceLabel": "119 NOK / month",
         "description": "A practical plan for providers who want more active listings and more photos.",
         "features": [
           "✓ Up to 3 active listings",
@@ -370,7 +370,7 @@
       },
       "premium": {
         "name": "Premium",
-        "priceLabel": "299 NOK / month",
+        "priceLabel": "249 NOK / month",
         "description": "Made for providers who want stronger visibility and more chances to be noticed.",
         "features": [
           "🔥 Featured on homepage through rotation",
