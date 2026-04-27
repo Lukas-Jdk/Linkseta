@@ -257,7 +257,19 @@
     "edit": "Redaguoti",
     "viewServiceAria": "Peržiūrėti paslaugą",
     "editServiceAria": "Redaguoti paslaugą",
-    "manageAll": "Valdyti visas paslaugas"
+    "manageAll": "Valdyti visas paslaugas",
+    "billingTitle": "Mano planas",
+    "billingPlan": "Planas",
+    "billingStatus": "Apmokėjimas",
+    "billingValidUntil": "Galioja iki",
+    "billingStripeActive": "Stripe aktyvus",
+    "billingStripeTrial": "Stripe trial",
+    "billingStripePastDue": "Mokėjimas vėluoja",
+    "billingStripeCanceled": "Atšaukta",
+    "billingLifetime": "Lifetime free",
+    "billingFreeTrial": "Free Trial",
+    "billingManual": "Rankinis planas",
+    "billingNone": "Plano nėra"
   },
   "dashboardServicesPage": {
     "title": "Mano paslaugos",

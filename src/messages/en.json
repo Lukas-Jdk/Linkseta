@@ -17,6 +17,7 @@
   "common": {
     "brand": "Linkseta"
   },
+  
   "terms": {
     "title": "Terms of Service",
     "updated": "Updated: 2026-02-18",
@@ -35,6 +36,7 @@
     "contactTitle": "Contact",
     "contactText": "Questions: info@linkseta.com"
   },
+  
   "privacy": {
     "title": "Privacy Policy",
     "updated": "Updated: 2026-02-18",
@@ -257,7 +259,19 @@
     "edit": "Edit",
     "viewServiceAria": "View service",
     "editServiceAria": "Edit service",
-    "manageAll": "Manage all services"
+    "manageAll": "Manage all services",
+    "billingTitle": "My plan",
+    "billingPlan": "Plan",
+    "billingStatus": "Billing",
+    "billingValidUntil": "Valid until",
+    "billingStripeActive": "Stripe active",
+    "billingStripeTrial": "Stripe trial",
+    "billingStripePastDue": "Payment overdue",
+    "billingStripeCanceled": "Canceled",
+    "billingLifetime": "Lifetime free",
+    "billingFreeTrial": "Free Trial",
+    "billingManual": "Manual plan",
+    "billingNone": "No plan"
   },
   "dashboardServicesPage": {
     "title": "My services",
@@ -331,6 +345,32 @@
     "imagesUploaded": "Images uploaded. Do not forget to save changes.",
     "genericError": "An error occurred while uploading image."
   },
+  "profileCard": {
+  "provider": "Service provider",
+  "user": "User",
+  "admin": "Administrator",
+  "listings": "listings",
+  "activeProvider": "Active provider",
+  "inactiveProvider": "Inactive provider",
+  "becomeProvider": "Become a service provider"
+},
+"contactForm": {
+  "nameLabel": "Name",
+  "namePlaceholder": "Your name",
+  "emailLabel": "Email",
+  "emailPlaceholder": "your@email.com",
+  "messageLabel": "Message",
+  "messagePlaceholder": "Briefly describe your question or idea",
+  "submit": "Send message",
+  "submitting": "Sending...",
+  "success": "Message sent successfully. We will reply soon.",
+  "errors": {
+    "recaptchaNotLoaded": "reCAPTCHA has not loaded yet. Wait a few seconds and try again.",
+    "recaptchaFailed": "Could not get reCAPTCHA token.",
+    "sendFailed": "Could not send the message.",
+    "generic": "An error occurred."
+  }
+},
   "becomeProviderPage": {
     "title": "Become a service provider on Linkseta",
     "lead": "Choose a plan and get the ability to create your service listings so people in Norway can easily find you.",
@@ -341,9 +381,9 @@
     "inactivePlanTitle": "This plan is not active yet",
     "buttonBusy": "Processing...",
     "buttonSoon": "Soon",
+    "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
     "buttonStartTrial": "Start Free Trial",
     "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 5 photos in the gallery.",
-    "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
     "errors": {
       "chooseFailed": "Could not select the plan. Please try again.",
       "server": "Server error. Please try again."
@@ -530,32 +570,6 @@
       "withReason": "Login failed: {reason}"
     }
   },
-  "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
-  "faq": {
-    "title": "Frequently asked questions",
-    "items": {
-      "first": {
-        "q": "Will money be charged automatically after the Free Trial?",
-        "a": "No. After the 30-day period ends, no payment will be charged automatically. You will continue only if you choose to."
-      },
-      "second": {
-        "q": "Do I need to enter card details?",
-        "a": "No. You can start the Free Trial without payment information."
-      },
-      "third": {
-        "q": "How can I stop using it?",
-        "a": "You can stop using it at any time – there are no obligations."
-      },
-      "fourth": {
-        "q": "What do I get during the Free Trial?",
-        "a": "You will be able to create 1 active listing and upload up to 3 photos to try the platform."
-      },
-      "fifth": {
-        "q": "When will paid plans be available?",
-        "a": "Basic and Premium plans will be available soon."
-      }
-    }
-  },
   "forgotPasswordPage": {
     "title": "Reset password",
     "subtitle": "Enter your email and we will send you a password reset link.",
@@ -606,27 +620,5 @@
       "sendFailed": "An error occurred while sending the request. Please try again later.",
       "server": "Server error. Please try again later."
     }
-  },
-  "detailsLocationTitle": "Details and location",
-  "selectCategory": "Select category",
-  "selectCity": "Select city",
-  "responseTimeLabel": "Response time",
-  "response1h": "Within 1 hour",
-  "response24h": "Within 24 hours",
-  "response48h": "Within 48 hours",
-  "postcodeLabel": "Postcode",
-  "postcodePlaceholder": "E.g. 0001",
-  "regionLabel": "District (optional)",
-  "regionPlaceholder": "E.g. Sentrum",
-  "pricesSectionTitle": "Prices",
-  "removePriceRow": "Remove price row",
-  "addPriceRow": "Add price row",
-  "uploadButton": "Upload images",
-  "uploadSuccess": "Images uploaded successfully. Do not forget to save the service.",
-  "createSuccess": "Service created successfully.",
-  "noImagesYet": "No images yet",
-  "errors": {
-    "invalidCityPostcode": "Please select a city with a valid postcode.",
-    "missingRequired": "Check the form — required fields are missing."
   }
 }

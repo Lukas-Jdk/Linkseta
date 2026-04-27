@@ -257,7 +257,19 @@
     "edit": "Rediger",
     "viewServiceAria": "Vis tjeneste",
     "editServiceAria": "Rediger tjeneste",
-    "manageAll": "Administrer alle tjenester"
+    "manageAll": "Administrer alle tjenester",
+    "billingTitle": "Min plan",
+    "billingPlan": "Plan",
+    "billingStatus": "Betaling",
+    "billingValidUntil": "Gyldig til",
+    "billingStripeActive": "Stripe aktiv",
+    "billingStripeTrial": "Stripe prøveperiode",
+    "billingStripePastDue": "Betaling forsinket",
+    "billingStripeCanceled": "Kansellert",
+    "billingLifetime": "Lifetime free",
+    "billingFreeTrial": "Free Trial",
+    "billingManual": "Manuell plan",
+    "billingNone": "Ingen plan"
   },
   "dashboardServicesPage": {
     "title": "Mine tjenester",
@@ -332,81 +344,81 @@
     "genericError": "Det oppstod en feil ved opplasting av bilde."
   },
   "becomeProviderPage": {
-  "title": "Bli tjenesteleverandør på Linkseta",
-  "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
-  "noteStrong": "Free Trial er aktiv nå.",
-  "noteText": "Basic- og Premium-planene blir aktivert senere.",
-  "recommended": "Anbefalt",
-  "comingSoon": "Kommer snart",
-  "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
-  "buttonBusy": "Behandler...",
-  "buttonSoon": "Snart",
-  "buttonStartTrial": "Start Free Trial",
-  "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 5 bilder i galleriet.",
-  "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
-  "errors": {
-    "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
-    "server": "Serverfeil. Prøv igjen."
-  },
-  "plans": {
-    "freeTrial": {
-      "name": "Free Trial",
-      "priceLabel": "0 NOK / 30 dager",
-      "description": "Prøv Linkseta uten forpliktelser.",
-      "features": [
-        "✓ 1 aktiv annonse",
-        "✓ Opptil 5 bilder i galleri",
-        "✓ 30 dagers gratis prøveperiode"
-      ]
+    "title": "Bli tjenesteleverandør på Linkseta",
+    "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
+    "noteStrong": "Free Trial er aktiv nå.",
+    "noteText": "Basic- og Premium-planene blir aktivert senere.",
+    "recommended": "Anbefalt",
+    "comingSoon": "Kommer snart",
+    "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
+    "buttonBusy": "Behandler...",
+    "buttonSoon": "Snart",
+    "buttonStartTrial": "Start Free Trial",
+    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 5 bilder i galleriet.",
+    "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
+    "errors": {
+      "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
+      "server": "Serverfeil. Prøv igjen."
     },
-    "basic": {
-      "name": "Basic",
-      "priceLabel": "119 NOK / måned",
-      "description": "En praktisk plan for dem som vil ha flere aktive annonser og flere bilder.",
-      "features": [
-        "✓ Opptil 3 aktive annonser",
-        "✓ Opptil 15 bilder per annonse"
-      ]
+    "plans": {
+      "freeTrial": {
+        "name": "Free Trial",
+        "priceLabel": "0 NOK / 30 dager",
+        "description": "Prøv Linkseta uten forpliktelser.",
+        "features": [
+          "✓ 1 aktiv annonse",
+          "✓ Opptil 5 bilder i galleri",
+          "✓ 30 dagers gratis prøveperiode"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "priceLabel": "119 NOK / måned",
+        "description": "En praktisk plan for dem som vil ha flere aktive annonser og flere bilder.",
+        "features": [
+          "✓ Opptil 3 aktive annonser",
+          "✓ Opptil 15 bilder per annonse"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "priceLabel": "249 NOK / måned",
+        "description": "For dem som ønsker sterkere synlighet og flere sjanser til å bli lagt merke til.",
+        "features": [
+          "🔥 Vises på forsiden gjennom rotasjon",
+          "⭐ TOPP mulighet basert på anmeldelser",
+          "🚀 Økt synlighet",
+          "✓ Opptil 5 aktive annonser",
+          "✓ Opptil 30 bilder per annonse"
+        ]
+      }
     },
-    "premium": {
-      "name": "Premium",
-      "priceLabel": "249 NOK / måned",
-      "description": "For dem som ønsker sterkere synlighet og flere sjanser til å bli lagt merke til.",
-      "features": [
-        "🔥 Vises på forsiden gjennom rotasjon",
-        "⭐ TOPP mulighet basert på anmeldelser",
-        "🚀 Økt synlighet",
-        "✓ Opptil 5 aktive annonser",
-        "✓ Opptil 30 bilder per annonse"
-      ]
-    }
-  },
-  "faq": {
-    "title": "Ofte stilte spørsmål",
-    "items": {
-      "first": {
-        "q": "Blir penger trukket automatisk etter Free Trial?",
-        "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
-      },
-      "second": {
-        "q": "Må jeg oppgi kortinformasjon?",
-        "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
-      },
-      "third": {
-        "q": "Hvordan kan jeg slutte å bruke det?",
-        "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
-      },
-      "fourth": {
-        "q": "Hva får jeg i Free Trial?",
-        "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 5 bilder for å teste plattformen."
-      },
-      "fifth": {
-        "q": "Når blir de betalte planene tilgjengelige?",
-        "a": "Basic- og Premium-planene blir tilgjengelige snart."
+    "faq": {
+      "title": "Ofte stilte spørsmål",
+      "items": {
+        "first": {
+          "q": "Blir penger trukket automatisk etter Free Trial?",
+          "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
+        },
+        "second": {
+          "q": "Må jeg oppgi kortinformasjon?",
+          "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
+        },
+        "third": {
+          "q": "Hvordan kan jeg slutte å bruke det?",
+          "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
+        },
+        "fourth": {
+          "q": "Hva får jeg i Free Trial?",
+          "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 5 bilder for å teste plattformen."
+        },
+        "fifth": {
+          "q": "Når blir de betalte planene tilgjengelige?",
+          "a": "Basic- og Premium-planene blir tilgjengelige snart."
+        }
       }
     }
-  }
-},
+  },
   "profileCard": {
     "provider": "Tjenesteleverandør",
     "user": "Bruker",
@@ -498,32 +510,8 @@
     }
   },
   "categories": {
-    "apskaita": "Regnskap",
-    "automobiliai": "Bil",
-    "nt": "Eiendom",
-    "statybos": "Bygg",
-    "remontas": "Reparasjon",
-    "santechnika": "Rørlegger",
-    "elektra": "Elektriker",
-    "buitin-technika": "Hvitevarer",
-    "transportas": "Transport",
-    "valymas": "Rengjøring",
-    "grois": "Skjønnhet",
-    "sveikata": "Helse",
-    "teisins-paslaugos": "Juridiske tjenester",
     "it-paslaugos": "IT-tjenester",
-    "fotografija": "Fotografi",
-    "mokymai": "Kurs",
-    "vaik-prieira": "Barnepass",
-    "gyvn-prieira": "Dyrepass",
-    "maistas": "Mat",
-    "nam-kis": "Husholdning",
-    "kita": "Annet",
-
-    "konditerija": "Konditori",
-    "mat": "Mat",
-    "maistas-kateris": "Mat og catering",
-    "mityba": "Ernæring"
+    "konditerija": "Konditori"
   },
   "registerPage": {
     "title": "Registrering",
@@ -580,32 +568,6 @@
       "withReason": "Innlogging mislyktes: {reason}"
     }
   },
-  "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
-  "faq": {
-    "title": "Ofte stilte spørsmål",
-    "items": {
-      "first": {
-        "q": "Blir penger trukket automatisk etter Free Trial?",
-        "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
-      },
-      "second": {
-        "q": "Må jeg oppgi kortinformasjon?",
-        "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
-      },
-      "third": {
-        "q": "Hvordan kan jeg slutte å bruke det?",
-        "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
-      },
-      "fourth": {
-        "q": "Hva får jeg i Free Trial?",
-        "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 3 bilder for å teste plattformen."
-      },
-      "fifth": {
-        "q": "Når blir de betalte planene tilgjengelige?",
-        "a": "Basic- og Premium-planene blir tilgjengelige snart."
-      }
-    }
-  },
   "forgotPasswordPage": {
     "title": "Tilbakestill passord",
     "subtitle": "Skriv inn e-posten din, så sender vi deg en lenke for å tilbakestille passordet.",
@@ -656,27 +618,5 @@
       "sendFailed": "Det oppstod en feil under sending av forespørselen. Prøv igjen senere.",
       "server": "Serverfeil. Prøv igjen senere."
     }
-  },
-  "detailsLocationTitle": "Detaljer og lokasjon",
-  "selectCategory": "Velg kategori",
-  "selectCity": "Velg by",
-  "responseTimeLabel": "Responstid",
-  "response1h": "Innen 1 time",
-  "response24h": "Innen 24 timer",
-  "response48h": "Innen 48 timer",
-  "postcodeLabel": "Postnummer",
-  "postcodePlaceholder": "F.eks. 0001",
-  "regionLabel": "Område (valgfritt)",
-  "regionPlaceholder": "F.eks. Sentrum",
-  "pricesSectionTitle": "Priser",
-  "removePriceRow": "Fjern prislinje",
-  "addPriceRow": "Legg til prislinje",
-  "uploadButton": "Last opp bilder",
-  "uploadSuccess": "Bildene ble lastet opp. Husk å lagre tjenesten.",
-  "createSuccess": "Tjenesten ble opprettet.",
-  "noImagesYet": "Ingen bilder ennå",
-  "errors": {
-    "invalidCityPostcode": "Velg en by med gyldig postnummer.",
-    "missingRequired": "Sjekk skjemaet — påkrevde felt mangler."
   }
 }
