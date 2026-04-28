@@ -224,8 +224,12 @@ export async function PATCH(
       where: { userId: user.id },
       select: {
         trialEndsAt: true,
+        isApproved: true,
         plan: {
           select: {
+            slug: true,
+            name: true,
+            maxListings: true,
             maxImagesPerListing: true,
             isTrial: true,
           },
@@ -233,8 +237,12 @@ export async function PATCH(
       },
     });
 
+    if (!profile?.isApproved) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     if (
-      profile?.plan?.isTrial &&
+      profile.plan?.isTrial &&
       profile.trialEndsAt &&
       new Date(profile.trialEndsAt).getTime() < Date.now()
     ) {
@@ -244,10 +252,15 @@ export async function PATCH(
       );
     }
 
+    const maxListings =
+      typeof profile.plan?.maxListings === "number"
+        ? profile.plan.maxListings
+        : 1;
+
     const maxImagesPerListing =
-      typeof profile?.plan?.maxImagesPerListing === "number"
+      typeof profile.plan?.maxImagesPerListing === "number"
         ? profile.plan.maxImagesPerListing
-        : 3;
+        : 5;
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -258,6 +271,32 @@ export async function PATCH(
     }
 
     const body = await req.json().catch(() => ({} as any));
+
+    if (
+      Array.isArray(body?.galleryImageUrls) &&
+      body.galleryImageUrls.length > maxImagesPerListing
+    ) {
+      return NextResponse.json(
+        {
+          error: `Pasiekėte plano nuotraukų limitą: ${maxImagesPerListing}.`,
+          code: "PLAN_IMAGE_LIMIT",
+        },
+        { status: 409 },
+      );
+    }
+
+    if (
+      Array.isArray(body?.galleryImagePaths) &&
+      body.galleryImagePaths.length > maxImagesPerListing
+    ) {
+      return NextResponse.json(
+        {
+          error: `Pasiekėte plano nuotraukų limitą: ${maxImagesPerListing}.`,
+          code: "PLAN_IMAGE_LIMIT",
+        },
+        { status: 409 },
+      );
+    }
 
     const locale =
       body?.locale === "en" || body?.locale === "no" || body?.locale === "lt"
@@ -283,6 +322,27 @@ export async function PATCH(
 
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
+
+    if (!service.isActive && nextIsActive) {
+      const activeCount = await prisma.serviceListing.count({
+        where: {
+          userId: user.id,
+          isActive: true,
+          deletedAt: null,
+          id: { not: service.id },
+        },
+      });
+
+      if (activeCount >= maxListings) {
+        return NextResponse.json(
+          {
+            error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
+            code: "PLAN_LISTING_LIMIT",
+          },
+          { status: 409 },
+        );
+      }
+    }
 
     const nextLocationPostcode =
       body?.locationPostcode !== undefined
@@ -606,6 +666,12 @@ export async function PATCH(
         responseTime: nextResponseTime,
         priceMode: hasPriceUpdate ? nextPriceMode : undefined,
         mainPrice: hasPriceUpdate ? nextMainPrice : undefined,
+        plan: {
+          slug: profile.plan?.slug ?? null,
+          name: profile.plan?.name ?? null,
+          maxListings,
+          maxImagesPerListing,
+        },
       },
     });
 

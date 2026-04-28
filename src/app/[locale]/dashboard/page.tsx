@@ -115,6 +115,11 @@ export default async function DashboardPage({ params }: Props) {
         isActive: true,
         highlighted: true,
         imageUrl: true,
+
+        locationCity: true,
+        locationPostcode: true,
+        locationRegion: true,
+
         city: { select: { name: true } },
         category: { select: { name: true, slug: true } },
       },
@@ -128,10 +133,14 @@ export default async function DashboardPage({ params }: Props) {
 
   function getBillingStatus() {
     if (profile?.stripeSubscriptionId) {
-      if (profile.subscriptionStatus === "active") return t("billingStripeActive");
-      if (profile.subscriptionStatus === "trialing") return t("billingStripeTrial");
-      if (profile.subscriptionStatus === "past_due") return t("billingStripePastDue");
-      if (profile.subscriptionStatus === "canceled") return t("billingStripeCanceled");
+      if (profile.subscriptionStatus === "active")
+        return t("billingStripeActive");
+      if (profile.subscriptionStatus === "trialing")
+        return t("billingStripeTrial");
+      if (profile.subscriptionStatus === "past_due")
+        return t("billingStripePastDue");
+      if (profile.subscriptionStatus === "canceled")
+        return t("billingStripeCanceled");
       return profile.subscriptionStatus ?? t("billingNone");
     }
 
@@ -225,7 +234,9 @@ export default async function DashboardPage({ params }: Props) {
                 </div>
 
                 <div className={styles.billingBox}>
-                  <div className={styles.billingLabel}>{t("billingStatus")}</div>
+                  <div className={styles.billingLabel}>
+                    {t("billingStatus")}
+                  </div>
 
                   <span className={styles.billingStatusBadge}>
                     {getBillingStatus()}
@@ -303,7 +314,9 @@ export default async function DashboardPage({ params }: Props) {
                       <PackageOpen className={styles.emptyIconSvg} />
                     </div>
 
-                    <h3 className={styles.emptyTitle}>{t("emptyNotProvider")}</h3>
+                    <h3 className={styles.emptyTitle}>
+                      {t("emptyNotProvider")}
+                    </h3>
 
                     <Link
                       href={`/${locale}/tapti-teikeju`}
@@ -317,7 +330,10 @@ export default async function DashboardPage({ params }: Props) {
                 {isProviderApproved &&
                   services.map((s) => {
                     const img = s.imageUrl || "/default.png";
-                    const cityName = s.city?.name ?? "—";
+                    const cityName =
+                      [s.locationPostcode, s.locationCity || s.city?.name]
+                        .filter(Boolean)
+                        .join(" ") || "—";
                     const catName = translateCategoryName(
                       s.category?.slug,
                       s.category?.name,

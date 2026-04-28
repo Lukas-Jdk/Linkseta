@@ -26,7 +26,7 @@ export default async function NewServicePage({ params }: Props) {
     namespace: "dashboardNewServicePage",
   });
 
-  const [cities, categories] = await Promise.all([
+  const [cities, categories, profile, activeCount] = await Promise.all([
     prisma.city.findMany({
       orderBy: [{ postcode: "asc" }, { name: "asc" }],
       select: {
@@ -44,7 +44,52 @@ export default async function NewServicePage({ params }: Props) {
         slug: true,
       },
     }),
+    prisma.providerProfile.findUnique({
+      where: { userId: user.id },
+      select: {
+        isApproved: true,
+        trialEndsAt: true,
+        plan: {
+          select: {
+            name: true,
+            slug: true,
+            maxListings: true,
+            maxImagesPerListing: true,
+            isTrial: true,
+          },
+        },
+      },
+    }),
+    prisma.serviceListing.count({
+      where: {
+        userId: user.id,
+        isActive: true,
+        deletedAt: null,
+      },
+    }),
   ]);
+
+  if (!profile?.isApproved) {
+    redirect(`/${locale}/tapti-teikeju`);
+  }
+
+  const trialExpired =
+    profile.plan?.isTrial &&
+    profile.trialEndsAt &&
+    new Date(profile.trialEndsAt).getTime() < Date.now();
+
+  const planName = profile.plan?.name ?? "Free Trial";
+  const maxListings =
+    typeof profile.plan?.maxListings === "number"
+      ? profile.plan.maxListings
+      : 1;
+
+  const maxImagesPerListing =
+    typeof profile.plan?.maxImagesPerListing === "number"
+      ? profile.plan.maxImagesPerListing
+      : 5;
+
+  const canCreate = !trialExpired && activeCount < maxListings;
 
   const localizedCategories = categories.map((c) => ({
     id: c.id,
@@ -69,6 +114,14 @@ export default async function NewServicePage({ params }: Props) {
               postcode: c.postcode,
             }))}
             categories={localizedCategories}
+            planLimits={{
+              planName,
+              maxListings,
+              maxImagesPerListing,
+              activeCount,
+              canCreate,
+              trialExpired: Boolean(trialExpired),
+            }}
           />
         </div>
       </div>

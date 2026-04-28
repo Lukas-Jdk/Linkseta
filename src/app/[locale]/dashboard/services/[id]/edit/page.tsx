@@ -1,4 +1,5 @@
 // src/app/[locale]/dashboard/services/[id]/edit/page.tsx
+// src/app/[locale]/dashboard/services/[id]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
@@ -42,7 +43,10 @@ type LocalizedPriceItem = {
 };
 
 export default async function EditServicePage({ params }: PageProps) {
-  const [{ id, locale }, authUser] = await Promise.all([params, getAuthUser()]);
+  const [{ id, locale }, authUser] = await Promise.all([
+    params,
+    getAuthUser(),
+  ]);
 
   if (!authUser) redirect(`/${locale}/login`);
 
@@ -111,22 +115,50 @@ export default async function EditServicePage({ params }: PageProps) {
     redirect(`/${locale}/dashboard/services`);
   }
 
+  const profile = await prisma.providerProfile.findUnique({
+    where: { userId: authUser.id },
+    select: {
+      plan: {
+        select: {
+          maxImagesPerListing: true,
+        },
+      },
+    },
+  });
+
+  const maxImages =
+    typeof profile?.plan?.maxImagesPerListing === "number"
+      ? profile.plan.maxImagesPerListing
+      : 5;
+
   const categories = await prisma.category.findMany({
     where: { type: "SERVICE" },
     orderBy: { name: "asc" },
     select: { id: true, name: true, slug: true },
   });
 
-  const localizedPriceItems: LocalizedPriceItem[] = Array.isArray(service.priceItems)
+  const localizedPriceItems: LocalizedPriceItem[] = Array.isArray(
+    service.priceItems,
+  )
     ? service.priceItems.map((item) => ({
-        label: pickLocalizedValue(locale, item.label, item.labelEn, item.labelNo),
+        label: pickLocalizedValue(
+          locale,
+          item.label,
+          item.labelEn,
+          item.labelNo,
+        ),
         priceText: pickLocalizedValue(
           locale,
           item.priceText ?? "",
           item.priceTextEn,
           item.priceTextNo,
         ),
-        note: pickLocalizedValue(locale, item.note ?? "", item.noteEn, item.noteNo),
+        note: pickLocalizedValue(
+          locale,
+          item.note ?? "",
+          item.noteEn,
+          item.noteNo,
+        ),
       }))
     : [];
 
@@ -141,7 +173,12 @@ export default async function EditServicePage({ params }: PageProps) {
     id: service.id,
     locale,
 
-    title: pickLocalizedValue(locale, service.title, service.titleEn, service.titleNo),
+    title: pickLocalizedValue(
+      locale,
+      service.title,
+      service.titleEn,
+      service.titleNo,
+    ),
     description: pickLocalizedValue(
       locale,
       service.description,
@@ -205,7 +242,11 @@ export default async function EditServicePage({ params }: PageProps) {
         </header>
 
         <div className={styles.formCard}>
-          <EditServiceForm initial={initial} categories={localizedCategories} />
+          <EditServiceForm
+            initial={initial}
+            categories={localizedCategories}
+            maxImages={maxImages} 
+          />
         </div>
       </div>
     </main>

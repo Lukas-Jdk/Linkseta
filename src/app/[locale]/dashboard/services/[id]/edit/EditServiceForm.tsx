@@ -48,6 +48,7 @@ type InitialData = {
 type Props = {
   initial: InitialData;
   categories: Option[];
+  maxImages: number;
 };
 
 type GalleryItem = {
@@ -56,7 +57,6 @@ type GalleryItem = {
 };
 
 const BUCKET = "service-images";
-const MAX_IMAGES = 15;
 
 function parseHighlights(text: string) {
   return text
@@ -105,7 +105,11 @@ function normalizePriceNumber(value: string) {
   return parsed;
 }
 
-export default function EditServiceForm({ initial, categories }: Props) {
+export default function EditServiceForm({
+  initial,
+  categories,
+  maxImages,
+}: Props) {
   const t = useTranslations("dashboardEditServiceForm");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
@@ -113,6 +117,8 @@ export default function EditServiceForm({ initial, categories }: Props) {
 
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [pending, startTransition] = useTransition();
+
+  const maxImagesSafe = Math.max(1, Number.isFinite(maxImages) ? maxImages : 5);
 
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
@@ -182,10 +188,17 @@ export default function EditServiceForm({ initial, categories }: Props) {
     setError(null);
     setSuccess(null);
 
-    const remainingSlots = MAX_IMAGES - gallery.length;
+    const remainingSlots = maxImagesSafe - gallery.length;
+
     if (remainingSlots <= 0) {
-      setError(t("maxImages", { max: MAX_IMAGES }));
+      setError(t("maxImages", { max: maxImagesSafe }));
       return;
+    }
+
+    const selected = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      setError(t("maxImages", { max: maxImagesSafe }));
     }
 
     setUploading(true);
@@ -199,7 +212,6 @@ export default function EditServiceForm({ initial, categories }: Props) {
       }
 
       const userId = userData.user.id;
-      const selected = files.slice(0, remainingSlots);
       const uploaded: GalleryItem[] = [];
 
       for (const file of selected) {
@@ -273,9 +285,14 @@ export default function EditServiceForm({ initial, categories }: Props) {
     const highlights = parseHighlights(highlightsText);
     const normalizedMainPrice = normalizePriceNumber(mainPrice);
 
-    const cleanGallery = gallery.filter(
-      (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
-    );
+    const cleanGallery = gallery
+      .filter((item) => item.url.trim().length > 0 && item.path.trim().length > 0)
+      .slice(0, maxImagesSafe);
+
+    if (gallery.length > maxImagesSafe) {
+      setError(t("maxImages", { max: maxImagesSafe }));
+      return;
+    }
 
     const cleanPriceItems = priceItems
       .map((item) => ({
@@ -636,13 +653,19 @@ export default function EditServiceForm({ initial, categories }: Props) {
 
         <div className={styles.sectionBody}>
           <div className={styles.uploadRow}>
-            <label className={styles.uploadBtn}>
+            <label
+              className={styles.uploadBtn}
+              style={{
+                opacity: gallery.length >= maxImagesSafe ? 0.65 : 1,
+                pointerEvents: gallery.length >= maxImagesSafe ? "none" : "auto",
+              }}
+            >
               {uploading ? t("uploading") : t("uploadButton")}
               <input
                 type="file"
                 accept="image/*"
                 multiple
-                disabled={uploading || pending}
+                disabled={uploading || pending || gallery.length >= maxImagesSafe}
                 onChange={(e) => {
                   const files = e.currentTarget.files
                     ? Array.from(e.currentTarget.files)
@@ -653,6 +676,10 @@ export default function EditServiceForm({ initial, categories }: Props) {
                 }}
               />
             </label>
+
+            <span className={styles.helpText}>
+              {gallery.length}/{maxImagesSafe}
+            </span>
           </div>
 
           <div className={styles.imagePreview}>
@@ -690,7 +717,9 @@ export default function EditServiceForm({ initial, categories }: Props) {
             )}
           </div>
 
-          <p className={styles.helpText}>{t("imagesHelp")}</p>
+          <p className={styles.helpText}>
+            {t("imagesHelp")} Max: {maxImagesSafe}
+          </p>
         </div>
       </section>
 

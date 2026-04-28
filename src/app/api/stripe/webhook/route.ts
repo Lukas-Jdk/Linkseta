@@ -13,6 +13,12 @@ function toDateFromUnix(value?: number | null) {
   return new Date(value * 1000);
 }
 
+function getCurrentPeriodEnd(subscription: Stripe.Subscription) {
+  return toDateFromUnix(
+    (subscription as any).items?.data?.[0]?.current_period_end,
+  );
+}
+
 async function getSubscription(subscriptionId: string) {
   return stripe.subscriptions.retrieve(subscriptionId);
 }
@@ -73,9 +79,7 @@ export async function POST(req: Request) {
       const subscription = await getSubscription(stripeSubscriptionId);
 
       subscriptionStatus = subscription.status;
-      currentPeriodEnd = toDateFromUnix(
-        (subscription as any).current_period_end,
-      );
+      currentPeriodEnd = getCurrentPeriodEnd(subscription);
     }
 
     await prisma.providerProfile.upsert({
@@ -107,6 +111,7 @@ export async function POST(req: Request) {
       stripeCustomerId,
       stripeSubscriptionId,
       subscriptionStatus,
+      currentPeriodEnd,
     });
   }
 
@@ -115,9 +120,7 @@ export async function POST(req: Request) {
 
     const stripeSubscriptionId = subscription.id;
     const subscriptionStatus = subscription.status;
-    const currentPeriodEnd = toDateFromUnix(
-      (subscription as any).current_period_end,
-    );
+    const currentPeriodEnd = getCurrentPeriodEnd(subscription);
 
     await prisma.providerProfile.updateMany({
       where: { stripeSubscriptionId },
@@ -130,6 +133,7 @@ export async function POST(req: Request) {
     console.log("✅ Stripe subscription updated:", {
       stripeSubscriptionId,
       subscriptionStatus,
+      currentPeriodEnd,
     });
   }
 
