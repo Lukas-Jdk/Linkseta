@@ -8,6 +8,7 @@ import { getAuthUser } from "@/lib/auth";
 import { translateCategoryName } from "@/lib/categoryTranslations";
 import styles from "./dashboard.module.css";
 import ProfileCardClient from "./ProfileCardClient";
+import BillingPortalButton from "./BillingPortalButton";
 import {
   MapPin,
   Folder,
@@ -260,6 +261,15 @@ export default async function DashboardPage({ params }: Props) {
                     <Calendar className={styles.billingDateIcon} />
                     {formatNullableDate(validUntil, locale)}
                   </div>
+
+                  {profile?.stripeSubscriptionId && (
+                    <div className={styles.billingActions}>
+                      <BillingPortalButton
+                        label={t("billingManage")}
+                        loadingLabel={t("billingManageLoading")}
+                      />
+                    </div>
+                  )}
 
                   <div className={styles.billingHint}>
                     {validUntil ? "Aktyvus laikotarpis" : "Data nenurodyta"}

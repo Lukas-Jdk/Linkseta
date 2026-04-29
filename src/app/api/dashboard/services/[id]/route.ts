@@ -8,10 +8,7 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
-import {
-  translatePriceItems,
-  translateServiceContent,
-} from "@/lib/deepl";
+import { translatePriceItems, translateServiceContent } from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
@@ -71,8 +68,12 @@ function normalizeGalleryPairs(
   const pairs: GalleryPair[] = [];
 
   for (let i = 0; i < maxLen; i += 1) {
-    const url = String(urls[i] ?? "").trim().slice(0, 600);
-    const path = String(paths[i] ?? "").trim().slice(0, 300);
+    const url = String(urls[i] ?? "")
+      .trim()
+      .slice(0, 600);
+    const path = String(paths[i] ?? "")
+      .trim()
+      .slice(0, 300);
 
     if (!url || !path) continue;
 
@@ -270,7 +271,7 @@ export async function PATCH(
       );
     }
 
-    const body = await req.json().catch(() => ({} as any));
+    const body = await req.json().catch(() => ({}) as any);
 
     if (
       Array.isArray(body?.galleryImageUrls) &&
@@ -318,7 +319,7 @@ export async function PATCH(
         ? body.responseTime
         : body?.responseTime === "1h"
           ? "1h"
-          : service.responseTime ?? "1h";
+          : (service.responseTime ?? "1h");
 
     const nextIsActive =
       typeof body?.isActive === "boolean" ? body.isActive : service.isActive;
@@ -414,6 +415,18 @@ export async function PATCH(
 
     const nextTitle = clampText(body?.title, 120);
     const nextDescription = clampText(body?.description, 4000);
+    if (
+      body?.description !== undefined &&
+      (!nextDescription || nextDescription.length < 10)
+    ) {
+      return NextResponse.json(
+        {
+          error: "Aprašymas turi būti bent 10 simbolių.",
+          code: "DESCRIPTION_TOO_SHORT",
+        },
+        { status: 400 },
+      );
+    }
 
     const nextHighlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
@@ -524,28 +537,28 @@ export async function PATCH(
           : [];
     }
 
-    let nextPriceItems:
-      | Array<{
-          serviceId: string;
-          label: string;
-          labelEn: string | null;
-          labelNo: string | null;
-          priceText: string | null;
-          priceTextEn: string | null;
-          priceTextNo: string | null;
-          note: string | null;
-          noteEn: string | null;
-          noteNo: string | null;
-          sortOrder: number;
-        }>
-      | null = null;
+    let nextPriceItems: Array<{
+      serviceId: string;
+      label: string;
+      labelEn: string | null;
+      labelNo: string | null;
+      priceText: string | null;
+      priceTextEn: string | null;
+      priceTextNo: string | null;
+      note: string | null;
+      noteEn: string | null;
+      noteNo: string | null;
+      sortOrder: number;
+    }> | null = null;
 
     if (body?.priceItems !== undefined) {
       if (locale === "lt") {
-        let translatedEn: Awaited<ReturnType<typeof translatePriceItems>>["en"] =
-          [];
-        let translatedNo: Awaited<ReturnType<typeof translatePriceItems>>["no"] =
-          [];
+        let translatedEn: Awaited<
+          ReturnType<typeof translatePriceItems>
+        >["en"] = [];
+        let translatedNo: Awaited<
+          ReturnType<typeof translatePriceItems>
+        >["no"] = [];
 
         if (normalizedIncomingPriceItems.length > 0) {
           try {

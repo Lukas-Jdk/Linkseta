@@ -117,10 +117,7 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     }),
   ]);
 
-  const paginationResult = validatePaginationParams(
-    resolved.page,
-    undefined,
-  );
+  const paginationResult = validatePaginationParams(resolved.page, undefined);
 
   if ("error" in paginationResult) {
     return (
@@ -237,7 +234,9 @@ export default async function ServicesPage({ params, searchParams }: Props) {
     let localizedCategory = service.category?.name ?? "";
     if (service.category?.slug) {
       try {
-        localizedCategory = tCategories(service.category.slug);
+        localizedCategory = tCategories.has(service.category.slug)
+          ? tCategories(service.category.slug)
+          : (service.category.name ?? service.category.slug);
       } catch {
         localizedCategory = service.category.name ?? service.category.slug;
       }

@@ -746,3 +746,24 @@
     justify-content: flex-start;
   }
 }
+
+.billingManageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #06b6d4, #2563eb);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.22);
+  font-family: var(--font-primary);
+}
+
+.billingManageBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

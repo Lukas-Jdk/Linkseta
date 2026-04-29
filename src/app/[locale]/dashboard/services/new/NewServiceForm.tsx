@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { csrfFetch } from "@/lib/csrfClient";
@@ -71,12 +71,17 @@ function normalizePriceNumber(value: string) {
 function getUpgradeText(locale: string) {
   if (locale === "en") {
     return {
-      title: "Plan limit reached",
-      subtitle:
-        "Your current plan does not allow more active listings or photos. Upgrade your plan to continue.",
+      limitTitle: "Plan limits",
       currentPlan: "Current plan",
       activeListings: "Active listings",
       photosPerListing: "Photos per listing",
+      upgradeButton: "Upgrade plan",
+      listingsLimitReached: "You have reached your plan limit",
+      trialExpired: "Your Free Trial has expired.",
+      photoLimitText: "photos allowed by your plan",
+      title: "Plan limit reached",
+      subtitle:
+        "Your current plan does not allow more active listings or photos. Upgrade your plan to continue.",
       basicTitle: "Upgrade to Basic",
       basicDesc: "Up to 3 active listings and 15 photos per listing.",
       premiumTitle: "Upgrade to Premium",
@@ -85,17 +90,26 @@ function getUpgradeText(locale: string) {
       close: "Close",
       loading: "Redirecting...",
       error: "Could not start checkout. Please try again.",
+      priceModeLabel: "Estimated price on card",
+      from: "From",
+      fixed: "Fixed",
+      pricePlaceholder: "E.g. 600",
     };
   }
 
   if (locale === "no") {
     return {
-      title: "Plangrensen er nådd",
-      subtitle:
-        "Din nåværende plan tillater ikke flere aktive annonser eller bilder. Oppgrader planen for å fortsette.",
+      limitTitle: "Plangrenser",
       currentPlan: "Nåværende plan",
       activeListings: "Aktive annonser",
       photosPerListing: "Bilder per annonse",
+      upgradeButton: "Oppgrader plan",
+      listingsLimitReached: "Du har nådd plangrensen",
+      trialExpired: "Din Free Trial er utløpt.",
+      photoLimitText: "bilder tillatt av planen din",
+      title: "Plangrensen er nådd",
+      subtitle:
+        "Din nåværende plan tillater ikke flere aktive annonser eller bilder. Oppgrader planen for å fortsette.",
       basicTitle: "Oppgrader til Basic",
       basicDesc: "Opptil 3 aktive annonser og 15 bilder per annonse.",
       premiumTitle: "Oppgrader til Premium",
@@ -104,16 +118,25 @@ function getUpgradeText(locale: string) {
       close: "Lukk",
       loading: "Sender videre...",
       error: "Kunne ikke starte betaling. Prøv igjen.",
+      priceModeLabel: "Estimert pris på kortet",
+      from: "Fra",
+      fixed: "Fast",
+      pricePlaceholder: "F.eks. 600",
     };
   }
 
   return {
-    title: "Pasiektas plano limitas",
-    subtitle:
-      "Dabartinis planas neleidžia kurti daugiau aktyvių skelbimų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
+    limitTitle: "Plano limitai",
     currentPlan: "Dabartinis planas",
     activeListings: "Aktyvūs skelbimai",
     photosPerListing: "Nuotraukų vienam skelbimui",
+    upgradeButton: "Atnaujinti planą",
+    listingsLimitReached: "Pasiekėte savo plano limitą",
+    trialExpired: "Jūsų Free Trial laikotarpis baigėsi.",
+    photoLimitText: "nuotraukų pagal planą",
+    title: "Pasiektas plano limitas",
+    subtitle:
+      "Dabartinis planas neleidžia kurti daugiau aktyvių skelbimų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
     basicTitle: "Atnaujinti į Basic",
     basicDesc: "Iki 3 aktyvių skelbimų ir 15 nuotraukų kiekvienam skelbimui.",
     premiumTitle: "Atnaujinti į Premium",
@@ -122,6 +145,10 @@ function getUpgradeText(locale: string) {
     close: "Uždaryti",
     loading: "Nukreipiama...",
     error: "Nepavyko pradėti apmokėjimo. Bandyk dar kartą.",
+    priceModeLabel: "Orientacinė kaina kortelėje",
+    from: "Nuo",
+    fixed: "Fiksuota",
+    pricePlaceholder: "Pvz. 600",
   };
 }
 
@@ -136,7 +163,6 @@ export default function NewServiceForm({
   const locale = params?.locale ?? "lt";
 
   const upgradeText = getUpgradeText(locale);
-
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const [title, setTitle] = useState("");
@@ -156,7 +182,6 @@ export default function NewServiceForm({
   const [h3, setH3] = useState("");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>([emptyPriceItem()]);
-
   const [uploading, setUploading] = useState(false);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
 
@@ -165,16 +190,14 @@ export default function NewServiceForm({
     useState<UpgradePlanSlug | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const [error, setError] = useState<string | null>(
-    !planLimits.canCreate
-      ? planLimits.trialExpired
-        ? "Jūsų Free Trial laikotarpis baigėsi."
-        : `Pasiekėte savo plano limitą: ${planLimits.activeCount}/${planLimits.maxListings} aktyvūs skelbimai.`
-      : null,
-  );
-  const [success, setSuccess] = useState<string | null>(null);
+  const initialLimitMessage = !planLimits.canCreate
+    ? planLimits.trialExpired
+      ? upgradeText.trialExpired
+      : `${upgradeText.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`
+    : null;
 
-  const feedbackRef = useRef<HTMLDivElement | null>(null);
+  const [error, setError] = useState<string | null>(initialLimitMessage);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const selectedCity = useMemo(
     () => cities.find((c) => c.id === cityId) ?? null,
@@ -215,15 +238,6 @@ export default function NewServiceForm({
     submitting,
     uploading,
   ]);
-
-  useEffect(() => {
-    if (!error && !success) return;
-
-    feedbackRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, [error, success]);
 
   function openUpgradeModal(message?: string) {
     if (message) setError(message);
@@ -291,6 +305,7 @@ export default function NewServiceForm({
     }
 
     const remainingSlots = planLimits.maxImagesPerListing - gallery.length;
+
     if (remainingSlots <= 0) {
       openUpgradeModal(
         t("errors.maxImages", { max: planLimits.maxImagesPerListing }),
@@ -312,7 +327,6 @@ export default function NewServiceForm({
 
       const userId = userData.user.id;
       const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
       const uploaded: GalleryItem[] = [];
 
       for (const file of selected) {
@@ -373,14 +387,25 @@ export default function NewServiceForm({
     if (!planLimits.canCreate) {
       openUpgradeModal(
         planLimits.trialExpired
-          ? "Jūsų Free Trial laikotarpis baigėsi."
-          : `Pasiekėte savo plano limitą: ${planLimits.activeCount}/${planLimits.maxListings} aktyvūs skelbimai.`,
+          ? upgradeText.trialExpired
+          : `${upgradeText.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`,
       );
       return;
     }
 
     if (!locationCity || !locationPostcode.trim()) {
       setError(t("errors.invalidCityPostcode"));
+      return;
+    }
+
+    if (description.trim().length < 10) {
+      setError(
+        locale === "en"
+          ? "Description must be at least 10 characters"
+          : locale === "no"
+            ? "Beskrivelsen må være minst 10 tegn"
+            : "Aprašymas turi būti bent 10 simbolių",
+      );
       return;
     }
 
@@ -442,6 +467,7 @@ export default function NewServiceForm({
           (res.status === 403
             ? t("errors.csrfOrForbidden")
             : t("errors.createFailed"));
+
         throw new Error(msg);
       }
 
@@ -542,10 +568,13 @@ export default function NewServiceForm({
       )}
 
       <form className={styles.form} onSubmit={onSubmit}>
+        {error && <div className={styles.errorText}>{error}</div>}
+        {success && <div className={styles.successText}>{success}</div>}
+
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionNumber}>★</div>
-            <h2 className={styles.sectionTitle}>Plano limitai</h2>
+            <h2 className={styles.sectionTitle}>{upgradeText.limitTitle}</h2>
           </div>
 
           <div className={styles.sectionBody}>
@@ -553,7 +582,7 @@ export default function NewServiceForm({
               <div className={styles.priceCard}>
                 <strong>{planLimits.planName}</strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  Dabartinis planas
+                  {upgradeText.currentPlan}
                 </span>
               </div>
 
@@ -562,14 +591,14 @@ export default function NewServiceForm({
                   {planLimits.activeCount}/{planLimits.maxListings}
                 </strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  Aktyvūs skelbimai
+                  {upgradeText.activeListings}
                 </span>
               </div>
 
               <div className={styles.priceCard}>
                 <strong>{planLimits.maxImagesPerListing}</strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  Nuotraukų vienam skelbimui
+                  {upgradeText.photosPerListing}
                 </span>
               </div>
             </div>
@@ -580,7 +609,7 @@ export default function NewServiceForm({
                 className={styles.primaryButton}
                 onClick={() => openUpgradeModal()}
               >
-                Atnaujinti planą
+                {upgradeText.upgradeButton}
               </button>
             )}
           </div>
@@ -607,6 +636,7 @@ export default function NewServiceForm({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>{t("descriptionLabel")}</label>
+
               <textarea
                 className={styles.textarea}
                 value={description}
@@ -614,8 +644,25 @@ export default function NewServiceForm({
                 placeholder={t("descriptionPlaceholder")}
                 rows={6}
                 disabled={!planLimits.canCreate}
+                style={{
+                  border:
+                    description.length > 0 && description.length < 10
+                      ? "1px solid #ef4444"
+                      : undefined,
+                }}
               />
+
               <div className={styles.charHint}>{description.length} / 4000</div>
+
+              {description.length > 0 && description.length < 10 && (
+                <div className={styles.errorText}>
+                  {locale === "en"
+                    ? "Description must be at least 10 characters"
+                    : locale === "no"
+                      ? "Beskrivelsen må være minst 10 tegn"
+                      : "Aprašymas turi būti bent 10 simbolių"}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -751,7 +798,7 @@ export default function NewServiceForm({
           <div className={styles.sectionBody}>
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Orientacinė kaina kortelėje
+                {upgradeText.priceModeLabel}
               </label>
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -765,7 +812,7 @@ export default function NewServiceForm({
                     color: priceMode === "from" ? "#fff" : undefined,
                   }}
                 >
-                  Nuo
+                  {upgradeText.from}
                 </button>
 
                 <button
@@ -778,7 +825,7 @@ export default function NewServiceForm({
                     color: priceMode === "fixed" ? "#fff" : undefined,
                   }}
                 >
-                  Fiksuota
+                  {upgradeText.fixed}
                 </button>
               </div>
 
@@ -786,7 +833,7 @@ export default function NewServiceForm({
                 className={styles.input}
                 value={mainPrice}
                 onChange={(e) => setMainPrice(e.target.value)}
-                placeholder="Pvz. 600"
+                placeholder={upgradeText.pricePlaceholder}
                 inputMode="numeric"
                 disabled={!planLimits.canCreate}
               />
@@ -895,8 +942,8 @@ export default function NewServiceForm({
               </label>
 
               <div className={styles.charHint} style={{ textAlign: "left" }}>
-                {gallery.length}/{planLimits.maxImagesPerListing} nuotraukų
-                pagal planą
+                {gallery.length}/{planLimits.maxImagesPerListing}{" "}
+                {upgradeText.photoLimitText}
               </div>
             </div>
 
@@ -938,11 +985,8 @@ export default function NewServiceForm({
           </div>
         </section>
 
-        <div className={styles.actionsBar} ref={feedbackRef}>
-          <div style={{ flex: 1 }}>
-            {error && <div className={styles.errorText}>{error}</div>}
-            {success && <div className={styles.successText}>{success}</div>}
-          </div>
+        <div className={styles.actionsBar}>
+          <div style={{ flex: 1 }} />
 
           <div className={styles.actionsRight}>
             <button

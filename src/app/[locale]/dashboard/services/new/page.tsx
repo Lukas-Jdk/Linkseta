@@ -73,12 +73,14 @@ export default async function NewServicePage({ params }: Props) {
     redirect(`/${locale}/tapti-teikeju`);
   }
 
-  const trialExpired =
+  const trialExpired = Boolean(
     profile.plan?.isTrial &&
-    profile.trialEndsAt &&
-    new Date(profile.trialEndsAt).getTime() < Date.now();
+      profile.trialEndsAt &&
+      new Date(profile.trialEndsAt).getTime() < Date.now(),
+  );
 
   const planName = profile.plan?.name ?? "Free Trial";
+
   const maxListings =
     typeof profile.plan?.maxListings === "number"
       ? profile.plan.maxListings
@@ -120,7 +122,7 @@ export default async function NewServicePage({ params }: Props) {
               maxImagesPerListing,
               activeCount,
               canCreate,
-              trialExpired: Boolean(trialExpired),
+              trialExpired,
             }}
           />
         </div>

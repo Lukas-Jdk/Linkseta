@@ -28,14 +28,11 @@ type InitialData = {
   description: string;
   categoryId: string;
   responseTime?: string | null;
-
   locationPostcode: string;
   locationCity: string;
   locationRegion?: string;
-
   priceMode: "fixed" | "from";
   mainPrice: string;
-
   priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
@@ -57,6 +54,13 @@ type GalleryItem = {
 };
 
 const BUCKET = "service-images";
+const MIN_DESCRIPTION_LENGTH = 10;
+
+function getDescriptionMinError(locale: string) {
+  if (locale === "en") return "Description must be at least 10 characters.";
+  if (locale === "no") return "Beskrivelsen må være minst 10 tegn.";
+  return "Aprašymas turi būti bent 10 simbolių.";
+}
 
 function parseHighlights(text: string) {
   return text
@@ -124,7 +128,9 @@ export default function EditServiceForm({
   const [description, setDescription] = useState(initial.description);
 
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
-  const [responseTime, setResponseTime] = useState(initial.responseTime ?? "1h");
+  const [responseTime, setResponseTime] = useState(
+    initial.responseTime ?? "1h",
+  );
 
   const [locationPostcode, setLocationPostcode] = useState(
     initial.locationPostcode || "",
@@ -159,7 +165,10 @@ export default function EditServiceForm({
   );
 
   const [gallery, setGallery] = useState<GalleryItem[]>(
-    normalizeInitialGallery(initial.galleryImageUrls, initial.galleryImagePaths),
+    normalizeInitialGallery(
+      initial.galleryImageUrls,
+      initial.galleryImagePaths,
+    ),
   );
 
   const [uploading, setUploading] = useState(false);
@@ -167,6 +176,10 @@ export default function EditServiceForm({
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const descriptionTooShort =
+    description.trim().length > 0 &&
+    description.trim().length < MIN_DESCRIPTION_LENGTH;
 
   function updatePriceItem(index: number, key: keyof PriceItem, value: string) {
     setPriceItems((prev) =>
@@ -282,11 +295,18 @@ export default function EditServiceForm({
     setError(null);
     setSuccess(null);
 
+    if (description.trim().length < MIN_DESCRIPTION_LENGTH) {
+      setError(getDescriptionMinError(locale));
+      return;
+    }
+
     const highlights = parseHighlights(highlightsText);
     const normalizedMainPrice = normalizePriceNumber(mainPrice);
 
     const cleanGallery = gallery
-      .filter((item) => item.url.trim().length > 0 && item.path.trim().length > 0)
+      .filter(
+        (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
+      )
       .slice(0, maxImagesSafe);
 
     if (gallery.length > maxImagesSafe) {
@@ -437,8 +457,17 @@ export default function EditServiceForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              style={{
+                borderColor: descriptionTooShort ? "#ef4444" : undefined,
+              }}
             />
             <div className={styles.charHint}>{description.length} / 4000</div>
+
+            {descriptionTooShort && (
+              <p className={styles.errorText}>
+                {getDescriptionMinError(locale)}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -657,7 +686,8 @@ export default function EditServiceForm({
               className={styles.uploadBtn}
               style={{
                 opacity: gallery.length >= maxImagesSafe ? 0.65 : 1,
-                pointerEvents: gallery.length >= maxImagesSafe ? "none" : "auto",
+                pointerEvents:
+                  gallery.length >= maxImagesSafe ? "none" : "auto",
               }}
             >
               {uploading ? t("uploading") : t("uploadButton")}
@@ -665,7 +695,9 @@ export default function EditServiceForm({
                 type="file"
                 accept="image/*"
                 multiple
-                disabled={uploading || pending || gallery.length >= maxImagesSafe}
+                disabled={
+                  uploading || pending || gallery.length >= maxImagesSafe
+                }
                 onChange={(e) => {
                   const files = e.currentTarget.files
                     ? Array.from(e.currentTarget.files)
@@ -733,7 +765,9 @@ export default function EditServiceForm({
           <div className={styles.activityRow}>
             <span className={styles.statusText}>
               {t("statusLabel")}{" "}
-              <strong>{isActive ? t("statusActive") : t("statusInactive")}</strong>
+              <strong>
+                {isActive ? t("statusActive") : t("statusInactive")}
+              </strong>
             </span>
 
             <button
@@ -762,7 +796,11 @@ export default function EditServiceForm({
           <button
             type="submit"
             className={styles.primaryButton}
-            disabled={pending || uploading}
+            disabled={
+              pending ||
+              uploading ||
+              description.trim().length < MIN_DESCRIPTION_LENGTH
+            }
           >
             {pending ? t("saving") : t("saveButton")}
           </button>

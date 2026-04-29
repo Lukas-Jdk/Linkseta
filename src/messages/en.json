@@ -17,7 +17,7 @@
   "common": {
     "brand": "Linkseta"
   },
-  
+
   "terms": {
     "title": "Terms of Service",
     "updated": "Updated: 2026-02-18",
@@ -36,7 +36,7 @@
     "contactTitle": "Contact",
     "contactText": "Questions: info@linkseta.com"
   },
-  
+
   "privacy": {
     "title": "Privacy Policy",
     "updated": "Updated: 2026-02-18",
@@ -90,8 +90,8 @@
     "navTitle": "Navigation",
     "legalAria": "Legal",
     "legalTitle": "Legal",
-    "offerServices": "Offer services",
-    "about": "About",
+    "offerServices": "Plans",
+    "about": "Contact",
     "contactTitle": "Contact",
     "contactSubtitle": "Questions or suggestions?",
     "emailAria": "Email",
@@ -271,7 +271,9 @@
     "billingLifetime": "Lifetime free",
     "billingFreeTrial": "Free Trial",
     "billingManual": "Manual plan",
-    "billingNone": "No plan"
+    "billingNone": "No plan",
+    "billingManage": "Manage subscription",
+    "billingManageLoading": "Opening..."
   },
   "dashboardServicesPage": {
     "title": "My services",
@@ -346,31 +348,31 @@
     "genericError": "An error occurred while uploading image."
   },
   "profileCard": {
-  "provider": "Service provider",
-  "user": "User",
-  "admin": "Administrator",
-  "listings": "listings",
-  "activeProvider": "Active provider",
-  "inactiveProvider": "Inactive provider",
-  "becomeProvider": "Become a service provider"
-},
-"contactForm": {
-  "nameLabel": "Name",
-  "namePlaceholder": "Your name",
-  "emailLabel": "Email",
-  "emailPlaceholder": "your@email.com",
-  "messageLabel": "Message",
-  "messagePlaceholder": "Briefly describe your question or idea",
-  "submit": "Send message",
-  "submitting": "Sending...",
-  "success": "Message sent successfully. We will reply soon.",
-  "errors": {
-    "recaptchaNotLoaded": "reCAPTCHA has not loaded yet. Wait a few seconds and try again.",
-    "recaptchaFailed": "Could not get reCAPTCHA token.",
-    "sendFailed": "Could not send the message.",
-    "generic": "An error occurred."
-  }
-},
+    "provider": "Service provider",
+    "user": "User",
+    "admin": "Administrator",
+    "listings": "listings",
+    "activeProvider": "Active provider",
+    "inactiveProvider": "Inactive provider",
+    "becomeProvider": "Become a service provider"
+  },
+  "contactForm": {
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Briefly describe your question or idea",
+    "submit": "Send message",
+    "submitting": "Sending...",
+    "success": "Message sent successfully. We will reply soon.",
+    "errors": {
+      "recaptchaNotLoaded": "reCAPTCHA has not loaded yet. Wait a few seconds and try again.",
+      "recaptchaFailed": "Could not get reCAPTCHA token.",
+      "sendFailed": "Could not send the message.",
+      "generic": "An error occurred."
+    }
+  },
   "becomeProviderPage": {
     "title": "Become a service provider on Linkseta",
     "lead": "Choose a plan and get the ability to create your service listings so people in Norway can easily find you.",
@@ -511,10 +513,42 @@
       "missingRequired": "Please check the form — some required fields are missing."
     }
   },
-  "categories": {
-    "konditerija": "Confectionery",
-    "it-paslaugos": "IT services"
-  },
+ "categories": {
+  "statybos": "Construction",
+  "remontas": "Repair",
+  "santechnika": "Plumbing",
+  "elektra": "Electrical",
+  "buitine": "Appliances",
+  "buitin-technika": "Appliances",
+  "auto": "Automotive",
+  "automobiliai": "Automotive",
+  "transportas": "Transport",
+  "valymas": "Cleaning",
+  "grozis": "Beauty",
+  "grois": "Beauty",
+  "sveikata": "Health",
+  "apskaita": "Accounting",
+  "teisine": "Legal services",
+  "teisins-paslaugos": "Legal services",
+  "nt": "Real estate",
+  "it": "IT",
+  "it-paslaugos": "IT services",
+  "fotografija": "Photography",
+  "mokymai": "Training",
+  "sportas": "Sports",
+  "vaikai": "Childcare",
+  "vaik-prieira": "Childcare",
+  "gyvunai": "Pets",
+  "gyvn-prieira": "Pet care",
+  "maistas": "Food",
+  "mat": "Food",
+  "maistas-kateris": "Food and catering",
+  "mityba": "Nutrition",
+  "namai": "Household",
+  "nam-kis": "Household",
+  "konditerija": "Confectionery",
+  "kita": "Other"
+},
   "registerPage": {
     "title": "Register",
     "subtitle": "Create a new account to use our services and features.",
