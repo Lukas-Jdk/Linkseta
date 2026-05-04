@@ -88,6 +88,7 @@ export default async function DashboardPage({ params }: Props) {
       where: { userId: authUser.id },
       select: {
         isApproved: true,
+        companyName: true,
         lifetimeFree: true,
         trialEndsAt: true,
         stripeSubscriptionId: true,
@@ -196,6 +197,8 @@ export default async function DashboardPage({ params }: Props) {
           <ProfileCardClient
             name={authUser.name ?? null}
             email={authUser.email}
+            phone={authUser.phone ?? null}
+            companyName={profile?.companyName ?? null}
             role={authUser.role}
             avatarUrl={authUser.avatarUrl ?? null}
             totalServices={totalServices}
@@ -225,13 +228,7 @@ export default async function DashboardPage({ params }: Props) {
                     </span>
                   </div>
 
-                  <div className={styles.billingHint}>
-                    {profile?.plan?.slug === "premium"
-                      ? "Aukščiausios galimybės"
-                      : profile?.plan?.slug === "basic"
-                        ? "Daugiau galimybių"
-                        : "Pradinis planas"}
-                  </div>
+                 
                 </div>
 
                 <div className={styles.billingBox}>
@@ -243,13 +240,7 @@ export default async function DashboardPage({ params }: Props) {
                     {getBillingStatus()}
                   </span>
 
-                  <div className={styles.billingHint}>
-                    {profile?.stripeSubscriptionId
-                      ? "Mokėjimas vyksta automatiškai"
-                      : profile?.lifetimeFree
-                        ? "Mokėjimo išimtis"
-                        : "Rankinis statusas"}
-                  </div>
+               
                 </div>
 
                 <div className={styles.billingBox}>
@@ -271,9 +262,7 @@ export default async function DashboardPage({ params }: Props) {
                     </div>
                   )}
 
-                  <div className={styles.billingHint}>
-                    {validUntil ? "Aktyvus laikotarpis" : "Data nenurodyta"}
-                  </div>
+              
                 </div>
               </div>
             </section>

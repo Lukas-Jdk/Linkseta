@@ -1,4 +1,4 @@
-// src/acpp/locale/dashboard/BillingPortalButton.tsx
+// src/app/[locale]/dashboard/BillingPortalButton.tsx
 "use client";
 
 import { useState } from "react";
