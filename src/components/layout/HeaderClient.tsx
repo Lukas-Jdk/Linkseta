@@ -4,8 +4,17 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import {
+  BriefcaseBusiness,
+  Home,
+  LogOut,
+  Mail,
+  Shield,
+  UserRound,
+  WalletCards,
+} from "lucide-react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
@@ -51,6 +60,18 @@ type LocaleItem = {
   short: string;
   flagSrc: string;
   alt: string;
+};
+
+type SearchResult = {
+  id: string;
+  type: "service";
+  title: string;
+  description: string;
+  href: string;
+  imageUrl: string | null;
+  categoryName: string | null;
+  location: string | null;
+  priceFrom: number | null;
 };
 
 const LOCALES: LocaleItem[] = [
@@ -102,6 +123,7 @@ function writeCachedMe(user: MeUser | null) {
 
 function clearCachedMe() {
   if (typeof window === "undefined") return;
+
   try {
     window.sessionStorage.removeItem(ME_CACHE_KEY);
   } catch {}
@@ -123,9 +145,41 @@ function buildLocaleHref(
   return `/${nextLocale}`;
 }
 
+function getSearchText(locale: string) {
+  if (locale === "en") {
+    return {
+      placeholder: "Search services...",
+      noResults: "No results found",
+      searching: "Searching...",
+      viewAll: "View all results",
+      priceFrom: "from",
+    };
+  }
+
+  if (locale === "no") {
+    return {
+      placeholder: "Søk tjenester...",
+      noResults: "Ingen resultater",
+      searching: "Søker...",
+      viewAll: "Se alle resultater",
+      priceFrom: "fra",
+    };
+  }
+
+  return {
+    placeholder: "Ieškoti paslaugų...",
+    noResults: "Nieko nerasta",
+    searching: "Ieškoma...",
+    viewAll: "Rodyti visus rezultatus",
+    priceFrom: "nuo",
+  };
+}
+
 export default function HeaderClient({ locale, labels }: Props) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const pathname = usePathname();
+  const router = useRouter();
+  const searchText = getSearchText(locale);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<Role>(null);
@@ -138,10 +192,16 @@ export default function HeaderClient({ locale, labels }: Props) {
   const [isLocaleOpen, setIsLocaleOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+
   const mountedRef = useRef(true);
   const lastUserIdRef = useRef<string | null>(null);
   const localeRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === "ADMIN";
 
@@ -149,11 +209,13 @@ export default function HeaderClient({ locale, labels }: Props) {
     LOCALES.find((item) => item.code === locale) ?? LOCALES[0];
 
   const otherLocales = LOCALES.filter((item) => item.code !== locale);
+  const cleanSearchQuery = searchQuery.trim();
 
   const closeAllMenus = useCallback(() => {
     setIsProfileOpen(false);
     setIsLocaleOpen(false);
     setIsMobileMenuOpen(false);
+    setSearchOpen(false);
   }, []);
 
   const resetAuthUi = useCallback(() => {
@@ -236,6 +298,7 @@ export default function HeaderClient({ locale, labels }: Props) {
         typeof meta.name === "string" && meta.name.trim()
           ? meta.name.trim()
           : null;
+
       const metaAvatar =
         typeof meta.avatar_url === "string" && meta.avatar_url.trim()
           ? meta.avatar_url.trim()
@@ -246,15 +309,21 @@ export default function HeaderClient({ locale, labels }: Props) {
 
       const shouldForce = Boolean(opts?.forceMe);
 
-      if (lastUserIdRef.current === nextUserId && !shouldForce) {
-        return;
-      }
+      if (lastUserIdRef.current === nextUserId && !shouldForce) return;
 
       lastUserIdRef.current = nextUserId;
       await loadMe({ force: shouldForce });
     },
     [loadMe, resetAuthUi],
   );
+
+  function goToSearchPage() {
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+
+    closeAllMenus();
+    router.push(`/${locale}/services?q=${encodeURIComponent(q)}`);
+  }
 
   useEffect(() => {
     mountedRef.current = true;
@@ -293,20 +362,17 @@ export default function HeaderClient({ locale, labels }: Props) {
     setIsProfileOpen(false);
     setIsLocaleOpen(false);
     setIsMobileMenuOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setIsProfileOpen(false);
-        setIsLocaleOpen(false);
-        setIsMobileMenuOpen(false);
-      }
+      if (e.key === "Escape") closeAllMenus();
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [closeAllMenus]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -318,6 +384,10 @@ export default function HeaderClient({ locale, labels }: Props) {
 
       if (localeRef.current && !localeRef.current.contains(target)) {
         setIsLocaleOpen(false);
+      }
+
+      if (searchRef.current && !searchRef.current.contains(target)) {
+        setSearchOpen(false);
       }
     }
 
@@ -336,6 +406,52 @@ export default function HeaderClient({ locale, labels }: Props) {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const q = searchQuery.trim();
+
+    if (q.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+
+      try {
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(q)}&locale=${encodeURIComponent(
+            locale,
+          )}`,
+          {
+            signal: controller.signal,
+            cache: "no-store",
+          },
+        );
+
+        const data = (await res.json().catch(() => null)) as {
+          results?: SearchResult[];
+        } | null;
+
+        if (!controller.signal.aborted) {
+          setSearchResults(Array.isArray(data?.results) ? data.results : []);
+          setSearchOpen(true);
+        }
+      } catch {
+        if (!controller.signal.aborted) setSearchResults([]);
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery, locale]);
+
   async function handleLogout() {
     try {
       clearCachedMe();
@@ -350,148 +466,291 @@ export default function HeaderClient({ locale, labels }: Props) {
     setIsMobileMenuOpen((v) => !v);
     setIsProfileOpen(false);
     setIsLocaleOpen(false);
+    setSearchOpen(false);
   }
+
+  const searchBox = (
+    <div className={styles.searchWrapper} ref={searchRef}>
+      <div className={styles.searchBox}>
+        <span className={styles.searchIcon} aria-hidden="true">
+          ⌕
+        </span>
+
+        <input
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setSearchOpen(true);
+          }}
+          onFocus={() => {
+            if (searchQuery.trim().length >= 2) setSearchOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              goToSearchPage();
+            }
+          }}
+          placeholder={searchText.placeholder}
+          aria-label={searchText.placeholder}
+        />
+      </div>
+
+      {searchOpen && cleanSearchQuery.length >= 2 && (
+        <div className={styles.searchDropdown}>
+          {searchLoading && (
+            <div className={styles.searchState}>{searchText.searching}</div>
+          )}
+
+          {!searchLoading && searchResults.length === 0 && (
+            <div className={styles.searchState}>{searchText.noResults}</div>
+          )}
+
+          {!searchLoading &&
+            searchResults.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={styles.searchResult}
+                onClick={closeAllMenus}
+              >
+                <div className={styles.searchThumb}>
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt=""
+                      fill
+                      sizes="44px"
+                      className={styles.searchThumbImg}
+                    />
+                  ) : (
+                    <span className={styles.searchThumbFallback}>L</span>
+                  )}
+                </div>
+
+                <div className={styles.searchResultText}>
+                  <div className={styles.searchResultTitle}>{item.title}</div>
+
+                  <div className={styles.searchResultMeta}>
+                    {[item.categoryName, item.location]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </div>
+
+                  <div className={styles.searchResultDesc}>
+                    {item.priceFrom
+                      ? `${searchText.priceFrom} ${item.priceFrom} NOK · `
+                      : ""}
+                    {item.description}
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+          {!searchLoading && cleanSearchQuery.length >= 2 && (
+            <button
+              type="button"
+              className={styles.searchViewAll}
+              onClick={goToSearchPage}
+            >
+              {searchText.viewAll}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
-      <div className={styles.iconGroup}>
-        <div className={styles.localeWrapper} ref={localeRef}>
-          <button
-            type="button"
-            className={styles.localeCurrent}
-            onClick={() => {
-              setIsLocaleOpen((v) => !v);
-              setIsProfileOpen(false);
-            }}
-            aria-haspopup="menu"
-            aria-expanded={isLocaleOpen}
-            aria-label="Select language"
-          >
-            <span className={styles.localeFlagImageWrap} aria-hidden="true">
-              <Image
-                src={activeLocale.flagSrc}
-                alt=""
-                width={18}
-                height={18}
-                className={styles.localeFlagImage}
-              />
-            </span>
-            <span className={styles.localeCode}>{activeLocale.short}</span>
-            <span className={styles.localeChevron} aria-hidden="true">
-              ▾
-            </span>
-          </button>
+      <div className={styles.right}>
+        <div className={styles.searchDesktop}>{searchBox}</div>
 
-          {isLocaleOpen && (
-            <div className={styles.localeMenu} role="menu">
-              {otherLocales.map((item) => (
-                <Link
-                  key={item.code}
-                  href={buildLocaleHref(pathname, locale, item.code)}
-                  className={styles.localeMenuItem}
-                  role="menuitem"
-                  onClick={() => setIsLocaleOpen(false)}
-                >
-                  <span className={styles.localeFlagImageWrap} aria-hidden="true">
-                    <Image
-                      src={item.flagSrc}
-                      alt=""
-                      width={18}
-                      height={18}
-                      className={styles.localeFlagImage}
-                    />
-                  </span>
-                  <span className={styles.localeCode}>{item.short}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        <nav className={styles.nav} aria-label={labels.navAria}>
+          <div className={styles.navLinks}>
+            <Link
+              href={`/${locale}`}
+              className={styles.navIconLink}
+              aria-label={labels.home}
+            >
+              <Home className={styles.navIcon} />
+              <span className={styles.navTooltip}>{labels.home}</span>
+            </Link>
 
-        {isLoggedIn ? (
-          <div className={styles.profileWrapper} ref={profileRef}>
+            <Link
+              href={`/${locale}/services`}
+              className={styles.navIconLink}
+              aria-label={labels.services}
+            >
+              <BriefcaseBusiness className={styles.navIcon} />
+              <span className={styles.navTooltip}>{labels.services}</span>
+            </Link>
+
+            <Link
+              href={`/${locale}/tapti-teikeju`}
+              className={styles.navIconLink}
+              aria-label={labels.plans}
+            >
+              <WalletCards className={styles.navIcon} />
+              <span className={styles.navTooltip}>{labels.plans}</span>
+            </Link>
+
+            <Link
+              href={`/${locale}/susisiekite`}
+              className={styles.navIconLink}
+              aria-label={labels.contact}
+            >
+              <Mail className={styles.navIcon} />
+              <span className={styles.navTooltip}>{labels.contact}</span>
+            </Link>
+          </div>
+        </nav>
+
+        <div className={styles.iconGroup}>
+          <div className={styles.localeWrapper} ref={localeRef}>
             <button
               type="button"
-              className={styles.profileButton}
+              className={styles.localeCurrent}
               onClick={() => {
-                setIsProfileOpen((v) => !v);
-                setIsLocaleOpen(false);
+                setIsLocaleOpen((v) => !v);
+                setIsProfileOpen(false);
+                setSearchOpen(false);
               }}
-              aria-label={labels.accountMenuAria}
+              aria-haspopup="menu"
+              aria-expanded={isLocaleOpen}
+              aria-label="Select language"
             >
-              <Avatar
-                name={userName}
-                email={userEmail}
-                avatarUrl={avatarUrl}
-                size={36}
-                className={styles.profileAvatar}
-              />
+              <span className={styles.localeFlagImageWrap} aria-hidden="true">
+                <Image
+                  src={activeLocale.flagSrc}
+                  alt=""
+                  width={18}
+                  height={18}
+                  className={styles.localeFlagImage}
+                />
+              </span>
+              <span className={styles.localeCode}>{activeLocale.short}</span>
+              <span className={styles.localeChevron} aria-hidden="true">
+                ▾
+              </span>
             </button>
 
-            {isProfileOpen && (
-              <div className={styles.profileMenu}>
-                <Link
-                  href={`/${locale}/dashboard`}
-                  className={styles.profileItem}
-                  onClick={closeAllMenus}
-                >
-                  {labels.myAccount}
-                </Link>
-
-                {isAdmin && (
+            {isLocaleOpen && (
+              <div className={styles.localeMenu} role="menu">
+                {otherLocales.map((item) => (
                   <Link
-                    href={`/${locale}/admin`}
-                    className={styles.profileItem}
-                    onClick={closeAllMenus}
+                    key={item.code}
+                    href={buildLocaleHref(pathname, locale, item.code)}
+                    className={styles.localeMenuItem}
+                    role="menuitem"
+                    onClick={() => setIsLocaleOpen(false)}
                   >
-                    {labels.admin}
+                    <span
+                      className={styles.localeFlagImageWrap}
+                      aria-hidden="true"
+                    >
+                      <Image
+                        src={item.flagSrc}
+                        alt=""
+                        width={18}
+                        height={18}
+                        className={styles.localeFlagImage}
+                      />
+                    </span>
+                    <span className={styles.localeCode}>{item.short}</span>
                   </Link>
-                )}
-
-                <button
-                  type="button"
-                  className={styles.profileItem}
-                  onClick={handleLogout}
-                >
-                  {labels.logout}
-                </button>
+                ))}
               </div>
             )}
           </div>
-        ) : (
-          <div className={styles.authDesktop}>
-            <Link
-              href={`/${locale}/login`}
-              className={`${styles.btn} ${styles.btnOutline}`}
-            >
-              {labels.login}
-            </Link>
 
-            <Link
-              href={`/${locale}/register`}
-              className={`${styles.btn} ${styles.btnPrimary}`}
-            >
-              {labels.register}
-            </Link>
-          </div>
-        )}
+          {isLoggedIn ? (
+            <div className={styles.profileWrapper} ref={profileRef}>
+              <button
+                type="button"
+                className={styles.profileButton}
+                onClick={() => {
+                  setIsProfileOpen((v) => !v);
+                  setIsLocaleOpen(false);
+                  setSearchOpen(false);
+                }}
+                aria-label={labels.accountMenuAria}
+              >
+                <Avatar
+                  name={userName}
+                  email={userEmail}
+                  avatarUrl={avatarUrl}
+                  size={36}
+                  className={styles.profileAvatar}
+                />
+              </button>
 
-        <button
-          type="button"
-          className={styles.menuToggle}
-          onClick={toggleMobileMenu}
-          aria-label={isMobileMenuOpen ? labels.closeMenu : labels.openMenu}
-        >
-          {isMobileMenuOpen ? (
-            <span className={styles.menuX}>×</span>
+              {isProfileOpen && (
+                <div className={styles.profileMenu}>
+                  <Link
+                    href={`/${locale}/dashboard`}
+                    className={styles.profileItem}
+                    onClick={closeAllMenus}
+                  >
+                    {labels.myAccount}
+                  </Link>
+
+                  {isAdmin && (
+                    <Link
+                      href={`/${locale}/admin`}
+                      className={styles.profileItem}
+                      onClick={closeAllMenus}
+                    >
+                      {labels.admin}
+                    </Link>
+                  )}
+
+                  <button
+                    type="button"
+                    className={styles.profileItem}
+                    onClick={handleLogout}
+                  >
+                    {labels.logout}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
-              <span className={styles.menuBar} />
-              <span className={styles.menuBar} />
-              <span className={styles.menuBar} />
-            </>
+            <div className={styles.authDesktop}>
+              <Link
+                href={`/${locale}/login`}
+                className={`${styles.btn} ${styles.btnOutline}`}
+              >
+                {labels.login}
+              </Link>
+
+              <Link
+                href={`/${locale}/register`}
+                className={`${styles.btn} ${styles.btnPrimary}`}
+              >
+                {labels.register}
+              </Link>
+            </div>
           )}
-        </button>
+
+          <button
+            type="button"
+            className={styles.menuToggle}
+            onClick={toggleMobileMenu}
+            aria-label={isMobileMenuOpen ? labels.closeMenu : labels.openMenu}
+          >
+            {isMobileMenuOpen ? (
+              <span className={styles.menuX}>×</span>
+            ) : (
+              <>
+                <span className={styles.menuBar} />
+                <span className={styles.menuBar} />
+                <span className={styles.menuBar} />
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {isMobileMenuOpen && (
@@ -576,27 +835,34 @@ export default function HeaderClient({ locale, labels }: Props) {
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >
+                <Home className={styles.drawerNavIcon} />
                 {labels.home}
               </Link>
+
               <Link
                 href={`/${locale}/services`}
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >
+                <BriefcaseBusiness className={styles.drawerNavIcon} />
                 {labels.services}
               </Link>
+
               <Link
                 href={`/${locale}/tapti-teikeju`}
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >
+                <WalletCards className={styles.drawerNavIcon} />
                 {labels.plans}
               </Link>
+
               <Link
                 href={`/${locale}/susisiekite`}
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >
+                <Mail className={styles.drawerNavIcon} />
                 {labels.contact}
               </Link>
 
@@ -606,6 +872,7 @@ export default function HeaderClient({ locale, labels }: Props) {
                   className={styles.drawerNavItem}
                   onClick={closeAllMenus}
                 >
+                  <Shield className={styles.drawerNavIcon} />
                   {labels.admin}
                 </Link>
               )}
@@ -618,6 +885,7 @@ export default function HeaderClient({ locale, labels }: Props) {
                   className={styles.drawerNavItem}
                   onClick={handleLogout}
                 >
+                  <LogOut className={styles.drawerNavIcon} />
                   {labels.logout}
                 </button>
               </div>
@@ -630,6 +898,7 @@ export default function HeaderClient({ locale, labels }: Props) {
               <div className={styles.mobileLocaleList}>
                 {LOCALES.map((item) => {
                   const isActive = item.code === locale;
+
                   return (
                     <Link
                       key={item.code}
@@ -639,7 +908,10 @@ export default function HeaderClient({ locale, labels }: Props) {
                       }`}
                       onClick={closeAllMenus}
                     >
-                      <span className={styles.localeFlagImageWrap} aria-hidden="true">
+                      <span
+                        className={styles.localeFlagImageWrap}
+                        aria-hidden="true"
+                      >
                         <Image
                           src={item.flagSrc}
                           alt=""

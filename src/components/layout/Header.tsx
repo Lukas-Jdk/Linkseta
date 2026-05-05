@@ -45,37 +45,26 @@ export default async function Header({ locale }: Props) {
             </Link>
           </div>
 
-          <div className={styles.right}>
-            <nav className={styles.nav} aria-label={tNav("aria")}>
-              <div className={styles.navLinks}>
-                <Link href={`/${locale}`}>{tNav("home")}</Link>
-                <Link href={`/${locale}/services`}>{tNav("services")}</Link>
-                <Link href={`/${locale}/tapti-teikeju`}>{plansLabel}</Link>
-                <Link href={`/${locale}/susisiekite`}>{tNav("contact")}</Link>
-              </div>
-            </nav>
-
-            <HeaderClient
-              locale={locale}
-              labels={{
-                openMenu: tHeader("openMenu"),
-                closeMenu: tHeader("closeMenu"),
-                accountMenuAria: tAuth("accountMenuAria"),
-                login: tAuth("login"),
-                register: tAuth("register"),
-                myAccount: tAuth("myAccount"),
-                logout: tAuth("logout"),
-                home: tNav("home"),
-                services: tNav("services"),
-                plans: plansLabel,
-                contact: tNav("contact"),
-                admin: tNav("admin"),
-                navAria: tNav("aria"),
-                privacy: tNav("privacy"),
-                terms: tNav("terms"),
-              }}
-            />
-          </div>
+          <HeaderClient
+            locale={locale}
+            labels={{
+              openMenu: tHeader("openMenu"),
+              closeMenu: tHeader("closeMenu"),
+              accountMenuAria: tAuth("accountMenuAria"),
+              login: tAuth("login"),
+              register: tAuth("register"),
+              myAccount: tAuth("myAccount"),
+              logout: tAuth("logout"),
+              home: tNav("home"),
+              services: tNav("services"),
+              plans: plansLabel,
+              contact: tNav("contact"),
+              admin: tNav("admin"),
+              navAria: tNav("aria"),
+              privacy: tNav("privacy"),
+              terms: tNav("terms"),
+            }}
+          />
         </div>
       </header>
 
