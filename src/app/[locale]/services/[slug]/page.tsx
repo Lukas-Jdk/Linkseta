@@ -1,4 +1,3 @@
-
 // src/app/[locale]/services/[slug]/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
-
+import StartConversationButton from "./StartConversationButton";
 import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
 
 import styles from "./slugPage.module.css";
@@ -21,7 +20,10 @@ type Props = {
 };
 
 function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return input
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function truncate(input: string, max = 160) {
@@ -91,7 +93,8 @@ function formatServiceLocation(args: {
   const fallbackCity = args.cityName?.trim() ?? "";
   const fallbackPostcode = args.cityPostcode?.trim() ?? "";
 
-  if (fallbackPostcode && fallbackCity) return `${fallbackPostcode} ${fallbackCity}`;
+  if (fallbackPostcode && fallbackCity)
+    return `${fallbackPostcode} ${fallbackCity}`;
   if (fallbackCity) return fallbackCity;
 
   return "—";
@@ -342,9 +345,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.user.email,
   )}&su=${encodeURIComponent(
     t("emailSubject", { title: localizedTitle }),
-  )}&body=${encodeURIComponent(
-    t("emailBody", { title: localizedTitle }),
-  )}`;
+  )}&body=${encodeURIComponent(t("emailBody", { title: localizedTitle }))}`;
 
   const responseTimeLabel =
     service.responseTime === "24h"
@@ -412,6 +413,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.sideActions}>
+        {/* CHAT */}
+        <StartConversationButton
+          serviceId={service.id}
+          label="Rašyti žinutę"
+          loadingLabel="Atidaroma..."
+        />
+        {/* EMAIL */}
         <a
           className={styles.primaryBtn}
           href={emailHref}
@@ -421,7 +429,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
           <Mail size={18} />
           {t("writeEmail")}
         </a>
-
+        {/* PHONE */}
         {telHref ? (
           <a className={styles.secondaryBtn} href={telHref}>
             <Phone size={18} />
