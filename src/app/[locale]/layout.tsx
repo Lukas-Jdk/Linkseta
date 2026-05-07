@@ -13,6 +13,7 @@ import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/seo";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import { Poppins, Roboto, Fira_Code } from "next/font/google";
+import FloatingChatButton from "@/components/chat/FloatingChatButton";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -102,6 +103,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <Header locale={locale} />
         <main className="app-main">{children}</main>
         <Footer />
+        <FloatingChatButton locale={locale} />
       </NextIntlClientProvider>
     </div>
   );

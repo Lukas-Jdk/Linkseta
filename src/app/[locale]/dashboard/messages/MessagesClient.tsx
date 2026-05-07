@@ -72,6 +72,7 @@ function initialLetter(user: { name: string | null; email: string }) {
 
 function formatTime(value: string | null) {
   if (!value) return "";
+
   return new Intl.DateTimeFormat("lt-LT", {
     hour: "2-digit",
     minute: "2-digit",
@@ -89,13 +90,33 @@ export default function MessagesClient({
   const router = useRouter();
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  useEffect(() => {
-  setMessages(initialMessages);
-}, [activeConversationId, initialMessages]);
-
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [mobileListOpen, setMobileListOpen] = useState(!activeConversationId);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [activeConversationId, initialMessages]);
+
+  useEffect(() => {
+    if (!activeConversationId) return;
+
+    async function markAsRead() {
+      try {
+        await csrfFetch("/api/chat/read", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: activeConversationId }),
+        });
+
+        window.dispatchEvent(new Event("linkseta:chat-read"));
+      } catch {
+        // tyliai ignoruojam, chat vis tiek turi veikti
+      }
+    }
+
+    void markAsRead();
+  }, [activeConversationId]);
 
   const hasConversation = Boolean(activeConversationId && activeConversation);
 
@@ -257,7 +278,9 @@ export default function MessagesClient({
                 <h2>{activeName}</h2>
 
                 {activeConversation.service.slug ? (
-                  <Link href={`/${locale}/services/${activeConversation.service.slug}`}>
+                  <Link
+                    href={`/${locale}/services/${activeConversation.service.slug}`}
+                  >
                     {activeConversation.service.title || "Paslauga"}
                   </Link>
                 ) : (
