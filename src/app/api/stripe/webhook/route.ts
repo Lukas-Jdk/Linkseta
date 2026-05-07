@@ -4,9 +4,29 @@ import Stripe from "stripe";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-04-22.dahlia",
-});
+export const dynamic = "force-dynamic";
+
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secretKey) {
+    throw new Error("Missing STRIPE_SECRET_KEY");
+  }
+
+  return new Stripe(secretKey, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+}
+
+function getWebhookSecret() {
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!secret) {
+    throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+  }
+
+  return secret;
+}
 
 function toDateFromUnix(value?: number | null) {
   if (!value) return null;
@@ -20,10 +40,13 @@ function getCurrentPeriodEnd(subscription: Stripe.Subscription) {
 }
 
 async function getSubscription(subscriptionId: string) {
+  const stripe = getStripe();
   return stripe.subscriptions.retrieve(subscriptionId);
 }
 
 export async function POST(req: Request) {
+  const stripe = getStripe();
+
   const body = await req.text();
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
@@ -35,11 +58,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!,
-    );
+    event = stripe.webhooks.constructEvent(body, sig, getWebhookSecret());
   } catch (err) {
     console.error("Webhook signature error:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
@@ -77,7 +96,6 @@ export async function POST(req: Request) {
 
     if (stripeSubscriptionId) {
       const subscription = await getSubscription(stripeSubscriptionId);
-
       subscriptionStatus = subscription.status;
       currentPeriodEnd = getCurrentPeriodEnd(subscription);
     }

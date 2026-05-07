@@ -5,11 +5,19 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-04-22.dahlia",
-});
-
 export const dynamic = "force-dynamic";
+
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secretKey) {
+    throw new Error("Missing STRIPE_SECRET_KEY");
+  }
+
+  return new Stripe(secretKey, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -37,6 +45,8 @@ export async function POST(req: Request) {
       req.headers.get("origin") ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       "http://localhost:3000";
+
+    const stripe = getStripe();
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: profile.stripeCustomerId,
