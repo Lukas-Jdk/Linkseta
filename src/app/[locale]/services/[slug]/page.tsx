@@ -8,7 +8,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import StartConversationButton from "./StartConversationButton";
 import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
-
 import styles from "./slugPage.module.css";
 import GalleryClient from "./GalleryClient";
 import ServiceTabsClient from "./ServiceTabsClient";
@@ -416,12 +415,18 @@ export default async function ServiceDetailsPage({ params }: Props) {
         {/* CHAT */}
         <StartConversationButton
           serviceId={service.id}
-          label="Rašyti žinutę"
-          loadingLabel="Atidaroma..."
+          label={locale === "lt" ? "Teirautis (chat)" : "Chat"}
+          loadingLabel={
+            locale === "lt"
+              ? "Atidaroma..."
+              : locale === "no"
+                ? "Åpner..."
+                : "Opening..."
+          }
         />
         {/* EMAIL */}
         <a
-          className={styles.primaryBtn}
+          className={styles.secondaryBtn}
           href={emailHref}
           target="_blank"
           rel="noopener noreferrer"
@@ -532,8 +537,20 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.mobileBottomActions}>
+        <StartConversationButton
+          serviceId={service.id}
+          label={locale === "lt" ? "Teirautis (chat)" : "Chat"}
+          loadingLabel={
+            locale === "lt"
+              ? "Atidaroma..."
+              : locale === "no"
+                ? "Åpner..."
+                : "Opening..."
+          }
+        />
+
         <a
-          className={styles.primaryBtn}
+          className={styles.secondaryBtn}
           href={emailHref}
           target="_blank"
           rel="noopener noreferrer"

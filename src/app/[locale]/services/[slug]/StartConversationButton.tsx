@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { MessageCircleMore } from "lucide-react";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./slugPage.module.css";
 
@@ -54,8 +54,8 @@ export default function StartConversationButton({
       onClick={startChat}
       disabled={loading}
     >
-      <MessageCircle size={18} />
-      {loading ? loadingLabel : label}
+      <MessageCircleMore size={18} />
+      <span>{loading ? loadingLabel : label}</span>
     </button>
   );
 }

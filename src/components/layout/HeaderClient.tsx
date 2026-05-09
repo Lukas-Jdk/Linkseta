@@ -8,17 +8,18 @@ import { usePathname, useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import {
   BriefcaseBusiness,
+  ChevronDown,
   Home,
   LogOut,
   Mail,
   Shield,
-  UserRound,
   WalletCards,
 } from "lucide-react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabaseClient";
 import { csrfFetch } from "@/lib/csrfClient";
 import Avatar from "@/components/ui/Avatar";
+import HeaderChatButton from "@/components/chat/HeaderChatButton";
 
 import styles from "./Header.module.css";
 
@@ -113,11 +114,10 @@ function writeCachedMe(user: MeUser | null) {
   if (typeof window === "undefined") return;
 
   try {
-    const payload: CachedMe = {
-      user,
-      savedAt: Date.now(),
-    };
-    window.sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify(payload));
+    window.sessionStorage.setItem(
+      ME_CACHE_KEY,
+      JSON.stringify({ user, savedAt: Date.now() }),
+    );
   } catch {}
 }
 
@@ -359,11 +359,8 @@ export default function HeaderClient({ locale, labels }: Props) {
   }, [applyUserToUi, resetAuthUi, supabase]);
 
   useEffect(() => {
-    setIsProfileOpen(false);
-    setIsLocaleOpen(false);
-    setIsMobileMenuOpen(false);
-    setSearchOpen(false);
-  }, [pathname]);
+    closeAllMenus();
+  }, [pathname, closeAllMenus]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -567,189 +564,198 @@ export default function HeaderClient({ locale, labels }: Props) {
       <div className={styles.right}>
         <div className={styles.searchDesktop}>{searchBox}</div>
 
-        <nav className={styles.nav} aria-label={labels.navAria}>
-          <div className={styles.navLinks}>
-            <Link
-              href={`/${locale}`}
-              className={styles.navIconLink}
-              aria-label={labels.home}
-            >
-              <Home className={styles.navIcon} />
-              <span className={styles.navTooltip}>{labels.home}</span>
-            </Link>
+        <div className={styles.desktopControls}>
+          <nav className={styles.nav} aria-label={labels.navAria}>
+            <div className={styles.navLinks}>
+              <Link
+                href={`/${locale}`}
+                className={styles.navIconLink}
+                aria-label={labels.home}
+              >
+                <Home className={styles.navIcon} />
+                <span className={styles.navLabel}>{labels.home}</span>
+              </Link>
 
-            <Link
-              href={`/${locale}/services`}
-              className={styles.navIconLink}
-              aria-label={labels.services}
-            >
-              <BriefcaseBusiness className={styles.navIcon} />
-              <span className={styles.navTooltip}>{labels.services}</span>
-            </Link>
+              <Link
+                href={`/${locale}/services`}
+                className={styles.navIconLink}
+                aria-label={labels.services}
+              >
+                <BriefcaseBusiness className={styles.navIcon} />
+                <span className={styles.navLabel}>{labels.services}</span>
+              </Link>
 
-            <Link
-              href={`/${locale}/tapti-teikeju`}
-              className={styles.navIconLink}
-              aria-label={labels.plans}
-            >
-              <WalletCards className={styles.navIcon} />
-              <span className={styles.navTooltip}>{labels.plans}</span>
-            </Link>
+              <Link
+                href={`/${locale}/tapti-teikeju`}
+                className={styles.navIconLink}
+                aria-label={labels.plans}
+              >
+                <WalletCards className={styles.navIcon} />
+                <span className={styles.navLabel}>{labels.plans}</span>
+              </Link>
 
-            <Link
-              href={`/${locale}/susisiekite`}
-              className={styles.navIconLink}
-              aria-label={labels.contact}
-            >
-              <Mail className={styles.navIcon} />
-              <span className={styles.navTooltip}>{labels.contact}</span>
-            </Link>
-          </div>
-        </nav>
+              <Link
+                href={`/${locale}/susisiekite`}
+                className={styles.navIconLink}
+                aria-label={labels.contact}
+              >
+                <Mail className={styles.navIcon} />
+                <span className={styles.navLabel}>{labels.contact}</span>
+              </Link>
+            </div>
+          </nav>
 
-        <div className={styles.iconGroup}>
-          <div className={styles.localeWrapper} ref={localeRef}>
-            <button
-              type="button"
-              className={styles.localeCurrent}
-              onClick={() => {
-                setIsLocaleOpen((v) => !v);
-                setIsProfileOpen(false);
-                setSearchOpen(false);
-              }}
-              aria-haspopup="menu"
-              aria-expanded={isLocaleOpen}
-              aria-label="Select language"
-            >
-              <span className={styles.localeFlagImageWrap} aria-hidden="true">
-                <Image
-                  src={activeLocale.flagSrc}
-                  alt=""
-                  width={18}
-                  height={18}
-                  className={styles.localeFlagImage}
-                />
-              </span>
-              <span className={styles.localeCode}>{activeLocale.short}</span>
-              <span className={styles.localeChevron} aria-hidden="true">
-                ▾
-              </span>
-            </button>
+          <div className={styles.headerDivider} />
 
-            {isLocaleOpen && (
-              <div className={styles.localeMenu} role="menu">
-                {otherLocales.map((item) => (
-                  <Link
-                    key={item.code}
-                    href={buildLocaleHref(pathname, locale, item.code)}
-                    className={styles.localeMenuItem}
-                    role="menuitem"
-                    onClick={() => setIsLocaleOpen(false)}
-                  >
-                    <span
-                      className={styles.localeFlagImageWrap}
-                      aria-hidden="true"
-                    >
-                      <Image
-                        src={item.flagSrc}
-                        alt=""
-                        width={18}
-                        height={18}
-                        className={styles.localeFlagImage}
-                      />
-                    </span>
-                    <span className={styles.localeCode}>{item.short}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          <div className={styles.iconGroup}>
+            <HeaderChatButton locale={locale} />
 
-          {isLoggedIn ? (
-            <div className={styles.profileWrapper} ref={profileRef}>
+            <div className={styles.localeWrapper} ref={localeRef}>
               <button
                 type="button"
-                className={styles.profileButton}
+                className={styles.localeCurrent}
                 onClick={() => {
-                  setIsProfileOpen((v) => !v);
-                  setIsLocaleOpen(false);
+                  setIsLocaleOpen((v) => !v);
+                  setIsProfileOpen(false);
                   setSearchOpen(false);
                 }}
-                aria-label={labels.accountMenuAria}
+                aria-haspopup="menu"
+                aria-expanded={isLocaleOpen}
+                aria-label="Select language"
               >
-                <Avatar
-                  name={userName}
-                  email={userEmail}
-                  avatarUrl={avatarUrl}
-                  size={36}
-                  className={styles.profileAvatar}
-                />
+                <span className={styles.localeFlagImageWrap} aria-hidden="true">
+                  <Image
+                    src={activeLocale.flagSrc}
+                    alt=""
+                    width={18}
+                    height={18}
+                    className={styles.localeFlagImage}
+                  />
+                </span>
+                <span className={styles.localeCode}>{activeLocale.short}</span>
+                <span className={styles.localeChevron} aria-hidden="true">
+                  ▾
+                </span>
               </button>
 
-              {isProfileOpen && (
-                <div className={styles.profileMenu}>
-                  <Link
-                    href={`/${locale}/dashboard`}
-                    className={styles.profileItem}
-                    onClick={closeAllMenus}
-                  >
-                    {labels.myAccount}
-                  </Link>
-
-                  {isAdmin && (
+              {isLocaleOpen && (
+                <div className={styles.localeMenu} role="menu">
+                  {otherLocales.map((item) => (
                     <Link
-                      href={`/${locale}/admin`}
-                      className={styles.profileItem}
-                      onClick={closeAllMenus}
+                      key={item.code}
+                      href={buildLocaleHref(pathname, locale, item.code)}
+                      className={styles.localeMenuItem}
+                      role="menuitem"
+                      onClick={() => setIsLocaleOpen(false)}
                     >
-                      {labels.admin}
+                      <span
+                        className={styles.localeFlagImageWrap}
+                        aria-hidden="true"
+                      >
+                        <Image
+                          src={item.flagSrc}
+                          alt=""
+                          width={18}
+                          height={18}
+                          className={styles.localeFlagImage}
+                        />
+                      </span>
+                      <span className={styles.localeCode}>{item.short}</span>
                     </Link>
-                  )}
-
-                  <button
-                    type="button"
-                    className={styles.profileItem}
-                    onClick={handleLogout}
-                  >
-                    {labels.logout}
-                  </button>
+                  ))}
                 </div>
               )}
             </div>
-          ) : (
-            <div className={styles.authDesktop}>
-              <Link
-                href={`/${locale}/login`}
-                className={`${styles.btn} ${styles.btnOutline}`}
-              >
-                {labels.login}
-              </Link>
 
-              <Link
-                href={`/${locale}/register`}
-                className={`${styles.btn} ${styles.btnPrimary}`}
-              >
-                {labels.register}
-              </Link>
-            </div>
-          )}
+            {isLoggedIn ? (
+              <div className={styles.profileWrapper} ref={profileRef}>
+                <button
+                  type="button"
+                  className={styles.profileButton}
+                  onClick={() => {
+                    setIsProfileOpen((v) => !v);
+                    setIsLocaleOpen(false);
+                    setSearchOpen(false);
+                  }}
+                  aria-label={labels.accountMenuAria}
+                >
+                  <Avatar
+                    name={userName}
+                    email={userEmail}
+                    avatarUrl={avatarUrl}
+                    size={40}
+                    className={styles.profileAvatar}
+                  />
+                  <span className={styles.profileArrow}>
+                    <ChevronDown size={12} />
+                  </span>
+                </button>
 
-          <button
-            type="button"
-            className={styles.menuToggle}
-            onClick={toggleMobileMenu}
-            aria-label={isMobileMenuOpen ? labels.closeMenu : labels.openMenu}
-          >
-            {isMobileMenuOpen ? (
-              <span className={styles.menuX}>×</span>
+                {isProfileOpen && (
+                  <div className={styles.profileMenu}>
+                    <Link
+                      href={`/${locale}/dashboard`}
+                      className={styles.profileItem}
+                      onClick={closeAllMenus}
+                    >
+                      {labels.myAccount}
+                    </Link>
+
+                    {isAdmin && (
+                      <Link
+                        href={`/${locale}/admin`}
+                        className={styles.profileItem}
+                        onClick={closeAllMenus}
+                      >
+                        {labels.admin}
+                      </Link>
+                    )}
+
+                    <button
+                      type="button"
+                      className={styles.profileItem}
+                      onClick={handleLogout}
+                    >
+                      {labels.logout}
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <>
-                <span className={styles.menuBar} />
-                <span className={styles.menuBar} />
-                <span className={styles.menuBar} />
-              </>
+              <div className={styles.authDesktop}>
+                <Link
+                  href={`/${locale}/login`}
+                  className={`${styles.btn} ${styles.btnOutline}`}
+                >
+                  {labels.login}
+                </Link>
+
+                <Link
+                  href={`/${locale}/register`}
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                >
+                  {labels.register}
+                </Link>
+              </div>
             )}
-          </button>
+
+            <button
+              type="button"
+              className={styles.menuToggle}
+              onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? labels.closeMenu : labels.openMenu}
+            >
+              {isMobileMenuOpen ? (
+                <span className={styles.menuX}>×</span>
+              ) : (
+                <>
+                  <span className={styles.menuBar} />
+                  <span className={styles.menuBar} />
+                  <span className={styles.menuBar} />
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

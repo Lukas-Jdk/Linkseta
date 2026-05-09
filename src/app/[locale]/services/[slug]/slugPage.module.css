@@ -495,11 +495,17 @@
   text-align: center;
   font-family: var(--font-second);
 }
-
+.secondaryBtn:hover {
+  background: rgb(240, 247, 248);
+}
 .primaryBtn {
   background: linear-gradient(135deg, #0b1220, #0f1b2e);
   color: #ffffff;
   box-shadow: 0 14px 26px rgba(2, 6, 23, 0.18);
+}
+
+.primaryBtn:hover {
+ background: linear-gradient(135deg, #245e68, #2d808b);
 }
 
 .secondaryBtn {

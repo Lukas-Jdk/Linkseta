@@ -19,7 +19,7 @@ function getStripe() {
 }
 
 function getWebhookSecret() {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = process.env.STRIPE_WEBHOOK_SECRET; 
 
   if (!secret) {
     throw new Error("Missing STRIPE_WEBHOOK_SECRET");

@@ -138,7 +138,7 @@ export default function TaptiTeikejuPage() {
     { q: t("faq.items.second.q"), a: t("faq.items.second.a") },
     { q: t("faq.items.third.q"), a: t("faq.items.third.a") },
     { q: t("faq.items.fourth.q"), a: t("faq.items.fourth.a") },
-    { q: t("faq.items.fifth.q"), a: t("faq.items.fifth.a") },
+  
   ];
 
   return (
