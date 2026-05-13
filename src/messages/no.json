@@ -346,77 +346,127 @@
     "genericError": "Det oppstod en feil ved opplasting av bilde."
   },
   "becomeProviderPage": {
-    "title": "Bli tjenesteleverandør på Linkseta",
-    "lead": "Velg en plan og få muligheten til å opprette tjenesteannonser slik at folk i Norge enkelt kan finne deg.",
-    "noteStrong": "Free Trial er aktiv nå.",
-    "noteText": "Basic- og Premium-planene blir aktivert senere.",
-    "recommended": "Anbefalt",
-    "comingSoon": "Kommer snart",
-    "inactivePlanTitle": "Denne planen er ikke aktiv ennå",
-    "buttonBusy": "Behandler...",
-    "buttonSoon": "Snart",
-    "buttonStartTrial": "Start Free Trial",
-    "smallInfo": "Når du velger Free Trial, blir du sendt til kontoen din, hvor du kan opprette din første annonse og laste opp opptil 5 bilder i galleriet.",
-    "trialSafetyNote": "💡 Free Trial er aktiv nå. Etter 30 dager blir ingen betaling trukket automatisk.",
-    "errors": {
-      "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
-      "server": "Serverfeil. Prøv igjen."
+  "eyebrow": "LINKSETA PLANER",
+  "title": "Bli tjenesteleverandør på Linkseta",
+  "lead": "Velg en plan og opprett tjenesteannonser slik at kunder i Norge enkelt kan finne deg.",
+
+  "recommended": "Anbefalt",
+  "popular": "Mest populær",
+  "newTag": "Ny",
+  "chatKeyword": "Direkte chat",
+
+  "buttonBusy": "Behandler...",
+  "buttonStartTrial": "Start Free Trial",
+  "buttonStartTrialFull": "Start 30 dager gratis",
+  "buttonChooseBasic": "Velg Basic",
+  "buttonChoosePremium": "Velg Premium",
+
+  "commitmentNote": "Ingen binding. Kanseller når som helst.",
+
+  "smallInfo": "Free Trial lar deg prøve Linkseta uten betalingskort og uten automatisk trekk.",
+
+  "trialSafetyNote": "💡 Du kan starte en 30 dagers gratis prøveperiode. Etter perioden blir ingen betaling trukket automatisk.",
+
+  "errors": {
+    "chooseFailed": "Kunne ikke velge planen. Prøv igjen.",
+    "server": "Serverfeil. Prøv igjen."
+  },
+
+  "plans": {
+    "freeTrial": {
+      "name": "Free Trial",
+      "priceLabel": "0 NOK / 30 dager",
+      "description": "Prøv Linkseta uten forpliktelser.",
+      "features": [
+        "3 aktive annonser",
+        "Opptil 15 bilder i galleriet",
+        "Anmeldelser",
+        "Direkte chat med kunder",
+        "Mulighet for Top Rated",
+        "Vises på forsiden gjennom rotasjon"
+      ]
     },
-    "plans": {
-      "freeTrial": {
-        "name": "Free Trial",
-        "priceLabel": "0 NOK / 30 dager",
-        "description": "Prøv Linkseta uten forpliktelser.",
-        "features": [
-          "✓ 1 aktiv annonse",
-          "✓ Opptil 5 bilder i galleri",
-          "✓ 30 dagers gratis prøveperiode"
-        ]
-      },
-      "basic": {
-        "name": "Basic",
-        "priceLabel": "119 NOK / måned",
-        "description": "En praktisk plan for dem som vil ha flere aktive annonser og flere bilder.",
-        "features": [
-          "✓ Opptil 3 aktive annonser",
-          "✓ Opptil 15 bilder per annonse"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "priceLabel": "249 NOK / måned",
-        "description": "For dem som ønsker sterkere synlighet og flere sjanser til å bli lagt merke til.",
-        "features": [
-          "🔥 Vises på forsiden gjennom rotasjon",
-          "⭐ TOPP mulighet basert på anmeldelser",
-          "🚀 Økt synlighet",
-          "✓ Opptil 5 aktive annonser",
-          "✓ Opptil 30 bilder per annonse"
-        ]
-      }
+
+    "basic": {
+      "name": "Basic",
+      "priceLabel": "119 NOK / måned",
+     "description": "Alt du trenger for å markedsføre tjenestene dine aktivt på Linkseta.",
+      "features": [
+        "3 aktive annonser",
+        "Opptil 15 bilder i galleriet",
+        "Forespørsler via e-post og telefon",
+        "Anmeldelser",
+        "Mulighet for Top Rated"
+      ]
     },
-    "faq": {
-      "title": "Ofte stilte spørsmål",
-      "items": {
-        "first": {
-          "q": "Blir penger trukket automatisk etter Free Trial?",
-          "a": "Nei. Når 30-dagersperioden er over, blir ingen betaling trukket automatisk. Du fortsetter bare hvis du selv velger det."
-        },
-        "second": {
-          "q": "Må jeg oppgi kortinformasjon?",
-          "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
-        },
-        "third": {
-          "q": "Hvordan kan jeg slutte å bruke det?",
-          "a": "Du kan når som helst slutte å bruke det – det er ingen forpliktelser."
-        },
-        "fourth": {
-          "q": "Hva får jeg i Free Trial?",
-          "a": "Du kan opprette 1 aktiv annonse og laste opp opptil 5 bilder for å teste plattformen."
-        }
-      }
+
+    "premium": {
+      "name": "Premium",
+      "priceLabel": "249 NOK / måned",
+      "description": "Mer synlighet, flere forespørsler og raskere kommunikasjon med kunder.",
+      "features": [
+        "5 aktive annonser",
+        "Opptil 30 bilder i galleriet",
+        "Direkte chat med kunder",
+        "Forespørsler via e-post og telefon",
+        "Anmeldelser",
+        "Mulighet for Top Rated",
+        "Vises på forsiden gjennom rotasjon"
+      ]
     }
   },
+
+  "info": {
+    "basicTitle": "Ingen chat inkludert",
+    "basicText": "Kommunikasjon med kunder skjer via e-post eller telefon. For å bruke chat, oppgrader til Premium.",
+
+    "premiumTitle": "Direkte chat med kunder",
+    "premiumText": "Kommuniser i sanntid via chat. Svar raskere, spar tid og få flere forespørsler.",
+
+    "trialTitle": "30 dagers prøveperiode",
+    "trialText": "Prøv hovedfunksjonene. Når prøveperioden er over, velger du planen som passer best for virksomheten din."
+  },
+
+  "benefits": {
+    "secureTitle": "Sikre betalinger",
+    "secureSub": "100% sikre betalinger",
+
+    "flexTitle": "Fleksibel endring",
+    "flexSub": "Endre planen når som helst",
+
+    "cancelTitle": "Kanseller når som helst",
+    "cancelSub": "Ingen binding",
+
+    "supportTitle": "Kundestøtte",
+    "supportSub": "Vi hjelper med alle spørsmål"
+  },
+
+  "faq": {
+    "title": "Ofte stilte spørsmål",
+
+    "items": {
+      "first": {
+        "q": "Blir jeg belastet automatisk etter Free Trial?",
+        "a": "Nei. Etter 30 dager blir ingen betaling trukket automatisk."
+      },
+
+      "second": {
+        "q": "Må jeg legge inn kortinformasjon?",
+        "a": "Nei. Du kan starte Free Trial uten betalingsinformasjon."
+      },
+
+      "third": {
+        "q": "Kan jeg kansellere planen?",
+        "a": "Ja. Du kan kansellere planen når som helst."
+      },
+
+      "fourth": {
+        "q": "Hva får jeg i Free Trial?",
+        "a": "Free Trial gir deg 30 dager med Premium-funksjoner, 3 aktive annonser og opptil 15 bilder i galleriet."
+      }
+    }
+  }
+},
   "profileCard": {
     "provider": "Tjenesteleverandør",
     "user": "Bruker",

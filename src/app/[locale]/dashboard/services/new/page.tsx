@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { translateCategoryName } from "@/lib/categoryTranslations";
+import { hasActiveProviderAccess, getPlanLimits } from "@/lib/planAccess";
 
 import NewServiceForm from "./NewServiceForm";
 import styles from "./newService.module.css";
@@ -48,13 +49,14 @@ export default async function NewServicePage({ params }: Props) {
       where: { userId: user.id },
       select: {
         isApproved: true,
+        lifetimeFree: true,
         trialEndsAt: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
         plan: {
           select: {
             name: true,
             slug: true,
-            maxListings: true,
-            maxImagesPerListing: true,
             isTrial: true,
           },
         },
@@ -69,29 +71,16 @@ export default async function NewServicePage({ params }: Props) {
     }),
   ]);
 
-  if (!profile?.isApproved) {
+  if (!profile?.isApproved || !hasActiveProviderAccess(profile)) {
     redirect(`/${locale}/tapti-teikeju`);
   }
 
-  const trialExpired = Boolean(
-    profile.plan?.isTrial &&
-      profile.trialEndsAt &&
-      new Date(profile.trialEndsAt).getTime() < Date.now(),
-  );
+  const limits = getPlanLimits(profile);
 
-  const planName = profile.plan?.name ?? "Free Trial";
-
-  const maxListings =
-    typeof profile.plan?.maxListings === "number"
-      ? profile.plan.maxListings
-      : 1;
-
-  const maxImagesPerListing =
-    typeof profile.plan?.maxImagesPerListing === "number"
-      ? profile.plan.maxImagesPerListing
-      : 5;
-
-  const canCreate = !trialExpired && activeCount < maxListings;
+  const planName = profile.plan?.name ?? "—";
+  const maxListings = limits.maxListings;
+  const maxImagesPerListing = limits.maxImagesPerListing;
+  const canCreate = activeCount < maxListings;
 
   const localizedCategories = categories.map((c) => ({
     id: c.id,
@@ -122,7 +111,7 @@ export default async function NewServicePage({ params }: Props) {
               maxImagesPerListing,
               activeCount,
               canCreate,
-              trialExpired,
+              trialExpired: false,
             }}
           />
         </div>

@@ -8,6 +8,7 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
+import { hasActiveProviderAccess, getPlanLimits } from "@/lib/planAccess";
 import { translatePriceItems, translateServiceContent } from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
@@ -68,12 +69,8 @@ function normalizeGalleryPairs(
   const pairs: GalleryPair[] = [];
 
   for (let i = 0; i < maxLen; i += 1) {
-    const url = String(urls[i] ?? "")
-      .trim()
-      .slice(0, 600);
-    const path = String(paths[i] ?? "")
-      .trim()
-      .slice(0, 300);
+    const url = String(urls[i] ?? "").trim().slice(0, 600);
+    const path = String(paths[i] ?? "").trim().slice(0, 300);
 
     if (!url || !path) continue;
 
@@ -162,38 +159,29 @@ export async function PATCH(
         id: true,
         slug: true,
         userId: true,
-
         title: true,
         titleEn: true,
         titleNo: true,
-
         description: true,
         descriptionEn: true,
         descriptionNo: true,
-
         cityId: true,
         categoryId: true,
         responseTime: true,
         isActive: true,
-
         priceFrom: true,
         priceTo: true,
-
         imageUrl: true,
         imagePath: true,
         galleryImageUrls: true,
         galleryImagePaths: true,
-
         highlights: true,
         highlightsEn: true,
         highlightsNo: true,
-
         sourceLocale: true,
-
         locationPostcode: true,
         locationCity: true,
         locationRegion: true,
-
         priceItems: {
           orderBy: { sortOrder: "asc" },
           select: {
@@ -224,44 +212,31 @@ export async function PATCH(
     const profile = await prisma.providerProfile.findUnique({
       where: { userId: user.id },
       select: {
-        trialEndsAt: true,
         isApproved: true,
+        lifetimeFree: true,
+        trialEndsAt: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
         plan: {
           select: {
             slug: true,
             name: true,
-            maxListings: true,
-            maxImagesPerListing: true,
             isTrial: true,
           },
         },
       },
     });
 
-    if (!profile?.isApproved) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    if (
-      profile.plan?.isTrial &&
-      profile.trialEndsAt &&
-      new Date(profile.trialEndsAt).getTime() < Date.now()
-    ) {
+    if (!profile?.isApproved || !hasActiveProviderAccess(profile)) {
       return NextResponse.json(
-        { error: "Jūsų Free Trial laikotarpis baigėsi." },
-        { status: 409 },
+        { error: "Jūsų planas neaktyvus arba Free Trial pasibaigė." },
+        { status: 403 },
       );
     }
 
-    const maxListings =
-      typeof profile.plan?.maxListings === "number"
-        ? profile.plan.maxListings
-        : 1;
-
-    const maxImagesPerListing =
-      typeof profile.plan?.maxImagesPerListing === "number"
-        ? profile.plan.maxImagesPerListing
-        : 5;
+    const limits = getPlanLimits(profile);
+    const maxListings = limits.maxListings;
+    const maxImagesPerListing = limits.maxImagesPerListing;
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -415,6 +390,7 @@ export async function PATCH(
 
     const nextTitle = clampText(body?.title, 120);
     const nextDescription = clampText(body?.description, 4000);
+
     if (
       body?.description !== undefined &&
       (!nextDescription || nextDescription.length < 10)
@@ -569,6 +545,7 @@ export async function PATCH(
                 note: item.note,
               })),
             );
+
             translatedEn = translated.en;
             translatedNo = translated.no;
           } catch (translationError: any) {
@@ -684,6 +661,9 @@ export async function PATCH(
           name: profile.plan?.name ?? null,
           maxListings,
           maxImagesPerListing,
+          canUseChat: limits.canUseChat,
+          canCollectReviews: limits.canCollectReviews,
+          canBecomeTopRated: limits.canBecomeTopRated,
         },
       },
     });

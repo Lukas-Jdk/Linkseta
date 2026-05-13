@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     if (csrfErr) return csrfErr;
 
     const ip = getClientIp(req);
+
     await rateLimitOrThrow({
       key: `plans:choose:${ip}`,
       limit: 20,
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
     });
 
     const user = await getAuthUser();
+
     if (!user) {
       return jsonNoStore({ error: "Unauthorized" }, { status: 401 });
     }
@@ -38,22 +40,53 @@ export async function POST(req: Request) {
     const planSlug =
       typeof body.planSlug === "string" ? body.planSlug.trim() : "";
 
-    if (!planSlug) {
-      return jsonNoStore({ error: "Missing planSlug" }, { status: 400 });
-    }
-
     if (planSlug !== "free-trial") {
       return jsonNoStore(
-        {
-          error:
-            "Apmokėjimai dar neįjungti. Kol kas galite naudoti tik Free Trial.",
+        { error: "Šį planą pasirinkite per apmokėjimo puslapį." },
+        { status: 409 },
+      );
+    }
+
+    const existingProfile = await prisma.providerProfile.findUnique({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        trialEndsAt: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
+        lifetimeFree: true,
+        plan: {
+          select: {
+            slug: true,
+            isTrial: true,
+          },
         },
+      },
+    });
+
+    if (existingProfile?.lifetimeFree) {
+      return jsonNoStore(
+        { error: "Jums jau suteikta lifetime prieiga." },
+        { status: 409 },
+      );
+    }
+
+    if (existingProfile?.stripeSubscriptionId) {
+      return jsonNoStore(
+        { error: "Jūs jau turite aktyvią arba buvusią prenumeratą." },
+        { status: 409 },
+      );
+    }
+
+    if (existingProfile?.trialEndsAt) {
+      return jsonNoStore(
+        { error: "Free Trial galima aktyvuoti tik vieną kartą." },
         { status: 409 },
       );
     }
 
     const plan = await prisma.plan.findUnique({
-      where: { slug: planSlug },
+      where: { slug: "free-trial" },
       select: {
         id: true,
         slug: true,
@@ -64,14 +97,16 @@ export async function POST(req: Request) {
     });
 
     if (!plan) {
-      return jsonNoStore({ error: "Plan not found" }, { status: 404 });
+      return jsonNoStore({ error: "Free Trial planas nerastas." }, { status: 404 });
     }
 
+    const trialDays =
+      plan.isTrial && typeof plan.trialDays === "number" && plan.trialDays > 0
+        ? plan.trialDays
+        : 30;
+
     const now = new Date();
-    const trialEndsAt =
-      plan.isTrial && typeof plan.trialDays === "number"
-        ? new Date(now.getTime() + plan.trialDays * 24 * 60 * 60 * 1000)
-        : null;
+    const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
 
     const providerProfile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
@@ -79,12 +114,20 @@ export async function POST(req: Request) {
         planId: plan.id,
         isApproved: true,
         trialEndsAt,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        currentPeriodEnd: null,
       },
       create: {
         userId: user.id,
         planId: plan.id,
         isApproved: true,
         trialEndsAt,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        currentPeriodEnd: null,
       },
       select: {
         id: true,
@@ -95,7 +138,7 @@ export async function POST(req: Request) {
     });
 
     await auditLog({
-      action: "PLAN_CHOOSE",
+      action: "PLAN_CHOOSE_FREE_TRIAL",
       entity: "ProviderProfile",
       entityId: providerProfile.id,
       userId: user.id,
@@ -105,7 +148,9 @@ export async function POST(req: Request) {
         planSlug: plan.slug,
         planName: plan.name,
         autoApproved: true,
+        trialDays,
         trialEndsAt: providerProfile.trialEndsAt,
+        access: "premium_during_trial",
       },
     });
 

@@ -390,73 +390,123 @@
     }
   },
   "becomeProviderPage": {
+    "eyebrow": "LINKSETA PLANS",
     "title": "Become a service provider on Linkseta",
-    "lead": "Choose a plan and get the ability to create your service listings so people in Norway can easily find you.",
-    "noteStrong": "Free Trial is currently active.",
-    "noteText": "Basic and Premium plans will be enabled later.",
+    "lead": "Choose a plan and create your service listings so customers in Norway can easily find you.",
+
     "recommended": "Recommended",
-    "comingSoon": "Coming soon",
-    "inactivePlanTitle": "This plan is not active yet",
+    "popular": "Most popular",
+    "newTag": "New",
+    "chatKeyword": "Direct chat",
+
     "buttonBusy": "Processing...",
-    "buttonSoon": "Soon",
-    "trialSafetyNote": "💡 Free Trial is currently active. After 30 days, no payment will be charged automatically.",
     "buttonStartTrial": "Start Free Trial",
-    "smallInfo": "After choosing Free Trial, you will be redirected to your account, where you can create your first listing and upload up to 5 photos in the gallery.",
+    "buttonStartTrialFull": "Start 30 days free",
+    "buttonChooseBasic": "Choose Basic",
+    "buttonChoosePremium": "Choose Premium",
+
+    "commitmentNote": "No commitment. Cancel anytime.",
+
+    "smallInfo": "Free Trial lets you try Linkseta without a payment card and without automatic charges.",
+
+    "trialSafetyNote": "💡 You can start a 30-day free trial. After the period ends, no payment will be charged automatically.",
+
     "errors": {
       "chooseFailed": "Could not select the plan. Please try again.",
       "server": "Server error. Please try again."
     },
+
     "plans": {
       "freeTrial": {
         "name": "Free Trial",
         "priceLabel": "0 NOK / 30 days",
         "description": "Try Linkseta without commitment.",
         "features": [
-          "✓ 1 active listing",
-          "✓ Up to 5 gallery photos",
-          "✓ 30-day free trial"
+          "3 active listings",
+          "Up to 15 gallery photos",
+          "Reviews",
+          "Direct chat with customers",
+          "Top Rated eligibility",
+          "Shown on the homepage through rotation"
         ]
       },
+
       "basic": {
         "name": "Basic",
         "priceLabel": "119 NOK / month",
-        "description": "A practical plan for providers who want more active listings and more photos.",
+        "description": "Everything you need to actively promote your services on Linkseta.",
         "features": [
-          "✓ Up to 3 active listings",
-          "✓ Up to 15 photos per listing"
+          "3 active listings",
+          "Up to 15 gallery photos",
+          "Email and phone inquiries",
+          "Reviews",
+          "Top Rated eligibility"
         ]
       },
+
       "premium": {
         "name": "Premium",
         "priceLabel": "249 NOK / month",
-        "description": "Made for providers who want stronger visibility and more chances to be noticed.",
+        "description": "More visibility, more inquiries and faster communication with customers.",
         "features": [
-          "🔥 Featured on homepage through rotation",
-          "⭐ TOP eligibility based on reviews",
-          "🚀 Increased visibility",
-          "✓ Up to 5 active listings",
-          "✓ Up to 30 photos per listing"
+          "5 active listings",
+          "Up to 30 gallery photos",
+          "Direct chat with customers",
+          "Email and phone inquiries",
+          "Reviews",
+          "Top Rated eligibility",
+          "Shown on the homepage through rotation"
         ]
       }
     },
+
+    "info": {
+      "basicTitle": "No chat included",
+      "basicText": "Customer communication happens by email or phone. To use chat, upgrade to Premium.",
+
+      "premiumTitle": "Direct chat with customers",
+      "premiumText": "Communicate in real time through chat. Reply faster, save time and receive more inquiries.",
+
+      "trialTitle": "30-day trial period",
+      "trialText": "Try the main features. After the trial ends, choose the plan that best fits your business."
+    },
+
+    "benefits": {
+      "secureTitle": "Secure payments",
+      "secureSub": "100% secure payments",
+
+      "flexTitle": "Flexible changes",
+      "flexSub": "Change your plan anytime",
+
+      "cancelTitle": "Cancel anytime",
+      "cancelSub": "No commitment",
+
+      "supportTitle": "Customer support",
+      "supportSub": "We help with all questions"
+    },
+
     "faq": {
       "title": "Frequently asked questions",
+
       "items": {
         "first": {
-          "q": "Will money be charged automatically after the Free Trial?",
-          "a": "No. After the 30-day period ends, no payment will be charged automatically. You will continue only if you choose to."
+          "q": "Will I be charged automatically after the Free Trial?",
+          "a": "No. After the 30-day period ends, no payment will be charged automatically."
         },
+
         "second": {
           "q": "Do I need to enter card details?",
           "a": "No. You can start the Free Trial without payment information."
         },
+
         "third": {
-          "q": "How can I stop using it?",
-          "a": "You can stop using it at any time – there are no obligations."
+          "q": "Can I cancel my plan?",
+          "a": "Yes. You can cancel your plan anytime."
         },
+
         "fourth": {
           "q": "What do I get during the Free Trial?",
-          "a": "You will be able to create 1 active listing and upload up to 5 photos to try the platform."
+          "a": "Free Trial gives you 30 days of Premium features with 3 active listings and up to 15 gallery photos."
         }
       }
     }

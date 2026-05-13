@@ -5,9 +5,23 @@ import { useMemo, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { csrfFetch } from "@/lib/csrfClient";
+import {
+  ShieldCheck,
+  RotateCcw,
+  PauseCircle,
+  Headphones,
+  Gem,
+  Crown,
+  Gift,
+  Star,
+  LockKeyhole,
+  MessageCircle,
+  Clock3,
+} from "lucide-react";
+
 import styles from "./tapti.module.css";
 
-type PlanSlug = "free-trial" | "basic" | "premium";
+type PlanSlug = "basic" | "premium" | "free-trial";
 
 type Plan = {
   slug: PlanSlug;
@@ -22,35 +36,13 @@ function loginUrl(locale: string, nextPath: string) {
   return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
 }
 
-function getPlanBadge(locale: string, slug: PlanSlug) {
-  if (locale === "en") {
-    if (slug === "premium") return "Best value";
-    if (slug === "basic") return "Good choice";
-    return "Easy start";
-  }
-
-  if (locale === "no") {
-    if (slug === "premium") return "Best verdi";
-    if (slug === "basic") return "Godt valg";
-    return "Enkel start";
-  }
-
-  if (slug === "premium") return "Geriausias pasirinkimas";
-  if (slug === "basic") return "Geras pasirinkimas";
-  return "Lengva pradžia";
-}
-
-function getPaidButtonLabel(locale: string) {
-  if (locale === "en") return "Choose plan";
-  if (locale === "no") return "Velg plan";
-  return "Pasirinkti planą";
-}
-
 export default function TaptiTeikejuPage() {
   const t = useTranslations("becomeProviderPage");
+
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const pathname = usePathname();
+
   const locale = params?.locale ?? "lt";
 
   const [loadingSlug, setLoadingSlug] = useState<PlanSlug | null>(null);
@@ -58,13 +50,6 @@ export default function TaptiTeikejuPage() {
 
   const plans: Plan[] = useMemo(
     () => [
-      {
-        slug: "free-trial",
-        name: t("plans.freeTrial.name"),
-        priceLabel: t("plans.freeTrial.priceLabel"),
-        description: t("plans.freeTrial.description"),
-        features: t.raw("plans.freeTrial.features") as string[],
-      },
       {
         slug: "basic",
         name: t("plans.basic.name"),
@@ -80,6 +65,13 @@ export default function TaptiTeikejuPage() {
         features: t.raw("plans.premium.features") as string[],
         recommended: true,
       },
+      {
+        slug: "free-trial",
+        name: t("plans.freeTrial.name"),
+        priceLabel: t("plans.freeTrial.priceLabel"),
+        description: t("plans.freeTrial.description"),
+        features: t.raw("plans.freeTrial.features") as string[],
+      },
     ],
     [t],
   );
@@ -90,7 +82,9 @@ export default function TaptiTeikejuPage() {
 
     try {
       const endpoint =
-        planSlug === "free-trial" ? "/api/plans/choose" : "/api/stripe/checkout";
+        planSlug === "free-trial"
+          ? "/api/plans/choose"
+          : "/api/stripe/checkout";
 
       const res = await csrfFetch(endpoint, {
         method: "POST",
@@ -119,7 +113,7 @@ export default function TaptiTeikejuPage() {
           return;
         }
 
-        setError("Nepavyko atidaryti Stripe Checkout.");
+        setError(t("errors.checkoutFailed"));
         return;
       }
 
@@ -138,18 +132,15 @@ export default function TaptiTeikejuPage() {
     { q: t("faq.items.second.q"), a: t("faq.items.second.a") },
     { q: t("faq.items.third.q"), a: t("faq.items.third.a") },
     { q: t("faq.items.fourth.q"), a: t("faq.items.fourth.a") },
-  
   ];
 
   return (
     <main className={styles.page}>
       <div className={styles.wrapper}>
         <section className={styles.hero}>
-          <div className={styles.heroText}>
-            <div className={styles.eyebrow}>LINKSETA PLANS</div>
-            <h1 className={styles.heading}>{t("title")}</h1>
-            <p className={styles.lead}>{t("lead")}</p>
-          </div>
+          <div className={styles.eyebrow}>{t("eyebrow")}</div>
+          <h1 className={styles.heading}>{t("title")}</h1>
+          <p className={styles.lead}>{t("lead")}</p>
         </section>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -159,61 +150,102 @@ export default function TaptiTeikejuPage() {
             {plans.map((plan) => {
               const busy = loadingSlug === plan.slug;
 
+              const isBasic = plan.slug === "basic";
+              const isPremium = plan.slug === "premium";
+              const isTrial = plan.slug === "free-trial";
+
               return (
                 <article
                   key={plan.slug}
                   className={`${styles.planCard} ${
-                    plan.slug === "free-trial"
+                    isTrial
                       ? styles.planCardTrial
-                      : plan.slug === "basic"
+                      : isBasic
                         ? styles.planCardBasic
                         : styles.planCardPremium
-                  } ${plan.recommended ? styles.planCardRecommended : ""}`}
+                  }`}
                 >
-                  <div className={styles.planTop}>
-                    <span className={styles.planBadge}>
-                      {getPlanBadge(locale, plan.slug)}
-                    </span>
-
-                    {plan.recommended && (
-                      <span className={styles.planHighlightTag}>
-                        {t("recommended")}
-                      </span>
-                    )}
-                  </div>
+                  {isPremium && (
+                    <div className={styles.popularBadge}>
+                      <Star className={styles.popularIcon} />
+                      {t("popular")}
+                    </div>
+                  )}
 
                   <div className={styles.planHeader}>
-                    <h2 className={styles.planName}>{plan.name}</h2>
+                    <div className={styles.planTitleRow}>
+                      <div className={styles.planIconBox}>
+                        {isBasic && <Gem className={styles.planIcon} />}
+                        {isPremium && <Crown className={styles.planIcon} />}
+                        {isTrial && <Gift className={styles.planIcon} />}
+                      </div>
+
+                      <h2 className={styles.planName}>{plan.name}</h2>
+                    </div>
+
                     <p className={styles.planPrice}>{plan.priceLabel}</p>
 
-                    {plan.description ? (
-                      <p className={styles.planDescription}>
-                        {plan.description}
-                      </p>
-                    ) : null}
+                    <div className={styles.divider} />
+
+                    <p className={styles.planDescription}>
+                      {plan.description}
+                    </p>
                   </div>
 
                   <ul className={styles.featuresList}>
                     {plan.features.map((feature, i) => (
                       <li key={i} className={styles.featureItem}>
                         {feature}
+
+                        {isPremium &&
+                          feature
+                            .toLowerCase()
+                            .includes(t("chatKeyword").toLowerCase()) && (
+                            <span className={styles.newTag}>
+                              {t("newTag")}
+                            </span>
+                          )}
                       </li>
                     ))}
                   </ul>
 
                   <div className={styles.planBottom}>
-                    {plan.slug === "free-trial" && (
-                      <p className={styles.planSafetyNote}>
-                        {t("trialSafetyNote")}
-                      </p>
+                    {isBasic && (
+                      <div className={styles.infoBox}>
+                        <LockKeyhole className={styles.infoIcon} />
+                        <div>
+                          <strong>{t("info.basicTitle")}</strong>
+                          <p>{t("info.basicText")}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isPremium && (
+                      <div className={styles.infoBoxPremium}>
+                        <MessageCircle className={styles.infoIcon} />
+                        <div>
+                          <strong>{t("info.premiumTitle")}</strong>
+                          <p>{t("info.premiumText")}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {isTrial && (
+                      <div className={styles.infoBoxTrial}>
+                        <Clock3 className={styles.infoIcon} />
+                        <div>
+                          <strong>{t("info.trialTitle")}</strong>
+                          <p>{t("info.trialText")}</p>
+                        </div>
+                      </div>
                     )}
 
                     <button
                       type="button"
                       className={`${styles.planButton} ${
-                        plan.slug === "premium"
+                        isPremium
                           ? styles.planButtonPremium
-                          : plan.slug === "basic"
+                          : isBasic
                             ? styles.planButtonBasic
                             : styles.planButtonTrial
                       }`}
@@ -222,17 +254,79 @@ export default function TaptiTeikejuPage() {
                     >
                       {busy
                         ? t("buttonBusy")
-                        : plan.slug === "free-trial"
-                          ? t("buttonStartTrial")
-                          : getPaidButtonLabel(locale)}
+                        : isTrial
+                          ? t("buttonStartTrialFull")
+                          : isBasic
+                            ? t("buttonChooseBasic")
+                            : t("buttonChoosePremium")}
                     </button>
+
+                    <div className={styles.planCancelNote}>
+                      {t("commitmentNote")}
+                    </div>
                   </div>
                 </article>
               );
             })}
           </div>
 
-          <p className={styles.smallInfo}>{t("smallInfo")}</p>
+          <div className={styles.benefitsRow}>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIconBox}>
+                <ShieldCheck className={styles.benefitIcon} />
+              </div>
+              <div>
+                <div className={styles.benefitTitle}>
+                  {t("benefits.secureTitle")}
+                </div>
+                <div className={styles.benefitSub}>
+                  {t("benefits.secureSub")}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIconBox}>
+                <RotateCcw className={styles.benefitIcon} />
+              </div>
+              <div>
+                <div className={styles.benefitTitle}>
+                  {t("benefits.flexTitle")}
+                </div>
+                <div className={styles.benefitSub}>
+                  {t("benefits.flexSub")}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIconBox}>
+                <PauseCircle className={styles.benefitIcon} />
+              </div>
+              <div>
+                <div className={styles.benefitTitle}>
+                  {t("benefits.cancelTitle")}
+                </div>
+                <div className={styles.benefitSub}>
+                  {t("benefits.cancelSub")}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIconBox}>
+                <Headphones className={styles.benefitIcon} />
+              </div>
+              <div>
+                <div className={styles.benefitTitle}>
+                  {t("benefits.supportTitle")}
+                </div>
+                <div className={styles.benefitSub}>
+                  {t("benefits.supportSub")}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className={styles.faqSection}>

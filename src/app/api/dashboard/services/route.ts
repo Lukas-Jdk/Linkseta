@@ -7,6 +7,7 @@ import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
+import { hasActiveProviderAccess, getPlanLimits } from "@/lib/planAccess";
 import {
   translatePriceItems,
   translateServiceContent,
@@ -160,67 +161,53 @@ export async function POST(req: Request) {
       select: {
         id: true,
         isApproved: true,
+        lifetimeFree: true,
         trialEndsAt: true,
+        stripeSubscriptionId: true,
+        subscriptionStatus: true,
         planId: true,
         plan: {
           select: {
             slug: true,
             name: true,
-            maxListings: true,
-            maxImagesPerListing: true,
             isTrial: true,
           },
         },
       },
     });
 
-    if (!profile?.isApproved) {
-      return jsonNoStore({ error: "Forbidden" }, { status: 403 });
-    }
-
-    if (
-      profile.plan?.isTrial &&
-      profile.trialEndsAt &&
-      new Date(profile.trialEndsAt).getTime() < Date.now()
-    ) {
+    if (!profile?.isApproved || !hasActiveProviderAccess(profile)) {
       return jsonNoStore(
-        { error: "Jūsų Free Trial laikotarpis baigėsi." },
-        { status: 409 },
+        { error: "Jūsų planas neaktyvus arba Free Trial pasibaigė." },
+        { status: 403 },
       );
     }
 
-    const planSlug = profile.plan?.slug ?? "free-trial";
-    const planName = profile.plan?.name ?? "Free Trial";
-    const maxListings =
-      typeof profile.plan?.maxListings === "number"
-        ? profile.plan.maxListings
-        : 1;
-    const maxImagesPerListing =
-      typeof profile.plan?.maxImagesPerListing === "number"
-        ? profile.plan.maxImagesPerListing
-        : 3;
+    const limits = getPlanLimits(profile);
+    const planSlug = profile.plan?.slug ?? "none";
+    const planName = profile.plan?.name ?? "—";
+    const maxListings = limits.maxListings;
+    const maxImagesPerListing = limits.maxImagesPerListing;
 
-    if (Number.isFinite(maxListings) && maxListings > 0) {
-      const activeCount = await prisma.serviceListing.count({
-        where: { userId: user.id, isActive: true, deletedAt: null },
-      });
+    const activeCount = await prisma.serviceListing.count({
+      where: { userId: user.id, isActive: true, deletedAt: null },
+    });
 
-      if (activeCount >= maxListings) {
-        return jsonNoStore(
-          {
-            error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
-            code: "PLAN_LIMIT",
-            plan: {
-              slug: planSlug,
-              name: planName,
-              maxListings,
-              maxImagesPerListing,
-            },
-            activeCount,
+    if (activeCount >= maxListings) {
+      return jsonNoStore(
+        {
+          error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
+          code: "PLAN_LIMIT",
+          plan: {
+            slug: planSlug,
+            name: planName,
+            maxListings,
+            maxImagesPerListing,
           },
-          { status: 409 },
-        );
-      }
+          activeCount,
+        },
+        { status: 409 },
+      );
     }
 
     const body = await req.json().catch(() => ({} as any));
@@ -248,6 +235,33 @@ export async function POST(req: Request) {
       body?.responseTime === "24h" || body?.responseTime === "48h"
         ? body.responseTime
         : "1h";
+
+    const incomingGalleryUrlCount = Array.isArray(body?.galleryImageUrls)
+      ? body.galleryImageUrls.length
+      : 0;
+
+    const incomingGalleryPathCount = Array.isArray(body?.galleryImagePaths)
+      ? body.galleryImagePaths.length
+      : 0;
+
+    if (
+      incomingGalleryUrlCount > maxImagesPerListing ||
+      incomingGalleryPathCount > maxImagesPerListing
+    ) {
+      return jsonNoStore(
+        {
+          error: `Pasiekėte plano nuotraukų limitą: ${maxImagesPerListing}.`,
+          code: "PLAN_IMAGE_LIMIT",
+          plan: {
+            slug: planSlug,
+            name: planName,
+            maxListings,
+            maxImagesPerListing,
+          },
+        },
+        { status: 409 },
+      );
+    }
 
     const galleryImageUrls = normalizeGalleryStrings(
       body?.galleryImageUrls,
@@ -439,6 +453,9 @@ export async function POST(req: Request) {
           name: planName,
           maxListings,
           maxImagesPerListing,
+          canUseChat: limits.canUseChat,
+          canCollectReviews: limits.canCollectReviews,
+          canBecomeTopRated: limits.canBecomeTopRated,
         },
       },
     });

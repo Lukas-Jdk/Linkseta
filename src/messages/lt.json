@@ -345,78 +345,128 @@
     "imagesUploaded": "Nuotraukos įkeltos. Nepamirškite išsaugoti pakeitimų.",
     "genericError": "Įvyko klaida įkeliant nuotrauką."
   },
-  "becomeProviderPage": {
-    "title": "Tapk paslaugų teikėju Linksetoje",
-    "lead": "Pasirink planą ir gauk galimybę kurti savo paslaugų skelbimus, kad žmonės Norvegijoje lengvai tave rastų.",
-    "noteStrong": "Šiuo metu aktyvus Free Trial.",
-    "noteText": "Basic ir Premium planai bus įjungti vėliau.",
-    "recommended": "Rekomenduojamas",
-    "comingSoon": "Netrukus",
-    "inactivePlanTitle": "Šis planas dar neaktyvus",
-    "buttonBusy": "Vykdoma...",
-    "buttonSoon": "Netrukus",
-    "buttonStartTrial": "Pradėti Free Trial",
-    "smallInfo": "Pasirinkus Free Trial būsite nukreipti į savo paskyrą, kur galėsite sukurti pirmą skelbimą ir įkelti iki 5 nuotraukų galerijoje.",
-    "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai.",
-    "errors": {
-      "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
-      "server": "Serverio klaida. Bandykite dar kartą."
+ "becomeProviderPage": {
+  "eyebrow": "LINKSETA PLANAI",
+  "title": "Tapk paslaugų teikėju Linksetoje",
+  "lead": "Pasirink planą ir kurk savo paslaugų skelbimus, kad klientai Norvegijoje galėtų lengvai tave rasti.",
+
+  "recommended": "Rekomenduojamas",
+  "popular": "Populiariausias",
+  "newTag": "Nauja",
+  "chatKeyword": "Tiesioginis chat",
+
+  "buttonBusy": "Vykdoma...",
+  "buttonStartTrial": "Pradėti Free Trial",
+  "buttonStartTrialFull": "Pradėti 30 dienų nemokamai",
+  "buttonChooseBasic": "Rinktis Basic",
+  "buttonChoosePremium": "Rinktis Premium",
+
+  "commitmentNote": "Jokių įsipareigojimų. Atšaukti galite bet kada.",
+
+  "smallInfo": "Free Trial leidžia išbandyti Linksetą be mokėjimo kortelės ir be automatinio apmokestinimo.",
+
+  "trialSafetyNote": "💡 Galite pradėti 30 dienų nemokamą išbandymą. Pasibaigus laikotarpiui, mokestis nebus nuskaičiuotas automatiškai.",
+
+  "errors": {
+    "chooseFailed": "Nepavyko pasirinkti plano. Bandykite dar kartą.",
+    "server": "Serverio klaida. Bandykite dar kartą."
+  },
+
+  "plans": {
+    "freeTrial": {
+      "name": "Free Trial",
+      "priceLabel": "0 NOK / 30 dienų",
+      "description": "Išbandyk Linksetą be įsipareigojimų.",
+      "features": [
+        "3 aktyvūs skelbimai",
+        "Iki 15 nuotraukų galerijoje",
+        "Atsiliepimai",
+        "Tiesioginis chat su klientais",
+        "Top Rated galimybė",
+        "Rodoma pagrindiniame puslapyje rotacijos principu"
+      ]
     },
-    "plans": {
-      "freeTrial": {
-        "name": "Free Trial",
-        "priceLabel": "0 NOK / 30 dienų",
-        "description": "Išbandyk Linksetą be įsipareigojimų.",
-        "features": [
-          "✓ 1 aktyvus skelbimas",
-          "✓ Iki 5 nuotraukų galerijoje",
-          "✓ 30 dienų nemokamas išbandymas"
-        ]
-      },
-      "basic": {
-        "name": "Basic",
-        "priceLabel": "119 NOK / mėn",
-        "description": "Patogus planas norintiems turėti daugiau aktyvių skelbimų ir daugiau nuotraukų.",
-        "features": [
-          "✓ Iki 3 aktyvių skelbimų",
-          "✓ Iki 15 nuotraukų kiekvienam skelbimui"
-        ]
-      },
-      "premium": {
-        "name": "Premium",
-        "priceLabel": "249 NOK / mėn",
-        "description": "Skirta tiems, kas nori didesnio matomumo ir daugiau šansų būti pastebėtiems.",
-        "features": [
-          "🔥 Rodomas pagrindiniame puslapyje rotacijos principu",
-          "⭐ TOP galimybė pagal atsiliepimus",
-          "🚀 Didesnis matomumas",
-          "✓ Iki 5 aktyvių skelbimų",
-          "✓ Iki 30 nuotraukų kiekvienam skelbimui"
-        ]
-      }
+
+    "basic": {
+      "name": "Basic",
+      "priceLabel": "119 NOK / mėn",
+     "description": "Viskas, ko reikia aktyviai reklamuoti savo paslaugas Linksetoje.",
+      "features": [
+        "3 aktyvūs skelbimai",
+        "Iki 15 nuotraukų galerijoje",
+        "Užklausos el. paštu ir skambučiais",
+        "Atsiliepimai",
+        "Top Rated galimybė"
+      ]
     },
-    "faq": {
-      "title": "Dažniausiai užduodami klausimai",
-      "items": {
-        "first": {
-          "q": "Ar po Free Trial bus automatiškai nuskaičiuoti pinigai?",
-          "a": "Ne. Pasibaigus 30 dienų laikotarpiui, mokestis nebus nuskaičiuotas automatiškai. Prenumeratą pratęsite tik jei patys pasirinksite."
-        },
-        "second": {
-          "q": "Ar reikia įvesti kortelės duomenis?",
-          "a": "Ne. Free Trial galite pradėti be mokėjimo informacijos."
-        },
-        "third": {
-          "q": "Kaip galiu nutraukti naudojimą?",
-          "a": "Galite bet kada nustoti naudotis – jokių įsipareigojimų nėra."
-        },
-        "fourth": {
-          "q": "Ką gaunu per Free Trial?",
-          "a": "Galėsite sukurti 1 aktyvų skelbimą ir įkelti iki 5 nuotraukų, kad išbandytumėte platformą."
-        }
-      }
+
+    "premium": {
+      "name": "Premium",
+      "priceLabel": "249 NOK / mėn",
+      "description": "Didesnis matomumas, daugiau užklausų ir greitesnis bendravimas su klientais.",
+      "features": [
+        "5 aktyvūs skelbimai",
+        "Iki 30 nuotraukų galerijoje",
+        "Tiesioginis chat su klientais",
+        "Užklausos el. paštu ir skambučiais",
+        "Atsiliepimai",
+        "Top Rated galimybė",
+        "Rodoma pagrindiniame puslapyje rotacijos principu"
+      ]
     }
   },
+
+  "info": {
+    "basicTitle": "Nėra pokalbių",
+    "basicText": "Bendravimas su klientais vyksta el. paštu arba skambučiais. Norėdami naudoti chat funkciją, pasirinkite Premium planą.",
+
+    "premiumTitle": "Tiesioginis chat su klientais",
+    "premiumText": "Bendraukite realiu laiku per chat'ą. Greičiau atsakykite, sutaupykite laiko ir gaukite daugiau užklausų.",
+
+    "trialTitle": "30 dienų bandomasis laikotarpis",
+    "trialText": "Išbandyk visas pagrindines funkcijas. Pasibaigus laikotarpiui, pasirink planą, kuris geriausiai tinka tavo verslui."
+  },
+
+  "benefits": {
+    "secureTitle": "Saugūs mokėjimai",
+    "secureSub": "100% saugūs mokėjimai",
+
+    "flexTitle": "Lankstus keitimas",
+    "flexSub": "Keiskite planą bet kada",
+
+    "cancelTitle": "Atšaukite bet kada",
+    "cancelSub": "Jokių įsipareigojimų",
+
+    "supportTitle": "Klientų palaikymas",
+    "supportSub": "Padėsime visais klausimais"
+  },
+
+  "faq": {
+    "title": "Dažniausiai užduodami klausimai",
+
+    "items": {
+      "first": {
+        "q": "Ar po Free Trial bus automatiškai nuskaičiuoti pinigai?",
+        "a": "Ne. Pasibaigus 30 dienų laikotarpiui, mokestis nebus nuskaičiuotas automatiškai."
+      },
+
+      "second": {
+        "q": "Ar reikia įvesti kortelės duomenis?",
+        "a": "Ne. Free Trial galite pradėti be mokėjimo informacijos."
+      },
+
+      "third": {
+        "q": "Ar galiu atšaukti planą?",
+        "a": "Taip. Planą galite atšaukti bet kada."
+      },
+
+      "fourth": {
+        "q": "Ką gaunu per Free Trial?",
+        "a": "Free Trial suteikia 30 dienų prieigą prie Premium funkcijų su 3 aktyviais skelbimais ir iki 15 nuotraukų galerijoje."
+      }
+    }
+  }
+},
   "profileCard": {
     "provider": "Paslaugų teikėjas",
     "user": "Vartotojas",

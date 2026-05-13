@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
+import { hasPremiumAccess } from "@/lib/planAccess";
 import StartConversationButton from "./StartConversationButton";
 import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
 import styles from "./slugPage.module.css";
@@ -97,6 +98,17 @@ function formatServiceLocation(args: {
   if (fallbackCity) return fallbackCity;
 
   return "—";
+}
+
+function getChatLabel(locale: string) {
+  if (locale === "lt") return "Teirautis (chat)";
+  return "Chat";
+}
+
+function getChatLoadingLabel(locale: string) {
+  if (locale === "lt") return "Atidaroma...";
+  if (locale === "no") return "Åpner...";
+  return "Opening...";
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -255,6 +267,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
             select: {
               isApproved: true,
               companyName: true,
+              lifetimeFree: true,
+              trialEndsAt: true,
+              stripeSubscriptionId: true,
+              subscriptionStatus: true,
+              plan: {
+                select: {
+                  slug: true,
+                  isTrial: true,
+                },
+              },
             },
           },
         },
@@ -263,6 +285,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
   });
 
   if (!service) notFound();
+
+  const canUseChat = hasPremiumAccess(service.user.profile);
 
   const gallery = Array.isArray(service.galleryImageUrls)
     ? service.galleryImageUrls.filter(Boolean)
@@ -393,8 +417,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
               sellerInitial
             )}
           </div>
-
-          <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
         <div className={styles.sellerName}>{sellerName}</div>
@@ -412,19 +434,14 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.sideActions}>
-        {/* CHAT */}
-        <StartConversationButton
-          serviceId={service.id}
-          label={locale === "lt" ? "Teirautis (chat)" : "Chat"}
-          loadingLabel={
-            locale === "lt"
-              ? "Atidaroma..."
-              : locale === "no"
-                ? "Åpner..."
-                : "Opening..."
-          }
-        />
-        {/* EMAIL */}
+        {canUseChat && (
+          <StartConversationButton
+            serviceId={service.id}
+            label={getChatLabel(locale)}
+            loadingLabel={getChatLoadingLabel(locale)}
+          />
+        )}
+
         <a
           className={styles.secondaryBtn}
           href={emailHref}
@@ -434,7 +451,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
           <Mail size={18} />
           {t("writeEmail")}
         </a>
-        {/* PHONE */}
+
         {telHref ? (
           <a className={styles.secondaryBtn} href={telHref}>
             <Phone size={18} />
@@ -520,7 +537,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
               sellerInitial
             )}
           </div>
-          <span className={styles.onlineDot} aria-hidden="true" />
         </div>
 
         <div className={styles.mobileBottomSellerName}>{sellerName}</div>
@@ -537,17 +553,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
       </div>
 
       <div className={styles.mobileBottomActions}>
-        <StartConversationButton
-          serviceId={service.id}
-          label={locale === "lt" ? "Teirautis (chat)" : "Chat"}
-          loadingLabel={
-            locale === "lt"
-              ? "Atidaroma..."
-              : locale === "no"
-                ? "Åpner..."
-                : "Opening..."
-          }
-        />
+        {canUseChat && (
+          <StartConversationButton
+            serviceId={service.id}
+            label={getChatLabel(locale)}
+            loadingLabel={getChatLoadingLabel(locale)}
+          />
+        )}
 
         <a
           className={styles.secondaryBtn}

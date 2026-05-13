@@ -7,6 +7,7 @@ import { requireCsrf } from "@/lib/csrf";
 import { getClientIp, rateLimitOrThrow } from "@/lib/rateLimit";
 import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
+import { hasPremiumAccess } from "@/lib/planAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +62,25 @@ export async function POST(req: Request) {
       select: {
         id: true,
         title: true,
-        userId: true,
+        user: {
+          select: {
+            id: true,
+            profile: {
+              select: {
+                lifetimeFree: true,
+                trialEndsAt: true,
+                stripeSubscriptionId: true,
+                subscriptionStatus: true,
+                plan: {
+                  select: {
+                    slug: true,
+                    isTrial: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -69,10 +88,22 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Paslauga nerasta." }, { status: 404 });
     }
 
-    if (service.userId === user.id) {
+    const sellerUserId = service.user.id;
+
+    if (sellerUserId === user.id) {
       return jsonNoStore(
         { error: "Negalite rašyti žinutės sau." },
         { status: 400 },
+      );
+    }
+
+    if (!hasPremiumAccess(service.user.profile)) {
+      return jsonNoStore(
+        {
+          error: "Šis paslaugos teikėjas šiuo metu neturi aktyvaus chat.",
+          code: "SELLER_CHAT_NOT_AVAILABLE",
+        },
+        { status: 403 },
       );
     }
 
@@ -90,7 +121,7 @@ export async function POST(req: Request) {
           select 1
           from conversation_participants cp2
           where cp2.conversation_id = c.id
-            and cp2.user_id = ${service.userId}
+            and cp2.user_id = ${sellerUserId}
         )
       limit 1
     `;
@@ -120,7 +151,7 @@ export async function POST(req: Request) {
 
       await tx.$executeRaw`
         insert into conversation_participants (id, conversation_id, user_id, created_at)
-        values (${sellerParticipantId}, ${conversationId}, ${service.userId}, now())
+        values (${sellerParticipantId}, ${conversationId}, ${sellerUserId}, now())
       `;
     });
 
@@ -134,7 +165,7 @@ export async function POST(req: Request) {
       metadata: {
         serviceId: service.id,
         serviceTitle: service.title,
-        sellerUserId: service.userId,
+        sellerUserId,
       },
     });
 
