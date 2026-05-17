@@ -1,10 +1,10 @@
 // src/app/[locale]/dashboard/services/[id]/edit/page.tsx
-// src/app/[locale]/dashboard/services/[id]/edit/page.tsx
 import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { translateCategoryName } from "@/lib/categoryTranslations";
+import { getPlanLimits } from "@/lib/planAccess";
 import EditServiceForm from "./EditServiceForm";
 import styles from "./edit.module.css";
 
@@ -43,10 +43,7 @@ type LocalizedPriceItem = {
 };
 
 export default async function EditServicePage({ params }: PageProps) {
-  const [{ id, locale }, authUser] = await Promise.all([
-    params,
-    getAuthUser(),
-  ]);
+  const [{ id, locale }, authUser] = await Promise.all([params, getAuthUser()]);
 
   if (!authUser) redirect(`/${locale}/login`);
 
@@ -79,6 +76,9 @@ export default async function EditServicePage({ params }: PageProps) {
 
       imageUrl: true,
       imagePath: true,
+  
+      brandLogoUrl: true,
+      brandLogoPath: true,
       galleryImageUrls: true,
       galleryImagePaths: true,
 
@@ -106,6 +106,27 @@ export default async function EditServicePage({ params }: PageProps) {
           noteNo: true,
         },
       },
+
+      blocks: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          title: true,
+          titleEn: true,
+          titleNo: true,
+          description: true,
+          descriptionEn: true,
+          descriptionNo: true,
+          iconKey: true,
+          images: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              url: true,
+              path: true,
+              altText: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -118,18 +139,31 @@ export default async function EditServicePage({ params }: PageProps) {
   const profile = await prisma.providerProfile.findUnique({
     where: { userId: authUser.id },
     select: {
+      lifetimeFree: true,
+      trialEndsAt: true,
+      stripeSubscriptionId: true,
+      subscriptionStatus: true,
       plan: {
         select: {
+          name: true,
+          slug: true,
+          isTrial: true,
           maxImagesPerListing: true,
+          maxServiceBlocks: true,
         },
       },
     },
   });
 
+  const limits = getPlanLimits(profile);
+
   const maxImages =
-    typeof profile?.plan?.maxImagesPerListing === "number"
-      ? profile.plan.maxImagesPerListing
+    typeof limits.maxImagesPerListing === "number"
+      ? limits.maxImagesPerListing
       : 5;
+
+  const maxServiceBlocks =
+    typeof limits.maxServiceBlocks === "number" ? limits.maxServiceBlocks : 6;
 
   const categories = await prisma.category.findMany({
     where: { type: "SERVICE" },
@@ -169,6 +203,29 @@ export default async function EditServicePage({ params }: PageProps) {
       ? "fixed"
       : "from";
 
+  const localizedBlocks = (service.blocks ?? []).map((block) => ({
+    title: pickLocalizedValue(
+      locale,
+      block.title,
+      block.titleEn,
+      block.titleNo,
+    ),
+    description: pickLocalizedValue(
+      locale,
+      block.description,
+      block.descriptionEn,
+      block.descriptionNo,
+    ),
+    iconKey: block.iconKey || "other",
+    images: (block.images ?? [])
+      .map((image) => ({
+        url: image.url,
+        path: image.path,
+        altText: image.altText ?? "",
+      }))
+      .filter((image) => image.url && image.path),
+  }));
+
   const initial = {
     id: service.id,
     locale,
@@ -198,6 +255,8 @@ export default async function EditServicePage({ params }: PageProps) {
 
     imageUrl: service.imageUrl ?? null,
     imagePath: service.imagePath ?? null,
+    brandLogoUrl: service.brandLogoUrl ?? null,
+    brandLogoPath: service.brandLogoPath ?? null,
 
     galleryImageUrls:
       Array.isArray(service.galleryImageUrls) &&
@@ -224,6 +283,7 @@ export default async function EditServicePage({ params }: PageProps) {
 
     isActive: service.isActive,
     priceItems: localizedPriceItems,
+    serviceBlocks: localizedBlocks,
   };
 
   const localizedCategories = categories.map((c) => ({
@@ -245,7 +305,8 @@ export default async function EditServicePage({ params }: PageProps) {
           <EditServiceForm
             initial={initial}
             categories={localizedCategories}
-            maxImages={maxImages} 
+            maxImages={maxImages}
+            maxServiceBlocks={maxServiceBlocks}
           />
         </div>
       </div>

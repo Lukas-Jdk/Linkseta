@@ -23,6 +23,7 @@ type Props = {
     planName: string;
     maxListings: number;
     maxImagesPerListing: number;
+    maxServiceBlocks?: number;
     activeCount: number;
     canCreate: boolean;
     trialExpired: boolean;
@@ -38,6 +39,13 @@ type PriceItem = {
   label: string;
   priceText: string;
   note: string;
+};
+
+type ServiceBlock = {
+  title: string;
+  description: string;
+  iconKey: string;
+  images: GalleryItem[];
 };
 
 type UpgradePlanSlug = "basic" | "premium";
@@ -58,6 +66,15 @@ function emptyPriceItem(): PriceItem {
   };
 }
 
+function emptyServiceBlock(): ServiceBlock {
+  return {
+    title: "",
+    description: "",
+    iconKey: "other",
+    images: [],
+  };
+}
+
 function normalizePriceNumber(value: string) {
   const digits = value.replace(/[^\d]/g, "");
   if (!digits) return null;
@@ -68,25 +85,26 @@ function normalizePriceNumber(value: string) {
   return parsed;
 }
 
-function getUpgradeText(locale: string) {
+function getLocalText(locale: string) {
   if (locale === "en") {
     return {
       limitTitle: "Plan limits",
       currentPlan: "Current plan",
-      activeListings: "Active listings",
-      photosPerListing: "Photos per listing",
+      activeListings: "Service profiles",
+      photosPerListing: "Photos in total",
+      serviceBlocks: "Service blocks",
       upgradeButton: "Upgrade plan",
       listingsLimitReached: "You have reached your plan limit",
       trialExpired: "Your Free Trial has expired.",
       photoLimitText: "photos allowed by your plan",
       title: "Plan limit reached",
       subtitle:
-        "Your current plan does not allow more active listings or photos. Upgrade your plan to continue.",
+        "Your current plan does not allow more service profiles, service blocks or photos. Upgrade your plan to continue.",
       basicTitle: "Upgrade to Basic",
-      basicDesc: "Up to 3 active listings and 15 photos per listing.",
+      basicDesc: "1 service profile, up to 15 photos and 6 service blocks.",
       premiumTitle: "Upgrade to Premium",
       premiumDesc:
-        "Up to 5 active listings, 30 photos per listing and better visibility.",
+        "1 service profile, up to 30 photos, 12 service blocks, chat and homepage visibility.",
       close: "Close",
       loading: "Redirecting...",
       error: "Could not start checkout. Please try again.",
@@ -94,6 +112,23 @@ function getUpgradeText(locale: string) {
       from: "From",
       fixed: "Fixed",
       pricePlaceholder: "E.g. 600",
+      serviceBlocksTitle: "What services do you provide?",
+      serviceBlocksHint:
+        "Create service blocks such as kitchens, floors, terraces or painting. Photos can be added to each block.",
+      blockTitle: "Service block title",
+      blockTitlePlaceholder: "E.g. Kitchens, Floors, Terraces",
+      blockDescription: "Short description",
+      blockDescriptionPlaceholder: "Briefly describe this service",
+      blockIcon: "Service type / icon",
+      addBlock: "Add service block",
+      removeBlock: "Remove block",
+      uploadBlockImages: "Upload photos for this block",
+      noBlockImages: "No photos added to this block yet",
+      totalPhotos: "Total photos",
+      maxBlocksError: "You have reached your service block limit",
+      maxImagesError: "You have reached your photo limit",
+      mustHaveBlock: "Add at least one service block.",
+      mustHaveBlockTitle: "Each service block must have a title.",
     };
   }
 
@@ -101,20 +136,21 @@ function getUpgradeText(locale: string) {
     return {
       limitTitle: "Plangrenser",
       currentPlan: "Nåværende plan",
-      activeListings: "Aktive annonser",
-      photosPerListing: "Bilder per annonse",
+      activeListings: "Tjenesteprofiler",
+      photosPerListing: "Bilder totalt",
+      serviceBlocks: "Tjenesteblokker",
       upgradeButton: "Oppgrader plan",
       listingsLimitReached: "Du har nådd plangrensen",
       trialExpired: "Din Free Trial er utløpt.",
       photoLimitText: "bilder tillatt av planen din",
       title: "Plangrensen er nådd",
       subtitle:
-        "Din nåværende plan tillater ikke flere aktive annonser eller bilder. Oppgrader planen for å fortsette.",
+        "Din nåværende plan tillater ikke flere tjenesteprofiler, tjenesteblokker eller bilder. Oppgrader planen for å fortsette.",
       basicTitle: "Oppgrader til Basic",
-      basicDesc: "Opptil 3 aktive annonser og 15 bilder per annonse.",
+      basicDesc: "1 tjenesteprofil, opptil 15 bilder og 6 tjenesteblokker.",
       premiumTitle: "Oppgrader til Premium",
       premiumDesc:
-        "Opptil 5 aktive annonser, 30 bilder per annonse og bedre synlighet.",
+        "1 tjenesteprofil, opptil 30 bilder, 12 tjenesteblokker, chat og synlighet på forsiden.",
       close: "Lukk",
       loading: "Sender videre...",
       error: "Kunne ikke starte betaling. Prøv igjen.",
@@ -122,26 +158,44 @@ function getUpgradeText(locale: string) {
       from: "Fra",
       fixed: "Fast",
       pricePlaceholder: "F.eks. 600",
+      serviceBlocksTitle: "Hvilke tjenester tilbyr du?",
+      serviceBlocksHint:
+        "Lag tjenesteblokker som kjøkken, gulv, terrasser eller maling. Bilder kan legges til hver blokk.",
+      blockTitle: "Tittel på tjenesteblokk",
+      blockTitlePlaceholder: "F.eks. Kjøkken, Gulv, Terrasser",
+      blockDescription: "Kort beskrivelse",
+      blockDescriptionPlaceholder: "Beskriv denne tjenesten kort",
+      blockIcon: "Tjenestetype / ikon",
+      addBlock: "Legg til tjenesteblokk",
+      removeBlock: "Fjern blokk",
+      uploadBlockImages: "Last opp bilder for denne blokken",
+      noBlockImages: "Ingen bilder lagt til denne blokken ennå",
+      totalPhotos: "Bilder totalt",
+      maxBlocksError: "Du har nådd grensen for tjenesteblokker",
+      maxImagesError: "Du har nådd bildegrensen",
+      mustHaveBlock: "Legg til minst én tjenesteblokk.",
+      mustHaveBlockTitle: "Hver tjenesteblokk må ha en tittel.",
     };
   }
 
   return {
     limitTitle: "Plano limitai",
     currentPlan: "Dabartinis planas",
-    activeListings: "Aktyvūs skelbimai",
-    photosPerListing: "Nuotraukų vienam skelbimui",
+    activeListings: "Paslaugų profiliai",
+    photosPerListing: "Nuotraukų iš viso",
+    serviceBlocks: "Paslaugų blokai",
     upgradeButton: "Atnaujinti planą",
     listingsLimitReached: "Pasiekėte savo plano limitą",
     trialExpired: "Jūsų Free Trial laikotarpis baigėsi.",
     photoLimitText: "nuotraukų pagal planą",
     title: "Pasiektas plano limitas",
     subtitle:
-      "Dabartinis planas neleidžia kurti daugiau aktyvių skelbimų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
+      "Dabartinis planas neleidžia kurti daugiau paslaugų profilių, paslaugų blokų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
     basicTitle: "Atnaujinti į Basic",
-    basicDesc: "Iki 3 aktyvių skelbimų ir 15 nuotraukų kiekvienam skelbimui.",
+    basicDesc: "1 paslaugų profilis, iki 15 nuotraukų ir 6 paslaugų blokai.",
     premiumTitle: "Atnaujinti į Premium",
     premiumDesc:
-      "Iki 5 aktyvių skelbimų, 30 nuotraukų kiekvienam skelbimui ir didesnis matomumas.",
+      "1 paslaugų profilis, iki 30 nuotraukų, 12 paslaugų blokų, chat ir rodymas pagrindiniame puslapyje.",
     close: "Uždaryti",
     loading: "Nukreipiama...",
     error: "Nepavyko pradėti apmokėjimo. Bandyk dar kartą.",
@@ -149,7 +203,117 @@ function getUpgradeText(locale: string) {
     from: "Nuo",
     fixed: "Fiksuota",
     pricePlaceholder: "Pvz. 600",
+    serviceBlocksTitle: "Kokias paslaugas atliekate?",
+    serviceBlocksHint:
+      "Sukurkite paslaugų blokus, pvz. virtuvės, grindys, terasos ar dažymas. Nuotraukas galima pridėti prie kiekvieno bloko.",
+    blockTitle: "Paslaugos bloko pavadinimas",
+    blockTitlePlaceholder: "Pvz. Virtuvės, Grindys, Terasos",
+    blockDescription: "Trumpas aprašymas",
+    blockDescriptionPlaceholder: "Trumpai aprašykite šią paslaugą",
+    blockIcon: "Paslaugos tipas / ikona",
+    addBlock: "Pridėti paslaugos bloką",
+    removeBlock: "Pašalinti bloką",
+    uploadBlockImages: "Įkelti šio bloko nuotraukas",
+    noBlockImages: "Šiam blokui dar nėra pridėta nuotraukų",
+    totalPhotos: "Nuotraukų iš viso",
+    maxBlocksError: "Pasiekėte paslaugų blokų limitą",
+    maxImagesError: "Pasiekėte nuotraukų limitą",
+    mustHaveBlock: "Pridėkite bent vieną paslaugos bloką.",
+    mustHaveBlockTitle: "Kiekvienas paslaugos blokas turi turėti pavadinimą.",
   };
+}
+
+function getIconOptions(locale: string) {
+  if (locale === "en") {
+    return [
+      ["carpentry", "Carpentry"],
+      ["kitchen", "Kitchens"],
+      ["floors", "Floors"],
+      ["walls", "Walls"],
+      ["ceiling", "Ceilings"],
+      ["bathroom", "Bathrooms"],
+      ["terrace", "Terraces"],
+      ["doors", "Doors"],
+      ["windows", "Windows"],
+      ["painting", "Painting"],
+      ["plumbing", "Plumbing"],
+      ["electrical", "Electrical"],
+      ["cleaning", "Cleaning"],
+      ["transport", "Transport"],
+      ["auto", "Auto"],
+      ["beauty", "Beauty"],
+      ["it", "IT"],
+      ["accounting", "Accounting"],
+      ["legal", "Legal"],
+      ["real_estate", "Real estate"],
+      ["training", "Training"],
+      ["childcare", "Childcare"],
+      ["pets", "Pets"],
+      ["food", "Food"],
+      ["household", "Household"],
+      ["other", "Other"],
+    ] as const;
+  }
+
+  if (locale === "no") {
+    return [
+      ["carpentry", "Snekkerarbeid"],
+      ["kitchen", "Kjøkken"],
+      ["floors", "Gulv"],
+      ["walls", "Vegger"],
+      ["ceiling", "Tak"],
+      ["bathroom", "Bad"],
+      ["terrace", "Terrasser"],
+      ["doors", "Dører"],
+      ["windows", "Vinduer"],
+      ["painting", "Maling"],
+      ["plumbing", "Rørlegger"],
+      ["electrical", "Elektriker"],
+      ["cleaning", "Rengjøring"],
+      ["transport", "Transport"],
+      ["auto", "Bil"],
+      ["beauty", "Skjønnhet"],
+      ["it", "IT"],
+      ["accounting", "Regnskap"],
+      ["legal", "Juridisk"],
+      ["real_estate", "Eiendom"],
+      ["training", "Trening"],
+      ["childcare", "Barnepass"],
+      ["pets", "Dyr"],
+      ["food", "Mat"],
+      ["household", "Husholdning"],
+      ["other", "Annet"],
+    ] as const;
+  }
+
+  return [
+    ["carpentry", "Staliaus darbai"],
+    ["kitchen", "Virtuvės"],
+    ["floors", "Grindys"],
+    ["walls", "Sienos"],
+    ["ceiling", "Lubos"],
+    ["bathroom", "Vonios"],
+    ["terrace", "Terasos"],
+    ["doors", "Durys"],
+    ["windows", "Langai"],
+    ["painting", "Dažymas"],
+    ["plumbing", "Santechnika"],
+    ["electrical", "Elektra"],
+    ["cleaning", "Valymas"],
+    ["transport", "Transportas"],
+    ["auto", "Automobiliai"],
+    ["beauty", "Grožis"],
+    ["it", "IT"],
+    ["accounting", "Buhalterija"],
+    ["legal", "Teisinės paslaugos"],
+    ["real_estate", "NT"],
+    ["training", "Treniruotės"],
+    ["childcare", "Vaikų priežiūra"],
+    ["pets", "Gyvūnai"],
+    ["food", "Maistas"],
+    ["household", "Namų paslaugos"],
+    ["other", "Kita"],
+  ] as const;
 }
 
 export default function NewServiceForm({
@@ -162,8 +326,11 @@ export default function NewServiceForm({
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? "lt";
 
-  const upgradeText = getUpgradeText(locale);
+  const text = getLocalText(locale);
+  const iconOptions = getIconOptions(locale);
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+
+  const maxServiceBlocks = planLimits.maxServiceBlocks ?? 6;
 
   const [title, setTitle] = useState("");
   const [cityId, setCityId] = useState("");
@@ -182,8 +349,13 @@ export default function NewServiceForm({
   const [h3, setH3] = useState("");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>([emptyPriceItem()]);
-  const [uploading, setUploading] = useState(false);
-  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [serviceBlocks, setServiceBlocks] = useState<ServiceBlock[]>([
+    emptyServiceBlock(),
+  ]);
+
+  const [uploadingBlockIndex, setUploadingBlockIndex] = useState<number | null>(
+    null,
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [checkoutLoading, setCheckoutLoading] =
@@ -192,8 +364,8 @@ export default function NewServiceForm({
 
   const initialLimitMessage = !planLimits.canCreate
     ? planLimits.trialExpired
-      ? upgradeText.trialExpired
-      : `${upgradeText.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`
+      ? text.trialExpired
+      : `${text.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`
     : null;
 
   const [error, setError] = useState<string | null>(initialLimitMessage);
@@ -215,6 +387,21 @@ export default function NewServiceForm({
     [mainPrice],
   );
 
+  const totalImages = useMemo(() => {
+    return serviceBlocks.reduce((sum, block) => sum + block.images.length, 0);
+  }, [serviceBlocks]);
+
+  const cleanBlocks = useMemo(() => {
+    return serviceBlocks
+      .map((block) => ({
+        title: block.title.trim(),
+        description: block.description.trim(),
+        iconKey: block.iconKey,
+        images: block.images,
+      }))
+      .filter((block) => block.title || block.description || block.images.length);
+  }, [serviceBlocks]);
+
   const canSubmit = useMemo(() => {
     return (
       planLimits.canCreate &&
@@ -224,19 +411,25 @@ export default function NewServiceForm({
       Boolean(categoryId) &&
       Boolean(locationCity) &&
       Boolean(locationPostcode.trim()) &&
+      cleanBlocks.length > 0 &&
+      cleanBlocks.every((block) => block.title.length > 0) &&
+      totalImages <= planLimits.maxImagesPerListing &&
       !submitting &&
-      !uploading
+      uploadingBlockIndex === null
     );
   }, [
     planLimits.canCreate,
+    planLimits.maxImagesPerListing,
     title,
     description,
     cityId,
     categoryId,
     locationCity,
     locationPostcode,
+    cleanBlocks,
+    totalImages,
     submitting,
-    uploading,
+    uploadingBlockIndex,
   ]);
 
   function openUpgradeModal(message?: string) {
@@ -258,12 +451,12 @@ export default function NewServiceForm({
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.url) {
-        throw new Error(data?.error || upgradeText.error);
+        throw new Error(data?.error || text.error);
       }
 
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : upgradeText.error);
+      setError(err instanceof Error ? err.message : text.error);
       setCheckoutLoading(null);
     }
   }
@@ -282,6 +475,45 @@ export default function NewServiceForm({
     setPriceItems((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function updateServiceBlock(
+    index: number,
+    key: keyof Omit<ServiceBlock, "images">,
+    value: string,
+  ) {
+    setServiceBlocks((prev) =>
+      prev.map((block, i) => (i === index ? { ...block, [key]: value } : block)),
+    );
+  }
+
+  function addServiceBlock() {
+    if (serviceBlocks.length >= maxServiceBlocks) {
+      setError(`${text.maxBlocksError}: ${maxServiceBlocks}`);
+      return;
+    }
+
+    setServiceBlocks((prev) => [...prev, emptyServiceBlock()]);
+  }
+
+  function removeServiceBlock(index: number) {
+    setServiceBlocks((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  function removeBlockImage(blockIndex: number, path: string) {
+    setServiceBlocks((prev) =>
+      prev.map((block, i) =>
+        i === blockIndex
+          ? {
+              ...block,
+              images: block.images.filter((img) => img.path !== path),
+            }
+          : block,
+      ),
+    );
+  }
+
   function handleCityChange(nextCityId: string) {
     const nextCity = cities.find((c) => c.id === nextCityId) ?? null;
     const nextCityPostcode = nextCity?.postcode?.trim() ?? "";
@@ -293,7 +525,7 @@ export default function NewServiceForm({
     }
   }
 
-  async function handlePickImages(files: FileList | null) {
+  async function handlePickBlockImages(blockIndex: number, files: FileList | null) {
     if (!files || files.length === 0) return;
 
     setError(null);
@@ -304,17 +536,17 @@ export default function NewServiceForm({
       return;
     }
 
-    const remainingSlots = planLimits.maxImagesPerListing - gallery.length;
+    const remainingSlots = planLimits.maxImagesPerListing - totalImages;
 
     if (remainingSlots <= 0) {
       openUpgradeModal(
-        t("errors.maxImages", { max: planLimits.maxImagesPerListing }),
+        `${text.maxImagesError}: ${planLimits.maxImagesPerListing}`,
       );
       return;
     }
 
     const selected = Array.from(files).slice(0, remainingSlots);
-    setUploading(true);
+    setUploadingBlockIndex(blockIndex);
 
     try {
       const bucket = "service-images";
@@ -370,12 +602,22 @@ export default function NewServiceForm({
         });
       }
 
-      setGallery((prev) => [...prev, ...uploaded]);
+      setServiceBlocks((prev) =>
+        prev.map((block, i) =>
+          i === blockIndex
+            ? {
+                ...block,
+                images: [...block.images, ...uploaded],
+              }
+            : block,
+        ),
+      );
+
       setSuccess(t("uploadSuccess"));
     } catch (e) {
       setError(e instanceof Error ? e.message : t("errors.uploadGeneric"));
     } finally {
-      setUploading(false);
+      setUploadingBlockIndex(null);
     }
   }
 
@@ -387,8 +629,8 @@ export default function NewServiceForm({
     if (!planLimits.canCreate) {
       openUpgradeModal(
         planLimits.trialExpired
-          ? upgradeText.trialExpired
-          : `${upgradeText.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`,
+          ? text.trialExpired
+          : `${text.listingsLimitReached}: ${planLimits.activeCount}/${planLimits.maxListings}`,
       );
       return;
     }
@@ -406,6 +648,21 @@ export default function NewServiceForm({
             ? "Beskrivelsen må være minst 10 tegn"
             : "Aprašymas turi būti bent 10 simbolių",
       );
+      return;
+    }
+
+    if (cleanBlocks.length === 0) {
+      setError(text.mustHaveBlock);
+      return;
+    }
+
+    if (!cleanBlocks.every((block) => block.title.length > 0)) {
+      setError(text.mustHaveBlockTitle);
+      return;
+    }
+
+    if (totalImages > planLimits.maxImagesPerListing) {
+      setError(`${text.maxImagesError}: ${planLimits.maxImagesPerListing}`);
       return;
     }
 
@@ -435,8 +692,13 @@ export default function NewServiceForm({
         priceMode,
         mainPrice: normalizedMainPrice,
         priceItems: cleanPriceItems,
-        galleryImageUrls: gallery.map((x) => x.url),
-        galleryImagePaths: gallery.map((x) => x.path),
+        serviceBlocks: cleanBlocks,
+        galleryImageUrls: cleanBlocks.flatMap((block) =>
+          block.images.map((x) => x.url),
+        ),
+        galleryImagePaths: cleanBlocks.flatMap((block) =>
+          block.images.map((x) => x.path),
+        ),
         locationPostcode: locationPostcode.trim(),
         locationCity,
         locationRegion: locationRegion.trim(),
@@ -456,7 +718,8 @@ export default function NewServiceForm({
         if (
           data?.code === "PLAN_LIMIT" ||
           data?.code === "PLAN_LISTING_LIMIT" ||
-          data?.code === "PLAN_IMAGE_LIMIT"
+          data?.code === "PLAN_IMAGE_LIMIT" ||
+          data?.code === "PLAN_BLOCK_LIMIT"
         ) {
           openUpgradeModal(data?.error);
           return;
@@ -490,32 +753,32 @@ export default function NewServiceForm({
               type="button"
               className={styles.upgradeClose}
               onClick={() => setShowUpgradeModal(false)}
-              aria-label={upgradeText.close}
+              aria-label={text.close}
             >
               ×
             </button>
 
             <div className={styles.upgradeIcon}>🚀</div>
 
-            <h2 className={styles.upgradeTitle}>{upgradeText.title}</h2>
-            <p className={styles.upgradeSubtitle}>{upgradeText.subtitle}</p>
+            <h2 className={styles.upgradeTitle}>{text.title}</h2>
+            <p className={styles.upgradeSubtitle}>{text.subtitle}</p>
 
             <div className={styles.upgradeStats}>
               <div>
                 <strong>{planLimits.planName}</strong>
-                <span>{upgradeText.currentPlan}</span>
+                <span>{text.currentPlan}</span>
               </div>
 
               <div>
                 <strong>
                   {planLimits.activeCount}/{planLimits.maxListings}
                 </strong>
-                <span>{upgradeText.activeListings}</span>
+                <span>{text.activeListings}</span>
               </div>
 
               <div>
                 <strong>{planLimits.maxImagesPerListing}</strong>
-                <span>{upgradeText.photosPerListing}</span>
+                <span>{text.photosPerListing}</span>
               </div>
             </div>
 
@@ -530,10 +793,10 @@ export default function NewServiceForm({
                 <span>
                   <strong>
                     {checkoutLoading === "basic"
-                      ? upgradeText.loading
-                      : upgradeText.basicTitle}
+                      ? text.loading
+                      : text.basicTitle}
                   </strong>
-                  <small>{upgradeText.basicDesc}</small>
+                  <small>{text.basicDesc}</small>
                 </span>
               </button>
 
@@ -547,10 +810,10 @@ export default function NewServiceForm({
                 <span>
                   <strong>
                     {checkoutLoading === "premium"
-                      ? upgradeText.loading
-                      : upgradeText.premiumTitle}
+                      ? text.loading
+                      : text.premiumTitle}
                   </strong>
-                  <small>{upgradeText.premiumDesc}</small>
+                  <small>{text.premiumDesc}</small>
                 </span>
               </button>
             </div>
@@ -561,7 +824,7 @@ export default function NewServiceForm({
               onClick={() => setShowUpgradeModal(false)}
               disabled={checkoutLoading !== null}
             >
-              {upgradeText.close}
+              {text.close}
             </button>
           </div>
         </div>
@@ -574,7 +837,7 @@ export default function NewServiceForm({
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionNumber}>★</div>
-            <h2 className={styles.sectionTitle}>{upgradeText.limitTitle}</h2>
+            <h2 className={styles.sectionTitle}>{text.limitTitle}</h2>
           </div>
 
           <div className={styles.sectionBody}>
@@ -582,7 +845,7 @@ export default function NewServiceForm({
               <div className={styles.priceCard}>
                 <strong>{planLimits.planName}</strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {upgradeText.currentPlan}
+                  {text.currentPlan}
                 </span>
               </div>
 
@@ -591,14 +854,25 @@ export default function NewServiceForm({
                   {planLimits.activeCount}/{planLimits.maxListings}
                 </strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {upgradeText.activeListings}
+                  {text.activeListings}
                 </span>
               </div>
 
               <div className={styles.priceCard}>
-                <strong>{planLimits.maxImagesPerListing}</strong>
+                <strong>
+                  {totalImages}/{planLimits.maxImagesPerListing}
+                </strong>
                 <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {upgradeText.photosPerListing}
+                  {text.photosPerListing}
+                </span>
+              </div>
+
+              <div className={styles.priceCard}>
+                <strong>
+                  {serviceBlocks.length}/{maxServiceBlocks}
+                </strong>
+                <span className={styles.charHint} style={{ textAlign: "left" }}>
+                  {text.serviceBlocks}
                 </span>
               </div>
             </div>
@@ -609,7 +883,7 @@ export default function NewServiceForm({
                 className={styles.primaryButton}
                 onClick={() => openUpgradeModal()}
               >
-                {upgradeText.upgradeButton}
+                {text.upgradeButton}
               </button>
             )}
           </div>
@@ -653,16 +927,6 @@ export default function NewServiceForm({
               />
 
               <div className={styles.charHint}>{description.length} / 4000</div>
-
-              {description.length > 0 && description.length < 10 && (
-                <div className={styles.errorText}>
-                  {locale === "en"
-                    ? "Description must be at least 10 characters"
-                    : locale === "no"
-                      ? "Beskrivelsen må være minst 10 tegn"
-                      : "Aprašymas turi būti bent 10 simbolių"}
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -792,14 +1056,196 @@ export default function NewServiceForm({
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionNumber}>4</div>
+            <h2 className={styles.sectionTitle}>{text.serviceBlocksTitle}</h2>
+          </div>
+
+          <div className={styles.sectionBody}>
+            <div className={styles.highHint}>{text.serviceBlocksHint}</div>
+
+            <div className={styles.priceList}>
+              {serviceBlocks.map((block, blockIndex) => (
+                <div key={blockIndex} className={styles.priceCard}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formCol}>
+                      <label className={styles.label}>{text.blockTitle}</label>
+                      <input
+                        className={styles.input}
+                        value={block.title}
+                        onChange={(e) =>
+                          updateServiceBlock(
+                            blockIndex,
+                            "title",
+                            e.target.value,
+                          )
+                        }
+                        placeholder={text.blockTitlePlaceholder}
+                        disabled={!planLimits.canCreate}
+                      />
+                    </div>
+
+                    <div className={styles.formCol}>
+                      <label className={styles.label}>{text.blockIcon}</label>
+                      <select
+                        className={styles.select}
+                        value={block.iconKey}
+                        onChange={(e) =>
+                          updateServiceBlock(
+                            blockIndex,
+                            "iconKey",
+                            e.target.value,
+                          )
+                        }
+                        disabled={!planLimits.canCreate}
+                      >
+                        {iconOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                      {text.blockDescription}
+                    </label>
+                    <textarea
+                      className={styles.textarea}
+                      value={block.description}
+                      onChange={(e) =>
+                        updateServiceBlock(
+                          blockIndex,
+                          "description",
+                          e.target.value,
+                        )
+                      }
+                      placeholder={text.blockDescriptionPlaceholder}
+                      rows={3}
+                      disabled={!planLimits.canCreate}
+                    />
+                  </div>
+
+                  <div className={styles.uploadRow}>
+                    <label
+                      className={styles.uploadBtn}
+                      style={{
+                        opacity:
+                          !planLimits.canCreate ||
+                          totalImages >= planLimits.maxImagesPerListing
+                            ? 0.65
+                            : 1,
+                        pointerEvents:
+                          !planLimits.canCreate ||
+                          totalImages >= planLimits.maxImagesPerListing
+                            ? "none"
+                            : "auto",
+                      }}
+                    >
+                      {uploadingBlockIndex === blockIndex
+                        ? t("uploading")
+                        : text.uploadBlockImages}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        disabled={!planLimits.canCreate}
+                        onChange={(e) => {
+                          void handlePickBlockImages(
+                            blockIndex,
+                            e.target.files,
+                          );
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+
+                    <div
+                      className={styles.charHint}
+                      style={{ textAlign: "left" }}
+                    >
+                      {text.totalPhotos}: {totalImages}/
+                      {planLimits.maxImagesPerListing}
+                    </div>
+                  </div>
+
+                  <div className={styles.imagePreview}>
+                    {block.images.length > 0 ? (
+                      block.images.map((img, idx) => (
+                        <div key={img.path} className={styles.imageCard}>
+                          <div className={styles.imageThumb}>
+                            <Image
+                              src={img.url}
+                              alt={t("previewAlt", { index: idx + 1 })}
+                              fill
+                              sizes="180px"
+                              className={styles.previewImg}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            disabled={!planLimits.canCreate}
+                            onClick={() =>
+                              removeBlockImage(blockIndex, img.path)
+                            }
+                          >
+                            {t("remove")}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.emptyState}>
+                        <span className={styles.emptyText}>
+                          {text.noBlockImages}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.inlineActions}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={() => removeServiceBlock(blockIndex)}
+                      disabled={
+                        !planLimits.canCreate || serviceBlocks.length <= 1
+                      }
+                    >
+                      {text.removeBlock}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.inlineActions}>
+              <button
+                type="button"
+                className={styles.addRowButton}
+                onClick={addServiceBlock}
+                disabled={
+                  !planLimits.canCreate ||
+                  serviceBlocks.length >= maxServiceBlocks
+                }
+              >
+                + {text.addBlock}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.sectionCard}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionNumber}>5</div>
             <h2 className={styles.sectionTitle}>{t("pricesSectionTitle")}</h2>
           </div>
 
           <div className={styles.sectionBody}>
             <div className={styles.formGroup}>
-              <label className={styles.label}>
-                {upgradeText.priceModeLabel}
-              </label>
+              <label className={styles.label}>{text.priceModeLabel}</label>
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <button
@@ -812,7 +1258,7 @@ export default function NewServiceForm({
                     color: priceMode === "from" ? "#fff" : undefined,
                   }}
                 >
-                  {upgradeText.from}
+                  {text.from}
                 </button>
 
                 <button
@@ -825,7 +1271,7 @@ export default function NewServiceForm({
                     color: priceMode === "fixed" ? "#fff" : undefined,
                   }}
                 >
-                  {upgradeText.fixed}
+                  {text.fixed}
                 </button>
               </div>
 
@@ -833,7 +1279,7 @@ export default function NewServiceForm({
                 className={styles.input}
                 value={mainPrice}
                 onChange={(e) => setMainPrice(e.target.value)}
-                placeholder={upgradeText.pricePlaceholder}
+                placeholder={text.pricePlaceholder}
                 inputMode="numeric"
                 disabled={!planLimits.canCreate}
               />
@@ -901,86 +1347,6 @@ export default function NewServiceForm({
                   + {t("addPriceRow")}
                 </button>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionNumber}>5</div>
-            <h2 className={styles.sectionTitle}>{t("galleryLabel")}</h2>
-          </div>
-
-          <div className={styles.sectionBody}>
-            <div className={styles.uploadRow}>
-              <label
-                className={styles.uploadBtn}
-                style={{
-                  opacity:
-                    !planLimits.canCreate ||
-                    gallery.length >= planLimits.maxImagesPerListing
-                      ? 0.65
-                      : 1,
-                  pointerEvents:
-                    !planLimits.canCreate ||
-                    gallery.length >= planLimits.maxImagesPerListing
-                      ? "none"
-                      : "auto",
-                }}
-              >
-                {uploading ? t("uploading") : t("uploadButton")}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  disabled={!planLimits.canCreate}
-                  onChange={(e) => {
-                    void handlePickImages(e.target.files);
-                    e.currentTarget.value = "";
-                  }}
-                />
-              </label>
-
-              <div className={styles.charHint} style={{ textAlign: "left" }}>
-                {gallery.length}/{planLimits.maxImagesPerListing}{" "}
-                {upgradeText.photoLimitText}
-              </div>
-            </div>
-
-            <div className={styles.imagePreview}>
-              {gallery.length > 0 ? (
-                gallery.map((img, idx) => (
-                  <div key={img.path} className={styles.imageCard}>
-                    <div className={styles.imageThumb}>
-                      <Image
-                        src={img.url}
-                        alt={t("previewAlt", { index: idx + 1 })}
-                        fill
-                        sizes="180px"
-                        className={styles.previewImg}
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled={!planLimits.canCreate}
-                      onClick={() => {
-                        setGallery((prev) =>
-                          prev.filter((x) => x.path !== img.path),
-                        );
-                      }}
-                    >
-                      {t("remove")}
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyState}>
-                  <span className={styles.emptyText}>{t("noImagesYet")}</span>
-                </div>
-              )}
             </div>
           </div>
         </section>

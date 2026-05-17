@@ -73,6 +73,7 @@ type SearchResult = {
   categoryName: string | null;
   location: string | null;
   priceFrom: number | null;
+  serviceBlocks?: string[];
 };
 
 const LOCALES: LocaleItem[] = [
@@ -534,7 +535,16 @@ export default function HeaderClient({ locale, labels }: Props) {
                       .filter(Boolean)
                       .join(" · ")}
                   </div>
-
+                  {Array.isArray(item.serviceBlocks) &&
+                    item.serviceBlocks.length > 0 && (
+                      <div className={styles.searchBlockChips}>
+                        {item.serviceBlocks.slice(0, 3).map((block) => (
+                          <span key={block} className={styles.searchBlockChip}>
+                            {block}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   <div className={styles.searchResultDesc}>
                     {item.priceFrom
                       ? `${searchText.priceFrom} ${item.priceFrom} NOK · `

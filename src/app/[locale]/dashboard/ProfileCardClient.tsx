@@ -2,11 +2,18 @@
 "use client";
 
 import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import LocalizedLink from "@/components/i18n/LocalizedLink";
 import AvatarUploader from "@/components/profile/AvatarUploader";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./dashboard.module.css";
+
+type WorkingHours = {
+  weekdays?: string;
+  saturday?: string;
+  sunday?: string;
+} | null;
 
 type Props = {
   name: string | null;
@@ -17,11 +24,79 @@ type Props = {
   avatarUrl: string | null;
   totalServices: number;
   isProviderApproved: boolean;
+
+  about: string | null;
+  experienceYears: number | null;
+  completedProjects: number | null;
+  workingHours: unknown;
 };
 
 function getInitialLetter(name: string | null, email: string) {
   const source = name && name.trim() ? name.trim() : email;
   return source.slice(0, 1).toUpperCase();
+}
+
+function parseWorkingHours(value: unknown): WorkingHours {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+  const data = value as Record<string, unknown>;
+
+  return {
+    weekdays: typeof data.weekdays === "string" ? data.weekdays : "",
+    saturday: typeof data.saturday === "string" ? data.saturday : "",
+    sunday: typeof data.sunday === "string" ? data.sunday : "",
+  };
+}
+
+function getLocalText(locale: string) {
+  if (locale === "en") {
+    return {
+      providerInfo: "Provider profile",
+      about: "About me",
+      aboutEn: "About me EN",
+      aboutNo: "About me NO",
+      experienceYears: "Years of experience",
+      completedProjects: "Completed projects",
+      workingHours: "Working hours",
+      weekdays: "Monday - Friday",
+      saturday: "Saturday",
+      sunday: "Sunday",
+      aboutPlaceholder: "Tell customers about your experience, work style and services.",
+      timePlaceholder: "E.g. 09:00 - 17:00 or By agreement",
+    };
+  }
+
+  if (locale === "no") {
+    return {
+      providerInfo: "Tilbyderprofil",
+      about: "Om meg",
+      aboutEn: "Om meg EN",
+      aboutNo: "Om meg NO",
+      experienceYears: "Års erfaring",
+      completedProjects: "Fullførte prosjekter",
+      workingHours: "Arbeidstid",
+      weekdays: "Mandag - Fredag",
+      saturday: "Lørdag",
+      sunday: "Søndag",
+      aboutPlaceholder: "Fortell kundene om erfaring, arbeidsstil og tjenester.",
+      timePlaceholder: "F.eks. 09:00 - 17:00 eller Etter avtale",
+    };
+  }
+
+  return {
+    providerInfo: "Teikėjo profilis",
+    about: "Apie mane",
+    aboutEn: "Apie mane EN",
+    aboutNo: "Apie mane NO",
+    experienceYears: "Metų patirtis",
+    completedProjects: "Įgyvendintų projektų",
+    workingHours: "Darbo laikas",
+    weekdays: "Pirmadienis - Penktadienis",
+    saturday: "Šeštadienis",
+    sunday: "Sekmadienis",
+    aboutPlaceholder: "Aprašykite savo patirtį, darbo stilių ir paslaugas.",
+    timePlaceholder: "Pvz. 09:00 - 17:00 arba Pagal susitarimą",
+  };
 }
 
 export default function ProfileCardClient({
@@ -33,8 +108,18 @@ export default function ProfileCardClient({
   avatarUrl,
   totalServices,
   isProviderApproved,
+  about,
+  experienceYears,
+  completedProjects,
+  workingHours,
 }: Props) {
   const t = useTranslations("profileCard");
+  const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const locale = params?.locale ?? "lt";
+  const localText = getLocalText(locale);
+
+  const parsedWorkingHours = parseWorkingHours(workingHours);
 
   const [localName, setLocalName] = useState(name?.trim() || "");
   const [localPhone, setLocalPhone] = useState(phone?.trim() || "");
@@ -42,9 +127,31 @@ export default function ProfileCardClient({
     companyName?.trim() || "",
   );
 
+  const [localAbout, setLocalAbout] = useState(about?.trim() || "");
+
+  const [localExperienceYears, setLocalExperienceYears] = useState(
+    typeof experienceYears === "number" ? String(experienceYears) : "",
+  );
+  const [localCompletedProjects, setLocalCompletedProjects] = useState(
+    typeof completedProjects === "number" ? String(completedProjects) : "",
+  );
+  const [localWorkingHours, setLocalWorkingHours] = useState<WorkingHours>(
+    parsedWorkingHours,
+  );
+
   const [draftName, setDraftName] = useState(localName);
   const [draftPhone, setDraftPhone] = useState(localPhone);
   const [draftCompanyName, setDraftCompanyName] = useState(localCompanyName);
+  const [draftAbout, setDraftAbout] = useState(localAbout);
+  const [draftExperienceYears, setDraftExperienceYears] = useState(
+    localExperienceYears,
+  );
+  const [draftCompletedProjects, setDraftCompletedProjects] = useState(
+    localCompletedProjects,
+  );
+  const [draftWorkingHours, setDraftWorkingHours] = useState<WorkingHours>(
+    localWorkingHours,
+  );
 
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(
     avatarUrl ?? null,
@@ -62,6 +169,10 @@ export default function ProfileCardClient({
     setDraftName(localName);
     setDraftPhone(localPhone);
     setDraftCompanyName(localCompanyName);
+    setDraftAbout(localAbout);
+    setDraftExperienceYears(localExperienceYears);
+    setDraftCompletedProjects(localCompletedProjects);
+    setDraftWorkingHours(localWorkingHours);
     setError(null);
     setModalOpen(true);
   }
@@ -91,6 +202,14 @@ export default function ProfileCardClient({
           name: draftName.trim(),
           phone: draftPhone.trim(),
           companyName: draftCompanyName.trim(),
+          about: draftAbout.trim(),
+          experienceYears: draftExperienceYears.trim(),
+          completedProjects: draftCompletedProjects.trim(),
+          workingHours: {
+            weekdays: draftWorkingHours?.weekdays?.trim() ?? "",
+            saturday: draftWorkingHours?.saturday?.trim() ?? "",
+            sunday: draftWorkingHours?.sunday?.trim() ?? "",
+          },
         }),
       });
 
@@ -103,8 +222,22 @@ export default function ProfileCardClient({
       setLocalName(data?.profile?.name ?? draftName.trim());
       setLocalPhone(data?.profile?.phone ?? draftPhone.trim());
       setLocalCompanyName(data?.profile?.companyName ?? draftCompanyName.trim());
+      setLocalAbout(data?.profile?.about ?? draftAbout.trim());
+      setLocalExperienceYears(
+        data?.profile?.experienceYears != null
+          ? String(data.profile.experienceYears)
+          : draftExperienceYears.trim(),
+      );
+      setLocalCompletedProjects(
+        data?.profile?.completedProjects != null
+          ? String(data.profile.completedProjects)
+          : draftCompletedProjects.trim(),
+      );
+      setLocalWorkingHours(data?.profile?.workingHours ?? draftWorkingHours);
 
       setModalOpen(false);
+      router.refresh();
+    
     } catch (err) {
       setError(err instanceof Error ? err.message : t("genericError"));
     } finally {
@@ -260,6 +393,118 @@ export default function ProfileCardClient({
                   disabled={saving}
                 />
               </label>
+
+              {isProviderApproved && (
+                <>
+                  <div className={styles.modalDivider} />
+
+                  <h3 className={styles.modalSectionTitle}>
+                    {localText.providerInfo}
+                  </h3>
+
+                  <label className={styles.modalField}>
+                    <span className={styles.label}>{localText.about}</span>
+                    <textarea
+                      className={styles.textarea}
+                      value={draftAbout}
+                      onChange={(e) => setDraftAbout(e.target.value)}
+                      placeholder={localText.aboutPlaceholder}
+                      rows={5}
+                      maxLength={2000}
+                      disabled={saving}
+                    />
+                  </label>
+
+                  <div className={styles.modalTwoCols}>
+                    <label className={styles.modalField}>
+                      <span className={styles.label}>
+                        {localText.experienceYears}
+                      </span>
+                      <input
+                        className={styles.input}
+                        value={draftExperienceYears}
+                        onChange={(e) =>
+                          setDraftExperienceYears(e.target.value)
+                        }
+                        inputMode="numeric"
+                        maxLength={3}
+                        disabled={saving}
+                      />
+                    </label>
+
+                    <label className={styles.modalField}>
+                      <span className={styles.label}>
+                        {localText.completedProjects}
+                      </span>
+                      <input
+                        className={styles.input}
+                        value={draftCompletedProjects}
+                        onChange={(e) =>
+                          setDraftCompletedProjects(e.target.value)
+                        }
+                        inputMode="numeric"
+                        maxLength={6}
+                        disabled={saving}
+                      />
+                    </label>
+                  </div>
+
+                  <h3 className={styles.modalSectionTitle}>
+                    {localText.workingHours}
+                  </h3>
+
+                  <label className={styles.modalField}>
+                    <span className={styles.label}>{localText.weekdays}</span>
+                    <input
+                      className={styles.input}
+                      value={draftWorkingHours?.weekdays ?? ""}
+                      onChange={(e) =>
+                        setDraftWorkingHours((prev) => ({
+                          ...(prev ?? {}),
+                          weekdays: e.target.value,
+                        }))
+                      }
+                      placeholder={localText.timePlaceholder}
+                      maxLength={80}
+                      disabled={saving}
+                    />
+                  </label>
+
+                  <label className={styles.modalField}>
+                    <span className={styles.label}>{localText.saturday}</span>
+                    <input
+                      className={styles.input}
+                      value={draftWorkingHours?.saturday ?? ""}
+                      onChange={(e) =>
+                        setDraftWorkingHours((prev) => ({
+                          ...(prev ?? {}),
+                          saturday: e.target.value,
+                        }))
+                      }
+                      placeholder={localText.timePlaceholder}
+                      maxLength={80}
+                      disabled={saving}
+                    />
+                  </label>
+
+                  <label className={styles.modalField}>
+                    <span className={styles.label}>{localText.sunday}</span>
+                    <input
+                      className={styles.input}
+                      value={draftWorkingHours?.sunday ?? ""}
+                      onChange={(e) =>
+                        setDraftWorkingHours((prev) => ({
+                          ...(prev ?? {}),
+                          sunday: e.target.value,
+                        }))
+                      }
+                      placeholder={localText.timePlaceholder}
+                      maxLength={80}
+                      disabled={saving}
+                    />
+                  </label>
+                </>
+              )}
 
               {error && <div className={styles.errorText}>{error}</div>}
             </div>

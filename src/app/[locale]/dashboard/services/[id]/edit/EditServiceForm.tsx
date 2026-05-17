@@ -1,4 +1,5 @@
 // src/app/[locale]/dashboard/services/[id]/edit/EditServiceForm.tsx
+
 "use client";
 
 import Image from "next/image";
@@ -21,6 +22,19 @@ type PriceItem = {
   note: string;
 };
 
+type GalleryItem = {
+  url: string;
+  path: string;
+  altText?: string;
+};
+
+type ServiceBlock = {
+  title: string;
+  description: string;
+  iconKey: string;
+  images: GalleryItem[];
+};
+
 type InitialData = {
   id: string;
   locale: string;
@@ -36,21 +50,20 @@ type InitialData = {
   priceItems?: PriceItem[];
   imageUrl: string | null;
   imagePath: string | null;
+  brandLogoUrl: string | null;
+  brandLogoPath: string | null;
   highlights: string[];
   isActive?: boolean;
   galleryImageUrls?: string[];
   galleryImagePaths?: string[];
+  serviceBlocks?: ServiceBlock[];
 };
 
 type Props = {
   initial: InitialData;
   categories: Option[];
   maxImages: number;
-};
-
-type GalleryItem = {
-  url: string;
-  path: string;
+  maxServiceBlocks: number;
 };
 
 const BUCKET = "service-images";
@@ -62,6 +75,180 @@ function getDescriptionMinError(locale: string) {
   return "Aprašymas turi būti bent 10 simbolių.";
 }
 
+function getLocalText(locale: string) {
+  if (locale === "en") {
+    return {
+      serviceBlocksTitle: "What services do you provide?",
+      serviceBlocksHint:
+        "Edit service blocks such as kitchens, floors, terraces or painting. Photos can be added to each block.",
+      blockTitle: "Service block title",
+      blockTitlePlaceholder: "E.g. Kitchens, Floors, Terraces",
+      blockDescription: "Short description",
+      blockDescriptionPlaceholder: "Briefly describe this service",
+      blockIcon: "Service type / icon",
+      addBlock: "Add service block",
+      removeBlock: "Remove block",
+      uploadBlockImages: "Upload photos for this block",
+      noBlockImages: "No photos added to this block yet",
+      totalPhotos: "Total photos",
+      maxBlocksError: "You have reached your service block limit",
+      maxImagesError: "You have reached your photo limit",
+      mustHaveBlock: "Add at least one service block.",
+      mustHaveBlockTitle: "Each service block must have a title.",
+      priceModeLabel: "Estimated price on card",
+      from: "From",
+      fixed: "Fixed",
+      pricePlaceholder: "E.g. 600",
+      priceHint: "This price is shown on the service card before opening it.",
+    };
+  }
+
+  if (locale === "no") {
+    return {
+      serviceBlocksTitle: "Hvilke tjenester tilbyr du?",
+      serviceBlocksHint:
+        "Rediger tjenesteblokker som kjøkken, gulv, terrasser eller maling. Bilder kan legges til hver blokk.",
+      blockTitle: "Tittel på tjenesteblokk",
+      blockTitlePlaceholder: "F.eks. Kjøkken, Gulv, Terrasser",
+      blockDescription: "Kort beskrivelse",
+      blockDescriptionPlaceholder: "Beskriv denne tjenesten kort",
+      blockIcon: "Tjenestetype / ikon",
+      addBlock: "Legg til tjenesteblokk",
+      removeBlock: "Fjern blokk",
+      uploadBlockImages: "Last opp bilder for denne blokken",
+      noBlockImages: "Ingen bilder lagt til denne blokken ennå",
+      totalPhotos: "Bilder totalt",
+      maxBlocksError: "Du har nådd grensen for tjenesteblokker",
+      maxImagesError: "Du har nådd bildegrensen",
+      mustHaveBlock: "Legg til minst én tjenesteblokk.",
+      mustHaveBlockTitle: "Hver tjenesteblokk må ha en tittel.",
+      priceModeLabel: "Estimert pris på kortet",
+      from: "Fra",
+      fixed: "Fast",
+      pricePlaceholder: "F.eks. 600",
+      priceHint: "Denne prisen vises på tjenestekortet før åpning.",
+    };
+  }
+
+  return {
+    serviceBlocksTitle: "Kokias paslaugas atliekate?",
+    serviceBlocksHint:
+      "Redaguokite paslaugų blokus, pvz. virtuvės, grindys, terasos ar dažymas. Nuotraukas galima pridėti prie kiekvieno bloko.",
+    blockTitle: "Paslaugos bloko pavadinimas",
+    blockTitlePlaceholder: "Pvz. Virtuvės, Grindys, Terasos",
+    blockDescription: "Trumpas aprašymas",
+    blockDescriptionPlaceholder: "Trumpai aprašykite šią paslaugą",
+    blockIcon: "Paslaugos tipas / ikona",
+    addBlock: "Pridėti paslaugos bloką",
+    removeBlock: "Pašalinti bloką",
+    uploadBlockImages: "Įkelti šio bloko nuotraukas",
+    noBlockImages: "Šiam blokui dar nėra pridėta nuotraukų",
+    totalPhotos: "Nuotraukų iš viso",
+    maxBlocksError: "Pasiekėte paslaugų blokų limitą",
+    maxImagesError: "Pasiekėte nuotraukų limitą",
+    mustHaveBlock: "Pridėkite bent vieną paslaugos bloką.",
+    mustHaveBlockTitle: "Kiekvienas paslaugos blokas turi turėti pavadinimą.",
+    priceModeLabel: "Orientacinė kaina kortelėje",
+    from: "Nuo",
+    fixed: "Fiksuota",
+    pricePlaceholder: "Pvz. 600",
+    priceHint: "Ši kaina bus rodoma kortelėje prieš atidarant paslaugą.",
+  };
+}
+
+function getIconOptions(locale: string) {
+  if (locale === "en") {
+    return [
+      ["carpentry", "Carpentry"],
+      ["kitchen", "Kitchens"],
+      ["floors", "Floors"],
+      ["walls", "Walls"],
+      ["ceiling", "Ceilings"],
+      ["bathroom", "Bathrooms"],
+      ["terrace", "Terraces"],
+      ["doors", "Doors"],
+      ["windows", "Windows"],
+      ["painting", "Painting"],
+      ["plumbing", "Plumbing"],
+      ["electrical", "Electrical"],
+      ["cleaning", "Cleaning"],
+      ["transport", "Transport"],
+      ["auto", "Auto"],
+      ["beauty", "Beauty"],
+      ["it", "IT"],
+      ["accounting", "Accounting"],
+      ["legal", "Legal"],
+      ["real_estate", "Real estate"],
+      ["training", "Training"],
+      ["childcare", "Childcare"],
+      ["pets", "Pets"],
+      ["food", "Food"],
+      ["household", "Household"],
+      ["other", "Other"],
+    ] as const;
+  }
+
+  if (locale === "no") {
+    return [
+      ["carpentry", "Snekkerarbeid"],
+      ["kitchen", "Kjøkken"],
+      ["floors", "Gulv"],
+      ["walls", "Vegger"],
+      ["ceiling", "Tak"],
+      ["bathroom", "Bad"],
+      ["terrace", "Terrasser"],
+      ["doors", "Dører"],
+      ["windows", "Vinduer"],
+      ["painting", "Maling"],
+      ["plumbing", "Rørlegger"],
+      ["electrical", "Elektriker"],
+      ["cleaning", "Rengjøring"],
+      ["transport", "Transport"],
+      ["auto", "Bil"],
+      ["beauty", "Skjønnhet"],
+      ["it", "IT"],
+      ["accounting", "Regnskap"],
+      ["legal", "Juridisk"],
+      ["real_estate", "Eiendom"],
+      ["training", "Trening"],
+      ["childcare", "Barnepass"],
+      ["pets", "Dyr"],
+      ["food", "Mat"],
+      ["household", "Husholdning"],
+      ["other", "Annet"],
+    ] as const;
+  }
+
+  return [
+    ["carpentry", "Staliaus darbai"],
+    ["kitchen", "Virtuvės"],
+    ["floors", "Grindys"],
+    ["walls", "Sienos"],
+    ["ceiling", "Lubos"],
+    ["bathroom", "Vonios"],
+    ["terrace", "Terasos"],
+    ["doors", "Durys"],
+    ["windows", "Langai"],
+    ["painting", "Dažymas"],
+    ["plumbing", "Santechnika"],
+    ["electrical", "Elektra"],
+    ["cleaning", "Valymas"],
+    ["transport", "Transportas"],
+    ["auto", "Automobiliai"],
+    ["beauty", "Grožis"],
+    ["it", "IT"],
+    ["accounting", "Buhalterija"],
+    ["legal", "Teisinės paslaugos"],
+    ["real_estate", "NT"],
+    ["training", "Treniruotės"],
+    ["childcare", "Vaikų priežiūra"],
+    ["pets", "Gyvūnai"],
+    ["food", "Maistas"],
+    ["household", "Namų paslaugos"],
+    ["other", "Kita"],
+  ] as const;
+}
+
 function parseHighlights(text: string) {
   return text
     .split("\n")
@@ -70,32 +257,16 @@ function parseHighlights(text: string) {
     .slice(0, 6);
 }
 
-function normalizeInitialGallery(
-  urls?: string[],
-  paths?: string[],
-): GalleryItem[] {
-  if (!Array.isArray(urls) || !Array.isArray(paths)) return [];
-
-  const len = Math.min(urls.length, paths.length);
-  const out: GalleryItem[] = [];
-
-  for (let i = 0; i < len; i += 1) {
-    const url = String(urls[i] ?? "").trim();
-    const path = String(paths[i] ?? "").trim();
-
-    if (!url || !path) continue;
-
-    out.push({ url, path });
-  }
-
-  return out;
+function emptyPriceItem(): PriceItem {
+  return { label: "", priceText: "", note: "" };
 }
 
-function emptyPriceItem(): PriceItem {
+function emptyServiceBlock(): ServiceBlock {
   return {
-    label: "",
-    priceText: "",
-    note: "",
+    title: "",
+    description: "",
+    iconKey: "other",
+    images: [],
   };
 }
 
@@ -113,19 +284,35 @@ export default function EditServiceForm({
   initial,
   categories,
   maxImages,
+  maxServiceBlocks,
 }: Props) {
   const t = useTranslations("dashboardEditServiceForm");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const locale = params?.locale ?? initial.locale ?? "lt";
 
+  const text = getLocalText(locale);
+  const iconOptions = getIconOptions(locale);
+
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [pending, startTransition] = useTransition();
 
   const maxImagesSafe = Math.max(1, Number.isFinite(maxImages) ? maxImages : 5);
+  const maxServiceBlocksSafe = Math.max(
+    1,
+    Number.isFinite(maxServiceBlocks) ? maxServiceBlocks : 6,
+  );
 
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
+
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(
+    initial.brandLogoUrl ?? null,
+  );
+  const [brandLogoPath, setBrandLogoPath] = useState<string | null>(
+    initial.brandLogoPath ?? null,
+  );
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [categoryId, setCategoryId] = useState(initial.categoryId || "");
   const [responseTime, setResponseTime] = useState(
@@ -155,6 +342,25 @@ export default function EditServiceForm({
       : [emptyPriceItem()],
   );
 
+  const [serviceBlocks, setServiceBlocks] = useState<ServiceBlock[]>(
+    Array.isArray(initial.serviceBlocks) && initial.serviceBlocks.length > 0
+      ? initial.serviceBlocks.map((block) => ({
+          title: String(block.title ?? ""),
+          description: String(block.description ?? ""),
+          iconKey: String(block.iconKey ?? "other"),
+          images: Array.isArray(block.images)
+            ? block.images
+                .map((img) => ({
+                  url: String(img.url ?? ""),
+                  path: String(img.path ?? ""),
+                  altText: String(img.altText ?? ""),
+                }))
+                .filter((img) => img.url && img.path)
+            : [],
+        }))
+      : [emptyServiceBlock()],
+  );
+
   const [highlightsText, setHighlightsText] = useState(
     (initial.highlights ?? []).join("\n"),
   );
@@ -164,14 +370,26 @@ export default function EditServiceForm({
     [highlightsText],
   );
 
-  const [gallery, setGallery] = useState<GalleryItem[]>(
-    normalizeInitialGallery(
-      initial.galleryImageUrls,
-      initial.galleryImagePaths,
-    ),
-  );
+  const totalImages = useMemo(() => {
+    return serviceBlocks.reduce((sum, block) => sum + block.images.length, 0);
+  }, [serviceBlocks]);
 
-  const [uploading, setUploading] = useState(false);
+  const cleanBlocks = useMemo(() => {
+    return serviceBlocks
+      .map((block) => ({
+        title: block.title.trim(),
+        description: block.description.trim(),
+        iconKey: block.iconKey || "other",
+        images: block.images,
+      }))
+      .filter(
+        (block) => block.title || block.description || block.images.length,
+      );
+  }, [serviceBlocks]);
+
+  const [uploadingBlockIndex, setUploadingBlockIndex] = useState<number | null>(
+    null,
+  );
   const [isActive, setIsActive] = useState<boolean>(initial.isActive ?? true);
 
   const [error, setError] = useState<string | null>(null);
@@ -195,26 +413,135 @@ export default function EditServiceForm({
     setPriceItems((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function handleUpload(files: File[]) {
+  function updateServiceBlock(
+    index: number,
+    key: keyof Omit<ServiceBlock, "images">,
+    value: string,
+  ) {
+    setServiceBlocks((prev) =>
+      prev.map((block, i) =>
+        i === index ? { ...block, [key]: value } : block,
+      ),
+    );
+  }
+
+  function addServiceBlock() {
+    if (serviceBlocks.length >= maxServiceBlocksSafe) {
+      setError(`${text.maxBlocksError}: ${maxServiceBlocksSafe}`);
+      return;
+    }
+
+    setServiceBlocks((prev) => [...prev, emptyServiceBlock()]);
+  }
+
+  function removeServiceBlock(index: number) {
+    setServiceBlocks((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  }
+
+  function removeBlockImage(blockIndex: number, path: string) {
+    setServiceBlocks((prev) =>
+      prev.map((block, i) =>
+        i === blockIndex
+          ? {
+              ...block,
+              images: block.images.filter((img) => img.path !== path),
+            }
+          : block,
+      ),
+    );
+  }
+  function removeBrandLogo() {
+    setBrandLogoUrl(null);
+    setBrandLogoPath(null);
+  }
+
+  async function handleUploadBrandLogo(file: File | null) {
+    if (!file) return;
+
+    setError(null);
+    setSuccess(null);
+    setUploadingLogo(true);
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+
+      if (userErr || !userData.user) {
+        setError(t("mustBeLoggedIn"));
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error(t("fileNotImage"));
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(t("fileTooLargeBefore"));
+      }
+
+      const compressed = await compressImageFile(file, {
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.86,
+        mimeType: "image/jpeg",
+      });
+
+      if (compressed.size > 3 * 1024 * 1024) {
+        throw new Error(t("fileTooLargeAfter"));
+      }
+
+      const path = `${userData.user.id}/services/logos/${window.crypto.randomUUID()}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, compressed, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: "image/jpeg",
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message || t("uploadFailed"));
+      }
+
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+      if (!data?.publicUrl) {
+        throw new Error(t("urlFailed"));
+      }
+
+      setBrandLogoUrl(data.publicUrl);
+      setBrandLogoPath(path);
+      setSuccess(t("imagesUploaded"));
+    } catch (e) {
+      console.error(e);
+      setError(e instanceof Error ? e.message : t("genericError"));
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+  async function handleUploadBlockImages(blockIndex: number, files: File[]) {
     if (!files.length) return;
 
     setError(null);
     setSuccess(null);
 
-    const remainingSlots = maxImagesSafe - gallery.length;
+    const remainingSlots = maxImagesSafe - totalImages;
 
     if (remainingSlots <= 0) {
-      setError(t("maxImages", { max: maxImagesSafe }));
+      setError(`${text.maxImagesError}: ${maxImagesSafe}`);
       return;
     }
 
     const selected = files.slice(0, remainingSlots);
 
     if (files.length > remainingSlots) {
-      setError(t("maxImages", { max: maxImagesSafe }));
+      setError(`${text.maxImagesError}: ${maxImagesSafe}`);
     }
 
-    setUploading(true);
+    setUploadingBlockIndex(blockIndex);
 
     try {
       const { data: userData, error: userErr } = await supabase.auth.getUser();
@@ -236,8 +563,6 @@ export default function EditServiceForm({
           throw new Error(t("fileTooLargeBefore"));
         }
 
-        const random = window.crypto.randomUUID();
-
         const compressed = await compressImageFile(file, {
           maxWidth: 1600,
           maxHeight: 1600,
@@ -249,7 +574,7 @@ export default function EditServiceForm({
           throw new Error(t("fileTooLargeAfter"));
         }
 
-        const path = `${userId}/services/${random}.jpg`;
+        const path = `${userId}/services/${window.crypto.randomUUID()}.jpg`;
 
         const { error: uploadError } = await supabase.storage
           .from(BUCKET)
@@ -272,21 +597,24 @@ export default function EditServiceForm({
         uploaded.push({
           url: data.publicUrl,
           path,
+          altText: "",
         });
       }
 
-      if (!uploaded.length) {
-        setError(t("uploadFailed"));
-        return;
-      }
+      setServiceBlocks((prev) =>
+        prev.map((block, i) =>
+          i === blockIndex
+            ? { ...block, images: [...block.images, ...uploaded] }
+            : block,
+        ),
+      );
 
-      setGallery((prev) => [...prev, ...uploaded]);
       setSuccess(t("imagesUploaded"));
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : t("genericError"));
     } finally {
-      setUploading(false);
+      setUploadingBlockIndex(null);
     }
   }
 
@@ -300,19 +628,28 @@ export default function EditServiceForm({
       return;
     }
 
-    const highlights = parseHighlights(highlightsText);
-    const normalizedMainPrice = normalizePriceNumber(mainPrice);
-
-    const cleanGallery = gallery
-      .filter(
-        (item) => item.url.trim().length > 0 && item.path.trim().length > 0,
-      )
-      .slice(0, maxImagesSafe);
-
-    if (gallery.length > maxImagesSafe) {
-      setError(t("maxImages", { max: maxImagesSafe }));
+    if (cleanBlocks.length === 0) {
+      setError(text.mustHaveBlock);
       return;
     }
+
+    if (!cleanBlocks.every((block) => block.title.length > 0)) {
+      setError(text.mustHaveBlockTitle);
+      return;
+    }
+
+    if (cleanBlocks.length > maxServiceBlocksSafe) {
+      setError(`${text.maxBlocksError}: ${maxServiceBlocksSafe}`);
+      return;
+    }
+
+    if (totalImages > maxImagesSafe) {
+      setError(`${text.maxImagesError}: ${maxImagesSafe}`);
+      return;
+    }
+
+    const highlights = parseHighlights(highlightsText);
+    const normalizedMainPrice = normalizePriceNumber(mainPrice);
 
     const cleanPriceItems = priceItems
       .map((item) => ({
@@ -330,6 +667,8 @@ export default function EditServiceForm({
           locale,
           title: title.trim(),
           description: description.trim(),
+          brandLogoUrl,
+          brandLogoPath,
           locationPostcode: locationPostcode.trim(),
           locationCity: locationCity.trim(),
           locationRegion: locationRegion.trim(),
@@ -338,8 +677,13 @@ export default function EditServiceForm({
           priceMode,
           mainPrice: normalizedMainPrice,
           priceItems: cleanPriceItems,
-          galleryImageUrls: cleanGallery.map((x) => x.url),
-          galleryImagePaths: cleanGallery.map((x) => x.path),
+          serviceBlocks: cleanBlocks,
+          galleryImageUrls: cleanBlocks.flatMap((block) =>
+            block.images.map((x) => x.url),
+          ),
+          galleryImagePaths: cleanBlocks.flatMap((block) =>
+            block.images.map((x) => x.path),
+          ),
           highlights,
           isActive,
         }),
@@ -352,7 +696,6 @@ export default function EditServiceForm({
         return;
       }
 
-      setGallery(cleanGallery);
       setSuccess(t("saved"));
 
       startTransition(() => {
@@ -469,6 +812,56 @@ export default function EditServiceForm({
               </p>
             )}
           </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Logo</label>
+
+            {brandLogoUrl && (
+              <div className={styles.imagePreview}>
+                <div className={styles.imageCard}>
+                  <div className={styles.imageThumb}>
+                    <Image
+                      src={brandLogoUrl}
+                      alt="Logo"
+                      fill
+                      sizes="180px"
+                      style={{ objectFit: "contain" }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={removeBrandLogo}
+                    disabled={uploadingLogo || pending}
+                  >
+                    {t("removeImage")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className={styles.uploadRow}>
+              <label
+                className={styles.uploadBtn}
+                style={{
+                  opacity: uploadingLogo ? 0.65 : 1,
+                  pointerEvents: uploadingLogo ? "none" : "auto",
+                }}
+              >
+                {uploadingLogo ? t("uploading") : "Įkelti logo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingLogo || pending}
+                  onChange={(e) => {
+                    const file = e.currentTarget.files?.[0] ?? null;
+                    e.currentTarget.value = "";
+                    void handleUploadBrandLogo(file);
+                  }}
+                />
+              </label>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -566,16 +959,9 @@ export default function EditServiceForm({
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Orientacinė kaina kortelėje</label>
+            <label className={styles.label}>{text.priceModeLabel}</label>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                marginBottom: 12,
-              }}
-            >
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 type="button"
                 className={styles.secondaryButton}
@@ -585,7 +971,7 @@ export default function EditServiceForm({
                   color: priceMode === "from" ? "#fff" : undefined,
                 }}
               >
-                Nuo
+                {text.from}
               </button>
 
               <button
@@ -597,7 +983,7 @@ export default function EditServiceForm({
                   color: priceMode === "fixed" ? "#fff" : undefined,
                 }}
               >
-                Fiksuota
+                {text.fixed}
               </button>
             </div>
 
@@ -605,13 +991,11 @@ export default function EditServiceForm({
               className={styles.input}
               value={mainPrice}
               onChange={(e) => setMainPrice(e.target.value)}
-              placeholder="Pvz. 600"
+              placeholder={text.pricePlaceholder}
               inputMode="numeric"
             />
 
-            <div className={styles.charHint}>
-              Ši kaina bus rodoma kortelėje prieš atidarant paslaugą.
-            </div>
+            <div className={styles.charHint}>{text.priceHint}</div>
           </div>
 
           <div className={styles.formGroup}>
@@ -677,81 +1061,193 @@ export default function EditServiceForm({
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionNumber}>4</div>
-          <h2 className={styles.sectionTitle}>{t("imagesTitle")}</h2>
+          <h2 className={styles.sectionTitle}>{text.serviceBlocksTitle}</h2>
         </div>
 
         <div className={styles.sectionBody}>
-          <div className={styles.uploadRow}>
-            <label
-              className={styles.uploadBtn}
-              style={{
-                opacity: gallery.length >= maxImagesSafe ? 0.65 : 1,
-                pointerEvents:
-                  gallery.length >= maxImagesSafe ? "none" : "auto",
-              }}
-            >
-              {uploading ? t("uploading") : t("uploadButton")}
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                disabled={
-                  uploading || pending || gallery.length >= maxImagesSafe
-                }
-                onChange={(e) => {
-                  const files = e.currentTarget.files
-                    ? Array.from(e.currentTarget.files)
-                    : [];
+          <div className={styles.highHint}>{text.serviceBlocksHint}</div>
 
-                  e.currentTarget.value = "";
-                  void handleUpload(files);
-                }}
-              />
-            </label>
+          <div className={styles.limitGrid}>
+            <div className={styles.priceCard}>
+              <strong>
+                {serviceBlocks.length}/{maxServiceBlocksSafe}
+              </strong>
+              <span className={styles.charHint} style={{ textAlign: "left" }}>
+                {text.serviceBlocksTitle}
+              </span>
+            </div>
 
-            <span className={styles.helpText}>
-              {gallery.length}/{maxImagesSafe}
-            </span>
+            <div className={styles.priceCard}>
+              <strong>
+                {totalImages}/{maxImagesSafe}
+              </strong>
+              <span className={styles.charHint} style={{ textAlign: "left" }}>
+                {text.totalPhotos}
+              </span>
+            </div>
           </div>
 
-          <div className={styles.imagePreview}>
-            {gallery.length > 0 ? (
-              gallery.map((img, idx) => (
-                <div key={img.path} className={styles.imageCard}>
-                  <div className={styles.imageThumb}>
-                    <Image
-                      src={img.url}
-                      alt={`${t("imageAlt")} ${idx + 1}`}
-                      fill
-                      sizes="180px"
-                      style={{ objectFit: "cover" }}
+          <div className={styles.priceList}>
+            {serviceBlocks.map((block, blockIndex) => (
+              <div key={blockIndex} className={styles.priceCard}>
+                <div className={styles.formRow}>
+                  <div className={styles.formCol}>
+                    <label className={styles.label}>{text.blockTitle}</label>
+                    <input
+                      className={styles.input}
+                      value={block.title}
+                      onChange={(e) =>
+                        updateServiceBlock(blockIndex, "title", e.target.value)
+                      }
+                      placeholder={text.blockTitlePlaceholder}
                     />
                   </div>
 
+                  <div className={styles.formCol}>
+                    <label className={styles.label}>{text.blockIcon}</label>
+                    <select
+                      className={styles.select}
+                      value={block.iconKey}
+                      onChange={(e) =>
+                        updateServiceBlock(
+                          blockIndex,
+                          "iconKey",
+                          e.target.value,
+                        )
+                      }
+                    >
+                      {iconOptions.map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    {text.blockDescription}
+                  </label>
+                  <textarea
+                    className={styles.textarea}
+                    value={block.description}
+                    onChange={(e) =>
+                      updateServiceBlock(
+                        blockIndex,
+                        "description",
+                        e.target.value,
+                      )
+                    }
+                    placeholder={text.blockDescriptionPlaceholder}
+                    rows={3}
+                  />
+                </div>
+
+                <div className={styles.uploadRow}>
+                  <label
+                    className={styles.uploadBtn}
+                    style={{
+                      opacity:
+                        totalImages >= maxImagesSafe ||
+                        uploadingBlockIndex !== null
+                          ? 0.65
+                          : 1,
+                      pointerEvents:
+                        totalImages >= maxImagesSafe ||
+                        uploadingBlockIndex !== null
+                          ? "none"
+                          : "auto",
+                    }}
+                  >
+                    {uploadingBlockIndex === blockIndex
+                      ? t("uploading")
+                      : text.uploadBlockImages}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={
+                        pending ||
+                        uploadingBlockIndex !== null ||
+                        totalImages >= maxImagesSafe
+                      }
+                      onChange={(e) => {
+                        const files = e.currentTarget.files
+                          ? Array.from(e.currentTarget.files)
+                          : [];
+                        e.currentTarget.value = "";
+                        void handleUploadBlockImages(blockIndex, files);
+                      }}
+                    />
+                  </label>
+
+                  <span className={styles.helpText}>
+                    {text.totalPhotos}: {totalImages}/{maxImagesSafe}
+                  </span>
+                </div>
+
+                <div className={styles.imagePreview}>
+                  {block.images.length > 0 ? (
+                    block.images.map((img, idx) => (
+                      <div key={img.path} className={styles.imageCard}>
+                        <div className={styles.imageThumb}>
+                          <Image
+                            src={img.url}
+                            alt={`${t("imageAlt")} ${idx + 1}`}
+                            fill
+                            sizes="180px"
+                            style={{ objectFit: "cover" }}
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => removeBlockImage(blockIndex, img.path)}
+                          disabled={uploadingBlockIndex !== null || pending}
+                        >
+                          {t("removeImage")}
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <span className={styles.emptyText}>
+                        {text.noBlockImages}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.inlineActions}>
                   <button
                     type="button"
                     className={styles.secondaryButton}
-                    onClick={() => {
-                      setGallery((prev) =>
-                        prev.filter((x) => x.path !== img.path),
-                      );
-                    }}
-                    disabled={uploading || pending}
+                    onClick={() => removeServiceBlock(blockIndex)}
+                    disabled={serviceBlocks.length <= 1 || pending}
                   >
-                    {t("removeImage")}
+                    {text.removeBlock}
                   </button>
                 </div>
-              ))
-            ) : (
-              <div className={styles.emptyState}>
-                <span className={styles.emptyText}>{t("noImages")}</span>
               </div>
-            )}
+            ))}
           </div>
 
-          <p className={styles.helpText}>
-            {t("imagesHelp")} Max: {maxImagesSafe}
-          </p>
+          <div className={styles.inlineActions}>
+            <button
+              type="button"
+              className={styles.addRowButton}
+              onClick={addServiceBlock}
+              disabled={
+                serviceBlocks.length >= maxServiceBlocksSafe ||
+                pending ||
+                uploadingBlockIndex !== null
+              }
+            >
+              + {text.addBlock}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -774,7 +1270,7 @@ export default function EditServiceForm({
               type="button"
               className={styles.secondaryButton}
               onClick={handleToggleActive}
-              disabled={uploading || pending}
+              disabled={uploadingBlockIndex !== null || pending}
             >
               {isActive ? t("disableButton") : t("enableButton")}
             </button>
@@ -787,7 +1283,7 @@ export default function EditServiceForm({
           type="button"
           className={styles.dangerButton}
           onClick={handleDelete}
-          disabled={pending || uploading}
+          disabled={pending || uploadingBlockIndex !== null}
         >
           {t("deleteButton")}
         </button>
@@ -798,7 +1294,7 @@ export default function EditServiceForm({
             className={styles.primaryButton}
             disabled={
               pending ||
-              uploading ||
+              uploadingBlockIndex !== null ||
               description.trim().length < MIN_DESCRIPTION_LENGTH
             }
           >

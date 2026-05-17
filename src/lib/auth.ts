@@ -129,10 +129,7 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
 
   if (dbUser.supabaseId !== supabaseId) updateData.supabaseId = supabaseId;
   if (dbUser.email !== email) updateData.email = email;
-  if (metaName !== null && dbUser.name !== metaName) updateData.name = metaName;
-  if (metaPhone !== null && dbUser.phone !== metaPhone)
-    updateData.phone = metaPhone;
-
+  
   if (Object.keys(updateData).length > 0) {
     dbUser = await prisma.user.update({
       where: { id: dbUser.id },

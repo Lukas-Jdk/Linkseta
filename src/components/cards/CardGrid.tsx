@@ -4,6 +4,11 @@ import PremiumServiceCard from "./PremiumServiceCard";
 import ServiceCard from "./ServiceCard";
 import styles from "./CardGrid.module.css";
 
+export type CardGridServiceBlock = {
+  title: string;
+  iconKey: string;
+};
+
 export type CardGridItem = {
   id: string;
   title: string;
@@ -18,6 +23,7 @@ export type CardGridItem = {
   locationPostcode?: string;
   locationCity?: string;
   locationRegion?: string;
+  serviceBlocks?: CardGridServiceBlock[];
 };
 
 type Props = {
@@ -64,6 +70,7 @@ export default function CardGrid({
               locationPostcode={item.locationPostcode}
               locationCity={item.locationCity}
               locationRegion={item.locationRegion}
+              serviceBlocks={item.serviceBlocks ?? []}
             />
           ) : (
             <ServiceCard
@@ -81,6 +88,7 @@ export default function CardGrid({
               locationPostcode={item.locationPostcode}
               locationCity={item.locationCity}
               locationRegion={item.locationRegion}
+              serviceBlocks={item.serviceBlocks ?? []}
             />
           ),
         )}

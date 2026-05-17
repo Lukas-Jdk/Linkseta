@@ -36,6 +36,7 @@ export default async function NewServicePage({ params }: Props) {
         postcode: true,
       },
     }),
+
     prisma.category.findMany({
       where: { type: "SERVICE" },
       orderBy: { name: "asc" },
@@ -45,6 +46,7 @@ export default async function NewServicePage({ params }: Props) {
         slug: true,
       },
     }),
+
     prisma.providerProfile.findUnique({
       where: { userId: user.id },
       select: {
@@ -58,10 +60,13 @@ export default async function NewServicePage({ params }: Props) {
             name: true,
             slug: true,
             isTrial: true,
+            maxImagesPerListing: true,
+            maxServiceBlocks: true,
           },
         },
       },
     }),
+
     prisma.serviceListing.count({
       where: {
         userId: user.id,
@@ -80,7 +85,13 @@ export default async function NewServicePage({ params }: Props) {
   const planName = profile.plan?.name ?? "—";
   const maxListings = limits.maxListings;
   const maxImagesPerListing = limits.maxImagesPerListing;
+  const maxServiceBlocks = limits.maxServiceBlocks;
   const canCreate = activeCount < maxListings;
+
+  const trialExpired =
+    Boolean(profile.plan?.isTrial) &&
+    Boolean(profile.trialEndsAt) &&
+    new Date(profile.trialEndsAt as Date | string).getTime() <= Date.now();
 
   const localizedCategories = categories.map((c) => ({
     id: c.id,
@@ -109,9 +120,10 @@ export default async function NewServicePage({ params }: Props) {
               planName,
               maxListings,
               maxImagesPerListing,
+              maxServiceBlocks,
               activeCount,
               canCreate,
-              trialExpired: false,
+              trialExpired,
             }}
           />
         </div>

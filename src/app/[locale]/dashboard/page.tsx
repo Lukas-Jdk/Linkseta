@@ -83,12 +83,29 @@ export default async function DashboardPage({ params }: Props) {
     namespace: "dashboardPage",
   });
 
-  const [profile, services] = await Promise.all([
+  const [dbUser, profile, services] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatarUrl: true,
+      },
+    }),
+
     prisma.providerProfile.findUnique({
       where: { userId: authUser.id },
       select: {
         isApproved: true,
         companyName: true,
+        about: true,
+        aboutEn: true,
+        aboutNo: true,
+        experienceYears: true,
+        completedProjects: true,
+        workingHours: true,
         lifetimeFree: true,
         trialEndsAt: true,
         stripeSubscriptionId: true,
@@ -102,6 +119,7 @@ export default async function DashboardPage({ params }: Props) {
         },
       },
     }),
+
     prisma.serviceListing.findMany({
       where: {
         userId: authUser.id,
@@ -195,12 +213,16 @@ export default async function DashboardPage({ params }: Props) {
 
         <div className={styles.grid}>
           <ProfileCardClient
-            name={authUser.name ?? null}
-            email={authUser.email}
-            phone={authUser.phone ?? null}
+            name={dbUser?.name ?? null}
+            email={dbUser?.email ?? authUser.email}
+            phone={dbUser?.phone ?? null}
             companyName={profile?.companyName ?? null}
-            role={authUser.role}
-            avatarUrl={authUser.avatarUrl ?? null}
+            about={profile?.about ?? null}
+            experienceYears={profile?.experienceYears ?? null}
+            completedProjects={profile?.completedProjects ?? null}
+            workingHours={profile?.workingHours ?? null}
+            role={dbUser?.role ?? authUser.role}
+            avatarUrl={dbUser?.avatarUrl ?? null}
             totalServices={totalServices}
             isProviderApproved={isProviderApproved}
           />
@@ -227,8 +249,6 @@ export default async function DashboardPage({ params }: Props) {
                       {profile?.plan?.name ?? "—"}
                     </span>
                   </div>
-
-                 
                 </div>
 
                 <div className={styles.billingBox}>
@@ -239,8 +259,6 @@ export default async function DashboardPage({ params }: Props) {
                   <span className={styles.billingStatusBadge}>
                     {getBillingStatus()}
                   </span>
-
-               
                 </div>
 
                 <div className={styles.billingBox}>
@@ -261,8 +279,6 @@ export default async function DashboardPage({ params }: Props) {
                       />
                     </div>
                   )}
-
-              
                 </div>
               </div>
             </section>
@@ -333,12 +349,15 @@ export default async function DashboardPage({ params }: Props) {
                       [s.locationPostcode, s.locationCity || s.city?.name]
                         .filter(Boolean)
                         .join(" ") || "—";
+
                     const catName = translateCategoryName(
                       s.category?.slug,
                       s.category?.name,
                       locale,
                     );
+
                     const date = formatDateByLocale(s.createdAt, locale);
+
                     const localizedTitle = pickLocalizedValue(
                       locale,
                       s.title,

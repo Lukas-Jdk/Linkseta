@@ -26,12 +26,54 @@ type RawPriceItem = {
   note?: unknown;
 };
 
+type RawServiceBlockImage = {
+  url?: unknown;
+  path?: unknown;
+  altText?: unknown;
+};
+
+type RawServiceBlock = {
+  title?: unknown;
+  description?: unknown;
+  iconKey?: unknown;
+  images?: unknown;
+};
+
 type NormalizedPriceItem = {
   label: string;
   priceText: string;
   note: string;
   sortOrder: number;
 };
+
+const ALLOWED_ICON_KEYS = new Set([
+  "carpentry",
+  "kitchen",
+  "floors",
+  "walls",
+  "ceiling",
+  "bathroom",
+  "terrace",
+  "doors",
+  "windows",
+  "painting",
+  "plumbing",
+  "electrical",
+  "cleaning",
+  "transport",
+  "auto",
+  "beauty",
+  "it",
+  "accounting",
+  "legal",
+  "real_estate",
+  "training",
+  "childcare",
+  "pets",
+  "food",
+  "household",
+  "other",
+]);
 
 function clampText(x: unknown, max: number) {
   if (typeof x !== "string") return null;
@@ -49,12 +91,22 @@ function parsePositiveInt(x: unknown) {
     if (!digits) return null;
 
     const parsed = Number.parseInt(digits, 10);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
 
   return null;
+}
+
+function normalizeIconKey(input: unknown) {
+  const raw = typeof input === "string" ? input.trim() : "";
+  if (!raw) return "other";
+
+  const safe = raw
+    .toLowerCase()
+    .replace(/[^\w-]/g, "_")
+    .slice(0, 40);
+
+  return ALLOWED_ICON_KEYS.has(safe) ? safe : "other";
 }
 
 function normalizeGalleryPairs(
@@ -69,8 +121,12 @@ function normalizeGalleryPairs(
   const pairs: GalleryPair[] = [];
 
   for (let i = 0; i < maxLen; i += 1) {
-    const url = String(urls[i] ?? "").trim().slice(0, 600);
-    const path = String(paths[i] ?? "").trim().slice(0, 300);
+    const url = String(urls[i] ?? "")
+      .trim()
+      .slice(0, 600);
+    const path = String(paths[i] ?? "")
+      .trim()
+      .slice(0, 300);
 
     if (!url || !path) continue;
 
@@ -108,11 +164,113 @@ function normalizePriceItems(input: unknown): NormalizedPriceItem[] {
     .filter(Boolean) as NormalizedPriceItem[];
 }
 
+function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item, index) => {
+      const raw = (item ?? {}) as RawServiceBlock;
+
+      const title = clampText(raw.title, 80) ?? "";
+      const description = clampText(raw.description, 400);
+      const iconKey = normalizeIconKey(raw.iconKey);
+
+      const images = Array.isArray(raw.images)
+        ? raw.images
+            .map((image, imageIndex) => {
+              const img = (image ?? {}) as RawServiceBlockImage;
+
+              const url = clampText(img.url, 600);
+              const path = clampText(img.path, 300);
+              const altText = clampText(img.altText, 120);
+
+              if (!url || !path) return null;
+
+              return {
+                url,
+                path,
+                altText: altText || null,
+                sortOrder: imageIndex,
+              };
+            })
+            .filter(Boolean)
+        : [];
+
+      if (!title && !description && images.length === 0) return null;
+
+      return {
+        title: title || "Paslauga",
+        description: description || null,
+        iconKey,
+        sortOrder: index,
+        titleEn: title || "Service",
+        titleNo: title || "Tjeneste",
+        descriptionEn: description || null,
+        descriptionNo: description || null,
+        images: images as Array<{
+          url: string;
+          path: string;
+          altText: string | null;
+          sortOrder: number;
+        }>,
+      };
+    })
+    .filter(
+      (
+        block,
+      ): block is {
+        title: string;
+        description: string | null;
+        iconKey: string;
+        sortOrder: number;
+        titleEn: string;
+        titleNo: string;
+        descriptionEn: string | null;
+        descriptionNo: string | null;
+        images: Array<{
+          url: string;
+          path: string;
+          altText: string | null;
+          sortOrder: number;
+        }>;
+      } => block !== null,
+    )
+    .slice(0, maxBlocks);
+}
+
+function countBlockImages(
+  blocks: Array<{
+    images: Array<{ url: string; path: string }>;
+  }>,
+) {
+  return blocks.reduce((sum, block) => sum + block.images.length, 0);
+}
+
+function collectBlockImagePaths(
+  blocks: Array<{
+    images: Array<{ path: string }>;
+  }>,
+) {
+  return blocks.flatMap((block) => block.images.map((image) => image.path));
+}
+
+function collectBlockImageUrls(
+  blocks: Array<{
+    images: Array<{ url: string }>;
+  }>,
+) {
+  return blocks.flatMap((block) => block.images.map((image) => image.url));
+}
+
 async function removeFromStorage(paths: string[]) {
-  if (!paths.length) return;
+  const uniquePaths = Array.from(new Set(paths.filter(Boolean)));
+  if (!uniquePaths.length) return;
 
   try {
-    const { error } = await supabaseAdmin.storage.from(BUCKET).remove(paths);
+    const { error } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .remove(uniquePaths);
+
     if (error) console.warn("Storage remove error:", error.message);
   } catch (e) {
     console.warn("Storage remove exception:", e);
@@ -166,6 +324,9 @@ export async function PATCH(
         descriptionEn: true,
         descriptionNo: true,
         cityId: true,
+  
+        brandLogoUrl: true,
+        brandLogoPath: true,
         categoryId: true,
         responseTime: true,
         isActive: true,
@@ -196,6 +357,26 @@ export async function PATCH(
             noteEn: true,
             noteNo: true,
             sortOrder: true,
+          },
+        },
+        blocks: {
+          orderBy: { sortOrder: "asc" },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            iconKey: true,
+            sortOrder: true,
+            images: {
+              orderBy: { sortOrder: "asc" },
+              select: {
+                id: true,
+                url: true,
+                path: true,
+                altText: true,
+                sortOrder: true,
+              },
+            },
           },
         },
       },
@@ -237,6 +418,7 @@ export async function PATCH(
     const limits = getPlanLimits(profile);
     const maxListings = limits.maxListings;
     const maxImagesPerListing = limits.maxImagesPerListing;
+    const maxServiceBlocks = limits.maxServiceBlocks ?? 6;
 
     const safePrefix = user.supabaseId ? `${user.supabaseId}/` : "";
     if (!safePrefix) {
@@ -248,7 +430,42 @@ export async function PATCH(
 
     const body = await req.json().catch(() => ({}) as any);
 
+    const locale =
+      body?.locale === "en" || body?.locale === "no" || body?.locale === "lt"
+        ? body.locale
+        : "lt";
+
+    const normalizedBlocks =
+      body?.serviceBlocks !== undefined
+        ? normalizeServiceBlocks(body.serviceBlocks, maxServiceBlocks)
+        : null;
+
+    if (normalizedBlocks && normalizedBlocks.length > maxServiceBlocks) {
+      return NextResponse.json(
+        {
+          error: `Pasiekėte plano paslaugų blokų limitą: ${maxServiceBlocks}.`,
+          code: "PLAN_BLOCK_LIMIT",
+        },
+        { status: 409 },
+      );
+    }
+
+    const blockImageCount = normalizedBlocks
+      ? countBlockImages(normalizedBlocks)
+      : 0;
+
+    if (blockImageCount > maxImagesPerListing) {
+      return NextResponse.json(
+        {
+          error: `Pasiekėte plano nuotraukų limitą: ${maxImagesPerListing}.`,
+          code: "PLAN_IMAGE_LIMIT",
+        },
+        { status: 409 },
+      );
+    }
+
     if (
+      normalizedBlocks === null &&
       Array.isArray(body?.galleryImageUrls) &&
       body.galleryImageUrls.length > maxImagesPerListing
     ) {
@@ -262,6 +479,7 @@ export async function PATCH(
     }
 
     if (
+      normalizedBlocks === null &&
       Array.isArray(body?.galleryImagePaths) &&
       body.galleryImagePaths.length > maxImagesPerListing
     ) {
@@ -273,11 +491,6 @@ export async function PATCH(
         { status: 409 },
       );
     }
-
-    const locale =
-      body?.locale === "en" || body?.locale === "no" || body?.locale === "lt"
-        ? body.locale
-        : "lt";
 
     const nextCityId =
       typeof body?.cityId === "string" ? body.cityId : service.cityId;
@@ -312,7 +525,7 @@ export async function PATCH(
       if (activeCount >= maxListings) {
         return NextResponse.json(
           {
-            error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
+            error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus paslaugų profilis.`,
             code: "PLAN_LISTING_LIMIT",
           },
           { status: 409 },
@@ -350,14 +563,19 @@ export async function PATCH(
     );
 
     const nextPairs =
-      body?.galleryImageUrls === undefined &&
-      body?.galleryImagePaths === undefined
-        ? currentPairs
-        : normalizeGalleryPairs(
-            body?.galleryImageUrls,
-            body?.galleryImagePaths,
-            maxImagesPerListing,
-          );
+      normalizedBlocks !== null
+        ? collectBlockImageUrls(normalizedBlocks).map((url, index) => ({
+            url,
+            path: collectBlockImagePaths(normalizedBlocks)[index],
+          }))
+        : body?.galleryImageUrls === undefined &&
+            body?.galleryImagePaths === undefined
+          ? currentPairs
+          : normalizeGalleryPairs(
+              body?.galleryImageUrls,
+              body?.galleryImagePaths,
+              maxImagesPerListing,
+            );
 
     for (const pair of nextPairs) {
       if (!pair.path.startsWith(safePrefix)) {
@@ -368,18 +586,35 @@ export async function PATCH(
       }
     }
 
+    if (normalizedBlocks) {
+      for (const path of collectBlockImagePaths(normalizedBlocks)) {
+        if (!path.startsWith(safePrefix)) {
+          return NextResponse.json(
+            { error: "Invalid imagePath" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
     const oldPathsSet = new Set(
       [
         ...(Array.isArray(service.galleryImagePaths)
           ? service.galleryImagePaths
           : []),
         ...(service.imagePath ? [service.imagePath] : []),
+        ...service.blocks.flatMap((block) =>
+          block.images.map((image) => image.path),
+        ),
       ]
         .map((x) => String(x ?? "").trim())
         .filter(Boolean),
     );
 
-    const nextPathsSet = new Set(nextPairs.map((x) => x.path));
+    const nextPathsSet = new Set([
+      ...nextPairs.map((x) => x.path),
+      ...(normalizedBlocks ? collectBlockImagePaths(normalizedBlocks) : []),
+    ]);
 
     const toDelete = Array.from(oldPathsSet).filter(
       (path) => path.startsWith(safePrefix) && !nextPathsSet.has(path),
@@ -404,6 +639,17 @@ export async function PATCH(
       );
     }
 
+
+    const nextBrandLogoUrl =
+      body?.brandLogoUrl !== undefined
+        ? clampText(body.brandLogoUrl, 600)
+        : service.brandLogoUrl;
+
+    const nextBrandLogoPath =
+      body?.brandLogoPath !== undefined
+        ? clampText(body.brandLogoPath, 300)
+        : service.brandLogoPath;
+
     const nextHighlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
           .map((s: unknown) => String(s).trim())
@@ -427,6 +673,8 @@ export async function PATCH(
     const data: Record<string, unknown> = {
       cityId: nextCityId ?? null,
       categoryId: nextCategoryId ?? null,
+      brandLogoUrl: nextBrandLogoUrl,
+      brandLogoPath: nextBrandLogoPath,
       responseTime: nextResponseTime,
       isActive: nextIsActive,
       imageUrl: nextGalleryImageUrls[0] ?? null,
@@ -634,6 +882,33 @@ export async function PATCH(
           });
         }
       }
+
+      if (normalizedBlocks !== null) {
+        await tx.serviceBlock.deleteMany({
+          where: { serviceId: service.id },
+        });
+
+        if (normalizedBlocks.length > 0) {
+          for (const block of normalizedBlocks) {
+            await tx.serviceBlock.create({
+              data: {
+                serviceId: service.id,
+                title: block.title,
+                description: block.description,
+                iconKey: block.iconKey,
+                sortOrder: block.sortOrder,
+                titleEn: block.titleEn,
+                titleNo: block.titleNo,
+                descriptionEn: block.descriptionEn,
+                descriptionNo: block.descriptionNo,
+                images: {
+                  create: block.images,
+                },
+              },
+            });
+          }
+        }
+      }
     });
 
     if (toDelete.length) {
@@ -652,6 +927,8 @@ export async function PATCH(
         changedKeys: Object.keys(body ?? {}),
         deletedImagesCount: toDelete.length,
         imageCount: nextGalleryImageUrls.length,
+        serviceBlocksCount: normalizedBlocks?.length,
+        blockImageCount: normalizedBlocks ? blockImageCount : undefined,
         priceItemsCount: normalizedIncomingPriceItems.length,
         responseTime: nextResponseTime,
         priceMode: hasPriceUpdate ? nextPriceMode : undefined,
@@ -661,9 +938,11 @@ export async function PATCH(
           name: profile.plan?.name ?? null,
           maxListings,
           maxImagesPerListing,
+          maxServiceBlocks,
           canUseChat: limits.canUseChat,
           canCollectReviews: limits.canCollectReviews,
           canBecomeTopRated: limits.canBecomeTopRated,
+          canAppearOnHomepage: limits.canAppearOnHomepage,
         },
       },
     });
@@ -722,6 +1001,15 @@ export async function DELETE(
         userId: true,
         imagePath: true,
         galleryImagePaths: true,
+        blocks: {
+          select: {
+            images: {
+              select: {
+                path: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -746,15 +1034,14 @@ export async function DELETE(
         ? service.galleryImagePaths
         : []),
       ...(service.imagePath ? [service.imagePath] : []),
+      ...service.blocks.flatMap((block) =>
+        block.images.map((image) => image.path),
+      ),
     ]
       .map((x) => String(x ?? "").trim())
       .filter((p) => p.startsWith(safePrefix));
 
-    const uniquePaths = Array.from(new Set(paths));
-
-    if (uniquePaths.length) {
-      await removeFromStorage(uniquePaths);
-    }
+    await removeFromStorage(paths);
 
     await prisma.serviceListing.update({
       where: { id: service.id },

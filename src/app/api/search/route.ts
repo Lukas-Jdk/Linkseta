@@ -38,6 +38,22 @@ export async function GET(req: Request) {
           { descriptionEn: { contains: q, mode: "insensitive" } },
           { titleNo: { contains: q, mode: "insensitive" } },
           { descriptionNo: { contains: q, mode: "insensitive" } },
+
+          {
+            blocks: {
+              some: {
+                OR: [
+                  { title: { contains: q, mode: "insensitive" } },
+                  { description: { contains: q, mode: "insensitive" } },
+                  { titleEn: { contains: q, mode: "insensitive" } },
+                  { descriptionEn: { contains: q, mode: "insensitive" } },
+                  { titleNo: { contains: q, mode: "insensitive" } },
+                  { descriptionNo: { contains: q, mode: "insensitive" } },
+                ],
+              },
+            },
+          },
+
           {
             category: {
               name: { contains: q, mode: "insensitive" },
@@ -63,6 +79,17 @@ export async function GET(req: Request) {
         priceFrom: true,
         locationCity: true,
         locationPostcode: true,
+
+        blocks: {
+          orderBy: { sortOrder: "asc" },
+          take: 3,
+          select: {
+            title: true,
+            titleEn: true,
+            titleNo: true,
+          },
+        },
+
         city: {
           select: {
             name: true,
@@ -94,6 +121,16 @@ export async function GET(req: Request) {
             ? service.descriptionNo || service.description
             : service.description;
 
+      const blockNames = service.blocks
+        .map((block) =>
+          locale === "en"
+            ? block.titleEn || block.title
+            : locale === "no"
+              ? block.titleNo || block.title
+              : block.title,
+        )
+        .filter(Boolean);
+
       return {
         id: service.id,
         type: "service",
@@ -108,6 +145,7 @@ export async function GET(req: Request) {
             .filter(Boolean)
             .join(" ") || null,
         priceFrom: service.priceFrom,
+        serviceBlocks: blockNames,
       };
     });
 

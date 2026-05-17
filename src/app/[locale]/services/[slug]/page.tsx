@@ -1,6 +1,7 @@
 // src/app/[locale]/services/[slug]/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
@@ -8,15 +9,39 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import { hasPremiumAccess } from "@/lib/planAccess";
 import StartConversationButton from "./StartConversationButton";
-import { MapPin, Folder, Zap, Mail, Phone, BadgeCheck } from "lucide-react";
+import {
+  Award,
+  BadgeCheck,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Clock3,
+  Images,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  ShieldCheck,
+  Star,
+  Zap,
+} from "lucide-react";
 import styles from "./slugPage.module.css";
-import GalleryClient from "./GalleryClient";
-import ServiceTabsClient from "./ServiceTabsClient";
 
 export const revalidate = 120;
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
+};
+
+type WorkingHourRow = {
+  label: string;
+  value: string;
+};
+type ApprovedReview = {
+  id: string;
+  rating: number;
+  name: string;
+  comment: string | null;
+  createdAt: Date;
 };
 
 function stripHtml(input: string) {
@@ -40,7 +65,6 @@ function initialLetter(name: string | null, email: string) {
 function isSafeAvatarUrl(url: string | null | undefined) {
   if (!url) return false;
   const s = url.trim();
-  if (!s) return false;
   return (
     s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/")
   );
@@ -59,6 +83,17 @@ function pickLocalizedValue(
   if (locale === "en") return en?.trim() || base;
   if (locale === "no") return no?.trim() || base;
   return base;
+}
+
+function pickLocalizedOptional(
+  locale: string,
+  base?: string | null,
+  en?: string | null,
+  no?: string | null,
+) {
+  if (locale === "en") return en?.trim() || base?.trim() || "";
+  if (locale === "no") return no?.trim() || base?.trim() || "";
+  return base?.trim() || "";
 }
 
 function pickLocalizedArray(
@@ -100,15 +135,159 @@ function formatServiceLocation(args: {
   return "—";
 }
 
-function getChatLabel(locale: string) {
-  if (locale === "lt") return "Teirautis (chat)";
-  return "Chat";
+function getText(locale: string) {
+  if (locale === "en") {
+    return {
+      home: "Home",
+      services: "Services",
+      topRated: "Top rated",
+      activeProvider: "Active provider",
+      availableNow: "Available now",
+      response1h: "Responds within 1 hour",
+      response24h: "Responds within 24 hours",
+      response48h: "Responds within 48 hours",
+      chat: "Direct chat",
+      chatLoading: "Opening...",
+      call: "Call",
+      email: "Write email",
+      noPhone: "No phone",
+      whatIDo: "What I do",
+      gallery: "Photo gallery",
+      viewAllPhotos: "View all photos",
+      aboutMe: "About me",
+      reviews: "Reviews",
+      workTime: "Working hours",
+      experience: "Years of experience",
+      projects: "Completed projects",
+      replyFast: "Response time",
+      trusted: "Verified provider",
+      noBlocks: "No service blocks added yet.",
+      noGallery: "No photos added yet.",
+      noReviews: "No reviews yet.",
+      photoCount: "photos",
+      reviewCount: "reviews",
+      urgent: "Urgent jobs — contact directly",
+      weekdays: "Monday - Friday",
+      saturday: "Saturday",
+      sunday: "Sunday",
+    };
+  }
+
+  if (locale === "no") {
+    return {
+      home: "Hjem",
+      services: "Tjenester",
+      topRated: "Topprangert",
+      activeProvider: "Aktiv tilbyder",
+      availableNow: "Tilgjengelig nå",
+      response1h: "Svarer innen 1 time",
+      response24h: "Svarer innen 24 timer",
+      response48h: "Svarer innen 48 timer",
+      chat: "Direkte chat",
+      chatLoading: "Åpner...",
+      call: "Ring",
+      email: "Skriv e-post",
+      noPhone: "Ingen telefon",
+      whatIDo: "Hva jeg gjør",
+      gallery: "Bildegalleri",
+      viewAllPhotos: "Se alle bilder",
+      aboutMe: "Om meg",
+      reviews: "Anmeldelser",
+      workTime: "Arbeidstid",
+      experience: "Års erfaring",
+      projects: "Fullførte prosjekter",
+      replyFast: "Svartid",
+      trusted: "Verifisert tilbyder",
+      noBlocks: "Ingen tjenesteblokker lagt til ennå.",
+      noGallery: "Ingen bilder lagt til ennå.",
+      noReviews: "Ingen anmeldelser ennå.",
+      photoCount: "bilder",
+      reviewCount: "anmeldelser",
+      urgent: "Hastejobber — ta kontakt direkte",
+      weekdays: "Mandag - Fredag",
+      saturday: "Lørdag",
+      sunday: "Søndag",
+    };
+  }
+
+  return {
+    home: "Pagrindinis",
+    services: "Paslaugos",
+    topRated: "Top rated",
+    activeProvider: "Aktyvus teikėjas",
+    availableNow: "Pasiekiamas dabar",
+    response1h: "Atsako per 1 val.",
+    response24h: "Atsako per 24 val.",
+    response48h: "Atsako per 48 val.",
+    chat: "Tiesioginis pokalbis",
+    chatLoading: "Atidaroma...",
+    call: "Skambinti",
+    email: "Rašyti el. paštu",
+    noPhone: "Telefono nėra",
+    whatIDo: "Ką atlieku",
+    gallery: "Nuotraukų galerija",
+    viewAllPhotos: "Žiūrėti visas nuotraukas",
+    aboutMe: "Apie mane",
+    reviews: "Atsiliepimai",
+    workTime: "Darbo laikas",
+    experience: "Metų patirtis",
+    projects: "Įgyvendintų projektų",
+    replyFast: "Atsakymo laikas",
+    trusted: "Patvirtintas teikėjas",
+    noBlocks: "Paslaugų blokai dar nepridėti.",
+    noGallery: "Nuotraukų dar nėra.",
+    noReviews: "Atsiliepimų dar nėra.",
+    photoCount: "foto",
+    reviewCount: "atsiliepimai",
+    urgent: "Skubūs darbai — susisiekite tiesiogiai",
+    weekdays: "Pirmadienis - Penktadienis",
+    saturday: "Šeštadienis",
+    sunday: "Sekmadienis",
+  };
 }
 
-function getChatLoadingLabel(locale: string) {
-  if (locale === "lt") return "Atidaroma...";
-  if (locale === "no") return "Åpner...";
-  return "Opening...";
+function getResponseTimeLabel(locale: string, responseTime?: string | null) {
+  const text = getText(locale);
+  if (responseTime === "24h") return text.response24h;
+  if (responseTime === "48h") return text.response48h;
+  return text.response1h;
+}
+
+function parseWorkingHours(
+  value: unknown,
+  text: ReturnType<typeof getText>,
+): WorkingHourRow[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return [];
+  }
+
+  const data = value as Record<string, unknown>;
+
+  const labels: Record<string, string> = {
+    weekdays: text.weekdays,
+    saturday: text.saturday,
+    sunday: text.sunday,
+  };
+
+  return ["weekdays", "saturday", "sunday"]
+    .map((key) => {
+      const raw = data[key];
+
+      if (typeof raw !== "string") return null;
+
+      const clean = raw.trim();
+      if (!clean) return null;
+
+      return {
+        label: labels[key] ?? key,
+        value: clean,
+      };
+    })
+    .filter(Boolean) as WorkingHourRow[];
+}
+
+function formatRating(value: number) {
+  return value.toFixed(1).replace(".", ",");
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -153,7 +332,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${localizedTitle} | ${tMeta("siteName")}`;
   const description = truncate(stripHtml(localizedDescription), 160);
-
   const canonical = `${siteUrl}/${locale}/services/${slug}`;
 
   const ogImage =
@@ -174,14 +352,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       siteName: tMeta("siteName"),
       type: "article",
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: localizedTitle,
-        },
-      ],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: localizedTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -206,6 +377,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
     namespace: "categories",
   });
 
+  const text = getText(locale);
+
   const service = await prisma.serviceListing.findFirst({
     where: {
       slug,
@@ -228,35 +401,60 @@ export default async function ServiceDetailsPage({ params }: Props) {
       highlightsNo: true,
       imageUrl: true,
       galleryImageUrls: true,
+   
+      brandLogoUrl: true,
       locationPostcode: true,
       locationCity: true,
       locationRegion: true,
-      priceItems: {
-        orderBy: { sortOrder: "asc" },
+
+      reviews: {
+        where: { isApproved: true },
+        orderBy: { createdAt: "desc" },
+        take: 6,
         select: {
-          label: true,
-          labelEn: true,
-          labelNo: true,
-          priceText: true,
-          priceTextEn: true,
-          priceTextNo: true,
-          note: true,
-          noteEn: true,
-          noteNo: true,
+          id: true,
+          rating: true,
+          name: true,
+          comment: true,
+          createdAt: true,
         },
       },
+
+      blocks: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          title: true,
+          titleEn: true,
+          titleNo: true,
+          description: true,
+          descriptionEn: true,
+          descriptionNo: true,
+          iconKey: true,
+          images: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              url: true,
+              altText: true,
+            },
+          },
+        },
+      },
+
       city: {
         select: {
           name: true,
           postcode: true,
         },
       },
+
       category: {
         select: {
           name: true,
           slug: true,
         },
       },
+
       user: {
         select: {
           email: true,
@@ -267,6 +465,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
             select: {
               isApproved: true,
               companyName: true,
+              about: true,
+              aboutEn: true,
+              aboutNo: true,
+              experienceYears: true,
+              completedProjects: true,
+              workingHours: true,
               lifetimeFree: true,
               trialEndsAt: true,
               stripeSubscriptionId: true,
@@ -299,6 +503,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
         ? [service.imageUrl]
         : ["/def.webp"];
 
+  const heroImage = images[0] ?? "/def.webp";
+  const galleryPreview = images.slice(0, 4);
+
   const city = formatServiceLocation({
     locationPostcode: service.locationPostcode,
     locationCity: service.locationCity,
@@ -330,6 +537,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.descriptionNo,
   );
 
+  const localizedProviderAbout = pickLocalizedOptional(
+    locale,
+    service.user.profile?.about,
+    service.user.profile?.aboutEn,
+    service.user.profile?.aboutNo,
+  );
+
+  const aboutText = localizedProviderAbout || localizedDescription;
+
   const localizedHighlights = pickLocalizedArray(
     locale,
     Array.isArray(service.highlights) ? service.highlights : [],
@@ -337,15 +553,25 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.highlightsNo,
   );
 
-  const localizedPriceItems = (service.priceItems ?? []).map((item) => ({
-    label: pickLocalizedValue(locale, item.label, item.labelEn, item.labelNo),
-    priceText: pickLocalizedValue(
+  const localizedBlocks = (service.blocks ?? []).map((block) => ({
+    id: block.id,
+    title: pickLocalizedValue(
       locale,
-      item.priceText ?? "",
-      item.priceTextEn,
-      item.priceTextNo,
+      block.title,
+      block.titleEn,
+      block.titleNo,
     ),
-    note: pickLocalizedValue(locale, item.note ?? "", item.noteEn, item.noteNo),
+    description: pickLocalizedValue(
+      locale,
+      block.description ?? "",
+      block.descriptionEn,
+      block.descriptionNo,
+    ),
+    iconKey: block.iconKey,
+    images: (block.images ?? []).map((img) => ({
+      url: img.url,
+      altText: img.altText,
+    })),
   }));
 
   const sellerName =
@@ -360,6 +586,13 @@ export default async function ServiceDetailsPage({ params }: Props) {
     ? String(service.user.avatarUrl).trim()
     : null;
 
+
+  const displayBrandLogoUrl = isSafeAvatarUrl(service.brandLogoUrl)
+    ? String(service.brandLogoUrl).trim()
+    : null;
+
+  
+
   const phoneRaw = service.user.phone ? String(service.user.phone).trim() : "";
   const phone = phoneRaw || null;
   const telHref = phone ? normalizePhoneHref(phone) : null;
@@ -370,20 +603,25 @@ export default async function ServiceDetailsPage({ params }: Props) {
     t("emailSubject", { title: localizedTitle }),
   )}&body=${encodeURIComponent(t("emailBody", { title: localizedTitle }))}`;
 
-  const responseTimeLabel =
-    service.responseTime === "24h"
-      ? locale === "en"
-        ? "Usually responds within 24 hours."
-        : locale === "no"
-          ? "Svarer vanligvis innen 24 timer."
-          : "Dažniausiai atsako per 24 val."
-      : service.responseTime === "48h"
-        ? locale === "en"
-          ? "Usually responds within 48 hours."
-          : locale === "no"
-            ? "Svarer vanligvis innen 48 timer."
-            : "Dažniausiai atsako per 48 val."
-        : t("respondsFast");
+  const responseTimeLabel = getResponseTimeLabel(locale, service.responseTime);
+
+  const workingHours: WorkingHourRow[] = parseWorkingHours(
+    service.user.profile?.workingHours,
+    text,
+  );
+
+  const approvedReviews: ApprovedReview[] =
+    (service.reviews as ApprovedReview[]) ?? [];
+
+  const reviewCount = approvedReviews.length;
+  const averageRating =
+    reviewCount > 0
+      ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) /
+        reviewCount
+      : null;
+
+  const experienceYears = service.user.profile?.experienceYears ?? null;
+  const completedProjects = service.user.profile?.completedProjects ?? null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -394,197 +632,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
       "@type": "AdministrativeArea",
       name: city !== "—" ? city : "Norway",
     },
-    provider: {
-      "@type": "Organization",
-      name: sellerName,
-    },
     url: `${siteUrl}/${locale}/services/${service.slug}`,
   };
-
-  const SellerCard = (
-    <div className={styles.sideCard}>
-      <div className={styles.sellerHeader}>
-        <div className={styles.sellerAvatarWrap}>
-          <div className={styles.sellerAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
-        </div>
-
-        <div className={styles.sellerName}>{sellerName}</div>
-
-        <div className={styles.sellerSubtitle}>
-          {isVerified ? t("activeProvider") : t("provider")}
-        </div>
-
-        {isVerified && (
-          <div className={styles.verifiedBadge}>
-            <BadgeCheck size={16} />
-            {t("active")}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.sideActions}>
-        {canUseChat && (
-          <StartConversationButton
-            serviceId={service.id}
-            label={getChatLabel(locale)}
-            loadingLabel={getChatLoadingLabel(locale)}
-          />
-        )}
-
-        <a
-          className={styles.secondaryBtn}
-          href={emailHref}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Mail size={18} />
-          {t("writeEmail")}
-        </a>
-
-        {telHref ? (
-          <a className={styles.secondaryBtn} href={telHref}>
-            <Phone size={18} />
-            {phone}
-          </a>
-        ) : (
-          <button className={styles.secondaryBtn} type="button" disabled>
-            <Phone size={18} />
-            {t("noPhone")}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  const TabletInlineSeller = (
-    <div className={styles.tabletInlineSeller}>
-      <div className={styles.tabletInlineSellerLeft}>
-        <div className={styles.tabletInlineAvatarWrap}>
-          <div className={styles.tabletInlineAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
-        </div>
-
-        <div className={styles.tabletInlineInfo}>
-          <div className={styles.tabletInlineName}>{sellerName}</div>
-          <div className={styles.tabletInlineSubtitle}>{t("provider")}</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const MobileSellerCompact = (
-    <div className={styles.mobileCompactSellerCard}>
-      <div className={styles.mobileCompactSeller}>
-        <div className={styles.mobileCompactLeft}>
-          <div className={styles.mobileCompactAvatarWrap}>
-            <div className={styles.mobileCompactAvatar} aria-hidden="true">
-              {sellerAvatarUrl ? (
-                <img
-                  className={styles.sellerAvatarImg}
-                  src={sellerAvatarUrl}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                sellerInitial
-              )}
-            </div>
-          </div>
-
-          <div className={styles.mobileCompactInfo}>
-            <div className={styles.mobileCompactName}>{sellerName}</div>
-            <div className={styles.mobileCompactSubtitle}>{t("provider")}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const MobileBottomSellerCard = (
-    <div className={styles.mobileBottomSellerCard}>
-      <div className={styles.mobileBottomSellerHeader}>
-        <div className={styles.mobileBottomAvatarWrap}>
-          <div className={styles.mobileBottomAvatar} aria-hidden="true">
-            {sellerAvatarUrl ? (
-              <img
-                className={styles.sellerAvatarImg}
-                src={sellerAvatarUrl}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              sellerInitial
-            )}
-          </div>
-        </div>
-
-        <div className={styles.mobileBottomSellerName}>{sellerName}</div>
-        <div className={styles.mobileBottomSellerSubtitle}>
-          {isVerified ? t("activeProvider") : t("provider")}
-        </div>
-
-        {isVerified && (
-          <div className={styles.verifiedBadge}>
-            <BadgeCheck size={16} />
-            {t("active")}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.mobileBottomActions}>
-        {canUseChat && (
-          <StartConversationButton
-            serviceId={service.id}
-            label={getChatLabel(locale)}
-            loadingLabel={getChatLoadingLabel(locale)}
-          />
-        )}
-
-        <a
-          className={styles.secondaryBtn}
-          href={emailHref}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Mail size={18} />
-          {t("writeEmail")}
-        </a>
-
-        {telHref ? (
-          <a className={styles.secondaryBtn} href={telHref}>
-            <Phone size={18} />
-            {phone}
-          </a>
-        ) : (
-          <button className={styles.secondaryBtn} type="button" disabled>
-            <Phone size={18} />
-            {t("noPhone")}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <main className={styles.page}>
@@ -595,97 +644,319 @@ export default async function ServiceDetailsPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
-        <div className={styles.topBar}>
-          <Link href={`/${locale}/services`} className={styles.backLink}>
-            ← {t("backToList")}
-          </Link>
-        </div>
+        <nav className={styles.breadcrumbs} aria-label="Breadcrumbs">
+          <Link href={`/${locale}`}>{text.home}</Link>
+          <span>›</span>
+          <Link href={`/${locale}/services`}>{text.services}</Link>
+          <span>›</span>
+          <span>{category !== "—" ? category : localizedTitle}</span>
+        </nav>
 
-        <div className={styles.layout}>
-          <section className={styles.left}>
-            <div className={styles.mobileCards}>
-              <div className={styles.heroCardWrap}>
-                <div className={styles.heroCard}>
-                  <div className={styles.heroTop}>
-                    <div className={styles.heroMedia}>
-                      <GalleryClient
-                        title={localizedTitle}
-                        images={images}
-                        highlighted={service.highlighted}
-                      />
+        <section className={styles.heroShell}>
+          <div className={styles.heroImageCol}>
+            <div className={styles.heroImageWrap}>
+              <Image
+                src={heroImage}
+                alt={localizedTitle}
+                fill
+                priority
+                sizes="(max-width: 900px) 100vw, 360px"
+                className={styles.heroImage}
+              />
 
-                      <div className={styles.categoryPillOnImage}>
-                        {category !== "—" ? category : t("serviceFallback")}
-                      </div>
-
-                      {images.length > 1 && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            bottom: 12,
-                            zIndex: 3,
-                            background: "rgba(2, 6, 23, 0.78)",
-                            color: "#fff",
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            fontSize: 13,
-                            fontWeight: 800,
-                            backdropFilter: "blur(6px)",
-                          }}
-                        >
-                          {t("photosCount", { count: images.length })}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.heroContent}>
-                      <h1 className={styles.title}>{localizedTitle}</h1>
-
-                      <div className={styles.metaRow}>
-                        <span className={styles.metaChip}>
-                          <MapPin size={16} />
-                          {city}
-                        </span>
-                        <span className={styles.metaChip}>
-                          <Folder size={16} />
-                          {category}
-                        </span>
-                      </div>
-
-                      <div className={styles.quickInfo}>
-                        <Zap size={16} />
-                        {responseTimeLabel}
-                      </div>
-
-                      {TabletInlineSeller}
-                    </div>
+              {displayBrandLogoUrl && (
+                <div className={styles.brandOverlay}>
+                  <div className={styles.brandLogo}>
+                    <Image
+                      src={displayBrandLogoUrl}
+                      alt="Logo"
+                      fill
+                      sizes="72px"
+                      className={styles.brandLogoImg}
+                    />
                   </div>
                 </div>
+              )}
+
+              {images.length > 1 && (
+                <div className={styles.photoBadge}>
+                  <Images size={15} />
+                  {images.length} {text.photoCount}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.heroInfo}>
+            {service.highlighted && (
+              <div className={styles.topRatedBadge}>
+                <Star size={14} />
+                {text.topRated}
+              </div>
+            )}
+
+            <h1 className={styles.heroTitle}>{localizedTitle}</h1>
+
+            <div className={styles.ratingLine}>
+              {averageRating != null && (
+                <>
+                  <span className={styles.stars}>★</span>
+                  <strong>{formatRating(averageRating)}</strong>
+                  <span>
+                    ({reviewCount} {text.reviewCount})
+                  </span>
+                  <span className={styles.dotSep}>|</span>
+                </>
+              )}
+
+              <MapPin size={16} />
+              <span>{city}</span>
+            </div>
+
+            <p className={styles.heroDescription}>{localizedDescription}</p>
+
+            <div className={styles.trustGrid}>
+              {localizedHighlights.slice(0, 4).map((item, index) => (
+                <div key={`${item}-${index}`} className={styles.trustItem}>
+                  <CheckCircle2 size={16} />
+                  <span>{item}</span>
+                </div>
+              ))}
+
+              {localizedHighlights.length === 0 && isVerified && (
+                <div className={styles.trustItem}>
+                  <ShieldCheck size={16} />
+                  <span>{text.activeProvider}</span>
+                </div>
+              )}
+
+              {localizedHighlights.length === 0 && (
+                <div className={styles.trustItem}>
+                  <Clock3 size={16} />
+                  <span>{responseTimeLabel}</span>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.heroActions}>
+              {canUseChat && (
+                <div className={styles.chatAction}>
+                  <StartConversationButton
+                    serviceId={service.id}
+                    label={text.chat}
+                    loadingLabel={text.chatLoading}
+                  />
+                </div>
+              )}
+
+              {telHref ? (
+                <a className={styles.actionButton} href={telHref}>
+                  <Phone size={17} />
+                  <span>{text.call}</span>
+                </a>
+              ) : (
+                <button className={styles.actionButton} type="button" disabled>
+                  <Phone size={17} />
+                  <span>{text.noPhone}</span>
+                </button>
+              )}
+
+              <a
+                className={styles.actionButton}
+                href={emailHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Mail size={17} />
+                <span>{text.email}</span>
+              </a>
+            </div>
+          </div>
+
+          <aside className={styles.providerCard}>
+            <div className={styles.providerAvatarWrap}>
+              <div className={styles.providerAvatar}>
+                {sellerAvatarUrl ? (
+                  <Image
+                    src={sellerAvatarUrl}
+                    alt=""
+                    fill
+                    sizes="88px"
+                    className={styles.providerAvatarImg}
+                  />
+                ) : (
+                  sellerInitial
+                )}
+              </div>
+              <span className={styles.onlineDot} />
+            </div>
+
+            <div className={styles.providerName}>{sellerName}</div>
+
+            <div className={styles.availableNow}>
+              <span className={styles.greenDot} />
+              {text.availableNow}
+            </div>
+
+            <div className={styles.responseLine}>
+              <Clock3 size={15} />
+              {responseTimeLabel}
+            </div>
+
+            <div className={styles.providerDivider} />
+
+            {isVerified && (
+              <div className={styles.providerFact}>
+                <BadgeCheck size={16} />
+                {text.activeProvider}
+              </div>
+            )}
+
+            <div className={styles.providerFact}>
+              <MapPin size={16} />
+              {city}
+            </div>
+          </aside>
+        </section>
+
+        <section className={styles.mainCard}>
+          <div className={styles.sectionHeaderRow}>
+            <h2>{text.whatIDo}</h2>
+          </div>
+
+          {localizedBlocks.length > 0 ? (
+            <div className={styles.serviceStrip}>
+              {localizedBlocks.map((block) => (
+                <div key={block.id} className={styles.serviceMiniCard}>
+                  <div className={styles.serviceMiniIcon}>
+                    <BriefcaseBusiness size={24} />
+                  </div>
+                  <div>
+                    <h3>{block.title}</h3>
+                    {block.description && <p>{block.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyText}>{text.noBlocks}</p>
+          )}
+
+          <div className={styles.galleryHead}>
+            <h2>{text.gallery}</h2>
+            {images.length > 0 && (
+              <Link href={images[0]} target="_blank">
+                {text.viewAllPhotos} →
+              </Link>
+            )}
+          </div>
+
+          {galleryPreview.length > 0 ? (
+            <div className={styles.galleryPreviewGrid}>
+              {galleryPreview.map((image, index) => (
+                <Link
+                  key={`${image}-${index}`}
+                  href={image}
+                  target="_blank"
+                  className={styles.galleryPreviewItem}
+                >
+                  <Image
+                    src={image}
+                    alt={`${localizedTitle} ${index + 1}`}
+                    fill
+                    sizes="(max-width: 900px) 50vw, 280px"
+                    className={styles.galleryPreviewImage}
+                  />
+                  <span>{localizedBlocks[index]?.title || localizedTitle}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyText}>{text.noGallery}</p>
+          )}
+        </section>
+
+        <section className={styles.bottomGrid}>
+          <div className={styles.infoPanel}>
+            <h2>{text.aboutMe}</h2>
+            <p>{aboutText}</p>
+
+            <div className={styles.statsGrid}>
+              {typeof experienceYears === "number" && experienceYears > 0 && (
+                <div>
+                  <Award size={18} />
+                  <strong>{experienceYears}+</strong>
+                  <span>{text.experience}</span>
+                </div>
+              )}
+
+              {typeof completedProjects === "number" &&
+                completedProjects > 0 && (
+                  <div>
+                    <BriefcaseBusiness size={18} />
+                    <strong>{completedProjects}+</strong>
+                    <span>{text.projects}</span>
+                  </div>
+                )}
+
+              <div>
+                <MessageCircle size={18} />
+                <strong>{service.responseTime ?? "1h"}</strong>
+                <span>{text.replyFast}</span>
               </div>
 
-              <div className={styles.mobileSeller}>{MobileSellerCompact}</div>
+              {isVerified && (
+                <div>
+                  <ShieldCheck size={18} />
+                  <strong>✓</strong>
+                  <span>{text.trusted}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-              <div className={styles.contentCardWrap}>
-                <ServiceTabsClient
-                  title={localizedTitle}
-                  description={localizedDescription}
-                  highlights={localizedHighlights}
-                  images={images}
-                  priceItems={localizedPriceItems}
-                />
+          <div className={styles.infoPanel}>
+            <div className={styles.panelTop}>
+              <h2>{text.reviews}</h2>
+            </div>
+
+            {approvedReviews.length > 0 ? (
+              <div className={styles.reviewGrid}>
+                {approvedReviews.slice(0, 2).map((review: ApprovedReview) => (
+                  <div key={review.id} className={styles.reviewCard}>
+                    <div className={styles.reviewStars}>
+                      {"★".repeat(Math.max(1, Math.min(5, review.rating)))}
+                    </div>
+                    <strong>{review.name}</strong>
+                    <p>{review.comment || text.noReviews}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyText}>{text.noReviews}</p>
+            )}
+          </div>
+
+          {workingHours.length > 0 && (
+            <div className={styles.infoPanel}>
+              <h2>{text.workTime}</h2>
+
+              <div className={styles.workRows}>
+                {workingHours.map((row) => (
+                  <div key={row.label}>
+                    <span>{row.label}</span>
+                    <strong>{row.value}</strong>
+                  </div>
+                ))}
               </div>
 
-              <div className={styles.mobileBottomSeller}>
-                {MobileBottomSellerCard}
+              <div className={styles.urgentLine}>
+                <Zap size={16} />
+                {text.urgent}
               </div>
             </div>
-          </section>
-
-          <aside className={styles.right}>
-            <div className={styles.desktopSeller}>{SellerCard}</div>
-          </aside>
-        </div>
+          )}
+        </section>
       </div>
     </main>
   );

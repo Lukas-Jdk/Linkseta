@@ -6,6 +6,7 @@ type PlanLike = {
   isTrial?: boolean | null;
   maxListings?: number | null;
   maxImagesPerListing?: number | null;
+  maxServiceBlocks?: number | null;
 };
 
 type ProfileLike = {
@@ -33,14 +34,11 @@ export function hasActiveProviderAccess(
   if (!profile) return false;
   if (profile.lifetimeFree) return true;
   if (isTrialActive(profile)) return true;
-  if (
-    profile.stripeSubscriptionId &&
-    isStripeActive(profile.subscriptionStatus)
-  ) {
-    return true;
-  }
 
-  return false;
+  return Boolean(
+    profile.stripeSubscriptionId &&
+      isStripeActive(profile.subscriptionStatus),
+  );
 }
 
 export function hasPremiumAccess(profile: ProfileLike | null | undefined) {
@@ -48,64 +46,79 @@ export function hasPremiumAccess(profile: ProfileLike | null | undefined) {
   if (profile.lifetimeFree) return true;
   if (isTrialActive(profile)) return true;
 
-  return (
+  return Boolean(
     profile.plan?.slug === "premium" &&
-    Boolean(profile.stripeSubscriptionId) &&
-    isStripeActive(profile.subscriptionStatus)
+      profile.stripeSubscriptionId &&
+      isStripeActive(profile.subscriptionStatus),
+  );
+}
+
+export function hasBasicAccess(profile: ProfileLike | null | undefined) {
+  if (!profile) return false;
+  if (profile.lifetimeFree) return true;
+  if (isTrialActive(profile)) return true;
+
+  return Boolean(
+    profile.plan?.slug === "basic" &&
+      profile.stripeSubscriptionId &&
+      isStripeActive(profile.subscriptionStatus),
   );
 }
 
 export function getPlanLimits(profile: ProfileLike | null | undefined) {
+  const active = hasActiveProviderAccess(profile);
+  const trialLike = active && isTrialActive(profile);
   const premiumLike = hasPremiumAccess(profile);
-
-  const basicLike =
-    hasActiveProviderAccess(profile) &&
-    !premiumLike &&
-    profile?.plan?.slug === "basic";
-
-  const trialLike =
-    hasActiveProviderAccess(profile) && !premiumLike && profile?.plan?.isTrial;
+  const basicLike = active && !premiumLike && profile?.plan?.slug === "basic";
 
   if (premiumLike) {
     return {
-      maxListings: 5,
+      maxListings: 1,
       maxImagesPerListing: 30,
+      maxServiceBlocks: 12,
 
       canUseChat: true,
       canCollectReviews: true,
       canBecomeTopRated: true,
-    };
-  }
-
-  if (basicLike) {
-    return {
-      maxListings: 3,
-      maxImagesPerListing: 15,
-
-      canUseChat: false,
-      canCollectReviews: true,
-      canBecomeTopRated: true,
+      canAppearOnHomepage: true,
     };
   }
 
   if (trialLike) {
     return {
-      maxListings: 3,
-      maxImagesPerListing: 15,
+      maxListings: 1,
+      maxImagesPerListing: 30,
+      maxServiceBlocks: 12,
 
       canUseChat: true,
       canCollectReviews: true,
       canBecomeTopRated: true,
+      canAppearOnHomepage: true,
+    };
+  }
+
+  if (basicLike) {
+    return {
+      maxListings: 1,
+      maxImagesPerListing: 15,
+      maxServiceBlocks: 6,
+
+      canUseChat: false,
+      canCollectReviews: true,
+      canBecomeTopRated: true,
+      canAppearOnHomepage: false,
     };
   }
 
   return {
     maxListings: 0,
     maxImagesPerListing: 0,
+    maxServiceBlocks: 0,
 
     canUseChat: false,
     canCollectReviews: false,
     canBecomeTopRated: false,
+    canAppearOnHomepage: false,
   };
 }
 

@@ -21,6 +21,48 @@ type RawPriceItem = {
   note?: unknown;
 };
 
+type RawServiceBlockImage = {
+  url?: unknown;
+  path?: unknown;
+  altText?: unknown;
+};
+
+type RawServiceBlock = {
+  title?: unknown;
+  description?: unknown;
+  iconKey?: unknown;
+  images?: unknown;
+};
+
+const ALLOWED_ICON_KEYS = new Set([
+  "carpentry",
+  "kitchen",
+  "floors",
+  "walls",
+  "ceiling",
+  "bathroom",
+  "terrace",
+  "doors",
+  "windows",
+  "painting",
+  "plumbing",
+  "electrical",
+  "cleaning",
+  "transport",
+  "auto",
+  "beauty",
+  "it",
+  "accounting",
+  "legal",
+  "real_estate",
+  "training",
+  "childcare",
+  "pets",
+  "food",
+  "household",
+  "other",
+]);
+
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -83,6 +125,7 @@ function normalizeGalleryStrings(
   maxLen: number,
 ) {
   if (!Array.isArray(input)) return [];
+
   return input
     .map((x) => String(x).trim())
     .filter(Boolean)
@@ -122,6 +165,104 @@ function normalizePriceItems(input: unknown) {
     note: string;
     sortOrder: number;
   }>;
+}
+
+function normalizeIconKey(input: unknown) {
+  const raw = typeof input === "string" ? input.trim() : "";
+  if (!raw) return "other";
+
+  const safe = raw
+    .toLowerCase()
+    .replace(/[^\w-]/g, "_")
+    .slice(0, 40);
+
+  return ALLOWED_ICON_KEYS.has(safe) ? safe : "other";
+}
+
+function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((item, index) => {
+      const raw = (item ?? {}) as RawServiceBlock;
+
+      const title = clampText(raw.title, 80);
+      const description = clampText(raw.description, 400);
+      const iconKey = normalizeIconKey(raw.iconKey);
+
+      const images = Array.isArray(raw.images)
+        ? raw.images
+            .map((image, imageIndex) => {
+              const img = (image ?? {}) as RawServiceBlockImage;
+
+              const url = clampText(img.url, 600);
+              const path = clampText(img.path, 300);
+              const altText = clampText(img.altText, 120);
+
+              if (!url || !path) return null;
+
+              return {
+                url,
+                path,
+                altText: altText || null,
+                sortOrder: imageIndex,
+              };
+            })
+            .filter(Boolean)
+        : [];
+
+      if (!title && !description && images.length === 0) return null;
+
+      return {
+        title: title || "Paslauga",
+        description: description || null,
+        iconKey,
+        sortOrder: index,
+        images: images as Array<{
+          url: string;
+          path: string;
+          altText: string | null;
+          sortOrder: number;
+        }>,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, maxBlocks) as Array<{
+    title: string;
+    description: string | null;
+    iconKey: string;
+    sortOrder: number;
+    images: Array<{
+      url: string;
+      path: string;
+      altText: string | null;
+      sortOrder: number;
+    }>;
+  }>;
+}
+
+function countBlockImages(
+  blocks: Array<{
+    images: Array<{ url: string; path: string }>;
+  }>,
+) {
+  return blocks.reduce((sum, block) => sum + block.images.length, 0);
+}
+
+function collectBlockImagePaths(
+  blocks: Array<{
+    images: Array<{ path: string }>;
+  }>,
+) {
+  return blocks.flatMap((block) => block.images.map((image) => image.path));
+}
+
+function collectBlockImageUrls(
+  blocks: Array<{
+    images: Array<{ url: string }>;
+  }>,
+) {
+  return blocks.flatMap((block) => block.images.map((image) => image.url));
 }
 
 function revalidateServicePages(slug: string) {
@@ -171,6 +312,7 @@ export async function POST(req: Request) {
             slug: true,
             name: true,
             isTrial: true,
+            maxServiceBlocks: true,
           },
         },
       },
@@ -186,8 +328,10 @@ export async function POST(req: Request) {
     const limits = getPlanLimits(profile);
     const planSlug = profile.plan?.slug ?? "none";
     const planName = profile.plan?.name ?? "—";
+
     const maxListings = limits.maxListings;
     const maxImagesPerListing = limits.maxImagesPerListing;
+    const maxServiceBlocks = limits.maxServiceBlocks;
 
     const activeCount = await prisma.serviceListing.count({
       where: { userId: user.id, isActive: true, deletedAt: null },
@@ -196,13 +340,14 @@ export async function POST(req: Request) {
     if (activeCount >= maxListings) {
       return jsonNoStore(
         {
-          error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus skelbimas(-ai).`,
+          error: `Pasiekėte savo plano limitą: ${maxListings} aktyvus paslaugų profilis.`,
           code: "PLAN_LIMIT",
           plan: {
             slug: planSlug,
             name: planName,
             maxListings,
             maxImagesPerListing,
+            maxServiceBlocks,
           },
           activeCount,
         },
@@ -236,6 +381,13 @@ export async function POST(req: Request) {
         ? body.responseTime
         : "1h";
 
+    const normalizedBlocks = normalizeServiceBlocks(
+      body?.serviceBlocks,
+      maxServiceBlocks,
+    );
+
+    const blockImageCount = countBlockImages(normalizedBlocks);
+
     const incomingGalleryUrlCount = Array.isArray(body?.galleryImageUrls)
       ? body.galleryImageUrls.length
       : 0;
@@ -244,10 +396,13 @@ export async function POST(req: Request) {
       ? body.galleryImagePaths.length
       : 0;
 
-    if (
-      incomingGalleryUrlCount > maxImagesPerListing ||
-      incomingGalleryPathCount > maxImagesPerListing
-    ) {
+    const incomingImageCount = Math.max(
+      incomingGalleryUrlCount,
+      incomingGalleryPathCount,
+      blockImageCount,
+    );
+
+    if (incomingImageCount > maxImagesPerListing) {
       return jsonNoStore(
         {
           error: `Pasiekėte plano nuotraukų limitą: ${maxImagesPerListing}.`,
@@ -257,23 +412,50 @@ export async function POST(req: Request) {
             name: planName,
             maxListings,
             maxImagesPerListing,
+            maxServiceBlocks,
           },
         },
         { status: 409 },
       );
     }
 
-    const galleryImageUrls = normalizeGalleryStrings(
-      body?.galleryImageUrls,
-      maxImagesPerListing,
-      600,
-    );
+    if (normalizedBlocks.length > maxServiceBlocks) {
+      return jsonNoStore(
+        {
+          error: `Pasiekėte plano paslaugų blokų limitą: ${maxServiceBlocks}.`,
+          code: "PLAN_BLOCK_LIMIT",
+          plan: {
+            slug: planSlug,
+            name: planName,
+            maxListings,
+            maxImagesPerListing,
+            maxServiceBlocks,
+          },
+        },
+        { status: 409 },
+      );
+    }
 
-    const galleryImagePaths = normalizeGalleryStrings(
-      body?.galleryImagePaths,
-      maxImagesPerListing,
-      300,
-    );
+    const galleryImageUrls =
+      normalizedBlocks.length > 0
+        ? collectBlockImageUrls(normalizedBlocks).slice(0, maxImagesPerListing)
+        : normalizeGalleryStrings(
+            body?.galleryImageUrls,
+            maxImagesPerListing,
+            600,
+          );
+
+    const galleryImagePaths =
+      normalizedBlocks.length > 0
+        ? collectBlockImagePaths(normalizedBlocks).slice(
+            0,
+            maxImagesPerListing,
+          )
+        : normalizeGalleryStrings(
+            body?.galleryImagePaths,
+            maxImagesPerListing,
+            300,
+          );
 
     if (galleryImageUrls.length !== galleryImagePaths.length) {
       return jsonNoStore(
@@ -296,7 +478,12 @@ export async function POST(req: Request) {
       return jsonNoStore({ error: "Missing supabaseId" }, { status: 400 });
     }
 
-    for (const path of galleryImagePaths) {
+    const allImagePaths = [
+      ...galleryImagePaths,
+      ...collectBlockImagePaths(normalizedBlocks),
+    ];
+
+    for (const path of allImagePaths) {
       if (!path.startsWith(safePrefix)) {
         return jsonNoStore({ error: "Invalid imagePath" }, { status: 400 });
       }
@@ -426,6 +613,22 @@ export async function POST(req: Request) {
         priceItems: {
           create: priceItems,
         },
+
+        blocks: {
+          create: normalizedBlocks.map((block) => ({
+            title: block.title,
+            description: block.description,
+            iconKey: block.iconKey,
+            sortOrder: block.sortOrder,
+            titleEn: block.title,
+            titleNo: block.title,
+            descriptionEn: block.description,
+            descriptionNo: block.description,
+            images: {
+              create: block.images,
+            },
+          })),
+        },
       },
       select: { id: true, slug: true },
     });
@@ -441,6 +644,8 @@ export async function POST(req: Request) {
         slug: created.slug,
         title,
         imageCount: galleryImageUrls.length,
+        blockImageCount,
+        serviceBlocksCount: normalizedBlocks.length,
         priceItemsCount: priceItems.length,
         responseTime,
         locationPostcode,
@@ -453,9 +658,11 @@ export async function POST(req: Request) {
           name: planName,
           maxListings,
           maxImagesPerListing,
+          maxServiceBlocks,
           canUseChat: limits.canUseChat,
           canCollectReviews: limits.canCollectReviews,
           canBecomeTopRated: limits.canBecomeTopRated,
+          canAppearOnHomepage: limits.canAppearOnHomepage,
         },
       },
     });

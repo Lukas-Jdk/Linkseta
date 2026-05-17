@@ -57,7 +57,10 @@ function rotateIds(ids: string[], offset: number) {
   return [...ids.slice(normalizedOffset), ...ids.slice(0, normalizedOffset)];
 }
 
-function sortByIdOrder<T extends { id: string }>(items: T[], orderedIds: string[]) {
+function sortByIdOrder<T extends { id: string }>(
+  items: T[],
+  orderedIds: string[],
+) {
   const order = new Map(orderedIds.map((id, index) => [id, index]));
   return [...items].sort((a, b) => {
     return (order.get(a.id) ?? 9999) - (order.get(b.id) ?? 9999);
@@ -161,7 +164,10 @@ export default async function HomePage({ params, searchParams }: Props) {
       Math.floor(Date.now() / (ROTATION_WINDOW_HOURS * 60 * 60 * 1000)) %
       selectedIds.length;
 
-    selectedIds = rotateIds(selectedIds, rotationIndex).slice(0, HOMEPAGE_LIMIT);
+    selectedIds = rotateIds(selectedIds, rotationIndex).slice(
+      0,
+      HOMEPAGE_LIMIT,
+    );
   }
 
   const services =
@@ -207,6 +213,15 @@ export default async function HomePage({ params, searchParams }: Props) {
                 select: {
                   name: true,
                   slug: true,
+                },
+              },
+              blocks: {
+                orderBy: { sortOrder: "asc" },
+                select: {
+                  title: true,
+                  titleEn: true,
+                  titleNo: true,
+                  iconKey: true,
                 },
               },
             },
@@ -257,6 +272,15 @@ export default async function HomePage({ params, searchParams }: Props) {
       locationPostcode: s.locationPostcode ?? "",
       locationCity: s.locationCity ?? s.city?.name ?? "",
       locationRegion: s.locationRegion ?? "",
+      serviceBlocks: (s.blocks ?? []).map((block) => ({
+        title: pickLocalizedValue(
+          locale,
+          block.title,
+          block.titleEn,
+          block.titleNo,
+        ),
+        iconKey: block.iconKey ?? "other",
+      })),
     };
   });
 

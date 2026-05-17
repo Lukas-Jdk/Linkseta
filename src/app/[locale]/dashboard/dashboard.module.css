@@ -131,7 +131,11 @@
 .profileHeaderBg {
   height: 130px;
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(14, 165, 233, 0.12),
+      transparent 28%
+    ),
     linear-gradient(135deg, #020617, #0b1220);
 }
 
@@ -275,8 +279,16 @@
   width: 100%;
   min-width: 0;
   background:
-    radial-gradient(circle at top right, rgba(14, 165, 233, 0.22), transparent 34%),
-    radial-gradient(circle at bottom left, rgba(20, 184, 166, 0.14), transparent 34%),
+    radial-gradient(
+      circle at top right,
+      rgba(14, 165, 233, 0.22),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(20, 184, 166, 0.14),
+      transparent 34%
+    ),
     linear-gradient(180deg, #ffffff 0%, #f8fdff 100%);
   border: 1px solid rgba(14, 165, 233, 0.18);
   border-radius: 18px;
@@ -292,7 +304,11 @@
   align-items: center;
   gap: 14px;
   background:
-    radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 36%),
+    radial-gradient(
+      circle at top right,
+      rgba(14, 165, 233, 0.14),
+      transparent 36%
+    ),
     linear-gradient(90deg, rgba(224, 242, 254, 0.78), rgba(255, 255, 255, 0.78));
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
@@ -393,7 +409,6 @@
   font-size: 0.9rem;
   font-weight: 900;
   font-family: var(--font-primary);
-  
 }
 
 .billingDateValue {
@@ -501,7 +516,11 @@
   border-radius: 16px;
   border: 1.5px dashed rgba(59, 130, 246, 0.35);
   background:
-    radial-gradient(circle at center top, rgba(14, 165, 233, 0.1), transparent 34%),
+    radial-gradient(
+      circle at center top,
+      rgba(14, 165, 233, 0.1),
+      transparent 34%
+    ),
     linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   display: flex;
   flex-direction: column;
@@ -768,14 +787,13 @@
 }
 
 .billingManageBtn:hover {
-background: linear-gradient(135deg, #057d85);
+  background: linear-gradient(135deg, #057d85);
 }
 
 .billingManageBtn:disabled {
   opacity: 0.7;
   cursor: default;
 }
-
 
 .modalOverlay {
   position: fixed;
@@ -786,12 +804,17 @@ background: linear-gradient(135deg, #057d85);
   padding: 16px;
   background: rgba(2, 6, 23, 0.62);
   backdrop-filter: blur(6px);
+  overflow-y: auto;
+  padding: 24px 12px;
+  align-items: flex-start;
 }
 
 .modalCard {
   width: 100%;
   max-width: 480px;
   background: #ffffff;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   border-radius: 24px;
   padding: 24px;
   border: 1px solid rgba(148, 163, 184, 0.22);

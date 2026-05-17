@@ -192,8 +192,32 @@ export default async function ServicesPage({ params, searchParams }: Props) {
         locationPostcode: true,
         locationCity: true,
         locationRegion: true,
-        city: { select: { name: true, postcode: true } },
-        category: { select: { name: true, slug: true } },
+
+        city: {
+          select: {
+            name: true,
+            postcode: true,
+          },
+        },
+
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
+
+        blocks: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+          select: {
+            title: true,
+            titleEn: true,
+            titleNo: true,
+            iconKey: true,
+          },
+        },
       },
       orderBy: [{ highlighted: "desc" }, { createdAt: "desc" }],
       skip,
@@ -266,6 +290,15 @@ export default async function ServicesPage({ params, searchParams }: Props) {
       locationPostcode: service.locationPostcode ?? "",
       locationCity: service.locationCity ?? service.city?.name ?? "",
       locationRegion: service.locationRegion ?? "",
+      serviceBlocks: (service.blocks ?? []).map((block) => ({
+        title: pickLocalizedValue(
+          locale,
+          block.title,
+          block.titleEn,
+          block.titleNo,
+        ),
+        iconKey: block.iconKey ?? "other",
+      })),
     };
   });
 

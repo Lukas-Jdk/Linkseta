@@ -9,115 +9,100 @@ datasource db {
 }
 
 model User {
-  id         String  @id @default(cuid())
-  email      String  @unique @db.Citext
-  supabaseId String? @unique
-
-  name  String?
-  phone String?
-  role  UserRole @default(USER)
-
-  avatarUrl String?
-
-  betaAccess   Boolean @default(false)
-  lifetimeFree Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  profile     ProviderProfile?
-  services    ServiceListing[]
-  jobListings JobListing[]
-  auditLogs   AuditLog[]       @relation("UserAuditLogs")
-}
-
-enum UserRole {
-  USER
-  ADMIN
+  id           String           @id @default(cuid())
+  email        String           @unique @db.Citext
+  name         String?
+  createdAt    DateTime         @default(now())
+  phone        String?
+  role         UserRole         @default(USER)
+  updatedAt    DateTime         @updatedAt
+  avatarUrl    String?
+  supabaseId   String?          @unique
+  betaAccess   Boolean          @default(false)
+  lifetimeFree Boolean          @default(false)
+  auditLogs    AuditLog[]       @relation("UserAuditLogs")
+  jobListings  JobListing[]
+  profile      ProviderProfile?
+  services     ServiceListing[]
 }
 
 model ProviderProfile {
-  id          String  @id @default(cuid())
-  userId      String  @unique
-  companyName String?
-  description String?
-  website     String?
-  isApproved  Boolean @default(false)
-
-  trialEndsAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  companyName           String?
+  description           String?
+  website               String?
+  isApproved            Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  planId                String?
+  trialEndsAt           DateTime?
   lifetimeFree          Boolean   @default(false)
   lifetimeFreeGrantedAt DateTime?
   lifetimeFreeGrantedBy String?
+  currentPeriodEnd      DateTime?
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  subscriptionStatus    String?
 
-  planId String?
-  plan   Plan?   @relation(fields: [planId], references: [id])
+  about             String?
+  aboutEn           String?
+  aboutNo           String?
+  experienceYears   Int?
+  completedProjects Int?
+  workingHours      Json?
 
-  user User @relation(fields: [userId], references: [id])
-
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String?
-  currentPeriodEnd     DateTime?
+  plan Plan? @relation(fields: [planId], references: [id])
+  user User  @relation(fields: [userId], references: [id])
 }
 
 model ServiceListing {
-  id          String @id @default(cuid())
-  userId      String
-  title       String
-  slug        String @unique
-  description String
+  id                String          @id @default(cuid())
+  userId            String
+  title             String
+  slug              String          @unique
+  description       String
+  priceFrom         Int?
+  priceTo           Int?
+  isActive          Boolean         @default(true)
+  highlighted       Boolean         @default(false)
+  cityId            String?
+  categoryId        String?
+  planId            String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  imageUrl          String?
+  highlights        String[]        @default([])
+  imagePath         String?
+  deletedAt         DateTime?
+  why1              String?
+  why2              String?
+  why3              String?
+  galleryImagePaths String[]        @default([])
+  galleryImageUrls  String[]        @default([])
+  descriptionEn     String?
+  descriptionNo     String?
+  highlightsEn      String[]        @default([])
+  highlightsNo      String[]        @default([])
+  sourceLocale      String          @default("lt")
+  titleEn           String?
+  titleNo           String?
+  responseTime      String?         @default("1h")
+  locationCity      String?
+  locationPostcode  String?
+  locationRegion    String?
+  priceDisplayMode  String?         @default("from")
+  brandName         String?
+  brandLogoUrl      String?
+  brandLogoPath     String?
+  reviews           ServiceReview[]
 
-  priceFrom Int?
-  priceTo   Int?
-
-  priceDisplayMode String? @default("from")
-
-  responseTime String? @default("1h")
-
-  isActive    Boolean  @default(true)
-  highlighted Boolean  @default(false)
-  highlights  String[] @default([])
-
-  sourceLocale String @default("lt")
-
-  titleEn       String?
-  titleNo       String?
-  descriptionEn String?
-  descriptionNo String?
-  highlightsEn  String[] @default([])
-  highlightsNo  String[] @default([])
-
-  imageUrl  String?
-  imagePath String?
-
-  galleryImageUrls  String[] @default([])
-  galleryImagePaths String[] @default([])
-
-  why1       String?
-  why2       String?
-  why3       String?
-  cityId     String?
-  categoryId String?
-  planId     String?
-
-  locationPostcode String?
-  locationCity     String?
-  locationRegion   String?
-
-  deletedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user       User               @relation(fields: [userId], references: [id])
-  city       City?              @relation(fields: [cityId], references: [id])
   category   Category?          @relation(fields: [categoryId], references: [id])
+  city       City?              @relation(fields: [cityId], references: [id])
   plan       Plan?              @relation(fields: [planId], references: [id])
+  user       User               @relation(fields: [userId], references: [id])
   priceItems ServicePriceItem[]
+  blocks     ServiceBlock[]
 
   @@index([isActive, deletedAt, createdAt])
   @@index([isActive, deletedAt, highlighted, createdAt])
@@ -129,108 +114,142 @@ model ServiceListing {
 }
 
 model ServicePriceItem {
-  id        String @id @default(cuid())
-  serviceId String
-
-  label   String
-  labelEn String?
-  labelNo String?
-
+  id          String   @id @default(cuid())
+  serviceId   String
+  label       String
+  labelEn     String?
+  labelNo     String?
+  note        String?
+  noteEn      String?
+  noteNo      String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   priceText   String?
   priceTextEn String?
   priceTextNo String?
-
-  note   String?
-  noteEn String?
-  noteNo String?
-
-  sortOrder Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   service ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@index([serviceId, sortOrder])
 }
 
-model JobListing {
-  id             String  @id @default(cuid())
-  userId         String
-  title          String
-  slug           String  @unique
-  description    String
-  employmentType String?
-  salaryFrom     Int?
-  salaryTo       Int?
-  isActive       Boolean @default(true)
-  remote         Boolean @default(false)
+model ServiceBlock {
+  id        String @id @default(cuid())
+  serviceId String
 
-  cityId String?
+  title       String
+  description String?
+  iconKey     String  @default("other")
+  sortOrder   Int     @default(0)
+
+  titleEn       String?
+  titleNo       String?
+  descriptionEn String?
+  descriptionNo String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User  @relation(fields: [userId], references: [id])
+  service ServiceListing      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  images  ServiceBlockImage[]
+
+  @@index([serviceId, sortOrder])
+  @@index([iconKey])
+}
+
+model ServiceBlockImage {
+  id      String @id @default(cuid())
+  blockId String
+
+  url  String
+  path String
+
+  altText String?
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  block ServiceBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@index([blockId, sortOrder])
+  @@index([path])
+}
+
+model ServiceReview {
+  id         String   @id @default(cuid())
+  serviceId  String
+  rating     Int
+  name       String
+  comment    String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  service ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, isApproved, createdAt])
+}
+
+model JobListing {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  slug           String   @unique
+  description    String
+  employmentType String?
+  salaryFrom     Int?
+  salaryTo       Int?
+  isActive       Boolean  @default(true)
+  remote         Boolean  @default(false)
+  cityId         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   city City? @relation(fields: [cityId], references: [id])
+  user User  @relation(fields: [userId], references: [id])
 
   @@index([isActive, cityId])
   @@index([createdAt])
 }
 
 model City {
-  id       String  @id @default(cuid())
-  name     String
-  postcode String?
-  slug     String  @unique
-
-  services         ServiceListing[]
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  postcode         String?
   jobs             JobListing[]
   providerRequests ProviderRequest[]
+  services         ServiceListing[]
 }
 
 model Category {
-  id   String       @id @default(cuid())
-  name String
-  slug String       @unique
-  type CategoryType @default(SERVICE)
-
-  services         ServiceListing[]
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  type             CategoryType      @default(SERVICE)
   providerRequests ProviderRequest[]
-}
-
-enum CategoryType {
-  SERVICE
-  JOB
+  services         ServiceListing[]
 }
 
 model Plan {
-  id                  String     @id @default(cuid())
+  id                  String            @id @default(cuid())
   name                String
-  slug                String     @unique
+  slug                String            @unique
   priceNok            Int
-  period              PlanPeriod @default(MONTHLY)
+  period              PlanPeriod        @default(MONTHLY)
   maxListings         Int?
-  maxImagesPerListing Int        @default(1)
-  highlight           Boolean    @default(false)
-  canAppearOnHomepage Boolean    @default(false)
-  canBecomeTop        Boolean    @default(false)
-  isTrial             Boolean    @default(false)
+  highlight           Boolean           @default(false)
+  maxImagesPerListing Int               @default(1)
+  maxServiceBlocks    Int               @default(6)
+  isTrial             Boolean           @default(false)
   trialDays           Int?
-
-  services ServiceListing[]
-  profiles ProviderProfile[]
-}
-
-enum PlanPeriod {
-  MONTHLY
-  YEARLY
-}
-
-enum ProviderRequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  canAppearOnHomepage Boolean           @default(false)
+  canBecomeTop        Boolean           @default(false)
+  profiles            ProviderProfile[]
+  services            ServiceListing[]
 }
 
 model ProviderRequest {
@@ -242,31 +261,89 @@ model ProviderRequest {
   categoryId String?
   message    String?
   status     ProviderRequestStatus @default(PENDING)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  city     City?     @relation(fields: [cityId], references: [id])
   category Category? @relation(fields: [categoryId], references: [id])
+  city     City?     @relation(fields: [cityId], references: [id])
+}
+
+model Conversation {
+  id            String    @id
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz(6)
+  serviceId     String?   @map("service_id")
+  createdBy     String    @map("created_by")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String    @id
+  conversationId String    @map("conversation_id")
+  userId         String    @map("user_id")
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([conversationId, userId])
+  @@index([userId], map: "idx_conv_participants_user")
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String    @id
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
+  content        String
+  createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt         DateTime? @map("read_at") @db.Timestamptz(6)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversationId], map: "idx_messages_conversation_id")
+  @@index([createdAt(sort: Desc)], map: "idx_messages_created_at")
+  @@map("messages")
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-
-  userId String?
-  user   User?   @relation("UserAuditLogs", fields: [userId], references: [id])
-
-  action   String
-  entity   String
-  entityId String?
-
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
   ip        String?
   userAgent String?
+  metadata  Json?
 
-  metadata Json?
+  user User? @relation("UserAuditLogs", fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([userId])
   @@index([entity, entityId])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum CategoryType {
+  SERVICE
+  JOB
+}
+
+enum PlanPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum ProviderRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

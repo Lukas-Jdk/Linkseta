@@ -1,5 +1,6 @@
 // src/app/api/profile/route.ts
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { requireCsrf } from "@/lib/csrf";
@@ -17,6 +18,35 @@ function cleanText(value: unknown, max: number) {
 function cleanNullableText(value: unknown, max: number) {
   const cleaned = cleanText(value, max);
   return cleaned.length > 0 ? cleaned : null;
+}
+
+function cleanOptionalInt(value: unknown, max: number) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const num = Number(value);
+  if (!Number.isInteger(num) || num < 0 || num > max) return null;
+
+  return num;
+}
+
+function cleanWorkingHours(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const data = value as Record<string, unknown>;
+
+  const weekdays = cleanText(data.weekdays, 80);
+  const saturday = cleanText(data.saturday, 80);
+  const sunday = cleanText(data.sunday, 80);
+
+  if (!weekdays && !saturday && !sunday) return null;
+
+  return {
+    weekdays,
+    saturday,
+    sunday,
+  };
 }
 
 function isValidPhone(phone: string | null) {
@@ -51,6 +81,14 @@ export async function PATCH(req: Request) {
     const phone = cleanNullableText(body?.phone, 30);
     const companyName = cleanNullableText(body?.companyName, 120);
 
+    const about = cleanNullableText(body?.about, 2000);
+    const aboutEn = cleanNullableText(body?.aboutEn, 2000);
+    const aboutNo = cleanNullableText(body?.aboutNo, 2000);
+
+    const experienceYears = cleanOptionalInt(body?.experienceYears, 80);
+    const completedProjects = cleanOptionalInt(body?.completedProjects, 100000);
+    const workingHours = cleanWorkingHours(body?.workingHours);
+
     if (name.length < 2) {
       return NextResponse.json(
         { error: "Vardas turi būti bent 2 simbolių." },
@@ -65,12 +103,16 @@ export async function PATCH(req: Request) {
       );
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
         where: { id: user.id },
         data: {
           name,
           phone,
+        },
+        select: {
+          name: true,
+          phone: true,
         },
       });
 
@@ -78,8 +120,16 @@ export async function PATCH(req: Request) {
         where: { userId: user.id },
         data: {
           companyName,
+          about,
+          aboutEn,
+          aboutNo,
+          experienceYears,
+          completedProjects,
+          workingHours: workingHours ?? Prisma.JsonNull,
         },
       });
+
+      return updatedUser;
     });
 
     await auditLog({
@@ -90,16 +140,32 @@ export async function PATCH(req: Request) {
       ip,
       userAgent: ua,
       metadata: {
-        changedFields: ["name", "phone", "companyName"],
+        changedFields: [
+          "name",
+          "phone",
+          "companyName",
+          "about",
+          "aboutEn",
+          "aboutNo",
+          "experienceYears",
+          "completedProjects",
+          "workingHours",
+        ],
       },
     });
 
     return NextResponse.json({
       ok: true,
       profile: {
-        name,
-        phone,
+        name: updated.name,
+        phone: updated.phone,
         companyName,
+        about,
+        aboutEn,
+        aboutNo,
+        experienceYears,
+        completedProjects,
+        workingHours: workingHours ?? null,
       },
     });
   } catch (err: unknown) {

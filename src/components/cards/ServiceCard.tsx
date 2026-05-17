@@ -4,8 +4,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import styles from "./ServiceCard.module.css";
 import { MapPin, Star } from "lucide-react";
+import styles from "./ServiceCard.module.css";
+
+type ServiceBlock = {
+  title: string;
+  iconKey: string;
+};
 
 type Props = {
   title: string;
@@ -21,6 +26,7 @@ type Props = {
   locationPostcode?: string;
   locationCity?: string;
   locationRegion?: string;
+  serviceBlocks?: ServiceBlock[];
 };
 
 function formatPriceNOK(value: number) {
@@ -76,6 +82,7 @@ export default function ServiceCard({
   locationPostcode,
   locationCity,
   locationRegion,
+  serviceBlocks = [],
 }: Props) {
   const t = useTranslations("serviceCard");
 
@@ -90,6 +97,10 @@ export default function ServiceCard({
     locationRegion,
     fallbackCity: city,
   });
+
+  const visibleBlocks = serviceBlocks
+    .filter((block) => block.title.trim().length > 0)
+    .slice(0, 3);
 
   return (
     <Link href={`/${locale}/services/${slug}`} className={styles.card}>
@@ -139,6 +150,16 @@ export default function ServiceCard({
         </div>
 
         <h3 className={styles.title}>{title}</h3>
+
+        {visibleBlocks.length > 0 && (
+          <div className={styles.blockChips}>
+            {visibleBlocks.map((block, index) => (
+              <span key={`${block.title}-${index}`} className={styles.blockChip}>
+                {block.title}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className={styles.infoRow}>
           <span className={styles.infoItem}>
