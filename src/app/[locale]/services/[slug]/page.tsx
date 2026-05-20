@@ -5,13 +5,14 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
+import ServiceGallery from "./ServiceGallery";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import { hasPremiumAccess } from "@/lib/planAccess";
 import StartConversationButton from "./StartConversationButton";
+import ReviewForm from "./ReviewForm";
 import {
   Award,
-  BadgeCheck,
   BriefcaseBusiness,
   CheckCircle2,
   Clock3,
@@ -36,12 +37,16 @@ type WorkingHourRow = {
   label: string;
   value: string;
 };
+
 type ApprovedReview = {
   id: string;
   rating: number;
   name: string;
   comment: string | null;
   createdAt: Date;
+  user?: {
+    avatarUrl: string | null;
+  };
 };
 
 function stripHtml(input: string) {
@@ -253,6 +258,12 @@ function getResponseTimeLabel(locale: string, responseTime?: string | null) {
   return text.response1h;
 }
 
+function getShowAllReviewsLabel(locale: string) {
+  if (locale === "en") return "View all reviews";
+  if (locale === "no") return "Se alle anmeldelser";
+  return "Žiūrėti visus atsiliepimus";
+}
+
 function parseWorkingHours(
   value: unknown,
   text: ReturnType<typeof getText>,
@@ -289,7 +300,17 @@ function parseWorkingHours(
 function formatRating(value: number) {
   return value.toFixed(1).replace(".", ",");
 }
+function formatReviewDate(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
 
+function reviewInitial(name: string) {
+  return name.trim().slice(0, 1).toUpperCase() || "U";
+}
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -401,7 +422,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       highlightsNo: true,
       imageUrl: true,
       galleryImageUrls: true,
-   
+
       brandLogoUrl: true,
       locationPostcode: true,
       locationCity: true,
@@ -417,6 +438,11 @@ export default async function ServiceDetailsPage({ params }: Props) {
           name: true,
           comment: true,
           createdAt: true,
+          user: {
+            select: {
+              avatarUrl: true,
+            },
+          },
         },
       },
 
@@ -504,7 +530,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
         : ["/def.webp"];
 
   const heroImage = images[0] ?? "/def.webp";
-  const galleryPreview = images.slice(0, 4);
 
   const city = formatServiceLocation({
     locationPostcode: service.locationPostcode,
@@ -544,8 +569,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
     service.user.profile?.aboutNo,
   );
 
-  const aboutText = localizedProviderAbout || localizedDescription;
+  const normalizedAbout = localizedProviderAbout?.trim() ?? "";
 
+  const aboutText =
+    normalizedAbout && normalizedAbout !== localizedDescription.trim()
+      ? normalizedAbout
+      : localizedDescription;
   const localizedHighlights = pickLocalizedArray(
     locale,
     Array.isArray(service.highlights) ? service.highlights : [],
@@ -586,12 +615,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
     ? String(service.user.avatarUrl).trim()
     : null;
 
-
   const displayBrandLogoUrl = isSafeAvatarUrl(service.brandLogoUrl)
     ? String(service.brandLogoUrl).trim()
     : null;
-
-  
 
   const phoneRaw = service.user.phone ? String(service.user.phone).trim() : "";
   const phone = phoneRaw || null;
@@ -619,7 +645,20 @@ export default async function ServiceDetailsPage({ params }: Props) {
       ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) /
         reviewCount
       : null;
+  const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => {
+    const count = approvedReviews.filter(
+      (review) => review.rating === star,
+    ).length;
 
+    const percent =
+      reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
+
+    return {
+      star,
+      count,
+      percent,
+    };
+  });
   const experienceYears = service.user.profile?.experienceYears ?? null;
   const completedProjects = service.user.profile?.completedProjects ?? null;
 
@@ -737,40 +776,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
                 </div>
               )}
             </div>
-
-            <div className={styles.heroActions}>
-              {canUseChat && (
-                <div className={styles.chatAction}>
-                  <StartConversationButton
-                    serviceId={service.id}
-                    label={text.chat}
-                    loadingLabel={text.chatLoading}
-                  />
-                </div>
-              )}
-
-              {telHref ? (
-                <a className={styles.actionButton} href={telHref}>
-                  <Phone size={17} />
-                  <span>{text.call}</span>
-                </a>
-              ) : (
-                <button className={styles.actionButton} type="button" disabled>
-                  <Phone size={17} />
-                  <span>{text.noPhone}</span>
-                </button>
-              )}
-
-              <a
-                className={styles.actionButton}
-                href={emailHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Mail size={17} />
-                <span>{text.email}</span>
-              </a>
-            </div>
           </div>
 
           <aside className={styles.providerCard}>
@@ -793,148 +798,263 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
             <div className={styles.providerName}>{sellerName}</div>
 
-            <div className={styles.availableNow}>
-              <span className={styles.greenDot} />
-              {text.availableNow}
-            </div>
+            <div className={styles.providerActions}>
+              {canUseChat && (
+                <div className={styles.providerChatAction}>
+                  <StartConversationButton
+                    serviceId={service.id}
+                    label="Chat"
+                    loadingLabel={text.chatLoading}
+                  />
+                </div>
+              )}
 
-            <div className={styles.responseLine}>
-              <Clock3 size={15} />
-              {responseTimeLabel}
-            </div>
+              {telHref ? (
+                <a className={styles.providerActionButton} href={telHref}>
+                  <Phone size={17} />
+                  <span>{text.call}</span>
+                </a>
+              ) : (
+                <button
+                  className={styles.providerActionButton}
+                  type="button"
+                  disabled
+                >
+                  <Phone size={17} />
+                  <span>{text.noPhone}</span>
+                </button>
+              )}
 
-            <div className={styles.providerDivider} />
-
-            {isVerified && (
-              <div className={styles.providerFact}>
-                <BadgeCheck size={16} />
-                {text.activeProvider}
-              </div>
-            )}
-
-            <div className={styles.providerFact}>
-              <MapPin size={16} />
-              {city}
+              <a
+                className={styles.providerActionButton}
+                href={emailHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Mail size={17} />
+                <span>{text.email}</span>
+              </a>
             </div>
           </aside>
         </section>
 
         <section className={styles.mainCard}>
-          <div className={styles.sectionHeaderRow}>
-            <h2>{text.whatIDo}</h2>
-          </div>
-
-          {localizedBlocks.length > 0 ? (
-            <div className={styles.serviceStrip}>
-              {localizedBlocks.map((block) => (
-                <div key={block.id} className={styles.serviceMiniCard}>
-                  <div className={styles.serviceMiniIcon}>
-                    <BriefcaseBusiness size={24} />
-                  </div>
-                  <div>
-                    <h3>{block.title}</h3>
-                    {block.description && <p>{block.description}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyText}>{text.noBlocks}</p>
-          )}
-
-          <div className={styles.galleryHead}>
-            <h2>{text.gallery}</h2>
-            {images.length > 0 && (
-              <Link href={images[0]} target="_blank">
-                {text.viewAllPhotos} →
-              </Link>
-            )}
-          </div>
-
-          {galleryPreview.length > 0 ? (
-            <div className={styles.galleryPreviewGrid}>
-              {galleryPreview.map((image, index) => (
-                <Link
-                  key={`${image}-${index}`}
-                  href={image}
-                  target="_blank"
-                  className={styles.galleryPreviewItem}
-                >
-                  <Image
-                    src={image}
-                    alt={`${localizedTitle} ${index + 1}`}
-                    fill
-                    sizes="(max-width: 900px) 50vw, 280px"
-                    className={styles.galleryPreviewImage}
-                  />
-                  <span>{localizedBlocks[index]?.title || localizedTitle}</span>
-                </Link>
-              ))}
-            </div>
+          {localizedBlocks.some((block) => block.images.length > 0) ? (
+            <ServiceGallery
+              blocks={localizedBlocks}
+              viewAllLabel={text.viewAllPhotos}
+            />
           ) : (
             <p className={styles.emptyText}>{text.noGallery}</p>
           )}
         </section>
 
         <section className={styles.bottomGrid}>
-          <div className={styles.infoPanel}>
-            <h2>{text.aboutMe}</h2>
-            <p>{aboutText}</p>
+          <div className={styles.bottomTopGrid}>
+            <div className={styles.infoPanel}>
+              <h2>{text.aboutMe}</h2>
+              <p>{aboutText}</p>
 
-            <div className={styles.statsGrid}>
-              {typeof experienceYears === "number" && experienceYears > 0 && (
-                <div>
-                  <Award size={18} />
-                  <strong>{experienceYears}+</strong>
-                  <span>{text.experience}</span>
-                </div>
-              )}
-
-              {typeof completedProjects === "number" &&
-                completedProjects > 0 && (
+              <div className={styles.statsGrid}>
+                {typeof experienceYears === "number" && experienceYears > 0 && (
                   <div>
-                    <BriefcaseBusiness size={18} />
-                    <strong>{completedProjects}+</strong>
-                    <span>{text.projects}</span>
+                    <Award size={18} />
+                    <strong>{experienceYears}+</strong>
+                    <span>{text.experience}</span>
                   </div>
                 )}
 
-              <div>
-                <MessageCircle size={18} />
-                <strong>{service.responseTime ?? "1h"}</strong>
-                <span>{text.replyFast}</span>
-              </div>
-
-              {isVerified && (
-                <div>
-                  <ShieldCheck size={18} />
-                  <strong>✓</strong>
-                  <span>{text.trusted}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.infoPanel}>
-            <div className={styles.panelTop}>
-              <h2>{text.reviews}</h2>
-            </div>
-
-            {approvedReviews.length > 0 ? (
-              <div className={styles.reviewGrid}>
-                {approvedReviews.slice(0, 2).map((review: ApprovedReview) => (
-                  <div key={review.id} className={styles.reviewCard}>
-                    <div className={styles.reviewStars}>
-                      {"★".repeat(Math.max(1, Math.min(5, review.rating)))}
+                {typeof completedProjects === "number" &&
+                  completedProjects > 0 && (
+                    <div>
+                      <BriefcaseBusiness size={18} />
+                      <strong>{completedProjects}+</strong>
+                      <span>{text.projects}</span>
                     </div>
-                    <strong>{review.name}</strong>
-                    <p>{review.comment || text.noReviews}</p>
+                  )}
+
+                <div>
+                  <MessageCircle size={18} />
+                  <strong>{service.responseTime ?? "1h"}</strong>
+                  <span>{text.replyFast}</span>
+                </div>
+
+                {isVerified && (
+                  <div>
+                    <ShieldCheck size={18} />
+                    <strong>✓</strong>
+                    <span>{text.trusted}</span>
                   </div>
-                ))}
+                )}
               </div>
-            ) : (
-              <p className={styles.emptyText}>{text.noReviews}</p>
-            )}
+            </div>
+
+            <div className={styles.infoPanel}>
+              <div className={styles.panelTop}>
+                <h2>{text.reviews}</h2>
+              </div>
+
+              {approvedReviews.length > 0 ? (
+                <>
+                  <div className={styles.reviewSummary}>
+                    <div className={styles.reviewSummaryLeft}>
+                      <div className={styles.reviewSummaryRatingBig}>
+                        {averageRating ? formatRating(averageRating) : "0,0"}
+                      </div>
+
+                      <div className={styles.reviewSummaryStarsBig}>★★★★★</div>
+
+                      <div className={styles.reviewSummaryText}>
+                        {locale === "en"
+                          ? `Based on ${reviewCount} reviews`
+                          : locale === "no"
+                            ? `Basert på ${reviewCount} anmeldelser`
+                            : `Remiantis ${reviewCount} atsiliepimais`}
+                      </div>
+                    </div>
+
+                    <div className={styles.reviewBars}>
+                      {ratingBreakdown.map((row) => (
+                        <div key={row.star} className={styles.reviewBarRow}>
+                          <span className={styles.reviewBarLabel}>
+                            {row.star} ★
+                          </span>
+
+                          <div className={styles.reviewBarTrack}>
+                            <div
+                              className={styles.reviewBarFill}
+                              style={{
+                                width: `${row.percent}%`,
+                              }}
+                            />
+                          </div>
+
+                          <span className={styles.reviewBarPercent}>
+                            {row.percent}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={styles.reviewGrid}>
+                    {approvedReviews
+                      .slice(0, 2)
+                      .map((review: ApprovedReview) => {
+                        const avatarUrl = isSafeAvatarUrl(
+                          review.user?.avatarUrl,
+                        )
+                          ? String(review.user?.avatarUrl).trim()
+                          : null;
+
+                        return (
+                          <div key={review.id} className={styles.reviewCard}>
+                            <div className={styles.reviewCardTop}>
+                              <div className={styles.reviewAvatar}>
+                                {avatarUrl ? (
+                                  <Image
+                                    src={avatarUrl}
+                                    alt=""
+                                    fill
+                                    sizes="44px"
+                                    className={styles.reviewAvatarImg}
+                                  />
+                                ) : (
+                                  reviewInitial(review.name)
+                                )}
+                              </div>
+
+                              <div className={styles.reviewMeta}>
+                                <strong>{review.name}</strong>
+                                <span>
+                                  {formatReviewDate(review.createdAt, locale)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className={styles.reviewStars}>
+                              {"★".repeat(
+                                Math.max(1, Math.min(5, review.rating)),
+                              )}
+                              {"☆".repeat(
+                                5 - Math.max(1, Math.min(5, review.rating)),
+                              )}
+                            </div>
+
+                            <p>{review.comment || text.noReviews}</p>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {approvedReviews.length > 2 && (
+                    <details className={styles.moreReviews}>
+                      <summary>{getShowAllReviewsLabel(locale)} →</summary>
+
+                      <div className={styles.reviewGrid}>
+                        {approvedReviews
+                          .slice(2)
+                          .map((review: ApprovedReview) => {
+                            const avatarUrl = isSafeAvatarUrl(
+                              review.user?.avatarUrl,
+                            )
+                              ? String(review.user?.avatarUrl).trim()
+                              : null;
+
+                            return (
+                              <div
+                                key={review.id}
+                                className={styles.reviewCard}
+                              >
+                                <div className={styles.reviewCardTop}>
+                                  <div className={styles.reviewAvatar}>
+                                    {avatarUrl ? (
+                                      <Image
+                                        src={avatarUrl}
+                                        alt=""
+                                        fill
+                                        sizes="44px"
+                                        className={styles.reviewAvatarImg}
+                                      />
+                                    ) : (
+                                      reviewInitial(review.name)
+                                    )}
+                                  </div>
+
+                                  <div className={styles.reviewMeta}>
+                                    <strong>{review.name}</strong>
+                                    <span>
+                                      {formatReviewDate(
+                                        review.createdAt,
+                                        locale,
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className={styles.reviewStars}>
+                                  {"★".repeat(
+                                    Math.max(1, Math.min(5, review.rating)),
+                                  )}
+                                  {"☆".repeat(
+                                    5 - Math.max(1, Math.min(5, review.rating)),
+                                  )}
+                                </div>
+
+                                <p>{review.comment || text.noReviews}</p>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </details>
+                  )}
+                </>
+              ) : (
+                <p className={styles.emptyText}>{text.noReviews}</p>
+              )}
+
+              <ReviewForm serviceId={service.id} />
+            </div>
           </div>
 
           {workingHours.length > 0 && (

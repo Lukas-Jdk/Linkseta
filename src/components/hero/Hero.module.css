@@ -1,134 +1,145 @@
 /* src/components/hero/Hero.module.css */
 
-/* Tamsus hero fonas */
 .hero {
   position: relative;
-  padding-top: 3rem;
-  padding-bottom: 1rem;
-  overflow: visible;
-  background: var(--bg-header);
-  /* background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
-    radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.25), transparent 55%),
-    linear-gradient(135deg, #020617 0%, #020617 35%, #020617 100%); */
+  overflow: hidden;
   color: var(--text-white);
+  min-height: 520px;
+  padding-top: clamp(72px, 8vh, 112px);
+  padding-bottom: 0;
+  background:
+   
+    url("/home.webp");
+  background-size: cover;
+  background-position: center 28%;
+  background-repeat: no-repeat;
+  border-bottom: 1px solid rgba(20, 184, 166, 0.12);
 }
 
-/* Papildomas švytėjimas fone (blur) */
-.bgGlow {
+.hero::before {
+  content: "";
   position: absolute;
-  inset: auto;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent 60%);
-  filter: blur(16px);
-  opacity: 0.6;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(2, 6, 23, 0.3),
+      rgba(2, 6, 23, 0.06) 46%,
+      rgba(2, 6, 23, 0.18)
+    ),
+    linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 0.18),
+      rgba(2, 6, 23, 0.42)
+    );
   pointer-events: none;
 }
 
-/* Vidinis turinio blokas */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 170px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(2, 6, 23, 0.92)
+  );
+  pointer-events: none;
+}
+
+.bgGlow {
+  position: absolute;
+  z-index: 0;
+  top: 70px;
+  right: 18%;
+  width: 430px;
+  height: 430px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(20, 184, 166, 0.28),
+    transparent 62%
+  );
+  filter: blur(18px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 .inner {
   position: relative;
   z-index: 1;
   max-width: 960px;
   margin: 0 auto;
   text-align: center;
+   padding-top: 2.5rem;
 }
 
-/* AnimatedTitle viduje – paliekam komponentą,
-   šis stilius tik papildo tarpą aplinkui, jei reikia */
-
-/* Aprašymas po antraštės */
 .subtitle {
-  margin: 12px auto 22px;
-  font-size: 1.1rem;
-  max-width: 640px;
-  opacity: 0.9;
+  margin: 14px auto 24px;
+  font-size: 1.08rem;
+  max-width: 720px;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1.6;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
 }
 
-/* Paieškos juostos konteineris */
 .searchWrap {
-  margin-top: 8px;
+  max-width: 880px;
+  margin: 0 auto;
 }
 
-/* Jei norėsi papildomos informacijos žemiau */
-.metaRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px 20px;
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: rgba(226, 232, 240, 0.85);
+.searchWrap :global(form) {
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5);
+  border-radius: 22px;
 }
 
-.metaRow span::before {
-  content: "•";
-  margin-right: 6px;
-  font-size: 1.1rem;
+.marqueeDock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 28px;
+  z-index: 2;
+
+  width: 100%;
+  padding: 0 18px;
 }
 
-/* akcentuotas žodis*/
 .highlight {
   color: var(--bg-title-word);
 }
 
-/* divider */
-.divider {
-  position: relative;
-  width: 100%;
-  height: 1px;
-
-  margin-top: 40px;
-  margin-bottom: 40px;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 200, 255, 0.15),
-    rgba(0, 200, 255, 0.6),
-    rgba(0, 200, 255, 0.15)
-  );
-}
-.divider::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100%;
-  height: 10px;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 200, 255, 0.08),
-    rgba(0, 200, 255, 0.35),
-    rgba(0, 200, 255, 0.08)
-  );
-  filter: blur(10px);
-  pointer-events: none;
-}
-
-/* Responsyvus */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .hero {
-    padding: 3rem 0 2.5rem;
+    min-height: 560px;
+    padding-top: 62px;
+    background-position: 63% center;
   }
 
   .subtitle {
     font-size: 1rem;
-    padding: 0 4px;
+    padding: 0 6px;
+  }
+
+  .marqueeDock {
+    left: 12px;
+    right: 12px;
+    bottom: 20px;
   }
 }
 
-@media (max-width: 480px) {
-  .eyebrow {
-    font-size: 0.7rem;
-    padding: 3px 10px;
+@media (max-width: 560px) {
+  .hero {
+    min-height: 610px;
+    padding-top: 52px;
+    background-position: 68% center;
   }
 
-  .hero {
-    padding: 2.7rem 0 2.3rem;
+  .searchWrap {
+    max-width: 100%;
   }
 }

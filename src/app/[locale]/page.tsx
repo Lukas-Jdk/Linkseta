@@ -10,7 +10,6 @@ import { localeAlternates, absOg } from "@/lib/seo-i18n";
 import Hero from "@/components/hero/Hero";
 import Features from "@/components/features/Features";
 import CardGrid from "@/components/cards/CardGrid";
-import ServiceMarquee from "@/components/service-marquee/ServiceMarquee";
 import SearchBarLazy from "@/components/search/SearchBarLazy";
 
 export const revalidate = 60;
@@ -135,9 +134,6 @@ export default async function HomePage({ params, searchParams }: Props) {
   if (city) baseWhere.cityId = city;
   if (category) baseWhere.categoryId = category;
 
-  // SVARBU:
-  // homepage entitlement tikrinam pagal dabartinį provider profile planą,
-  // o ne pagal serviceListing.planId snapshot.
   const premiumHomepageIds = await prisma.serviceListing.findMany({
     where: {
       ...baseWhere,
@@ -286,12 +282,8 @@ export default async function HomePage({ params, searchParams }: Props) {
 
   return (
     <>
-      <ServiceMarquee />
-
       <Hero>
-        <div className="container">
-          <SearchBarLazy />
-        </div>
+        <SearchBarLazy />
       </Hero>
 
       <section className="container" style={{ padding: "40px 0 24px" }}>

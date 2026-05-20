@@ -24,6 +24,7 @@ model User {
   jobListings  JobListing[]
   profile      ProviderProfile?
   services     ServiceListing[]
+  reviews ServiceReview[]
 }
 
 model ProviderProfile {
@@ -180,17 +181,23 @@ model ServiceBlockImage {
 
 model ServiceReview {
   id         String   @id @default(cuid())
-  serviceId  String
+  serviceId String
+  userId    String?
+  ipHash     String?
   rating     Int
   name       String
   comment    String?
-  isApproved Boolean  @default(false)
+  isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
-  service ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service ServiceListing @relation(fields: [serviceId], references: [id])
+  user    User?          @relation(fields: [userId], references: [id])
 
-  @@index([serviceId, isApproved, createdAt])
+  @@unique([serviceId, userId])
+  @@unique([serviceId, ipHash])
+  @@index([serviceId, isApproved])
+  @@index([userId])
+  @@index([ipHash])
 }
 
 model JobListing {

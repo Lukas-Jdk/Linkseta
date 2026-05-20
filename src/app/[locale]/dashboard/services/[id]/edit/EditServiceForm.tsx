@@ -78,23 +78,25 @@ function getDescriptionMinError(locale: string) {
 function getLocalText(locale: string) {
   if (locale === "en") {
     return {
-      serviceBlocksTitle: "What services do you provide?",
-      serviceBlocksHint:
-        "Edit service blocks such as kitchens, floors, terraces or painting. Photos can be added to each block.",
-      blockTitle: "Service block title",
-      blockTitlePlaceholder: "E.g. Kitchens, Floors, Terraces",
-      blockDescription: "Short description",
-      blockDescriptionPlaceholder: "Briefly describe this service",
-      blockIcon: "Service type / icon",
-      addBlock: "Add service block",
-      removeBlock: "Remove block",
-      uploadBlockImages: "Upload photos for this block",
-      noBlockImages: "No photos added to this block yet",
-      totalPhotos: "Total photos",
-      maxBlocksError: "You have reached your service block limit",
+      serviceBlocksTitle: "Photo gallery",
+      serviceBlocksHint: "",
+      blockTitle: "Gallery group name",
+      blockTitlePlaceholder: "E.g. Floors, Windows, Terraces",
+      blockDescription: "Gallery description",
+      blockDescriptionPlaceholder: "Describe what is shown in this photo group",
+      addBlock: "Add gallery group",
+      removeBlock: "Remove group",
+      uploadBlockImages: "Upload photos",
+      noBlockImages: "No photos in this group yet",
+      galleryFallback: "Gallery",
+      serviceFallback: "Service",
+      logoLabel: "Logo",
+      uploadLogo: "Upload logo",
+      postcodeLabel: "Postcode *",
+      cityLabel: "City *",
+      regionLabel: "Region",
+      maxBlocksError: "You have reached your gallery group limit",
       maxImagesError: "You have reached your photo limit",
-      mustHaveBlock: "Add at least one service block.",
-      mustHaveBlockTitle: "Each service block must have a title.",
       priceModeLabel: "Estimated price on card",
       from: "From",
       fixed: "Fixed",
@@ -105,23 +107,25 @@ function getLocalText(locale: string) {
 
   if (locale === "no") {
     return {
-      serviceBlocksTitle: "Hvilke tjenester tilbyr du?",
-      serviceBlocksHint:
-        "Rediger tjenesteblokker som kjøkken, gulv, terrasser eller maling. Bilder kan legges til hver blokk.",
-      blockTitle: "Tittel på tjenesteblokk",
-      blockTitlePlaceholder: "F.eks. Kjøkken, Gulv, Terrasser",
-      blockDescription: "Kort beskrivelse",
-      blockDescriptionPlaceholder: "Beskriv denne tjenesten kort",
-      blockIcon: "Tjenestetype / ikon",
-      addBlock: "Legg til tjenesteblokk",
-      removeBlock: "Fjern blokk",
-      uploadBlockImages: "Last opp bilder for denne blokken",
-      noBlockImages: "Ingen bilder lagt til denne blokken ennå",
-      totalPhotos: "Bilder totalt",
-      maxBlocksError: "Du har nådd grensen for tjenesteblokker",
+      serviceBlocksTitle: "Fotogalleri",
+      serviceBlocksHint: "",
+      blockTitle: "Gruppenavn",
+      blockTitlePlaceholder: "F.eks. Gulv, Vinduer, Terrasser",
+      blockDescription: "Beskrivelse av galleriet",
+      blockDescriptionPlaceholder: "Beskriv hva som vises i denne bildegruppen",
+      addBlock: "Legg til gallerigruppe",
+      removeBlock: "Fjern gruppe",
+      uploadBlockImages: "Last opp bilder",
+      noBlockImages: "Ingen bilder i denne gruppen ennå",
+      galleryFallback: "Galleri",
+      serviceFallback: "Tjeneste",
+      logoLabel: "Logo",
+      uploadLogo: "Last opp logo",
+      postcodeLabel: "Postnummer *",
+      cityLabel: "By *",
+      regionLabel: "Region",
+      maxBlocksError: "Du har nådd grensen for gallerigrupper",
       maxImagesError: "Du har nådd bildegrensen",
-      mustHaveBlock: "Legg til minst én tjenesteblokk.",
-      mustHaveBlockTitle: "Hver tjenesteblokk må ha en tittel.",
       priceModeLabel: "Estimert pris på kortet",
       from: "Fra",
       fixed: "Fast",
@@ -131,122 +135,31 @@ function getLocalText(locale: string) {
   }
 
   return {
-    serviceBlocksTitle: "Kokias paslaugas atliekate?",
-    serviceBlocksHint:
-      "Redaguokite paslaugų blokus, pvz. virtuvės, grindys, terasos ar dažymas. Nuotraukas galima pridėti prie kiekvieno bloko.",
-    blockTitle: "Paslaugos bloko pavadinimas",
-    blockTitlePlaceholder: "Pvz. Virtuvės, Grindys, Terasos",
-    blockDescription: "Trumpas aprašymas",
-    blockDescriptionPlaceholder: "Trumpai aprašykite šią paslaugą",
-    blockIcon: "Paslaugos tipas / ikona",
-    addBlock: "Pridėti paslaugos bloką",
-    removeBlock: "Pašalinti bloką",
-    uploadBlockImages: "Įkelti šio bloko nuotraukas",
-    noBlockImages: "Šiam blokui dar nėra pridėta nuotraukų",
-    totalPhotos: "Nuotraukų iš viso",
-    maxBlocksError: "Pasiekėte paslaugų blokų limitą",
+    serviceBlocksTitle: "Nuotraukų galerija",
+    serviceBlocksHint: "",
+    blockTitle: "Galerijos grupės pavadinimas",
+    blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
+    blockDescription: "Galerijos aprašymas",
+    blockDescriptionPlaceholder: "Trumpai aprašykite, kas rodoma šioje nuotraukų grupėje",
+    addBlock: "Pridėti galerijos grupę",
+    removeBlock: "Pašalinti grupę",
+    uploadBlockImages: "Įkelti nuotraukas",
+    noBlockImages: "Šioje grupėje nuotraukų dar nėra",
+    galleryFallback: "Galerija",
+    serviceFallback: "Paslauga",
+    logoLabel: "Logo",
+    uploadLogo: "Įkelti logo",
+    postcodeLabel: "Pašto kodas *",
+    cityLabel: "Miestas *",
+    regionLabel: "Regionas",
+    maxBlocksError: "Pasiekėte galerijos grupių limitą",
     maxImagesError: "Pasiekėte nuotraukų limitą",
-    mustHaveBlock: "Pridėkite bent vieną paslaugos bloką.",
-    mustHaveBlockTitle: "Kiekvienas paslaugos blokas turi turėti pavadinimą.",
     priceModeLabel: "Orientacinė kaina kortelėje",
     from: "Nuo",
     fixed: "Fiksuota",
     pricePlaceholder: "Pvz. 600",
     priceHint: "Ši kaina bus rodoma kortelėje prieš atidarant paslaugą.",
   };
-}
-
-function getIconOptions(locale: string) {
-  if (locale === "en") {
-    return [
-      ["carpentry", "Carpentry"],
-      ["kitchen", "Kitchens"],
-      ["floors", "Floors"],
-      ["walls", "Walls"],
-      ["ceiling", "Ceilings"],
-      ["bathroom", "Bathrooms"],
-      ["terrace", "Terraces"],
-      ["doors", "Doors"],
-      ["windows", "Windows"],
-      ["painting", "Painting"],
-      ["plumbing", "Plumbing"],
-      ["electrical", "Electrical"],
-      ["cleaning", "Cleaning"],
-      ["transport", "Transport"],
-      ["auto", "Auto"],
-      ["beauty", "Beauty"],
-      ["it", "IT"],
-      ["accounting", "Accounting"],
-      ["legal", "Legal"],
-      ["real_estate", "Real estate"],
-      ["training", "Training"],
-      ["childcare", "Childcare"],
-      ["pets", "Pets"],
-      ["food", "Food"],
-      ["household", "Household"],
-      ["other", "Other"],
-    ] as const;
-  }
-
-  if (locale === "no") {
-    return [
-      ["carpentry", "Snekkerarbeid"],
-      ["kitchen", "Kjøkken"],
-      ["floors", "Gulv"],
-      ["walls", "Vegger"],
-      ["ceiling", "Tak"],
-      ["bathroom", "Bad"],
-      ["terrace", "Terrasser"],
-      ["doors", "Dører"],
-      ["windows", "Vinduer"],
-      ["painting", "Maling"],
-      ["plumbing", "Rørlegger"],
-      ["electrical", "Elektriker"],
-      ["cleaning", "Rengjøring"],
-      ["transport", "Transport"],
-      ["auto", "Bil"],
-      ["beauty", "Skjønnhet"],
-      ["it", "IT"],
-      ["accounting", "Regnskap"],
-      ["legal", "Juridisk"],
-      ["real_estate", "Eiendom"],
-      ["training", "Trening"],
-      ["childcare", "Barnepass"],
-      ["pets", "Dyr"],
-      ["food", "Mat"],
-      ["household", "Husholdning"],
-      ["other", "Annet"],
-    ] as const;
-  }
-
-  return [
-    ["carpentry", "Staliaus darbai"],
-    ["kitchen", "Virtuvės"],
-    ["floors", "Grindys"],
-    ["walls", "Sienos"],
-    ["ceiling", "Lubos"],
-    ["bathroom", "Vonios"],
-    ["terrace", "Terasos"],
-    ["doors", "Durys"],
-    ["windows", "Langai"],
-    ["painting", "Dažymas"],
-    ["plumbing", "Santechnika"],
-    ["electrical", "Elektra"],
-    ["cleaning", "Valymas"],
-    ["transport", "Transportas"],
-    ["auto", "Automobiliai"],
-    ["beauty", "Grožis"],
-    ["it", "IT"],
-    ["accounting", "Buhalterija"],
-    ["legal", "Teisinės paslaugos"],
-    ["real_estate", "NT"],
-    ["training", "Treniruotės"],
-    ["childcare", "Vaikų priežiūra"],
-    ["pets", "Gyvūnai"],
-    ["food", "Maistas"],
-    ["household", "Namų paslaugos"],
-    ["other", "Kita"],
-  ] as const;
 }
 
 function parseHighlights(text: string) {
@@ -292,7 +205,6 @@ export default function EditServiceForm({
   const locale = params?.locale ?? initial.locale ?? "lt";
 
   const text = getLocalText(locale);
-  const iconOptions = getIconOptions(locale);
 
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [pending, startTransition] = useTransition();
@@ -453,6 +365,7 @@ export default function EditServiceForm({
       ),
     );
   }
+
   function removeBrandLogo() {
     setBrandLogoUrl(null);
     setBrandLogoPath(null);
@@ -628,17 +541,19 @@ export default function EditServiceForm({
       return;
     }
 
-    if (cleanBlocks.length === 0) {
-      setError(text.mustHaveBlock);
-      return;
-    }
+    const hiddenServiceBlocks =
+      cleanBlocks.length > 0
+        ? cleanBlocks
+        : [
+            {
+              title: title.trim() || text.serviceFallback,
+              description: description.trim(),
+              iconKey: "other",
+              images: [],
+            },
+          ];
 
-    if (!cleanBlocks.every((block) => block.title.length > 0)) {
-      setError(text.mustHaveBlockTitle);
-      return;
-    }
-
-    if (cleanBlocks.length > maxServiceBlocksSafe) {
+    if (hiddenServiceBlocks.length > maxServiceBlocksSafe) {
       setError(`${text.maxBlocksError}: ${maxServiceBlocksSafe}`);
       return;
     }
@@ -677,11 +592,11 @@ export default function EditServiceForm({
           priceMode,
           mainPrice: normalizedMainPrice,
           priceItems: cleanPriceItems,
-          serviceBlocks: cleanBlocks,
-          galleryImageUrls: cleanBlocks.flatMap((block) =>
+          serviceBlocks: hiddenServiceBlocks,
+          galleryImageUrls: hiddenServiceBlocks.flatMap((block) =>
             block.images.map((x) => x.url),
           ),
-          galleryImagePaths: cleanBlocks.flatMap((block) =>
+          galleryImagePaths: hiddenServiceBlocks.flatMap((block) =>
             block.images.map((x) => x.path),
           ),
           highlights,
@@ -813,7 +728,7 @@ export default function EditServiceForm({
             )}
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Logo</label>
+            <label className={styles.label}>{text.logoLabel}</label>
 
             {brandLogoUrl && (
               <div className={styles.imagePreview}>
@@ -821,7 +736,7 @@ export default function EditServiceForm({
                   <div className={styles.imageThumb}>
                     <Image
                       src={brandLogoUrl}
-                      alt="Logo"
+                      alt={text.logoLabel}
                       fill
                       sizes="180px"
                       style={{ objectFit: "contain" }}
@@ -848,7 +763,7 @@ export default function EditServiceForm({
                   pointerEvents: uploadingLogo ? "none" : "auto",
                 }}
               >
-                {uploadingLogo ? t("uploading") : "Įkelti logo"}
+                {uploadingLogo ? t("uploading") : text.uploadLogo}
                 <input
                   type="file"
                   accept="image/*"
@@ -897,7 +812,7 @@ export default function EditServiceForm({
         <div className={styles.sectionBody}>
           <div className={styles.formRow}>
             <div className={styles.formCol}>
-              <label className={styles.label}>Postcode *</label>
+              <label className={styles.label}>{text.postcodeLabel}</label>
               <input
                 className={styles.input}
                 value={locationPostcode}
@@ -908,7 +823,7 @@ export default function EditServiceForm({
             </div>
 
             <div className={styles.formCol}>
-              <label className={styles.label}>City *</label>
+              <label className={styles.label}>{text.cityLabel}</label>
               <input
                 className={styles.input}
                 value={locationCity}
@@ -919,7 +834,7 @@ export default function EditServiceForm({
             </div>
 
             <div className={styles.formCol}>
-              <label className={styles.label}>Region</label>
+              <label className={styles.label}>{text.regionLabel}</label>
               <input
                 className={styles.input}
                 value={locationRegion}
@@ -1065,64 +980,19 @@ export default function EditServiceForm({
         </div>
 
         <div className={styles.sectionBody}>
-          <div className={styles.highHint}>{text.serviceBlocksHint}</div>
-
-          <div className={styles.limitGrid}>
-            <div className={styles.priceCard}>
-              <strong>
-                {serviceBlocks.length}/{maxServiceBlocksSafe}
-              </strong>
-              <span className={styles.charHint} style={{ textAlign: "left" }}>
-                {text.serviceBlocksTitle}
-              </span>
-            </div>
-
-            <div className={styles.priceCard}>
-              <strong>
-                {totalImages}/{maxImagesSafe}
-              </strong>
-              <span className={styles.charHint} style={{ textAlign: "left" }}>
-                {text.totalPhotos}
-              </span>
-            </div>
-          </div>
-
           <div className={styles.priceList}>
             {serviceBlocks.map((block, blockIndex) => (
               <div key={blockIndex} className={styles.priceCard}>
-                <div className={styles.formRow}>
-                  <div className={styles.formCol}>
-                    <label className={styles.label}>{text.blockTitle}</label>
-                    <input
-                      className={styles.input}
-                      value={block.title}
-                      onChange={(e) =>
-                        updateServiceBlock(blockIndex, "title", e.target.value)
-                      }
-                      placeholder={text.blockTitlePlaceholder}
-                    />
-                  </div>
-
-                  <div className={styles.formCol}>
-                    <label className={styles.label}>{text.blockIcon}</label>
-                    <select
-                      className={styles.select}
-                      value={block.iconKey}
-                      onChange={(e) =>
-                        updateServiceBlock(
-                          blockIndex,
-                          "iconKey",
-                          e.target.value,
-                        )
-                      }
-                    >
-                      {iconOptions.map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>{text.blockTitle}</label>
+                  <input
+                    className={styles.input}
+                    value={block.title}
+                    onChange={(e) =>
+                      updateServiceBlock(blockIndex, "title", e.target.value)
+                    }
+                    placeholder={text.blockTitlePlaceholder}
+                  />
                 </div>
 
                 <div className={styles.formGroup}>
@@ -1131,6 +1001,7 @@ export default function EditServiceForm({
                   </label>
                   <textarea
                     className={styles.textarea}
+                    rows={4}
                     value={block.description}
                     onChange={(e) =>
                       updateServiceBlock(
@@ -1140,8 +1011,10 @@ export default function EditServiceForm({
                       )
                     }
                     placeholder={text.blockDescriptionPlaceholder}
-                    rows={3}
                   />
+                  <div className={styles.charHint}>
+                    {block.description.length} / 500
+                  </div>
                 </div>
 
                 <div className={styles.uploadRow}>
@@ -1149,13 +1022,11 @@ export default function EditServiceForm({
                     className={styles.uploadBtn}
                     style={{
                       opacity:
-                        totalImages >= maxImagesSafe ||
-                        uploadingBlockIndex !== null
+                        totalImages >= maxImagesSafe || uploadingBlockIndex !== null
                           ? 0.65
                           : 1,
                       pointerEvents:
-                        totalImages >= maxImagesSafe ||
-                        uploadingBlockIndex !== null
+                        totalImages >= maxImagesSafe || uploadingBlockIndex !== null
                           ? "none"
                           : "auto",
                     }}
@@ -1181,10 +1052,6 @@ export default function EditServiceForm({
                       }}
                     />
                   </label>
-
-                  <span className={styles.helpText}>
-                    {text.totalPhotos}: {totalImages}/{maxImagesSafe}
-                  </span>
                 </div>
 
                 <div className={styles.imagePreview}>
@@ -1194,7 +1061,7 @@ export default function EditServiceForm({
                         <div className={styles.imageThumb}>
                           <Image
                             src={img.url}
-                            alt={`${t("imageAlt")} ${idx + 1}`}
+                            alt={`${block.title || text.serviceBlocksTitle} ${idx + 1}`}
                             fill
                             sizes="180px"
                             style={{ objectFit: "cover" }}
@@ -1270,7 +1137,7 @@ export default function EditServiceForm({
               type="button"
               className={styles.secondaryButton}
               onClick={handleToggleActive}
-              disabled={uploadingBlockIndex !== null || pending}
+              disabled={pending}
             >
               {isActive ? t("disableButton") : t("enableButton")}
             </button>
@@ -1283,7 +1150,7 @@ export default function EditServiceForm({
           type="button"
           className={styles.dangerButton}
           onClick={handleDelete}
-          disabled={pending || uploadingBlockIndex !== null}
+          disabled={pending}
         >
           {t("deleteButton")}
         </button>
@@ -1294,7 +1161,6 @@ export default function EditServiceForm({
             className={styles.primaryButton}
             disabled={
               pending ||
-              uploadingBlockIndex !== null ||
               description.trim().length < MIN_DESCRIPTION_LENGTH
             }
           >

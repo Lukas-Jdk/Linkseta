@@ -92,7 +92,7 @@ function getLocalText(locale: string) {
       currentPlan: "Current plan",
       activeListings: "Service profiles",
       photosPerListing: "Photos in total",
-      serviceBlocks: "Service blocks",
+      serviceBlocks: "Gallery groups",
       upgradeButton: "Upgrade plan",
       listingsLimitReached: "You have reached your plan limit",
       trialExpired: "Your Free Trial has expired.",
@@ -101,10 +101,10 @@ function getLocalText(locale: string) {
       subtitle:
         "Your current plan does not allow more service profiles, service blocks or photos. Upgrade your plan to continue.",
       basicTitle: "Upgrade to Basic",
-      basicDesc: "1 service profile, up to 15 photos and 6 service blocks.",
+      basicDesc: "1 service profile and up to 15 photos.",
       premiumTitle: "Upgrade to Premium",
       premiumDesc:
-        "1 service profile, up to 30 photos, 12 service blocks, chat and homepage visibility.",
+        "1 service profile, up to 30 photos, chat and homepage visibility.",
       close: "Close",
       loading: "Redirecting...",
       error: "Could not start checkout. Please try again.",
@@ -112,23 +112,24 @@ function getLocalText(locale: string) {
       from: "From",
       fixed: "Fixed",
       pricePlaceholder: "E.g. 600",
-      serviceBlocksTitle: "What services do you provide?",
-      serviceBlocksHint:
-        "Create service blocks such as kitchens, floors, terraces or painting. Photos can be added to each block.",
-      blockTitle: "Service block title",
-      blockTitlePlaceholder: "E.g. Kitchens, Floors, Terraces",
-      blockDescription: "Short description",
-      blockDescriptionPlaceholder: "Briefly describe this service",
+      serviceBlocksTitle: "Photo gallery",
+      serviceBlocksHint: "",
+      blockTitle: "Gallery group name",
+      blockTitlePlaceholder: "E.g. Floors, Windows, Terraces",
+      blockDescription: "Description",
+      blockDescriptionPlaceholder: "Optional",
       blockIcon: "Service type / icon",
-      addBlock: "Add service block",
-      removeBlock: "Remove block",
-      uploadBlockImages: "Upload photos for this block",
-      noBlockImages: "No photos added to this block yet",
+      addBlock: "Add gallery group",
+      removeBlock: "Remove group",
+      uploadBlockImages: "Upload photos",
+      noBlockImages: "No photos in this group yet",
+      galleryFallback: "Gallery",
+      serviceFallback: "Service",
       totalPhotos: "Total photos",
-      maxBlocksError: "You have reached your service block limit",
+      maxBlocksError: "You have reached your gallery group limit",
       maxImagesError: "You have reached your photo limit",
-      mustHaveBlock: "Add at least one service block.",
-      mustHaveBlockTitle: "Each service block must have a title.",
+      mustHaveBlock: "Add at least one gallery group.",
+      mustHaveBlockTitle: "Each gallery group must have a title.",
     };
   }
 
@@ -138,7 +139,7 @@ function getLocalText(locale: string) {
       currentPlan: "Nåværende plan",
       activeListings: "Tjenesteprofiler",
       photosPerListing: "Bilder totalt",
-      serviceBlocks: "Tjenesteblokker",
+      serviceBlocks: "Gallerigrupper",
       upgradeButton: "Oppgrader plan",
       listingsLimitReached: "Du har nådd plangrensen",
       trialExpired: "Din Free Trial er utløpt.",
@@ -147,10 +148,10 @@ function getLocalText(locale: string) {
       subtitle:
         "Din nåværende plan tillater ikke flere tjenesteprofiler, tjenesteblokker eller bilder. Oppgrader planen for å fortsette.",
       basicTitle: "Oppgrader til Basic",
-      basicDesc: "1 tjenesteprofil, opptil 15 bilder og 6 tjenesteblokker.",
+      basicDesc: "1 tjenesteprofil og opptil 15 bilder.",
       premiumTitle: "Oppgrader til Premium",
       premiumDesc:
-        "1 tjenesteprofil, opptil 30 bilder, 12 tjenesteblokker, chat og synlighet på forsiden.",
+        "1 tjenesteprofil, opptil 30 bilder, chat og synlighet på forsiden.",
       close: "Lukk",
       loading: "Sender videre...",
       error: "Kunne ikke starte betaling. Prøv igjen.",
@@ -158,23 +159,24 @@ function getLocalText(locale: string) {
       from: "Fra",
       fixed: "Fast",
       pricePlaceholder: "F.eks. 600",
-      serviceBlocksTitle: "Hvilke tjenester tilbyr du?",
-      serviceBlocksHint:
-        "Lag tjenesteblokker som kjøkken, gulv, terrasser eller maling. Bilder kan legges til hver blokk.",
-      blockTitle: "Tittel på tjenesteblokk",
-      blockTitlePlaceholder: "F.eks. Kjøkken, Gulv, Terrasser",
-      blockDescription: "Kort beskrivelse",
-      blockDescriptionPlaceholder: "Beskriv denne tjenesten kort",
+      serviceBlocksTitle: "Fotogalleri",
+      serviceBlocksHint: "",
+      blockTitle: "Gruppenavn",
+      blockTitlePlaceholder: "F.eks. Gulv, Vinduer, Terrasser",
+      blockDescription: "Beskrivelse",
+      blockDescriptionPlaceholder: "Valgfritt",
       blockIcon: "Tjenestetype / ikon",
-      addBlock: "Legg til tjenesteblokk",
-      removeBlock: "Fjern blokk",
-      uploadBlockImages: "Last opp bilder for denne blokken",
-      noBlockImages: "Ingen bilder lagt til denne blokken ennå",
+      addBlock: "Legg til gallerigruppe",
+      removeBlock: "Fjern gruppe",
+      uploadBlockImages: "Last opp bilder",
+      noBlockImages: "Ingen bilder i denne gruppen ennå",
+      galleryFallback: "Galleri",
+      serviceFallback: "Tjeneste",
       totalPhotos: "Bilder totalt",
-      maxBlocksError: "Du har nådd grensen for tjenesteblokker",
+      maxBlocksError: "Du har nådd grensen for gallerigrupper",
       maxImagesError: "Du har nådd bildegrensen",
-      mustHaveBlock: "Legg til minst én tjenesteblokk.",
-      mustHaveBlockTitle: "Hver tjenesteblokk må ha en tittel.",
+      mustHaveBlock: "Legg til minst én gallerigruppe.",
+      mustHaveBlockTitle: "Hver gallerigruppe må ha en tittel.",
     };
   }
 
@@ -183,7 +185,7 @@ function getLocalText(locale: string) {
     currentPlan: "Dabartinis planas",
     activeListings: "Paslaugų profiliai",
     photosPerListing: "Nuotraukų iš viso",
-    serviceBlocks: "Paslaugų blokai",
+    serviceBlocks: "Galerijos grupės",
     upgradeButton: "Atnaujinti planą",
     listingsLimitReached: "Pasiekėte savo plano limitą",
     trialExpired: "Jūsų Free Trial laikotarpis baigėsi.",
@@ -192,10 +194,10 @@ function getLocalText(locale: string) {
     subtitle:
       "Dabartinis planas neleidžia kurti daugiau paslaugų profilių, paslaugų blokų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
     basicTitle: "Atnaujinti į Basic",
-    basicDesc: "1 paslaugų profilis, iki 15 nuotraukų ir 6 paslaugų blokai.",
+    basicDesc: "1 paslaugų profilis ir iki 15 nuotraukų.",
     premiumTitle: "Atnaujinti į Premium",
     premiumDesc:
-      "1 paslaugų profilis, iki 30 nuotraukų, 12 paslaugų blokų, chat ir rodymas pagrindiniame puslapyje.",
+      "1 paslaugų profilis, iki 30 nuotraukų, chat ir rodymas pagrindiniame puslapyje.",
     close: "Uždaryti",
     loading: "Nukreipiama...",
     error: "Nepavyko pradėti apmokėjimo. Bandyk dar kartą.",
@@ -203,117 +205,25 @@ function getLocalText(locale: string) {
     from: "Nuo",
     fixed: "Fiksuota",
     pricePlaceholder: "Pvz. 600",
-    serviceBlocksTitle: "Kokias paslaugas atliekate?",
-    serviceBlocksHint:
-      "Sukurkite paslaugų blokus, pvz. virtuvės, grindys, terasos ar dažymas. Nuotraukas galima pridėti prie kiekvieno bloko.",
-    blockTitle: "Paslaugos bloko pavadinimas",
-    blockTitlePlaceholder: "Pvz. Virtuvės, Grindys, Terasos",
-    blockDescription: "Trumpas aprašymas",
-    blockDescriptionPlaceholder: "Trumpai aprašykite šią paslaugą",
+    serviceBlocksTitle: "Nuotraukų galerija",
+    serviceBlocksHint: "",
+    blockTitle: "Galerijos grupės pavadinimas",
+    blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
+    blockDescription: "Aprašymas",
+    blockDescriptionPlaceholder: "Nebūtina",
     blockIcon: "Paslaugos tipas / ikona",
-    addBlock: "Pridėti paslaugos bloką",
-    removeBlock: "Pašalinti bloką",
-    uploadBlockImages: "Įkelti šio bloko nuotraukas",
-    noBlockImages: "Šiam blokui dar nėra pridėta nuotraukų",
+    addBlock: "Pridėti galerijos grupę",
+    removeBlock: "Pašalinti grupę",
+    uploadBlockImages: "Įkelti nuotraukas",
+    noBlockImages: "Šioje grupėje nuotraukų dar nėra",
+    galleryFallback: "Galerija",
+    serviceFallback: "Paslauga",
     totalPhotos: "Nuotraukų iš viso",
-    maxBlocksError: "Pasiekėte paslaugų blokų limitą",
+    maxBlocksError: "Pasiekėte galerijos grupių limitą",
     maxImagesError: "Pasiekėte nuotraukų limitą",
-    mustHaveBlock: "Pridėkite bent vieną paslaugos bloką.",
-    mustHaveBlockTitle: "Kiekvienas paslaugos blokas turi turėti pavadinimą.",
+    mustHaveBlock: "Pridėkite bent vieną galerijos grupę.",
+    mustHaveBlockTitle: "Kiekviena galerijos grupė turi turėti pavadinimą.",
   };
-}
-
-function getIconOptions(locale: string) {
-  if (locale === "en") {
-    return [
-      ["carpentry", "Carpentry"],
-      ["kitchen", "Kitchens"],
-      ["floors", "Floors"],
-      ["walls", "Walls"],
-      ["ceiling", "Ceilings"],
-      ["bathroom", "Bathrooms"],
-      ["terrace", "Terraces"],
-      ["doors", "Doors"],
-      ["windows", "Windows"],
-      ["painting", "Painting"],
-      ["plumbing", "Plumbing"],
-      ["electrical", "Electrical"],
-      ["cleaning", "Cleaning"],
-      ["transport", "Transport"],
-      ["auto", "Auto"],
-      ["beauty", "Beauty"],
-      ["it", "IT"],
-      ["accounting", "Accounting"],
-      ["legal", "Legal"],
-      ["real_estate", "Real estate"],
-      ["training", "Training"],
-      ["childcare", "Childcare"],
-      ["pets", "Pets"],
-      ["food", "Food"],
-      ["household", "Household"],
-      ["other", "Other"],
-    ] as const;
-  }
-
-  if (locale === "no") {
-    return [
-      ["carpentry", "Snekkerarbeid"],
-      ["kitchen", "Kjøkken"],
-      ["floors", "Gulv"],
-      ["walls", "Vegger"],
-      ["ceiling", "Tak"],
-      ["bathroom", "Bad"],
-      ["terrace", "Terrasser"],
-      ["doors", "Dører"],
-      ["windows", "Vinduer"],
-      ["painting", "Maling"],
-      ["plumbing", "Rørlegger"],
-      ["electrical", "Elektriker"],
-      ["cleaning", "Rengjøring"],
-      ["transport", "Transport"],
-      ["auto", "Bil"],
-      ["beauty", "Skjønnhet"],
-      ["it", "IT"],
-      ["accounting", "Regnskap"],
-      ["legal", "Juridisk"],
-      ["real_estate", "Eiendom"],
-      ["training", "Trening"],
-      ["childcare", "Barnepass"],
-      ["pets", "Dyr"],
-      ["food", "Mat"],
-      ["household", "Husholdning"],
-      ["other", "Annet"],
-    ] as const;
-  }
-
-  return [
-    ["carpentry", "Staliaus darbai"],
-    ["kitchen", "Virtuvės"],
-    ["floors", "Grindys"],
-    ["walls", "Sienos"],
-    ["ceiling", "Lubos"],
-    ["bathroom", "Vonios"],
-    ["terrace", "Terasos"],
-    ["doors", "Durys"],
-    ["windows", "Langai"],
-    ["painting", "Dažymas"],
-    ["plumbing", "Santechnika"],
-    ["electrical", "Elektra"],
-    ["cleaning", "Valymas"],
-    ["transport", "Transportas"],
-    ["auto", "Automobiliai"],
-    ["beauty", "Grožis"],
-    ["it", "IT"],
-    ["accounting", "Buhalterija"],
-    ["legal", "Teisinės paslaugos"],
-    ["real_estate", "NT"],
-    ["training", "Treniruotės"],
-    ["childcare", "Vaikų priežiūra"],
-    ["pets", "Gyvūnai"],
-    ["food", "Maistas"],
-    ["household", "Namų paslaugos"],
-    ["other", "Kita"],
-  ] as const;
 }
 
 export default function NewServiceForm({
@@ -327,7 +237,6 @@ export default function NewServiceForm({
   const locale = params?.locale ?? "lt";
 
   const text = getLocalText(locale);
-  const iconOptions = getIconOptions(locale);
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   const maxServiceBlocks = planLimits.maxServiceBlocks ?? 6;
@@ -399,7 +308,9 @@ export default function NewServiceForm({
         iconKey: block.iconKey,
         images: block.images,
       }))
-      .filter((block) => block.title || block.description || block.images.length);
+      .filter(
+        (block) => block.title || block.description || block.images.length,
+      );
   }, [serviceBlocks]);
 
   const canSubmit = useMemo(() => {
@@ -411,8 +322,6 @@ export default function NewServiceForm({
       Boolean(categoryId) &&
       Boolean(locationCity) &&
       Boolean(locationPostcode.trim()) &&
-      cleanBlocks.length > 0 &&
-      cleanBlocks.every((block) => block.title.length > 0) &&
       totalImages <= planLimits.maxImagesPerListing &&
       !submitting &&
       uploadingBlockIndex === null
@@ -426,7 +335,6 @@ export default function NewServiceForm({
     categoryId,
     locationCity,
     locationPostcode,
-    cleanBlocks,
     totalImages,
     submitting,
     uploadingBlockIndex,
@@ -481,7 +389,9 @@ export default function NewServiceForm({
     value: string,
   ) {
     setServiceBlocks((prev) =>
-      prev.map((block, i) => (i === index ? { ...block, [key]: value } : block)),
+      prev.map((block, i) =>
+        i === index ? { ...block, [key]: value } : block,
+      ),
     );
   }
 
@@ -525,7 +435,10 @@ export default function NewServiceForm({
     }
   }
 
-  async function handlePickBlockImages(blockIndex: number, files: FileList | null) {
+  async function handlePickBlockImages(
+    blockIndex: number,
+    files: FileList | null,
+  ) {
     if (!files || files.length === 0) return;
 
     setError(null);
@@ -651,16 +564,6 @@ export default function NewServiceForm({
       return;
     }
 
-    if (cleanBlocks.length === 0) {
-      setError(text.mustHaveBlock);
-      return;
-    }
-
-    if (!cleanBlocks.every((block) => block.title.length > 0)) {
-      setError(text.mustHaveBlockTitle);
-      return;
-    }
-
     if (totalImages > planLimits.maxImagesPerListing) {
       setError(`${text.maxImagesError}: ${planLimits.maxImagesPerListing}`);
       return;
@@ -683,6 +586,23 @@ export default function NewServiceForm({
         .filter((item) => item.label || item.priceText || item.note)
         .slice(0, 20);
 
+      const hiddenServiceBlocks =
+        cleanBlocks.length > 0
+          ? cleanBlocks.map((block, index) => ({
+              title: block.title || `${text.galleryFallback} ${index + 1}`,
+              description: block.description,
+              iconKey: block.iconKey || "other",
+              images: block.images,
+            }))
+          : [
+              {
+                title: title.trim() || text.serviceFallback,
+                description: description.trim(),
+                iconKey: "other",
+                images: [],
+              },
+            ];
+
       const payload = {
         title: title.trim(),
         categoryId,
@@ -692,11 +612,11 @@ export default function NewServiceForm({
         priceMode,
         mainPrice: normalizedMainPrice,
         priceItems: cleanPriceItems,
-        serviceBlocks: cleanBlocks,
-        galleryImageUrls: cleanBlocks.flatMap((block) =>
+        serviceBlocks: hiddenServiceBlocks,
+        galleryImageUrls: hiddenServiceBlocks.flatMap((block) =>
           block.images.map((x) => x.url),
         ),
-        galleryImagePaths: cleanBlocks.flatMap((block) =>
+        galleryImagePaths: hiddenServiceBlocks.flatMap((block) =>
           block.images.map((x) => x.path),
         ),
         locationPostcode: locationPostcode.trim(),
@@ -833,61 +753,6 @@ export default function NewServiceForm({
       <form className={styles.form} onSubmit={onSubmit}>
         {error && <div className={styles.errorText}>{error}</div>}
         {success && <div className={styles.successText}>{success}</div>}
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionNumber}>★</div>
-            <h2 className={styles.sectionTitle}>{text.limitTitle}</h2>
-          </div>
-
-          <div className={styles.sectionBody}>
-            <div className={styles.limitGrid}>
-              <div className={styles.priceCard}>
-                <strong>{planLimits.planName}</strong>
-                <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {text.currentPlan}
-                </span>
-              </div>
-
-              <div className={styles.priceCard}>
-                <strong>
-                  {planLimits.activeCount}/{planLimits.maxListings}
-                </strong>
-                <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {text.activeListings}
-                </span>
-              </div>
-
-              <div className={styles.priceCard}>
-                <strong>
-                  {totalImages}/{planLimits.maxImagesPerListing}
-                </strong>
-                <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {text.photosPerListing}
-                </span>
-              </div>
-
-              <div className={styles.priceCard}>
-                <strong>
-                  {serviceBlocks.length}/{maxServiceBlocks}
-                </strong>
-                <span className={styles.charHint} style={{ textAlign: "left" }}>
-                  {text.serviceBlocks}
-                </span>
-              </div>
-            </div>
-
-            {!planLimits.canCreate && (
-              <button
-                type="button"
-                className={styles.primaryButton}
-                onClick={() => openUpgradeModal()}
-              >
-                {text.upgradeButton}
-              </button>
-            )}
-          </div>
-        </section>
 
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
@@ -1060,56 +925,24 @@ export default function NewServiceForm({
           </div>
 
           <div className={styles.sectionBody}>
-            <div className={styles.highHint}>{text.serviceBlocksHint}</div>
-
             <div className={styles.priceList}>
               {serviceBlocks.map((block, blockIndex) => (
                 <div key={blockIndex} className={styles.priceCard}>
-                  <div className={styles.formRow}>
-                    <div className={styles.formCol}>
-                      <label className={styles.label}>{text.blockTitle}</label>
-                      <input
-                        className={styles.input}
-                        value={block.title}
-                        onChange={(e) =>
-                          updateServiceBlock(
-                            blockIndex,
-                            "title",
-                            e.target.value,
-                          )
-                        }
-                        placeholder={text.blockTitlePlaceholder}
-                        disabled={!planLimits.canCreate}
-                      />
-                    </div>
-
-                    <div className={styles.formCol}>
-                      <label className={styles.label}>{text.blockIcon}</label>
-                      <select
-                        className={styles.select}
-                        value={block.iconKey}
-                        onChange={(e) =>
-                          updateServiceBlock(
-                            blockIndex,
-                            "iconKey",
-                            e.target.value,
-                          )
-                        }
-                        disabled={!planLimits.canCreate}
-                      >
-                        {iconOptions.map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{text.blockTitle}</label>
+                    <input
+                      className={styles.input}
+                      value={block.title}
+                      onChange={(e) =>
+                        updateServiceBlock(blockIndex, "title", e.target.value)
+                      }
+                      placeholder={text.blockTitlePlaceholder}
+                      disabled={!planLimits.canCreate}
+                    />
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      {text.blockDescription}
-                    </label>
+                    <label className={styles.label}>{text.blockDescription}</label>
                     <textarea
                       className={styles.textarea}
                       value={block.description}
@@ -1132,12 +965,14 @@ export default function NewServiceForm({
                       style={{
                         opacity:
                           !planLimits.canCreate ||
-                          totalImages >= planLimits.maxImagesPerListing
+                          totalImages >= planLimits.maxImagesPerListing ||
+                          uploadingBlockIndex !== null
                             ? 0.65
                             : 1,
                         pointerEvents:
                           !planLimits.canCreate ||
-                          totalImages >= planLimits.maxImagesPerListing
+                          totalImages >= planLimits.maxImagesPerListing ||
+                          uploadingBlockIndex !== null
                             ? "none"
                             : "auto",
                       }}
@@ -1149,7 +984,9 @@ export default function NewServiceForm({
                         type="file"
                         accept="image/*"
                         multiple
-                        disabled={!planLimits.canCreate}
+                        disabled={
+                          !planLimits.canCreate || uploadingBlockIndex !== null
+                        }
                         onChange={(e) => {
                           void handlePickBlockImages(
                             blockIndex,
@@ -1159,14 +996,6 @@ export default function NewServiceForm({
                         }}
                       />
                     </label>
-
-                    <div
-                      className={styles.charHint}
-                      style={{ textAlign: "left" }}
-                    >
-                      {text.totalPhotos}: {totalImages}/
-                      {planLimits.maxImagesPerListing}
-                    </div>
                   </div>
 
                   <div className={styles.imagePreview}>
@@ -1176,7 +1005,7 @@ export default function NewServiceForm({
                           <div className={styles.imageThumb}>
                             <Image
                               src={img.url}
-                              alt={t("previewAlt", { index: idx + 1 })}
+                              alt={`${block.title || text.serviceBlocksTitle} ${idx + 1}`}
                               fill
                               sizes="180px"
                               className={styles.previewImg}
@@ -1187,12 +1016,15 @@ export default function NewServiceForm({
                           <button
                             type="button"
                             className={styles.secondaryButton}
-                            disabled={!planLimits.canCreate}
                             onClick={() =>
                               removeBlockImage(blockIndex, img.path)
                             }
+                            disabled={
+                              !planLimits.canCreate ||
+                              uploadingBlockIndex !== null
+                            }
                           >
-                            {t("remove")}
+                            {t("removeImage")}
                           </button>
                         </div>
                       ))
@@ -1211,7 +1043,9 @@ export default function NewServiceForm({
                       className={styles.secondaryButton}
                       onClick={() => removeServiceBlock(blockIndex)}
                       disabled={
-                        !planLimits.canCreate || serviceBlocks.length <= 1
+                        !planLimits.canCreate ||
+                        serviceBlocks.length <= 1 ||
+                        uploadingBlockIndex !== null
                       }
                     >
                       {text.removeBlock}
@@ -1228,7 +1062,8 @@ export default function NewServiceForm({
                 onClick={addServiceBlock}
                 disabled={
                   !planLimits.canCreate ||
-                  serviceBlocks.length >= maxServiceBlocks
+                  serviceBlocks.length >= maxServiceBlocks ||
+                  uploadingBlockIndex !== null
                 }
               >
                 + {text.addBlock}
