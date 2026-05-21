@@ -456,6 +456,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
           description: true,
           descriptionEn: true,
           descriptionNo: true,
+          priceText: true,
           iconKey: true,
           images: {
             orderBy: { sortOrder: "asc" },
@@ -596,6 +597,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       block.descriptionEn,
       block.descriptionNo,
     ),
+    priceText: block.priceText ?? "",
     iconKey: block.iconKey,
     images: (block.images ?? []).map((img) => ({
       url: img.url,
@@ -840,10 +842,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
         <section className={styles.mainCard}>
           {localizedBlocks.some((block) => block.images.length > 0) ? (
-            <ServiceGallery
-              blocks={localizedBlocks}
-              viewAllLabel={text.viewAllPhotos}
-            />
+            <ServiceGallery blocks={localizedBlocks} />
           ) : (
             <p className={styles.emptyText}>{text.noGallery}</p>
           )}

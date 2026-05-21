@@ -31,6 +31,7 @@ type GalleryItem = {
 type ServiceBlock = {
   title: string;
   description: string;
+  priceText: string;
   iconKey: string;
   images: GalleryItem[];
 };
@@ -84,6 +85,8 @@ function getLocalText(locale: string) {
       blockTitlePlaceholder: "E.g. Floors, Windows, Terraces",
       blockDescription: "Gallery description",
       blockDescriptionPlaceholder: "Describe what is shown in this photo group",
+      blockPrice: "Price for this group",
+      blockPricePlaceholder: "E.g. from 250 NOK, 900 NOK / kg",
       addBlock: "Add gallery group",
       removeBlock: "Remove group",
       uploadBlockImages: "Upload photos",
@@ -113,6 +116,8 @@ function getLocalText(locale: string) {
       blockTitlePlaceholder: "F.eks. Gulv, Vinduer, Terrasser",
       blockDescription: "Beskrivelse av galleriet",
       blockDescriptionPlaceholder: "Beskriv hva som vises i denne bildegruppen",
+      blockPrice: "Pris for denne gruppen",
+      blockPricePlaceholder: "F.eks. fra 250 NOK, 900 NOK / kg",
       addBlock: "Legg til gallerigruppe",
       removeBlock: "Fjern gruppe",
       uploadBlockImages: "Last opp bilder",
@@ -141,6 +146,8 @@ function getLocalText(locale: string) {
     blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
     blockDescription: "Galerijos aprašymas",
     blockDescriptionPlaceholder: "Trumpai aprašykite, kas rodoma šioje nuotraukų grupėje",
+    blockPrice: "Šios grupės kaina",
+    blockPricePlaceholder: "Pvz. nuo 250 NOK, 900 NOK / kg",
     addBlock: "Pridėti galerijos grupę",
     removeBlock: "Pašalinti grupę",
     uploadBlockImages: "Įkelti nuotraukas",
@@ -178,6 +185,7 @@ function emptyServiceBlock(): ServiceBlock {
   return {
     title: "",
     description: "",
+    priceText: "",
     iconKey: "other",
     images: [],
   };
@@ -259,6 +267,7 @@ export default function EditServiceForm({
       ? initial.serviceBlocks.map((block) => ({
           title: String(block.title ?? ""),
           description: String(block.description ?? ""),
+          priceText: String((block as any).priceText ?? ""),
           iconKey: String(block.iconKey ?? "other"),
           images: Array.isArray(block.images)
             ? block.images
@@ -291,11 +300,13 @@ export default function EditServiceForm({
       .map((block) => ({
         title: block.title.trim(),
         description: block.description.trim(),
+        priceText: block.priceText.trim(),
         iconKey: block.iconKey || "other",
         images: block.images,
       }))
       .filter(
-        (block) => block.title || block.description || block.images.length,
+        (block) =>
+          block.title || block.description || block.priceText || block.images.length,
       );
   }, [serviceBlocks]);
 
@@ -548,6 +559,7 @@ export default function EditServiceForm({
             {
               title: title.trim() || text.serviceFallback,
               description: description.trim(),
+              priceText: "",
               iconKey: "other",
               images: [],
             },
@@ -1015,6 +1027,22 @@ export default function EditServiceForm({
                   <div className={styles.charHint}>
                     {block.description.length} / 500
                   </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>{text.blockPrice}</label>
+                  <input
+                    className={styles.input}
+                    value={block.priceText}
+                    onChange={(e) =>
+                      updateServiceBlock(
+                        blockIndex,
+                        "priceText",
+                        e.target.value,
+                      )
+                    }
+                    placeholder={text.blockPricePlaceholder}
+                  />
                 </div>
 
                 <div className={styles.uploadRow}>

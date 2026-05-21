@@ -14,12 +14,12 @@ type GalleryBlock = {
   id: string;
   title: string;
   description?: string | null;
+  priceText?: string | null;
   images: GalleryImage[];
 };
 
 type Props = {
   blocks: GalleryBlock[];
-  viewAllLabel: string;
 };
 
 function clampIndex(index: number, length: number) {
@@ -29,25 +29,10 @@ function clampIndex(index: number, length: number) {
   return index;
 }
 
-export default function ServiceGallery({ blocks, viewAllLabel }: Props) {
+export default function ServiceGallery({ blocks }: Props) {
   const blocksWithImages = useMemo(
     () => blocks.filter((block) => block.images.length > 0),
     [blocks],
-  );
-
-  const allImagesBlock = useMemo<GalleryBlock>(
-    () => ({
-      id: "all",
-      title: viewAllLabel,
-      description: null,
-      images: blocksWithImages.flatMap((block) =>
-        block.images.map((image) => ({
-          ...image,
-          altText: image.altText || block.title,
-        })),
-      ),
-    }),
-    [blocksWithImages, viewAllLabel],
   );
 
   const [activeBlock, setActiveBlock] = useState<GalleryBlock | null>(null);
@@ -57,6 +42,7 @@ export default function ServiceGallery({ blocks, viewAllLabel }: Props) {
   const activeImages = activeBlock?.images ?? [];
   const currentImage = activeImages[activeImageIndex];
   const activeDescription = activeBlock?.description?.trim() ?? "";
+  const activePrice = activeBlock?.priceText?.trim() ?? "";
 
   if (!blocksWithImages.length) return null;
 
@@ -93,14 +79,6 @@ export default function ServiceGallery({ blocks, viewAllLabel }: Props) {
     <>
       <div className={styles.galleryHead}>
         <h2>Ką siūlome</h2>
-
-        <button
-          type="button"
-          className={styles.galleryViewAllButton}
-          onClick={() => openGallery(allImagesBlock)}
-        >
-          {viewAllLabel} →
-        </button>
       </div>
 
       <div className={styles.galleryPreviewGrid}>
@@ -214,13 +192,11 @@ export default function ServiceGallery({ blocks, viewAllLabel }: Props) {
 
                 <h3>{activeBlock.title}</h3>
 
-                {activeDescription ? (
-                  <p>{activeDescription}</p>
-                ) : (
-                  <p className={styles.galleryMutedText}>
-                    Peržiūrėkite šios galerijos nuotraukas.
-                  </p>
+                {activePrice && (
+                  <div className={styles.galleryPrice}>{activePrice}</div>
                 )}
+
+                {activeDescription && <p>{activeDescription}</p>}
 
                 <div className={styles.galleryInfoDivider} />
               </aside>

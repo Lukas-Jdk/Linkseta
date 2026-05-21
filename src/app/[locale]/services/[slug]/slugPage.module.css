@@ -1579,3 +1579,20 @@
     border-radius: 0;
   }
 }
+
+
+.galleryPrice {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 34px;
+  margin: 10px 0 4px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.26);
+  color: #67e8f9;
+  font-size: 0.92rem;
+  font-weight: 950;
+  font-family: var(--font-primary);
+}

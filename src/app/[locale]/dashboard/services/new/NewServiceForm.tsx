@@ -44,6 +44,7 @@ type PriceItem = {
 type ServiceBlock = {
   title: string;
   description: string;
+  priceText: string;
   iconKey: string;
   images: GalleryItem[];
 };
@@ -70,6 +71,7 @@ function emptyServiceBlock(): ServiceBlock {
   return {
     title: "",
     description: "",
+    priceText: "",
     iconKey: "other",
     images: [],
   };
@@ -118,6 +120,8 @@ function getLocalText(locale: string) {
       blockTitlePlaceholder: "E.g. Floors, Windows, Terraces",
       blockDescription: "Description",
       blockDescriptionPlaceholder: "Optional",
+      blockPrice: "Price for this group",
+      blockPricePlaceholder: "E.g. from 250 NOK, 900 NOK / kg",
       blockIcon: "Service type / icon",
       addBlock: "Add gallery group",
       removeBlock: "Remove group",
@@ -165,6 +169,8 @@ function getLocalText(locale: string) {
       blockTitlePlaceholder: "F.eks. Gulv, Vinduer, Terrasser",
       blockDescription: "Beskrivelse",
       blockDescriptionPlaceholder: "Valgfritt",
+      blockPrice: "Pris for denne gruppen",
+      blockPricePlaceholder: "F.eks. fra 250 NOK, 900 NOK / kg",
       blockIcon: "Tjenestetype / ikon",
       addBlock: "Legg til gallerigruppe",
       removeBlock: "Fjern gruppe",
@@ -211,6 +217,8 @@ function getLocalText(locale: string) {
     blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
     blockDescription: "Aprašymas",
     blockDescriptionPlaceholder: "Nebūtina",
+    blockPrice: "Šios grupės kaina",
+    blockPricePlaceholder: "Pvz. nuo 250 NOK, 900 NOK / kg",
     blockIcon: "Paslaugos tipas / ikona",
     addBlock: "Pridėti galerijos grupę",
     removeBlock: "Pašalinti grupę",
@@ -305,11 +313,13 @@ export default function NewServiceForm({
       .map((block) => ({
         title: block.title.trim(),
         description: block.description.trim(),
+        priceText: block.priceText.trim(),
         iconKey: block.iconKey,
         images: block.images,
       }))
       .filter(
-        (block) => block.title || block.description || block.images.length,
+        (block) =>
+          block.title || block.description || block.priceText || block.images.length,
       );
   }, [serviceBlocks]);
 
@@ -591,6 +601,7 @@ export default function NewServiceForm({
           ? cleanBlocks.map((block, index) => ({
               title: block.title || `${text.galleryFallback} ${index + 1}`,
               description: block.description,
+              priceText: block.priceText,
               iconKey: block.iconKey || "other",
               images: block.images,
             }))
@@ -955,6 +966,23 @@ export default function NewServiceForm({
                       }
                       placeholder={text.blockDescriptionPlaceholder}
                       rows={3}
+                      disabled={!planLimits.canCreate}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{text.blockPrice}</label>
+                    <input
+                      className={styles.input}
+                      value={block.priceText}
+                      onChange={(e) =>
+                        updateServiceBlock(
+                          blockIndex,
+                          "priceText",
+                          e.target.value,
+                        )
+                      }
+                      placeholder={text.blockPricePlaceholder}
                       disabled={!planLimits.canCreate}
                     />
                   </div>

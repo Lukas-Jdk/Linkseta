@@ -116,6 +116,9 @@ export default async function EditServicePage({ params }: PageProps) {
           description: true,
           descriptionEn: true,
           descriptionNo: true,
+          priceText: true,
+          priceTextEn: true,
+          priceTextNo: true,
           iconKey: true,
           images: {
             orderBy: { sortOrder: "asc" },
@@ -215,6 +218,12 @@ export default async function EditServicePage({ params }: PageProps) {
       block.description,
       block.descriptionEn,
       block.descriptionNo,
+    ),
+    priceText: pickLocalizedValue(
+      locale,
+      block.priceText,
+      block.priceTextEn,
+      block.priceTextNo,
     ),
     iconKey: block.iconKey || "other",
     images: (block.images ?? [])
