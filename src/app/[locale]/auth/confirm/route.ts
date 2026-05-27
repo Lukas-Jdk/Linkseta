@@ -28,6 +28,12 @@ export async function GET(
   const flow = url.searchParams.get("flow");
 
   const loginUrl = new URL(`/${locale}/login`, url.origin);
+
+  if (flow === "signup-confirmed" && !tokenHash) {
+    loginUrl.searchParams.set("confirmed", "1");
+    return NextResponse.redirect(loginUrl);
+  }
+
   const errorUrl = new URL(`/${locale}/login`, url.origin);
   errorUrl.searchParams.set("error", "confirm_failed");
 
