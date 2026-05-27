@@ -9,7 +9,11 @@ import { auditLog } from "@/lib/audit";
 import { logError, newRequestId } from "@/lib/logger";
 import { requireCsrf } from "@/lib/csrf";
 import { hasActiveProviderAccess, getPlanLimits } from "@/lib/planAccess";
-import { translatePriceItems, translateServiceContent } from "@/lib/deepl";
+import {
+  translatePriceItems,
+  translateServiceBlocks,
+  translateServiceContent,
+} from "@/lib/deepl";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +39,7 @@ type RawServiceBlockImage = {
 type RawServiceBlock = {
   title?: unknown;
   description?: unknown;
+  priceText?: unknown;
   iconKey?: unknown;
   images?: unknown;
 };
@@ -173,6 +178,7 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
 
       const title = clampText(raw.title, 80) ?? "";
       const description = clampText(raw.description, 400);
+      const priceText = clampText(raw.priceText, 120);
       const iconKey = normalizeIconKey(raw.iconKey);
 
       const images = Array.isArray(raw.images)
@@ -201,12 +207,15 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
       return {
         title: title || "Paslauga",
         description: description || null,
+        priceText: priceText || null,
         iconKey,
         sortOrder: index,
         titleEn: title || "Service",
         titleNo: title || "Tjeneste",
         descriptionEn: description || null,
         descriptionNo: description || null,
+        priceTextEn: priceText || null,
+        priceTextNo: priceText || null,
         images: images as Array<{
           url: string;
           path: string;
@@ -221,12 +230,15 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
       ): block is {
         title: string;
         description: string | null;
+        priceText: string | null;
         iconKey: string;
         sortOrder: number;
         titleEn: string;
         titleNo: string;
         descriptionEn: string | null;
         descriptionNo: string | null;
+        priceTextEn: string | null;
+        priceTextNo: string | null;
         images: Array<{
           url: string;
           path: string;
@@ -364,7 +376,14 @@ export async function PATCH(
           select: {
             id: true,
             title: true,
+            titleEn: true,
+            titleNo: true,
             description: true,
+            descriptionEn: true,
+            descriptionNo: true,
+            priceText: true,
+            priceTextEn: true,
+            priceTextNo: true,
             iconKey: true,
             sortOrder: true,
             images: {
@@ -865,6 +884,33 @@ export async function PATCH(
       }
     }
 
+    let translatedBlocks: Awaited<ReturnType<typeof translateServiceBlocks>> = {
+      en: [],
+      no: [],
+    };
+
+    if (normalizedBlocks !== null && normalizedBlocks.length > 0) {
+      try {
+        translatedBlocks = await translateServiceBlocks(
+          normalizedBlocks.map((block) => ({
+            title: block.title,
+            description: block.description,
+            priceText: block.priceText,
+          })),
+        );
+      } catch (translationError: any) {
+        logError("DeepL translate failed on service blocks update", {
+          requestId,
+          route: "/api/dashboard/services/[id]",
+          ip,
+          meta: {
+            message: translationError?.message,
+            stack: translationError?.stack,
+          },
+        });
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.serviceListing.update({
         where: { id: service.id },
@@ -895,12 +941,23 @@ export async function PATCH(
                 serviceId: service.id,
                 title: block.title,
                 description: block.description,
+                priceText: block.priceText,
                 iconKey: block.iconKey,
                 sortOrder: block.sortOrder,
-                titleEn: block.titleEn,
-                titleNo: block.titleNo,
-                descriptionEn: block.descriptionEn,
-                descriptionNo: block.descriptionNo,
+                titleEn: translatedBlocks.en[block.sortOrder]?.title || block.title,
+                titleNo: translatedBlocks.no[block.sortOrder]?.title || block.title,
+                descriptionEn:
+                  translatedBlocks.en[block.sortOrder]?.description ||
+                  block.description,
+                descriptionNo:
+                  translatedBlocks.no[block.sortOrder]?.description ||
+                  block.description,
+                priceTextEn:
+                  translatedBlocks.en[block.sortOrder]?.priceText ||
+                  block.priceText,
+                priceTextNo:
+                  translatedBlocks.no[block.sortOrder]?.priceText ||
+                  block.priceText,
                 images: {
                   create: block.images,
                 },

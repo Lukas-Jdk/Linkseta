@@ -19,6 +19,18 @@ type PriceItemInput = {
   note?: string | null;
 };
 
+export type ServiceBlockInput = {
+  title: string;
+  description?: string | null;
+  priceText?: string | null;
+};
+
+type TranslatedServiceBlock = {
+  title: string;
+  description: string;
+  priceText: string;
+};
+
 function getDeeplApiKey() {
   const key = process.env.DEEPL_API_KEY?.trim();
   if (!key) {
@@ -152,6 +164,60 @@ export async function translatePriceItems(items: PriceItemInput[]) {
       label: noTexts[baseIndex] ?? cleanItems[i].label,
       priceText: noTexts[baseIndex + 1] ?? cleanItems[i].priceText,
       note: noTexts[baseIndex + 2] ?? cleanItems[i].note,
+    });
+  }
+
+  return { en, no };
+}
+
+export async function translateServiceBlocks(blocks: ServiceBlockInput[]) {
+  const cleanBlocks = blocks.map((block) => ({
+    title: block.title.trim(),
+    description: block.description?.trim() || "",
+    priceText: block.priceText?.trim() || "",
+  }));
+
+  const sourceTexts = cleanBlocks.flatMap((block) => [
+    block.title,
+    block.description,
+    block.priceText,
+  ]);
+
+  if (sourceTexts.length === 0) {
+    return {
+      en: [] as TranslatedServiceBlock[],
+      no: [] as TranslatedServiceBlock[],
+    };
+  }
+
+  const [enTexts, noTexts] = await Promise.all([
+    translateTexts({
+      texts: sourceTexts,
+      targetLang: "EN",
+    }),
+    translateTexts({
+      texts: sourceTexts,
+      targetLang: "NB",
+    }),
+  ]);
+
+  const en: TranslatedServiceBlock[] = [];
+  const no: TranslatedServiceBlock[] = [];
+
+  for (let i = 0; i < cleanBlocks.length; i += 1) {
+    const baseIndex = i * 3;
+    const block = cleanBlocks[i];
+
+    en.push({
+      title: enTexts[baseIndex] || block.title,
+      description: enTexts[baseIndex + 1] || block.description,
+      priceText: enTexts[baseIndex + 2] || block.priceText,
+    });
+
+    no.push({
+      title: noTexts[baseIndex] || block.title,
+      description: noTexts[baseIndex + 1] || block.description,
+      priceText: noTexts[baseIndex + 2] || block.priceText,
     });
   }
 

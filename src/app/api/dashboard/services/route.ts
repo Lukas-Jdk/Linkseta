@@ -10,6 +10,7 @@ import { requireCsrf } from "@/lib/csrf";
 import { hasActiveProviderAccess, getPlanLimits } from "@/lib/planAccess";
 import {
   translatePriceItems,
+  translateServiceBlocks,
   translateServiceContent,
 } from "@/lib/deepl";
 
@@ -30,6 +31,7 @@ type RawServiceBlockImage = {
 type RawServiceBlock = {
   title?: unknown;
   description?: unknown;
+  priceText?: unknown;
   iconKey?: unknown;
   images?: unknown;
 };
@@ -188,6 +190,7 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
 
       const title = clampText(raw.title, 80);
       const description = clampText(raw.description, 400);
+      const priceText = clampText(raw.priceText, 120);
       const iconKey = normalizeIconKey(raw.iconKey);
 
       const images = Array.isArray(raw.images)
@@ -216,6 +219,7 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
       return {
         title: title || "Paslauga",
         description: description || null,
+        priceText: priceText || null,
         iconKey,
         sortOrder: index,
         images: images as Array<{
@@ -230,6 +234,7 @@ function normalizeServiceBlocks(input: unknown, maxBlocks: number) {
     .slice(0, maxBlocks) as Array<{
     title: string;
     description: string | null;
+    priceText: string | null;
     iconKey: string;
     sortOrder: number;
     images: Array<{
@@ -578,6 +583,33 @@ export async function POST(req: Request) {
       }
     }
 
+    let translatedBlocks: Awaited<ReturnType<typeof translateServiceBlocks>> = {
+      en: [],
+      no: [],
+    };
+
+    if (normalizedBlocks.length > 0) {
+      try {
+        translatedBlocks = await translateServiceBlocks(
+          normalizedBlocks.map((block) => ({
+            title: block.title,
+            description: block.description,
+            priceText: block.priceText,
+          })),
+        );
+      } catch (translationError: any) {
+        logError("DeepL translate failed on service blocks create", {
+          requestId,
+          route: "/api/dashboard/services",
+          ip,
+          meta: {
+            message: translationError?.message,
+            stack: translationError?.stack,
+          },
+        });
+      }
+    }
+
     const created = await prisma.serviceListing.create({
       data: {
         userId: user.id,
@@ -615,15 +647,20 @@ export async function POST(req: Request) {
         },
 
         blocks: {
-          create: normalizedBlocks.map((block) => ({
+          create: normalizedBlocks.map((block, index) => ({
             title: block.title,
             description: block.description,
+            priceText: block.priceText,
             iconKey: block.iconKey,
             sortOrder: block.sortOrder,
-            titleEn: block.title,
-            titleNo: block.title,
-            descriptionEn: block.description,
-            descriptionNo: block.description,
+            titleEn: translatedBlocks.en[index]?.title || block.title,
+            titleNo: translatedBlocks.no[index]?.title || block.title,
+            descriptionEn:
+              translatedBlocks.en[index]?.description || block.description,
+            descriptionNo:
+              translatedBlocks.no[index]?.description || block.description,
+            priceTextEn: translatedBlocks.en[index]?.priceText || block.priceText,
+            priceTextNo: translatedBlocks.no[index]?.priceText || block.priceText,
             images: {
               create: block.images,
             },

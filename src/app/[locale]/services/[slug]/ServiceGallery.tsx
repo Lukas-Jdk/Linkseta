@@ -2,6 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import styles from "./slugPage.module.css";
 
@@ -30,6 +31,8 @@ function clampIndex(index: number, length: number) {
 }
 
 export default function ServiceGallery({ blocks }: Props) {
+  const t = useTranslations("serviceDetailsPage");
+
   const blocksWithImages = useMemo(
     () => blocks.filter((block) => block.images.length > 0),
     [blocks],
@@ -78,7 +81,7 @@ export default function ServiceGallery({ blocks }: Props) {
   return (
     <>
       <div className={styles.galleryHead}>
-        <h2>Ką siūlome</h2>
+        <h2>{t("whatWeOffer")}</h2>
       </div>
 
       <div className={styles.galleryPreviewGrid}>
@@ -114,7 +117,7 @@ export default function ServiceGallery({ blocks }: Props) {
               type="button"
               className={styles.galleryClose}
               onClick={closeGallery}
-              aria-label="Close gallery"
+              aria-label={t("closeGallery")}
             >
               ×
             </button>
@@ -125,7 +128,7 @@ export default function ServiceGallery({ blocks }: Props) {
                   type="button"
                   className={styles.galleryImageWrap}
                   onClick={openLightbox}
-                  aria-label="Open image fullscreen"
+                  aria-label={t("openFullscreen")}
                 >
                   <Image
                     src={currentImage.url}
@@ -142,7 +145,7 @@ export default function ServiceGallery({ blocks }: Props) {
                       type="button"
                       className={styles.galleryArrowLeft}
                       onClick={prevImage}
-                      aria-label="Previous image"
+                      aria-label={t("previousImage")}
                     >
                       ‹
                     </button>
@@ -151,7 +154,7 @@ export default function ServiceGallery({ blocks }: Props) {
                       type="button"
                       className={styles.galleryArrowRight}
                       onClick={nextImage}
-                      aria-label="Next image"
+                      aria-label={t("nextImage")}
                     >
                       ›
                     </button>
@@ -170,7 +173,7 @@ export default function ServiceGallery({ blocks }: Props) {
                             : styles.galleryThumb
                         }
                         onClick={() => setActiveImageIndex(index)}
-                        aria-label={`Open image ${index + 1}`}
+                        aria-label={t("openImage", { number: index + 1 })}
                       >
                         <Image
                           src={image.url}
@@ -215,7 +218,7 @@ export default function ServiceGallery({ blocks }: Props) {
               type="button"
               className={styles.lightboxClose}
               onClick={closeLightbox}
-              aria-label="Close fullscreen image"
+              aria-label={t("closeFullscreen")}
             >
               ×
             </button>
@@ -230,7 +233,7 @@ export default function ServiceGallery({ blocks }: Props) {
                   type="button"
                   className={styles.lightboxArrowLeft}
                   onClick={prevImage}
-                  aria-label="Previous image"
+                  aria-label={t("previousImage")}
                 >
                   ‹
                 </button>
@@ -239,7 +242,7 @@ export default function ServiceGallery({ blocks }: Props) {
                   type="button"
                   className={styles.lightboxArrowRight}
                   onClick={nextImage}
-                  aria-label="Next image"
+                  aria-label={t("nextImage")}
                 >
                   ›
                 </button>

@@ -140,133 +140,54 @@ function formatServiceLocation(args: {
   return "—";
 }
 
-function getText(locale: string) {
-  if (locale === "en") {
-    return {
-      home: "Home",
-      services: "Services",
-      topRated: "Top rated",
-      activeProvider: "Active provider",
-      availableNow: "Available now",
-      response1h: "Responds within 1 hour",
-      response24h: "Responds within 24 hours",
-      response48h: "Responds within 48 hours",
-      chat: "Direct chat",
-      chatLoading: "Opening...",
-      call: "Call",
-      email: "Write email",
-      noPhone: "No phone",
-      whatIDo: "What I do",
-      gallery: "Photo gallery",
-      viewAllPhotos: "View all photos",
-      aboutMe: "About me",
-      reviews: "Reviews",
-      workTime: "Working hours",
-      experience: "Years of experience",
-      projects: "Completed projects",
-      replyFast: "Response time",
-      trusted: "Verified provider",
-      noBlocks: "No service blocks added yet.",
-      noGallery: "No photos added yet.",
-      noReviews: "No reviews yet.",
-      photoCount: "photos",
-      reviewCount: "reviews",
-      urgent: "Urgent jobs — contact directly",
-      weekdays: "Monday - Friday",
-      saturday: "Saturday",
-      sunday: "Sunday",
-    };
-  }
+type ServiceDetailsText = {
+  home: string;
+  services: string;
+  topRated: string;
+  activeProvider: string;
+  availableNow: string;
+  response1h: string;
+  response24h: string;
+  response48h: string;
+  chat: string;
+  chatLoading: string;
+  call: string;
+  email: string;
+  noPhone: string;
+  whatIDo: string;
+  gallery: string;
+  viewAllPhotos: string;
+  aboutMe: string;
+  reviews: string;
+  workTime: string;
+  experience: string;
+  projects: string;
+  replyFast: string;
+  trusted: string;
+  noBlocks: string;
+  noGallery: string;
+  noReviews: string;
+  photoCount: string;
+  reviewCount: string;
+  urgent: string;
+  weekdays: string;
+  saturday: string;
+  sunday: string;
+  showAllReviews: string;
+};
 
-  if (locale === "no") {
-    return {
-      home: "Hjem",
-      services: "Tjenester",
-      topRated: "Topprangert",
-      activeProvider: "Aktiv tilbyder",
-      availableNow: "Tilgjengelig nå",
-      response1h: "Svarer innen 1 time",
-      response24h: "Svarer innen 24 timer",
-      response48h: "Svarer innen 48 timer",
-      chat: "Direkte chat",
-      chatLoading: "Åpner...",
-      call: "Ring",
-      email: "Skriv e-post",
-      noPhone: "Ingen telefon",
-      whatIDo: "Hva jeg gjør",
-      gallery: "Bildegalleri",
-      viewAllPhotos: "Se alle bilder",
-      aboutMe: "Om meg",
-      reviews: "Anmeldelser",
-      workTime: "Arbeidstid",
-      experience: "Års erfaring",
-      projects: "Fullførte prosjekter",
-      replyFast: "Svartid",
-      trusted: "Verifisert tilbyder",
-      noBlocks: "Ingen tjenesteblokker lagt til ennå.",
-      noGallery: "Ingen bilder lagt til ennå.",
-      noReviews: "Ingen anmeldelser ennå.",
-      photoCount: "bilder",
-      reviewCount: "anmeldelser",
-      urgent: "Hastejobber — ta kontakt direkte",
-      weekdays: "Mandag - Fredag",
-      saturday: "Lørdag",
-      sunday: "Søndag",
-    };
-  }
-
-  return {
-    home: "Pagrindinis",
-    services: "Paslaugos",
-    topRated: "Top rated",
-    activeProvider: "Aktyvus teikėjas",
-    availableNow: "Pasiekiamas dabar",
-    response1h: "Atsako per 1 val.",
-    response24h: "Atsako per 24 val.",
-    response48h: "Atsako per 48 val.",
-    chat: "Tiesioginis pokalbis",
-    chatLoading: "Atidaroma...",
-    call: "Skambinti",
-    email: "Rašyti el. paštu",
-    noPhone: "Telefono nėra",
-    whatIDo: "Ką atlieku",
-    gallery: "Nuotraukų galerija",
-    viewAllPhotos: "Žiūrėti visas nuotraukas",
-    aboutMe: "Apie mane",
-    reviews: "Atsiliepimai",
-    workTime: "Darbo laikas",
-    experience: "Metų patirtis",
-    projects: "Įgyvendintų projektų",
-    replyFast: "Atsakymo laikas",
-    trusted: "Patvirtintas teikėjas",
-    noBlocks: "Paslaugų blokai dar nepridėti.",
-    noGallery: "Nuotraukų dar nėra.",
-    noReviews: "Atsiliepimų dar nėra.",
-    photoCount: "foto",
-    reviewCount: "atsiliepimai",
-    urgent: "Skubūs darbai — susisiekite tiesiogiai",
-    weekdays: "Pirmadienis - Penktadienis",
-    saturday: "Šeštadienis",
-    sunday: "Sekmadienis",
-  };
-}
-
-function getResponseTimeLabel(locale: string, responseTime?: string | null) {
-  const text = getText(locale);
+function getResponseTimeLabel(
+  text: ServiceDetailsText,
+  responseTime?: string | null,
+) {
   if (responseTime === "24h") return text.response24h;
   if (responseTime === "48h") return text.response48h;
   return text.response1h;
 }
 
-function getShowAllReviewsLabel(locale: string) {
-  if (locale === "en") return "View all reviews";
-  if (locale === "no") return "Se alle anmeldelser";
-  return "Žiūrėti visus atsiliepimus";
-}
-
 function parseWorkingHours(
   value: unknown,
-  text: ReturnType<typeof getText>,
+  text: ServiceDetailsText,
 ): WorkingHourRow[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return [];
@@ -398,7 +319,41 @@ export default async function ServiceDetailsPage({ params }: Props) {
     namespace: "categories",
   });
 
-  const text = getText(locale);
+  const text: ServiceDetailsText = {
+    home: t("home"),
+    services: t("services"),
+    topRated: t("topRated"),
+    activeProvider: t("activeProvider"),
+    availableNow: t("availableNow"),
+    response1h: t("response1h"),
+    response24h: t("response24h"),
+    response48h: t("response48h"),
+    chat: t("chat"),
+    chatLoading: t("chatLoading"),
+    call: t("call"),
+    email: t("email"),
+    noPhone: t("noPhone"),
+    whatIDo: t("whatIDo"),
+    gallery: t("gallery"),
+    viewAllPhotos: t("viewAllPhotos"),
+    aboutMe: t("aboutMe"),
+    reviews: t("reviews"),
+    workTime: t("workTime"),
+    experience: t("experience"),
+    projects: t("projects"),
+    replyFast: t("replyFast"),
+    trusted: t("trusted"),
+    noBlocks: t("noBlocks"),
+    noGallery: t("noGallery"),
+    noReviews: t("noReviews"),
+    photoCount: t("photoCount"),
+    reviewCount: t("reviewCount"),
+    urgent: t("urgent"),
+    weekdays: t("weekdays"),
+    saturday: t("saturday"),
+    sunday: t("sunday"),
+    showAllReviews: t("showAllReviews"),
+  };
 
   const service = await prisma.serviceListing.findFirst({
     where: {
@@ -457,6 +412,8 @@ export default async function ServiceDetailsPage({ params }: Props) {
           descriptionEn: true,
           descriptionNo: true,
           priceText: true,
+          priceTextEn: true,
+          priceTextNo: true,
           iconKey: true,
           images: {
             orderBy: { sortOrder: "asc" },
@@ -597,7 +554,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
       block.descriptionEn,
       block.descriptionNo,
     ),
-    priceText: block.priceText ?? "",
+    priceText: pickLocalizedOptional(
+      locale,
+      block.priceText,
+      block.priceTextEn,
+      block.priceTextNo,
+    ),
     iconKey: block.iconKey,
     images: (block.images ?? []).map((img) => ({
       url: img.url,
@@ -631,7 +593,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     t("emailSubject", { title: localizedTitle }),
   )}&body=${encodeURIComponent(t("emailBody", { title: localizedTitle }))}`;
 
-  const responseTimeLabel = getResponseTimeLabel(locale, service.responseTime);
+  const responseTimeLabel = getResponseTimeLabel(text, service.responseTime);
 
   const workingHours: WorkingHourRow[] = parseWorkingHours(
     service.user.profile?.workingHours,
@@ -904,11 +866,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
                       <div className={styles.reviewSummaryStarsBig}>★★★★★</div>
 
                       <div className={styles.reviewSummaryText}>
-                        {locale === "en"
-                          ? `Based on ${reviewCount} reviews`
-                          : locale === "no"
-                            ? `Basert på ${reviewCount} anmeldelser`
-                            : `Remiantis ${reviewCount} atsiliepimais`}
+                        {t("basedOnReviews", { count: reviewCount })}
                       </div>
                     </div>
 
@@ -988,7 +946,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
                   {approvedReviews.length > 2 && (
                     <details className={styles.moreReviews}>
-                      <summary>{getShowAllReviewsLabel(locale)} →</summary>
+                      <summary>{text.showAllReviews} →</summary>
 
                       <div className={styles.reviewGrid}>
                         {approvedReviews
