@@ -344,7 +344,7 @@ export default async function DashboardPage({ params }: Props) {
 
                 {isProviderApproved &&
                   services.map((s) => {
-                    const img = s.imageUrl || "/default.png";
+                    const img = s.imageUrl || "/default.webp";
                     const cityName =
                       [s.locationPostcode, s.locationCity || s.city?.name]
                         .filter(Boolean)

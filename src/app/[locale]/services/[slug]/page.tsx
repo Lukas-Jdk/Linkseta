@@ -485,9 +485,9 @@ export default async function ServiceDetailsPage({ params }: Props) {
       ? gallery
       : service.imageUrl
         ? [service.imageUrl]
-        : ["/def.webp"];
+        : ["/default.webp"];
 
-  const heroImage = images[0] ?? "/def.webp";
+  const heroImage = images[0] ?? "/default.webp";
 
   const city = formatServiceLocation({
     locationPostcode: service.locationPostcode,

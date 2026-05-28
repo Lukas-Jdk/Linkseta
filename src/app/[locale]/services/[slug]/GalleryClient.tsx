@@ -16,7 +16,7 @@ export default function GalleryClient({ title, images, highlighted }: Props) {
   const t = useTranslations("gallery");
 
   const safeImages = useMemo(
-    () => (images?.length ? images : ["/def.webp"]),
+    () => (images?.length ? images : ["/default.webp"]),
     [images],
   );
 
