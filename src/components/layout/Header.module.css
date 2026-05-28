@@ -53,7 +53,7 @@
 .logoLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+
   min-width: 0;
   text-decoration: none;
 }
@@ -68,7 +68,7 @@
   color: var(--text-white);
   font-family: var(--font-primary);
   font-size: 1.7rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.2px;
   white-space: nowrap;
 }

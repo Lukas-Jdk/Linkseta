@@ -568,7 +568,6 @@ export default async function ServiceDetailsPage({ params }: Props) {
   }));
 
   const sellerName =
-    service.user.profile?.companyName?.trim() ||
     service.user.name?.trim() ||
     service.user.email.split("@")[0];
 
