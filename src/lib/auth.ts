@@ -58,9 +58,12 @@ function toAuthUser(dbUser: {
 
 export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createSupabaseServerClient();
+
   const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data?.user?.email) return null;
+  if (error || !data?.user?.id || !data.user.email) {
+    return null;
+  }
 
   const supabaseId = data.user.id;
   const email = normalizeEmail(data.user.email);
@@ -83,13 +86,28 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
     });
 
     if (legacyUser) {
-      dbUser = legacyUser.supabaseId
-        ? legacyUser
-        : await prisma.user.update({
-            where: { id: legacyUser.id },
-            data: { supabaseId },
-            select: authUserSelect,
-          });
+      if (legacyUser.supabaseId && legacyUser.supabaseId !== supabaseId) {
+        console.warn("AUTH_SUPABASE_ID_MISMATCH", {
+          email,
+          dbUserId: legacyUser.id,
+          dbSupabaseId: legacyUser.supabaseId,
+          sessionSupabaseId: supabaseId,
+        });
+
+        await supabase.auth.signOut().catch(() => {});
+        return null;
+      }
+
+      dbUser = await prisma.user.update({
+        where: { id: legacyUser.id },
+        data: {
+          supabaseId,
+          email,
+          ...(metaName && !legacyUser.name ? { name: metaName } : {}),
+          ...(metaPhone && !legacyUser.phone ? { phone: metaPhone } : {}),
+        },
+        select: authUserSelect,
+      });
     }
   }
 
@@ -121,15 +139,16 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   }
 
   const updateData: {
-    supabaseId?: string;
     email?: string;
     name?: string;
     phone?: string;
   } = {};
 
-  if (dbUser.supabaseId !== supabaseId) updateData.supabaseId = supabaseId;
   if (dbUser.email !== email) updateData.email = email;
-  
+
+  if (metaName && !dbUser.name) updateData.name = metaName;
+  if (metaPhone && !dbUser.phone) updateData.phone = metaPhone;
+
   if (Object.keys(updateData).length > 0) {
     dbUser = await prisma.user.update({
       where: { id: dbUser.id },
