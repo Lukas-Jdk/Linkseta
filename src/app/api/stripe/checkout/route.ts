@@ -127,7 +127,7 @@ export async function POST(req: Request) {
       },
       allow_promotion_codes: true,
       success_url: `${origin}/${locale}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/${locale}/tapti-teikeju?checkout=cancelled`,
+      cancel_url: `${origin}/${locale}/plans?checkout=cancelled`,
     });
 
     if (!session.url) {

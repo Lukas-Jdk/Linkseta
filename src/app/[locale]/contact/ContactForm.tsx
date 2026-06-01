@@ -1,9 +1,9 @@
-// src/app/[locale]/susisiekite/ContactForm.tsx
+// src/app/[locale]/contact/ContactForm.tsx
 "use client";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import styles from "./susisiekite.module.css";
+import styles from "./contact.module.css";
 
 declare global {
   interface Window {

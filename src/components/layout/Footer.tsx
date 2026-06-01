@@ -48,12 +48,12 @@ export default function Footer() {
                 </LocalizedLink>
               </li>
               <li>
-                <LocalizedLink className={styles.link} href="/tapti-teikeju">
+                <LocalizedLink className={styles.link} href="/plans">
                   {t("offerServices")}
                 </LocalizedLink>
               </li>
               <li>
-                <LocalizedLink className={styles.link} href="/susisiekite">
+                <LocalizedLink className={styles.link} href="/contact">
                   {t("about")}
                 </LocalizedLink>
               </li>

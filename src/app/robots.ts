@@ -15,8 +15,8 @@ export default function robots(): MetadataRoute.Robots {
     allow.push(`/${locale}/services`);
     allow.push(`/${locale}/services/*`);
     // public static pages
-    allow.push(`/${locale}/tapti-teikeju`);
-    allow.push(`/${locale}/susisiekite`);
+    allow.push(`/${locale}/plans`);
+    allow.push(`/${locale}/contact`);
     allow.push(`/${locale}/terms`);
     allow.push(`/${locale}/privacy`);
 

@@ -1,4 +1,4 @@
-// src/app/[locale]/susisiekite/layout.tsx
+// src/app/[locale]/plans/layout.tsx
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { absOg } from "@/lib/seo-i18n";
@@ -14,22 +14,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: "meta" });
-  const canonical = `${siteUrl}/${locale}/susisiekite`;
+  const canonical = `${siteUrl}/${locale}/plans`;
 
   return {
-    title: t("contactTitle"),
-    description: t("contactDesc"),
+    title: t("becomeTitle"),
+    description: t("becomeDesc"),
     alternates: {
       canonical,
       languages: {
-        lt: `${siteUrl}/lt/susisiekite`,
-        en: `${siteUrl}/en/susisiekite`,
-        no: `${siteUrl}/no/susisiekite`,
+        lt: `${siteUrl}/lt/plans`,
+        en: `${siteUrl}/en/plans`,
+        no: `${siteUrl}/no/plans`,
       },
     },
     openGraph: {
-      title: t("contactTitle"),
-      description: t("contactDesc"),
+      title: t("becomeTitle"),
+      description: t("becomeDesc"),
       url: canonical,
       siteName: "Linkseta",
       type: "website",
@@ -44,13 +44,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: t("contactTitle"),
-      description: t("contactDesc"),
+      title: t("becomeTitle"),
+      description: t("becomeDesc"),
       images: [absOg("/og-v2.png")],
     },
   };
 }
 
-export default function ContactLayout({ children }: Props) {
+export default function BecomeProviderLayout({ children }: Props) {
   return <>{children}</>;
 }

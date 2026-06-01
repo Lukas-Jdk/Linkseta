@@ -1,4 +1,4 @@
-// src/app/[locale]/tapti-teikeju/page.tsx
+// src/app/[locale]/plans/page.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -19,7 +19,7 @@ import {
   Clock3,
 } from "lucide-react";
 
-import styles from "./tapti.module.css";
+import styles from "./plans.module.css";
 
 type PlanSlug = "basic" | "premium" | "free-trial";
 
@@ -36,7 +36,7 @@ function loginUrl(locale: string, nextPath: string) {
   return `/${locale}/login?next=${encodeURIComponent(nextPath)}`;
 }
 
-export default function TaptiTeikejuPage() {
+export default function PlansPage() {
   const t = useTranslations("becomeProviderPage");
 
   const router = useRouter();

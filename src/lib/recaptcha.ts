@@ -45,12 +45,11 @@ export async function verifyRecaptchaV3(params: {
     const score =
       typeof json?.score === "number" ? (json.score as number) : undefined;
 
-    // action turi sutapti (apsaugo nuo tokeno reuse kitam endpointui)
     if (action && action !== params.expectedAction) {
       return { ok: false, score, action, error: "wrong_action" };
     }
 
-    // score threshold (pas tave galima griežtinti vėliau)
+  
     if (typeof score === "number" && score < 0.5) {
       return { ok: false, score, action, error: "low_score" };
     }

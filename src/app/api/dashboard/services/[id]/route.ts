@@ -336,7 +336,7 @@ export async function PATCH(
         descriptionEn: true,
         descriptionNo: true,
         cityId: true,
-  
+
         brandLogoUrl: true,
         brandLogoPath: true,
         categoryId: true,
@@ -605,7 +605,7 @@ export async function PATCH(
       }
     }
 
-    if (normalizedBlocks) {
+    if (normalizedBlocks !== null) {
       for (const path of collectBlockImagePaths(normalizedBlocks)) {
         if (!path.startsWith(safePrefix)) {
           return NextResponse.json(
@@ -632,7 +632,7 @@ export async function PATCH(
 
     const nextPathsSet = new Set([
       ...nextPairs.map((x) => x.path),
-      ...(normalizedBlocks ? collectBlockImagePaths(normalizedBlocks) : []),
+      ...(normalizedBlocks !== null ? collectBlockImagePaths(normalizedBlocks) : []),
     ]);
 
     const toDelete = Array.from(oldPathsSet).filter(
@@ -657,7 +657,6 @@ export async function PATCH(
         { status: 400 },
       );
     }
-
 
     const nextBrandLogoUrl =
       body?.brandLogoUrl !== undefined
@@ -944,8 +943,10 @@ export async function PATCH(
                 priceText: block.priceText,
                 iconKey: block.iconKey,
                 sortOrder: block.sortOrder,
-                titleEn: translatedBlocks.en[block.sortOrder]?.title || block.title,
-                titleNo: translatedBlocks.no[block.sortOrder]?.title || block.title,
+                titleEn:
+                  translatedBlocks.en[block.sortOrder]?.title || block.title,
+                titleNo:
+                  translatedBlocks.no[block.sortOrder]?.title || block.title,
                 descriptionEn:
                   translatedBlocks.en[block.sortOrder]?.description ||
                   block.description,

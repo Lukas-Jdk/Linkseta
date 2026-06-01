@@ -16,7 +16,7 @@ export default function BecomeProviderCTA() {
           užklausas.
         </p>
 
-        <LocalizedLink href="/tapti-teikeju" className={styles.button}>
+        <LocalizedLink href="/plans" className={styles.button}>
           Tapti teikėju
         </LocalizedLink>
       </div>

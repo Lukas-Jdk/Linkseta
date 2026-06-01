@@ -596,7 +596,7 @@ export default function HeaderClient({ locale, labels }: Props) {
               </Link>
 
               <Link
-                href={`/${locale}/tapti-teikeju`}
+                href={`/${locale}/plans`}
                 className={styles.navIconLink}
                 aria-label={labels.plans}
               >
@@ -605,7 +605,7 @@ export default function HeaderClient({ locale, labels }: Props) {
               </Link>
 
               <Link
-                href={`/${locale}/susisiekite`}
+                href={`/${locale}/contact`}
                 className={styles.navIconLink}
                 aria-label={labels.contact}
               >
@@ -865,7 +865,7 @@ export default function HeaderClient({ locale, labels }: Props) {
               </Link>
 
               <Link
-                href={`/${locale}/tapti-teikeju`}
+                href={`/${locale}/plans`}
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >
@@ -874,7 +874,7 @@ export default function HeaderClient({ locale, labels }: Props) {
               </Link>
 
               <Link
-                href={`/${locale}/susisiekite`}
+                href={`/${locale}/contact`}
                 className={styles.drawerNavItem}
                 onClick={closeAllMenus}
               >

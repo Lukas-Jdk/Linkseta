@@ -18,8 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     "", // home (/lt etc.)
     "/services",
-    "/tapti-teikeju",
-    "/susisiekite",
+    "/plans",
+    "/contact",
     "/terms",
     "/privacy",
   ];

@@ -145,7 +145,8 @@ function getLocalText(locale: string) {
     blockTitle: "Galerijos grupės pavadinimas",
     blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
     blockDescription: "Galerijos aprašymas",
-    blockDescriptionPlaceholder: "Trumpai aprašykite, kas rodoma šioje nuotraukų grupėje",
+    blockDescriptionPlaceholder:
+      "Trumpai aprašykite, kas rodoma šioje nuotraukų grupėje",
     blockPrice: "Šios grupės kaina",
     blockPricePlaceholder: "Pvz. nuo 250 NOK, 900 NOK / kg",
     addBlock: "Pridėti galerijos grupę",
@@ -174,7 +175,7 @@ function parseHighlights(text: string) {
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean)
-    .slice(0, 6);
+    .slice(0, 4);
 }
 
 function emptyPriceItem(): PriceItem {
@@ -279,7 +280,7 @@ export default function EditServiceForm({
                 .filter((img) => img.url && img.path)
             : [],
         }))
-      : [emptyServiceBlock()],
+      : [],
   );
 
   const [highlightsText, setHighlightsText] = useState(
@@ -306,7 +307,10 @@ export default function EditServiceForm({
       }))
       .filter(
         (block) =>
-          block.title || block.description || block.priceText || block.images.length,
+          block.title ||
+          block.description ||
+          block.priceText ||
+          block.images.length,
       );
   }, [serviceBlocks]);
 
@@ -358,10 +362,7 @@ export default function EditServiceForm({
   }
 
   function removeServiceBlock(index: number) {
-    setServiceBlocks((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
+    setServiceBlocks((prev) => prev.filter((_, i) => i !== index));
   }
 
   function removeBlockImage(blockIndex: number, path: string) {
@@ -552,18 +553,7 @@ export default function EditServiceForm({
       return;
     }
 
-    const hiddenServiceBlocks =
-      cleanBlocks.length > 0
-        ? cleanBlocks
-        : [
-            {
-              title: title.trim() || text.serviceFallback,
-              description: description.trim(),
-              priceText: "",
-              iconKey: "other",
-              images: [],
-            },
-          ];
+    const hiddenServiceBlocks = cleanBlocks;
 
     if (hiddenServiceBlocks.length > maxServiceBlocksSafe) {
       setError(`${text.maxBlocksError}: ${maxServiceBlocksSafe}`);
@@ -925,63 +915,7 @@ export default function EditServiceForm({
             <div className={styles.charHint}>{text.priceHint}</div>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t("priceItemsTitle")}</label>
-
-            <div className={styles.priceList}>
-              {priceItems.map((item, index) => (
-                <div key={index} className={styles.priceCard}>
-                  <input
-                    className={styles.input}
-                    value={item.label}
-                    onChange={(e) =>
-                      updatePriceItem(index, "label", e.target.value)
-                    }
-                    placeholder={t("priceItemNamePlaceholder")}
-                  />
-
-                  <input
-                    className={styles.input}
-                    value={item.priceText}
-                    onChange={(e) =>
-                      updatePriceItem(index, "priceText", e.target.value)
-                    }
-                    placeholder={t("priceItemPricePlaceholder")}
-                  />
-
-                  <input
-                    className={styles.input}
-                    value={item.note}
-                    onChange={(e) =>
-                      updatePriceItem(index, "note", e.target.value)
-                    }
-                    placeholder={t("priceItemNotePlaceholder")}
-                  />
-
-                  <div className={styles.inlineActions}>
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      onClick={() => removePriceItem(index)}
-                      disabled={priceItems.length <= 1}
-                    >
-                      {t("removePriceRow")}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.inlineActions}>
-              <button
-                type="button"
-                className={styles.addRowButton}
-                onClick={addPriceItem}
-              >
-                + {t("addPriceRow")}
-              </button>
-            </div>
-          </div>
+          <div className={styles.formGroup}></div>
         </div>
       </section>
 
@@ -1050,11 +984,13 @@ export default function EditServiceForm({
                     className={styles.uploadBtn}
                     style={{
                       opacity:
-                        totalImages >= maxImagesSafe || uploadingBlockIndex !== null
+                        totalImages >= maxImagesSafe ||
+                        uploadingBlockIndex !== null
                           ? 0.65
                           : 1,
                       pointerEvents:
-                        totalImages >= maxImagesSafe || uploadingBlockIndex !== null
+                        totalImages >= maxImagesSafe ||
+                        uploadingBlockIndex !== null
                           ? "none"
                           : "auto",
                     }}
@@ -1120,7 +1056,7 @@ export default function EditServiceForm({
                     type="button"
                     className={styles.secondaryButton}
                     onClick={() => removeServiceBlock(blockIndex)}
-                    disabled={serviceBlocks.length <= 1 || pending}
+                    disabled={pending}
                   >
                     {text.removeBlock}
                   </button>
@@ -1188,8 +1124,7 @@ export default function EditServiceForm({
             type="submit"
             className={styles.primaryButton}
             disabled={
-              pending ||
-              description.trim().length < MIN_DESCRIPTION_LENGTH
+              pending || description.trim().length < MIN_DESCRIPTION_LENGTH
             }
           >
             {pending ? t("saving") : t("saveButton")}

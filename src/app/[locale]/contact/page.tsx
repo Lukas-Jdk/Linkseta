@@ -1,8 +1,8 @@
-// src/app/[locale]/susisiekite/page.tsx
+// src/app/[locale]/contact/page.tsx
 import Script from "next/script";
 import { headers } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import styles from "./susisiekite.module.css";
+import styles from "./contact.module.css";
 import ContactForm from "./ContactForm";
 
 type Props = {

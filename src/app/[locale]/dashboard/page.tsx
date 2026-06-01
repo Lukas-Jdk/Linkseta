@@ -334,7 +334,7 @@ export default async function DashboardPage({ params }: Props) {
                     </h3>
 
                     <Link
-                      href={`/${locale}/tapti-teikeju`}
+                      href={`/${locale}/plans`}
                       className={styles.emptyBtn}
                     >
                       {t("becomeProvider")}

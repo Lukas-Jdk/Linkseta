@@ -317,7 +317,7 @@ export default function ProfileCardClient({
 
           {!isProviderApproved && (
             <div className={styles.profileCta}>
-              <LocalizedLink href="/tapti-teikeju" className={styles.ctaBtn}>
+              <LocalizedLink href="/plans" className={styles.ctaBtn}>
                 {t("becomeProvider")}
               </LocalizedLink>
             </div>

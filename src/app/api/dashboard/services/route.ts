@@ -360,7 +360,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json().catch(() => ({} as any));
+    const body = await req.json().catch(() => ({}) as any);
 
     const title = clampText(body?.title, 120);
     const description = clampText(body?.description, 4000);
@@ -373,6 +373,8 @@ export async function POST(req: Request) {
     const locationPostcode = clampText(body?.locationPostcode, 20);
     const locationCity = clampText(body?.locationCity, 120);
     const locationRegion = clampText(body?.locationRegion, 120);
+    const brandLogoUrl = clampText(body?.brandLogoUrl, 600) || null;
+    const brandLogoPath = clampText(body?.brandLogoPath, 300) || null;
 
     const priceMode = body?.priceMode === "fixed" ? "fixed" : "from";
     const mainPrice = parsePositiveInt(body?.mainPrice);
@@ -452,10 +454,7 @@ export async function POST(req: Request) {
 
     const galleryImagePaths =
       normalizedBlocks.length > 0
-        ? collectBlockImagePaths(normalizedBlocks).slice(
-            0,
-            maxImagesPerListing,
-          )
+        ? collectBlockImagePaths(normalizedBlocks).slice(0, maxImagesPerListing)
         : normalizeGalleryStrings(
             body?.galleryImagePaths,
             maxImagesPerListing,
@@ -473,7 +472,7 @@ export async function POST(req: Request) {
       ? body.highlights
           .map((s: unknown) => String(s).trim())
           .filter(Boolean)
-          .slice(0, 6)
+          .slice(0, 4)
       : [];
 
     const normalizedPriceItems = normalizePriceItems(body?.priceItems);
@@ -625,6 +624,8 @@ export async function POST(req: Request) {
         imagePath: coverImagePath,
         galleryImageUrls,
         galleryImagePaths,
+        brandLogoUrl,
+        brandLogoPath,
         highlights,
         sourceLocale: "lt",
         titleEn,
@@ -659,8 +660,10 @@ export async function POST(req: Request) {
               translatedBlocks.en[index]?.description || block.description,
             descriptionNo:
               translatedBlocks.no[index]?.description || block.description,
-            priceTextEn: translatedBlocks.en[index]?.priceText || block.priceText,
-            priceTextNo: translatedBlocks.no[index]?.priceText || block.priceText,
+            priceTextEn:
+              translatedBlocks.en[index]?.priceText || block.priceText,
+            priceTextNo:
+              translatedBlocks.no[index]?.priceText || block.priceText,
             images: {
               create: block.images,
             },

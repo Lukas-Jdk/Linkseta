@@ -77,7 +77,7 @@ export default async function NewServicePage({ params }: Props) {
   ]);
 
   if (!profile?.isApproved || !hasActiveProviderAccess(profile)) {
-    redirect(`/${locale}/tapti-teikeju`);
+    redirect(`/${locale}/plans`);
   }
 
   const limits = getPlanLimits(profile);

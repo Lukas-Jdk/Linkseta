@@ -90,15 +90,11 @@ function normalizePriceNumber(value: string) {
 function getLocalText(locale: string) {
   if (locale === "en") {
     return {
-      limitTitle: "Plan limits",
       currentPlan: "Current plan",
       activeListings: "Service profiles",
       photosPerListing: "Photos in total",
-      serviceBlocks: "Gallery groups",
-      upgradeButton: "Upgrade plan",
       listingsLimitReached: "You have reached your plan limit",
       trialExpired: "Your Free Trial has expired.",
-      photoLimitText: "photos allowed by your plan",
       title: "Plan limit reached",
       subtitle:
         "Your current plan does not allow more service profiles, service blocks or photos. Upgrade your plan to continue.",
@@ -115,39 +111,30 @@ function getLocalText(locale: string) {
       fixed: "Fixed",
       pricePlaceholder: "E.g. 600",
       serviceBlocksTitle: "Photo gallery",
-      serviceBlocksHint: "",
       blockTitle: "Gallery group name",
       blockTitlePlaceholder: "E.g. Floors, Windows, Terraces",
       blockDescription: "Description",
       blockDescriptionPlaceholder: "Optional",
       blockPrice: "Price for this group",
       blockPricePlaceholder: "E.g. from 250 NOK, 900 NOK / kg",
-      blockIcon: "Service type / icon",
       addBlock: "Add gallery group",
       removeBlock: "Remove group",
       uploadBlockImages: "Upload photos",
       noBlockImages: "No photos in this group yet",
-      galleryFallback: "Gallery",
-      serviceFallback: "Service",
-      totalPhotos: "Total photos",
       maxBlocksError: "You have reached your gallery group limit",
       maxImagesError: "You have reached your photo limit",
-      mustHaveBlock: "Add at least one gallery group.",
-      mustHaveBlockTitle: "Each gallery group must have a title.",
+      logoLabel: "Logo",
+      uploadLogo: "Upload logo",
     };
   }
 
   if (locale === "no") {
     return {
-      limitTitle: "Plangrenser",
       currentPlan: "Nåværende plan",
       activeListings: "Tjenesteprofiler",
       photosPerListing: "Bilder totalt",
-      serviceBlocks: "Gallerigrupper",
-      upgradeButton: "Oppgrader plan",
       listingsLimitReached: "Du har nådd plangrensen",
       trialExpired: "Din Free Trial er utløpt.",
-      photoLimitText: "bilder tillatt av planen din",
       title: "Plangrensen er nådd",
       subtitle:
         "Din nåværende plan tillater ikke flere tjenesteprofiler, tjenesteblokker eller bilder. Oppgrader planen for å fortsette.",
@@ -164,38 +151,29 @@ function getLocalText(locale: string) {
       fixed: "Fast",
       pricePlaceholder: "F.eks. 600",
       serviceBlocksTitle: "Fotogalleri",
-      serviceBlocksHint: "",
       blockTitle: "Gruppenavn",
       blockTitlePlaceholder: "F.eks. Gulv, Vinduer, Terrasser",
       blockDescription: "Beskrivelse",
       blockDescriptionPlaceholder: "Valgfritt",
       blockPrice: "Pris for denne gruppen",
       blockPricePlaceholder: "F.eks. fra 250 NOK, 900 NOK / kg",
-      blockIcon: "Tjenestetype / ikon",
       addBlock: "Legg til gallerigruppe",
       removeBlock: "Fjern gruppe",
       uploadBlockImages: "Last opp bilder",
       noBlockImages: "Ingen bilder i denne gruppen ennå",
-      galleryFallback: "Galleri",
-      serviceFallback: "Tjeneste",
-      totalPhotos: "Bilder totalt",
       maxBlocksError: "Du har nådd grensen for gallerigrupper",
       maxImagesError: "Du har nådd bildegrensen",
-      mustHaveBlock: "Legg til minst én gallerigruppe.",
-      mustHaveBlockTitle: "Hver gallerigruppe må ha en tittel.",
+      logoLabel: "Logo",
+      uploadLogo: "Last opp logo",
     };
   }
 
   return {
-    limitTitle: "Plano limitai",
     currentPlan: "Dabartinis planas",
     activeListings: "Paslaugų profiliai",
     photosPerListing: "Nuotraukų iš viso",
-    serviceBlocks: "Galerijos grupės",
-    upgradeButton: "Atnaujinti planą",
     listingsLimitReached: "Pasiekėte savo plano limitą",
     trialExpired: "Jūsų Free Trial laikotarpis baigėsi.",
-    photoLimitText: "nuotraukų pagal planą",
     title: "Pasiektas plano limitas",
     subtitle:
       "Dabartinis planas neleidžia kurti daugiau paslaugų profilių, paslaugų blokų arba kelti daugiau nuotraukų. Atnaujink planą ir tęsk.",
@@ -212,25 +190,20 @@ function getLocalText(locale: string) {
     fixed: "Fiksuota",
     pricePlaceholder: "Pvz. 600",
     serviceBlocksTitle: "Nuotraukų galerija",
-    serviceBlocksHint: "",
     blockTitle: "Galerijos grupės pavadinimas",
     blockTitlePlaceholder: "Pvz. Grindys, Langai, Terasos",
     blockDescription: "Aprašymas",
     blockDescriptionPlaceholder: "Nebūtina",
     blockPrice: "Šios grupės kaina",
     blockPricePlaceholder: "Pvz. nuo 250 NOK, 900 NOK / kg",
-    blockIcon: "Paslaugos tipas / ikona",
     addBlock: "Pridėti galerijos grupę",
     removeBlock: "Pašalinti grupę",
     uploadBlockImages: "Įkelti nuotraukas",
     noBlockImages: "Šioje grupėje nuotraukų dar nėra",
-    galleryFallback: "Galerija",
-    serviceFallback: "Paslauga",
-    totalPhotos: "Nuotraukų iš viso",
     maxBlocksError: "Pasiekėte galerijos grupių limitą",
     maxImagesError: "Pasiekėte nuotraukų limitą",
-    mustHaveBlock: "Pridėkite bent vieną galerijos grupę.",
-    mustHaveBlockTitle: "Kiekviena galerijos grupė turi turėti pavadinimą.",
+    logoLabel: "Logo",
+    uploadLogo: "Įkelti logo",
   };
 }
 
@@ -258,17 +231,20 @@ export default function NewServiceForm({
   const [priceMode, setPriceMode] = useState<"fixed" | "from">("from");
   const [mainPrice, setMainPrice] = useState("");
 
+  const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(null);
+  const [brandLogoPath, setBrandLogoPath] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
   const [locationPostcode, setLocationPostcode] = useState("");
   const [locationRegion, setLocationRegion] = useState("");
 
   const [h1, setH1] = useState("");
   const [h2, setH2] = useState("");
   const [h3, setH3] = useState("");
+  const [h4, setH4] = useState("");
 
   const [priceItems, setPriceItems] = useState<PriceItem[]>([emptyPriceItem()]);
-  const [serviceBlocks, setServiceBlocks] = useState<ServiceBlock[]>([
-    emptyServiceBlock(),
-  ]);
+  const [serviceBlocks, setServiceBlocks] = useState<ServiceBlock[]>([]);
 
   const [uploadingBlockIndex, setUploadingBlockIndex] = useState<number | null>(
     null,
@@ -296,8 +272,8 @@ export default function NewServiceForm({
   const locationCity = selectedCity?.name?.trim() ?? "";
 
   const highlights = useMemo(() => {
-    return [h1, h2, h3].map(trimOrEmpty).filter(Boolean).slice(0, 3);
-  }, [h1, h2, h3]);
+    return [h1, h2, h3, h4].map(trimOrEmpty).filter(Boolean).slice(0, 4);
+  }, [h1, h2, h3, h4]);
 
   const normalizedMainPrice = useMemo(
     () => normalizePriceNumber(mainPrice),
@@ -314,12 +290,15 @@ export default function NewServiceForm({
         title: block.title.trim(),
         description: block.description.trim(),
         priceText: block.priceText.trim(),
-        iconKey: block.iconKey,
+        iconKey: block.iconKey || "other",
         images: block.images,
       }))
       .filter(
         (block) =>
-          block.title || block.description || block.priceText || block.images.length,
+          block.title ||
+          block.description ||
+          block.priceText ||
+          block.images.length,
       );
   }, [serviceBlocks]);
 
@@ -334,6 +313,7 @@ export default function NewServiceForm({
       Boolean(locationPostcode.trim()) &&
       totalImages <= planLimits.maxImagesPerListing &&
       !submitting &&
+      uploadingLogo === false &&
       uploadingBlockIndex === null
     );
   }, [
@@ -347,6 +327,7 @@ export default function NewServiceForm({
     locationPostcode,
     totalImages,
     submitting,
+    uploadingLogo,
     uploadingBlockIndex,
   ]);
 
@@ -415,10 +396,7 @@ export default function NewServiceForm({
   }
 
   function removeServiceBlock(index: number) {
-    setServiceBlocks((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
+    setServiceBlocks((prev) => prev.filter((_, i) => i !== index));
   }
 
   function removeBlockImage(blockIndex: number, path: string) {
@@ -432,6 +410,75 @@ export default function NewServiceForm({
           : block,
       ),
     );
+  }
+
+  function removeBrandLogo() {
+    setBrandLogoUrl(null);
+    setBrandLogoPath(null);
+  }
+
+  async function handleUploadBrandLogo(file: File | null) {
+    if (!file) return;
+
+    setError(null);
+    setSuccess(null);
+    setUploadingLogo(true);
+
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+
+      if (userErr || !userData.user) {
+        setError(t("errors.mustBeLoggedIn"));
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error(t("errors.fileNotImage"));
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(t("errors.fileTooLargeBeforeCompression"));
+      }
+
+      const compressed = await compressImageFile(file, {
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.86,
+        mimeType: "image/jpeg",
+      });
+
+      if (compressed.size > 3 * 1024 * 1024) {
+        throw new Error(t("errors.fileTooLargeAfterCompression"));
+      }
+
+      const path = `${userData.user.id}/services/logos/${crypto.randomUUID()}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("service-images")
+        .upload(path, compressed, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: "image/jpeg",
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message || t("errors.uploadOneFailed"));
+      }
+
+      const { data } = supabase.storage.from("service-images").getPublicUrl(path);
+
+      if (!data?.publicUrl) {
+        throw new Error(t("errors.uploadGeneric"));
+      }
+
+      setBrandLogoUrl(data.publicUrl);
+      setBrandLogoPath(path);
+      setSuccess(t("uploadSuccess"));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("errors.uploadGeneric"));
+    } finally {
+      setUploadingLogo(false);
+    }
   }
 
   function handleCityChange(nextCityId: string) {
@@ -475,6 +522,7 @@ export default function NewServiceForm({
       const bucket = "service-images";
 
       const { data: userData, error: userErr } = await supabase.auth.getUser();
+
       if (userErr || !userData.user) {
         setError(t("errors.mustBeLoggedIn"));
         return;
@@ -596,23 +644,13 @@ export default function NewServiceForm({
         .filter((item) => item.label || item.priceText || item.note)
         .slice(0, 20);
 
-      const hiddenServiceBlocks =
-        cleanBlocks.length > 0
-          ? cleanBlocks.map((block, index) => ({
-              title: block.title || `${text.galleryFallback} ${index + 1}`,
-              description: block.description,
-              priceText: block.priceText,
-              iconKey: block.iconKey || "other",
-              images: block.images,
-            }))
-          : [
-              {
-                title: title.trim() || text.serviceFallback,
-                description: description.trim(),
-                iconKey: "other",
-                images: [],
-              },
-            ];
+      const hiddenServiceBlocks = cleanBlocks.map((block) => ({
+        title: block.title,
+        description: block.description,
+        priceText: block.priceText,
+        iconKey: block.iconKey || "other",
+        images: block.images,
+      }));
 
       const payload = {
         title: title.trim(),
@@ -620,6 +658,8 @@ export default function NewServiceForm({
         description: description.trim(),
         responseTime,
         highlights,
+        brandLogoUrl,
+        brandLogoPath,
         priceMode,
         mainPrice: normalizedMainPrice,
         priceItems: cleanPriceItems,
@@ -786,7 +826,6 @@ export default function NewServiceForm({
 
             <div className={styles.formGroup}>
               <label className={styles.label}>{t("descriptionLabel")}</label>
-
               <textarea
                 className={styles.textarea}
                 value={description}
@@ -801,8 +840,63 @@ export default function NewServiceForm({
                       : undefined,
                 }}
               />
-
               <div className={styles.charHint}>{description.length} / 4000</div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{text.logoLabel}</label>
+
+              {brandLogoUrl && (
+                <div className={styles.imagePreview}>
+                  <div className={styles.imageCard}>
+                    <div className={styles.imageThumb}>
+                      <Image
+                        src={brandLogoUrl}
+                        alt={text.logoLabel}
+                        fill
+                        sizes="180px"
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      onClick={removeBrandLogo}
+                      disabled={
+                        uploadingLogo || submitting || !planLimits.canCreate
+                      }
+                    >
+                      {t("removeImage")}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.uploadRow}>
+                <label
+                  className={styles.uploadBtn}
+                  style={{
+                    opacity: uploadingLogo || !planLimits.canCreate ? 0.65 : 1,
+                    pointerEvents:
+                      uploadingLogo || !planLimits.canCreate ? "none" : "auto",
+                  }}
+                >
+                  {uploadingLogo ? t("uploading") : text.uploadLogo}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={
+                      uploadingLogo || submitting || !planLimits.canCreate
+                    }
+                    onChange={(e) => {
+                      const file = e.currentTarget.files?.[0] ?? null;
+                      e.currentTarget.value = "";
+                      void handleUploadBrandLogo(file);
+                    }}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </section>
@@ -820,7 +914,7 @@ export default function NewServiceForm({
               </div>
 
               <div className={styles.highList}>
-                {[h1, h2, h3].map((value, index) => (
+                {[h1, h2, h3, h4].map((value, index) => (
                   <div key={index} className={styles.highRow}>
                     <span className={styles.tick}>✅</span>
                     <input
@@ -830,13 +924,16 @@ export default function NewServiceForm({
                         if (index === 0) setH1(e.target.value);
                         if (index === 1) setH2(e.target.value);
                         if (index === 2) setH3(e.target.value);
+                        if (index === 3) setH4(e.target.value);
                       }}
                       placeholder={
                         index === 0
                           ? t("highlightPlaceholder1")
                           : index === 1
                             ? t("highlightPlaceholder2")
-                            : t("highlightPlaceholder3")
+                            : index === 2
+                              ? t("highlightPlaceholder3")
+                              : t("highlightPlaceholder3")
                       }
                       autoComplete="off"
                       disabled={!planLimits.canCreate}
@@ -926,6 +1023,45 @@ export default function NewServiceForm({
                 />
               </div>
             </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{text.priceModeLabel}</label>
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => setPriceMode("from")}
+                  style={{
+                    background: priceMode === "from" ? "#0f172a" : undefined,
+                    color: priceMode === "from" ? "#fff" : undefined,
+                  }}
+                >
+                  {text.from}
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => setPriceMode("fixed")}
+                  style={{
+                    background: priceMode === "fixed" ? "#0f172a" : undefined,
+                    color: priceMode === "fixed" ? "#fff" : undefined,
+                  }}
+                >
+                  {text.fixed}
+                </button>
+              </div>
+
+              <input
+                className={styles.input}
+                value={mainPrice}
+                onChange={(e) => setMainPrice(e.target.value)}
+                placeholder={text.pricePlaceholder}
+                inputMode="numeric"
+                disabled={!planLimits.canCreate}
+              />
+            </div>
           </div>
         </section>
 
@@ -953,7 +1089,9 @@ export default function NewServiceForm({
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>{text.blockDescription}</label>
+                    <label className={styles.label}>
+                      {text.blockDescription}
+                    </label>
                     <textarea
                       className={styles.textarea}
                       value={block.description}
@@ -1033,7 +1171,9 @@ export default function NewServiceForm({
                           <div className={styles.imageThumb}>
                             <Image
                               src={img.url}
-                              alt={`${block.title || text.serviceBlocksTitle} ${idx + 1}`}
+                              alt={`${block.title || text.serviceBlocksTitle} ${
+                                idx + 1
+                              }`}
                               fill
                               sizes="180px"
                               className={styles.previewImg}
@@ -1071,9 +1211,7 @@ export default function NewServiceForm({
                       className={styles.secondaryButton}
                       onClick={() => removeServiceBlock(blockIndex)}
                       disabled={
-                        !planLimits.canCreate ||
-                        serviceBlocks.length <= 1 ||
-                        uploadingBlockIndex !== null
+                        !planLimits.canCreate || uploadingBlockIndex !== null
                       }
                     >
                       {text.removeBlock}
@@ -1096,120 +1234,6 @@ export default function NewServiceForm({
               >
                 + {text.addBlock}
               </button>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div className={styles.sectionNumber}>5</div>
-            <h2 className={styles.sectionTitle}>{t("pricesSectionTitle")}</h2>
-          </div>
-
-          <div className={styles.sectionBody}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>{text.priceModeLabel}</label>
-
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() => setPriceMode("from")}
-                  disabled={!planLimits.canCreate}
-                  style={{
-                    background: priceMode === "from" ? "#0f172a" : undefined,
-                    color: priceMode === "from" ? "#fff" : undefined,
-                  }}
-                >
-                  {text.from}
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() => setPriceMode("fixed")}
-                  disabled={!planLimits.canCreate}
-                  style={{
-                    background: priceMode === "fixed" ? "#0f172a" : undefined,
-                    color: priceMode === "fixed" ? "#fff" : undefined,
-                  }}
-                >
-                  {text.fixed}
-                </button>
-              </div>
-
-              <input
-                className={styles.input}
-                value={mainPrice}
-                onChange={(e) => setMainPrice(e.target.value)}
-                placeholder={text.pricePlaceholder}
-                inputMode="numeric"
-                disabled={!planLimits.canCreate}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.label}>{t("priceItemsTitle")}</label>
-
-              <div className={styles.priceList}>
-                {priceItems.map((item, index) => (
-                  <div key={index} className={styles.priceCard}>
-                    <input
-                      className={styles.input}
-                      value={item.label}
-                      onChange={(e) =>
-                        updatePriceItem(index, "label", e.target.value)
-                      }
-                      placeholder={t("priceItemNamePlaceholder")}
-                      disabled={!planLimits.canCreate}
-                    />
-
-                    <input
-                      className={styles.input}
-                      value={item.priceText}
-                      onChange={(e) =>
-                        updatePriceItem(index, "priceText", e.target.value)
-                      }
-                      placeholder={t("priceItemPricePlaceholder")}
-                      disabled={!planLimits.canCreate}
-                    />
-
-                    <input
-                      className={styles.input}
-                      value={item.note}
-                      onChange={(e) =>
-                        updatePriceItem(index, "note", e.target.value)
-                      }
-                      placeholder={t("priceItemNotePlaceholder")}
-                      disabled={!planLimits.canCreate}
-                    />
-
-                    <div className={styles.inlineActions}>
-                      <button
-                        type="button"
-                        className={styles.secondaryButton}
-                        onClick={() => removePriceItem(index)}
-                        disabled={
-                          !planLimits.canCreate || priceItems.length <= 1
-                        }
-                      >
-                        {t("removePriceRow")}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={styles.inlineActions}>
-                <button
-                  type="button"
-                  className={styles.addRowButton}
-                  onClick={addPriceItem}
-                  disabled={!planLimits.canCreate}
-                >
-                  + {t("addPriceRow")}
-                </button>
-              </div>
             </div>
           </div>
         </section>
