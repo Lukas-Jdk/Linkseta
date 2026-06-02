@@ -193,6 +193,29 @@
       "kita": "Annet"
     }
   },
+  "reviewMessages": {
+  "title": "Legg igjen en anmeldelse",
+  "subtitle": "Bare innloggede brukere som har kontaktet leverandøren kan legge igjen en anmeldelse.",
+  "ratingAria": "Vurdering",
+  "starsAria": "{count} stjerner",
+  "placeholder": "Skriv anmeldelsen din... minst {min} tegn",
+  "sending": "Sender...",
+  "submit": "Send anmeldelse",
+  "LOGIN_REQUIRED": "Logg inn for å legge igjen en anmeldelse.",
+  "INVALID_RATING": "Velg en vurdering fra 1 til 5.",
+  "TOO_SHORT": "Anmeldelsen må være minst {min} tegn.",
+  "SERVICE_NOT_FOUND": "Tjenesten ble ikke funnet.",
+  "OWN_SERVICE": "Du kan ikke anmelde din egen tjeneste.",
+  "USER_NOT_FOUND": "Bruker ikke funnet.",
+  "ACCOUNT_TOO_NEW": "Du kan legge igjen en anmeldelse når kontoen din er minst 24 timer gammel.",
+  "CHAT_REQUIRED": "Kontakt leverandøren via chat først. Du kan legge igjen en anmeldelse etter 24 timer.",
+  "INTERACTION_REQUIRED": "Kontakt leverandøren eller åpne kontaktinformasjonen først. Du kan legge igjen en anmeldelse etter 24 timer.",
+  "WAIT_24H": "Du kan legge igjen en anmeldelse 24 timer etter første kontakt.",
+  "ALREADY_EXISTS": "Du har allerede anmeldt denne leverandøren.",
+  "SERVER_ERROR": "Serverfeil.",
+  "PENDING_APPROVAL": "Anmeldelsen er mottatt og venter på godkjenning.",
+  "REVIEW_SAVED": "Anmeldelsen er lagret."
+},
   "serviceDetailsPage": {
     "home": "Hjem",
     "services": "Tjenester",

@@ -195,6 +195,29 @@
       "kita": "Other"
     }
   },
+  "reviewMessages": {
+  "title": "Leave a review",
+  "subtitle": "Only signed-in users who contacted this provider can leave a review.",
+  "ratingAria": "Rating",
+  "starsAria": "{count} stars",
+  "placeholder": "Write your review... minimum {min} characters",
+  "sending": "Sending...",
+  "submit": "Submit review",
+  "LOGIN_REQUIRED": "Please sign in to leave a review.",
+  "INVALID_RATING": "Please choose a rating from 1 to 5.",
+  "TOO_SHORT": "Your review must be at least {min} characters.",
+  "SERVICE_NOT_FOUND": "Service not found.",
+  "OWN_SERVICE": "You cannot review your own service.",
+  "USER_NOT_FOUND": "User not found.",
+  "ACCOUNT_TOO_NEW": "You can leave a review when your account is at least 24 hours old.",
+  "CHAT_REQUIRED": "Please contact this provider through chat first. You can leave a review after 24 hours.",
+  "INTERACTION_REQUIRED": "Please contact this provider or open their contact details first. You can leave a review after 24 hours.",
+  "WAIT_24H": "You can leave a review 24 hours after your first contact.",
+  "ALREADY_EXISTS": "You have already reviewed this provider.",
+  "SERVER_ERROR": "Server error.",
+  "PENDING_APPROVAL": "Review received and waiting for approval.",
+  "REVIEW_SAVED": "Review saved."
+},
   "serviceDetailsPage": {
     "home": "Home",
     "services": "Services",

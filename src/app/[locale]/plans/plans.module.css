@@ -52,6 +52,7 @@
   font-family: var(--font-second);
   font-size: 1rem;
   line-height: 1.75;
+  padding-bottom: 1.5rem;
 }
 
 .error {

@@ -46,6 +46,7 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json().catch(() => ({}))) as StartChatBody;
+
     const serviceId =
       typeof body.serviceId === "string" ? body.serviceId.trim() : "";
 
@@ -127,6 +128,24 @@ export async function POST(req: Request) {
     `;
 
     if (existing[0]?.id) {
+      await prisma.providerInteraction.upsert({
+        where: {
+          serviceId_userId_type: {
+            serviceId: service.id,
+            userId: user.id,
+            type: "CHAT",
+          },
+        },
+        update: {},
+        create: {
+          serviceId: service.id,
+          providerId: sellerUserId,
+          userId: user.id,
+          type: "CHAT",
+          ipHash: null,
+        },
+      });
+
       return jsonNoStore({
         ok: true,
         conversationId: existing[0].id,
@@ -140,19 +159,69 @@ export async function POST(req: Request) {
 
     await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`
-        insert into conversations (id, service_id, created_by, created_at, last_message_at)
-        values (${conversationId}, ${service.id}, ${user.id}, now(), now())
+        insert into conversations (
+          id,
+          service_id,
+          created_by,
+          created_at,
+          last_message_at
+        )
+        values (
+          ${conversationId},
+          ${service.id},
+          ${user.id},
+          now(),
+          now()
+        )
       `;
 
       await tx.$executeRaw`
-        insert into conversation_participants (id, conversation_id, user_id, created_at)
-        values (${buyerParticipantId}, ${conversationId}, ${user.id}, now())
+        insert into conversation_participants (
+          id,
+          conversation_id,
+          user_id,
+          created_at
+        )
+        values (
+          ${buyerParticipantId},
+          ${conversationId},
+          ${user.id},
+          now()
+        )
       `;
 
       await tx.$executeRaw`
-        insert into conversation_participants (id, conversation_id, user_id, created_at)
-        values (${sellerParticipantId}, ${conversationId}, ${sellerUserId}, now())
+        insert into conversation_participants (
+          id,
+          conversation_id,
+          user_id,
+          created_at
+        )
+        values (
+          ${sellerParticipantId},
+          ${conversationId},
+          ${sellerUserId},
+          now()
+        )
       `;
+
+      await tx.providerInteraction.upsert({
+        where: {
+          serviceId_userId_type: {
+            serviceId: service.id,
+            userId: user.id,
+            type: "CHAT",
+          },
+        },
+        update: {},
+        create: {
+          serviceId: service.id,
+          providerId: sellerUserId,
+          userId: user.id,
+          type: "CHAT",
+          ipHash: null,
+        },
+      });
     });
 
     await auditLog({

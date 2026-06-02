@@ -24,7 +24,10 @@ model User {
   jobListings  JobListing[]
   profile      ProviderProfile?
   services     ServiceListing[]
-  reviews ServiceReview[]
+  reviewsWritten  ServiceReview[] @relation("ReviewAuthor")
+  reviewsReceived ServiceReview[] @relation("ReviewProvider")
+  providerInteractionsMade     ProviderInteraction[] @relation("ProviderInteractionsMade")
+  providerInteractionsReceived ProviderInteraction[] @relation("ProviderInteractionsReceived")
 }
 
 model ProviderProfile {
@@ -112,6 +115,8 @@ model ServiceListing {
   @@index([userId])
   @@index([locationPostcode])
   @@index([locationCity])
+
+  providerInteractions ProviderInteraction[]
 }
 
 model ServicePriceItem {
@@ -183,26 +188,65 @@ model ServiceBlockImage {
 }
 
 model ServiceReview {
-  id         String   @id @default(cuid())
-  serviceId String
-  userId    String?
-  ipHash     String?
-  rating     Int
-  name       String
-  comment    String?
-  isApproved Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  serviceId      String
+  userId         String
+  providerId     String
+  conversationId String?
 
-  service ServiceListing @relation(fields: [serviceId], references: [id])
-  user    User?          @relation(fields: [userId], references: [id])
+  rating         Int
+  name           String
+  comment        String
 
-  @@unique([serviceId, userId])
-  @@unique([serviceId, ipHash])
-  @@index([serviceId, isApproved])
+  ipHash         String?
+  weight         Float    @default(1.0)
+  suspicionScore Int      @default(0)
+  isSuspicious   Boolean  @default(false)
+  isApproved     Boolean  @default(true)
+  isVisible      Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  service  ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user     User           @relation("ReviewAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  provider User           @relation("ReviewProvider", fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, userId])
+  @@index([serviceId, isApproved, isVisible])
+  @@index([providerId])
   @@index([userId])
   @@index([ipHash])
+  @@index([isSuspicious, isApproved])
+}
+model ProviderInteraction {
+  id         String   @id @default(cuid())
+  serviceId String
+  providerId String
+  userId     String
+
+  type       ProviderInteractionType
+  ipHash     String?
+
+  createdAt  DateTime @default(now())
+
+  service  ServiceListing @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  provider User           @relation("ProviderInteractionsReceived", fields: [providerId], references: [id], onDelete: Cascade)
+  user     User           @relation("ProviderInteractionsMade", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, userId, type])
+  @@index([providerId])
+  @@index([userId])
+  @@index([serviceId])
+  @@index([createdAt])
 }
 
+enum ProviderInteractionType {
+  VIEW
+  CHAT
+  PHONE
+  EMAIL
+}
 model JobListing {
   id             String   @id @default(cuid())
   userId         String

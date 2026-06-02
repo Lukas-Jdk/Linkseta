@@ -193,6 +193,29 @@
       "kita": "Kita"
     }
   },
+  "reviewMessages": {
+    "title": "Palikti atsiliepimą",
+    "subtitle": "Atsiliepimą gali palikti tik prisijungę vartotojai, kurie susisiekė su paslaugos teikėju.",
+    "ratingAria": "Įvertinimas",
+    "starsAria": "{count} žvaigždutės",
+    "placeholder": "Parašykite atsiliepimą... bent {min} simbolių",
+    "sending": "Siunčiama...",
+    "submit": "Pateikti atsiliepimą",
+    "LOGIN_REQUIRED": "Prisijunkite, kad galėtumėte palikti atsiliepimą.",
+    "INVALID_RATING": "Pasirinkite įvertinimą nuo 1 iki 5.",
+    "TOO_SHORT": "Atsiliepimas turi būti bent {min} simbolių.",
+    "SERVICE_NOT_FOUND": "Paslauga nerasta.",
+    "OWN_SERVICE": "Negalite palikti atsiliepimo savo paslaugai.",
+    "USER_NOT_FOUND": "Vartotojas nerastas.",
+    "ACCOUNT_TOO_NEW": "Atsiliepimą galėsite palikti, kai jūsų paskyra bus bent 24 val. senumo.",
+    "CHAT_REQUIRED": "Pirmiausia parašykite paslaugos teikėjui per chat. Atsiliepimą galėsite palikti po 24 val.",
+    "INTERACTION_REQUIRED": "Pirmiausia susisiekite su paslaugos teikėju arba atidarykite jo kontaktus. Atsiliepimą galėsite palikti po 24 val.",
+    "WAIT_24H": "Atsiliepimą galėsite palikti praėjus 24 val. po pirmo kontakto.",
+    "ALREADY_EXISTS": "Jūs jau palikote atsiliepimą šiam paslaugų teikėjui.",
+    "SERVER_ERROR": "Serverio klaida.",
+    "PENDING_APPROVAL": "Atsiliepimas gautas ir laukia patvirtinimo.",
+    "REVIEW_SAVED": "Atsiliepimas išsaugotas."
+  },
   "serviceDetailsPage": {
     "home": "Pagrindinis",
     "services": "Paslaugos",

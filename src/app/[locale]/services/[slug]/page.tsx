@@ -11,6 +11,8 @@ import { absOg, localeAlternates } from "@/lib/seo-i18n";
 import { hasPremiumAccess } from "@/lib/planAccess";
 import StartConversationButton from "./StartConversationButton";
 import ReviewForm from "./ReviewForm";
+import InteractionLink from "./InteractionLink";
+import InteractionViewTracker from "./InteractionViewTracker";
 import {
   Award,
   BriefcaseBusiness,
@@ -41,6 +43,7 @@ type WorkingHourRow = {
 type ApprovedReview = {
   id: string;
   rating: number;
+  weight: number;
   name: string;
   comment: string | null;
   createdAt: Date;
@@ -221,6 +224,7 @@ function parseWorkingHours(
 function formatRating(value: number) {
   return value.toFixed(1).replace(".", ",");
 }
+
 function formatReviewDate(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
@@ -232,6 +236,7 @@ function formatReviewDate(date: Date, locale: string) {
 function reviewInitial(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "U";
 }
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -384,12 +389,16 @@ export default async function ServiceDetailsPage({ params }: Props) {
       locationRegion: true,
 
       reviews: {
-        where: { isApproved: true },
+        where: {
+          isApproved: true,
+          isVisible: true,
+        },
         orderBy: { createdAt: "desc" },
         take: 6,
         select: {
           id: true,
           rating: true,
+          weight: true,
           name: true,
           comment: true,
           createdAt: true,
@@ -533,6 +542,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
     normalizedAbout && normalizedAbout !== localizedDescription.trim()
       ? normalizedAbout
       : localizedDescription;
+
   const localizedHighlights = pickLocalizedArray(
     locale,
     Array.isArray(service.highlights) ? service.highlights : [],
@@ -568,8 +578,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
   }));
 
   const sellerName =
-    service.user.name?.trim() ||
-    service.user.email.split("@")[0];
+    service.user.name?.trim() || service.user.email.split("@")[0];
 
   const sellerInitial = initialLetter(sellerName, service.user.email);
   const isVerified = Boolean(service.user.profile?.isApproved);
@@ -603,11 +612,22 @@ export default async function ServiceDetailsPage({ params }: Props) {
     (service.reviews as ApprovedReview[]) ?? [];
 
   const reviewCount = approvedReviews.length;
+
+  const totalReviewWeight = approvedReviews.reduce(
+    (sum, review) => sum + (review.weight ?? 1),
+    0,
+  );
+
   const averageRating =
-    reviewCount > 0
-      ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) /
-        reviewCount
+    reviewCount > 0 && totalReviewWeight > 0
+      ? approvedReviews.reduce(
+          (sum, review) => sum + review.rating * (review.weight ?? 1),
+          0,
+        ) / totalReviewWeight
       : null;
+
+  const shouldShowRating = reviewCount >= 5 && averageRating != null;
+
   const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => {
     const count = approvedReviews.filter(
       (review) => review.rating === star,
@@ -622,6 +642,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
       percent,
     };
   });
+
   const experienceYears = service.user.profile?.experienceYears ?? null;
   const completedProjects = service.user.profile?.completedProjects ?? null;
 
@@ -635,10 +656,20 @@ export default async function ServiceDetailsPage({ params }: Props) {
       name: city !== "—" ? city : "Norway",
     },
     url: `${siteUrl}/${locale}/services/${service.slug}`,
+    ...(shouldShowRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating?.toFixed(1),
+            reviewCount,
+          },
+        }
+      : {}),
   };
 
   return (
     <main className={styles.page}>
+      <InteractionViewTracker serviceId={service.id} />
       <div className="container">
         <script
           type="application/ld+json"
@@ -700,7 +731,7 @@ export default async function ServiceDetailsPage({ params }: Props) {
             <h1 className={styles.heroTitle}>{localizedTitle}</h1>
 
             <div className={styles.ratingLine}>
-              {averageRating != null && (
+              {shouldShowRating && (
                 <>
                   <span className={styles.stars}>★</span>
                   <strong>{formatRating(averageRating)}</strong>
@@ -773,10 +804,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
               )}
 
               {telHref ? (
-                <a className={styles.providerActionButton} href={telHref}>
+                <InteractionLink
+                  className={styles.providerActionButton}
+                  href={telHref}
+                  serviceId={service.id}
+                  type="PHONE"
+                >
                   <Phone size={17} />
                   <span>{text.call}</span>
-                </a>
+                </InteractionLink>
               ) : (
                 <button
                   className={styles.providerActionButton}
@@ -788,15 +824,17 @@ export default async function ServiceDetailsPage({ params }: Props) {
                 </button>
               )}
 
-              <a
+              <InteractionLink
                 className={styles.providerActionButton}
                 href={emailHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                serviceId={service.id}
+                type="EMAIL"
               >
                 <Mail size={17} />
                 <span>{text.email}</span>
-              </a>
+              </InteractionLink>
             </div>
           </aside>
         </section>
@@ -856,42 +894,52 @@ export default async function ServiceDetailsPage({ params }: Props) {
 
               {approvedReviews.length > 0 ? (
                 <>
-                  <div className={styles.reviewSummary}>
-                    <div className={styles.reviewSummaryLeft}>
-                      <div className={styles.reviewSummaryRatingBig}>
-                        {averageRating ? formatRating(averageRating) : "0,0"}
-                      </div>
-
-                      <div className={styles.reviewSummaryStarsBig}>★★★★★</div>
-
-                      <div className={styles.reviewSummaryText}>
-                        {t("basedOnReviews", { count: reviewCount })}
-                      </div>
-                    </div>
-
-                    <div className={styles.reviewBars}>
-                      {ratingBreakdown.map((row) => (
-                        <div key={row.star} className={styles.reviewBarRow}>
-                          <span className={styles.reviewBarLabel}>
-                            {row.star} ★
-                          </span>
-
-                          <div className={styles.reviewBarTrack}>
-                            <div
-                              className={styles.reviewBarFill}
-                              style={{
-                                width: `${row.percent}%`,
-                              }}
-                            />
-                          </div>
-
-                          <span className={styles.reviewBarPercent}>
-                            {row.percent}%
-                          </span>
+                  {shouldShowRating && (
+                    <div className={styles.reviewSummary}>
+                      <div className={styles.reviewSummaryLeft}>
+                        <div className={styles.reviewSummaryRatingBig}>
+                          {formatRating(averageRating)}
                         </div>
-                      ))}
+
+                        <div className={styles.reviewSummaryStarsBig}>
+                          ★★★★★
+                        </div>
+
+                        <div className={styles.reviewSummaryText}>
+                          {t("basedOnReviews", { count: reviewCount })}
+                        </div>
+                      </div>
+
+                      <div className={styles.reviewBars}>
+                        {ratingBreakdown.map((row) => (
+                          <div key={row.star} className={styles.reviewBarRow}>
+                            <span className={styles.reviewBarLabel}>
+                              {row.star} ★
+                            </span>
+
+                            <div className={styles.reviewBarTrack}>
+                              <div
+                                className={styles.reviewBarFill}
+                                style={{
+                                  width: `${row.percent}%`,
+                                }}
+                              />
+                            </div>
+
+                            <span className={styles.reviewBarPercent}>
+                              {row.percent}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {!shouldShowRating && (
+                    <p className={styles.emptyText}>
+                      {reviewCount} {text.reviewCount}
+                    </p>
+                  )}
 
                   <div className={styles.reviewGrid}>
                     {approvedReviews
