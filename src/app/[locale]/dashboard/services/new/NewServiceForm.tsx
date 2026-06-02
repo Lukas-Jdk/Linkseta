@@ -123,8 +123,8 @@ function getLocalText(locale: string) {
       noBlockImages: "No photos in this group yet",
       maxBlocksError: "You have reached your gallery group limit",
       maxImagesError: "You have reached your photo limit",
-      logoLabel: "Logo",
-      uploadLogo: "Upload logo",
+      logoLabel: "Main service photo",
+      uploadLogo: "Upload main photo",
     };
   }
 
@@ -163,8 +163,8 @@ function getLocalText(locale: string) {
       noBlockImages: "Ingen bilder i denne gruppen ennå",
       maxBlocksError: "Du har nådd grensen for gallerigrupper",
       maxImagesError: "Du har nådd bildegrensen",
-      logoLabel: "Logo",
-      uploadLogo: "Last opp logo",
+      logoLabel: "Hovedtjenestefoto",
+      uploadLogo: "Last opp hovedfoto",
     };
   }
 
@@ -202,8 +202,8 @@ function getLocalText(locale: string) {
     noBlockImages: "Šioje grupėje nuotraukų dar nėra",
     maxBlocksError: "Pasiekėte galerijos grupių limitą",
     maxImagesError: "Pasiekėte nuotraukų limitą",
-    logoLabel: "Logo",
-    uploadLogo: "Įkelti logo",
+    logoLabel: "Pagrindinė paslaugos nuotrauka",
+    uploadLogo: "Įkelti pagrindinę nuotrauką",
   };
 }
 
@@ -451,7 +451,7 @@ export default function NewServiceForm({
         throw new Error(t("errors.fileTooLargeAfterCompression"));
       }
 
-      const path = `${userData.user.id}/services/logos/${crypto.randomUUID()}.jpg`;
+      const path = `${userData.user.id}/services/covers/${window.crypto.randomUUID()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("service-images")
@@ -465,7 +465,9 @@ export default function NewServiceForm({
         throw new Error(uploadError.message || t("errors.uploadOneFailed"));
       }
 
-      const { data } = supabase.storage.from("service-images").getPublicUrl(path);
+      const { data } = supabase.storage
+        .from("service-images")
+        .getPublicUrl(path);
 
       if (!data?.publicUrl) {
         throw new Error(t("errors.uploadGeneric"));
@@ -658,8 +660,10 @@ export default function NewServiceForm({
         description: description.trim(),
         responseTime,
         highlights,
-        brandLogoUrl,
-        brandLogoPath,
+        imageUrl: brandLogoUrl,
+        imagePath: brandLogoPath,
+        brandLogoUrl: null,
+        brandLogoPath: null,
         priceMode,
         mainPrice: normalizedMainPrice,
         priceItems: cleanPriceItems,

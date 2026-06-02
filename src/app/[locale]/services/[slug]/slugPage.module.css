@@ -52,15 +52,24 @@
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 260px;
+  min-height: 330px;
   border-radius: 18px;
   overflow: hidden;
-  background: #e2e8f0;
+  background: #0f172a;
+}
+
+.heroImageBg {
+  object-fit: cover;
+  object-position: center;
+  filter: blur(18px);
+  transform: scale(1.12);
+  opacity: 0.55;
 }
 
 .heroImage {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  z-index: 2;
 }
 
 .brandOverlay {
@@ -1142,9 +1151,9 @@
     grid-template-columns: 1fr;
   }
   .reviewSummary {
-  grid-template-columns: 1fr;
-  gap: 18px;
-}
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
 }
 
 @media (max-width: 520px) {
@@ -1190,7 +1199,6 @@
   }
 }
 
-
 /* Premium gallery modal with description + fullscreen lightbox */
 .galleryModal {
   position: fixed;
@@ -1210,7 +1218,11 @@
   overflow: hidden;
   border-radius: 26px;
   background:
-    radial-gradient(circle at top left, rgba(20, 184, 166, 0.1), transparent 34%),
+    radial-gradient(
+      circle at top left,
+      rgba(20, 184, 166, 0.1),
+      transparent 34%
+    ),
     linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
   border: 1px solid rgba(148, 163, 184, 0.18);
   box-shadow: 0 34px 100px rgba(2, 6, 23, 0.7);
@@ -1267,7 +1279,7 @@
 }
 
 .galleryBigImage {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 
@@ -1579,7 +1591,6 @@
     border-radius: 0;
   }
 }
-
 
 .galleryPrice {
   display: inline-flex;

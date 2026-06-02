@@ -489,14 +489,12 @@ export default async function ServiceDetailsPage({ params }: Props) {
     ? service.galleryImageUrls.filter(Boolean)
     : [];
 
-  const images =
-    gallery.length > 0
-      ? gallery
-      : service.imageUrl
-        ? [service.imageUrl]
-        : ["/default.webp"];
+  const heroImage = service.imageUrl || gallery[0] || "/default.webp";
 
-  const heroImage = images[0] ?? "/default.webp";
+  const images = [
+    heroImage,
+    ...gallery.filter((url) => url && url !== heroImage),
+  ];
 
   const city = formatServiceLocation({
     locationPostcode: service.locationPostcode,
@@ -688,6 +686,15 @@ export default async function ServiceDetailsPage({ params }: Props) {
         <section className={styles.heroShell}>
           <div className={styles.heroImageCol}>
             <div className={styles.heroImageWrap}>
+              <Image
+                src={heroImage}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 900px) 100vw, 360px"
+                className={styles.heroImageBg}
+              />
+
               <Image
                 src={heroImage}
                 alt={localizedTitle}

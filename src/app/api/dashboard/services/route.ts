@@ -373,8 +373,9 @@ export async function POST(req: Request) {
     const locationPostcode = clampText(body?.locationPostcode, 20);
     const locationCity = clampText(body?.locationCity, 120);
     const locationRegion = clampText(body?.locationRegion, 120);
-    const brandLogoUrl = clampText(body?.brandLogoUrl, 600) || null;
-    const brandLogoPath = clampText(body?.brandLogoPath, 300) || null;
+
+    const requestedImageUrl = clampText(body?.imageUrl, 600) || null;
+    const requestedImagePath = clampText(body?.imagePath, 300) || null;
 
     const priceMode = body?.priceMode === "fixed" ? "fixed" : "from";
     const mainPrice = parsePositiveInt(body?.mainPrice);
@@ -467,7 +468,15 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-
+    if (
+      (requestedImageUrl && !requestedImagePath) ||
+      (!requestedImageUrl && requestedImagePath)
+    ) {
+      return jsonNoStore(
+        { error: "Nesutampa pagrindinės nuotraukos duomenys." },
+        { status: 400 },
+      );
+    }
     const highlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
           .map((s: unknown) => String(s).trim())
@@ -481,8 +490,8 @@ export async function POST(req: Request) {
     if (!safePrefix) {
       return jsonNoStore({ error: "Missing supabaseId" }, { status: 400 });
     }
-
     const allImagePaths = [
+      ...(requestedImagePath ? [requestedImagePath] : []),
       ...galleryImagePaths,
       ...collectBlockImagePaths(normalizedBlocks),
     ];
@@ -496,8 +505,8 @@ export async function POST(req: Request) {
     const baseSlug = slugify(title) || "service";
     const slug = await uniqueSlugGlobal(baseSlug);
 
-    const coverImageUrl = galleryImageUrls[0] ?? null;
-    const coverImagePath = galleryImagePaths[0] ?? null;
+    const coverImageUrl = requestedImageUrl ?? galleryImageUrls[0] ?? null;
+    const coverImagePath = requestedImagePath ?? galleryImagePaths[0] ?? null;
 
     let titleEn: string | null = null;
     let titleNo: string | null = null;
@@ -624,8 +633,8 @@ export async function POST(req: Request) {
         imagePath: coverImagePath,
         galleryImageUrls,
         galleryImagePaths,
-        brandLogoUrl,
-        brandLogoPath,
+        brandLogoUrl: null,
+        brandLogoPath: null,
         highlights,
         sourceLocale: "lt",
         titleEn,

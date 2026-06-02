@@ -93,8 +93,8 @@ function getLocalText(locale: string) {
       noBlockImages: "No photos in this group yet",
       galleryFallback: "Gallery",
       serviceFallback: "Service",
-      logoLabel: "Logo",
-      uploadLogo: "Upload logo",
+      logoLabel: "Main service photo",
+      uploadLogo: "Upload main photo",
       postcodeLabel: "Postcode *",
       cityLabel: "City *",
       regionLabel: "Region",
@@ -124,8 +124,8 @@ function getLocalText(locale: string) {
       noBlockImages: "Ingen bilder i denne gruppen ennå",
       galleryFallback: "Galleri",
       serviceFallback: "Tjeneste",
-      logoLabel: "Logo",
-      uploadLogo: "Last opp logo",
+      logoLabel: "Hovedbilde for tjenesten",
+      uploadLogo: "Last opp hovedbilde",
       postcodeLabel: "Postnummer *",
       cityLabel: "By *",
       regionLabel: "Region",
@@ -155,8 +155,8 @@ function getLocalText(locale: string) {
     noBlockImages: "Šioje grupėje nuotraukų dar nėra",
     galleryFallback: "Galerija",
     serviceFallback: "Paslauga",
-    logoLabel: "Logo",
-    uploadLogo: "Įkelti logo",
+    logoLabel: "Pagrindinė paslaugos nuotrauka",
+    uploadLogo: "Įkelti pagrindinę nuotrauką",
     postcodeLabel: "Pašto kodas *",
     cityLabel: "Miestas *",
     regionLabel: "Regionas",
@@ -228,10 +228,10 @@ export default function EditServiceForm({
   const [description, setDescription] = useState(initial.description);
 
   const [brandLogoUrl, setBrandLogoUrl] = useState<string | null>(
-    initial.brandLogoUrl ?? null,
+    initial.imageUrl ?? null,
   );
   const [brandLogoPath, setBrandLogoPath] = useState<string | null>(
-    initial.brandLogoPath ?? null,
+    initial.imagePath ?? null,
   );
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -416,8 +416,7 @@ export default function EditServiceForm({
       if (compressed.size > 3 * 1024 * 1024) {
         throw new Error(t("fileTooLargeAfter"));
       }
-
-      const path = `${userData.user.id}/services/logos/${window.crypto.randomUUID()}.jpg`;
+      const path = `${userData.user.id}/services/covers/${window.crypto.randomUUID()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
@@ -584,8 +583,10 @@ export default function EditServiceForm({
           locale,
           title: title.trim(),
           description: description.trim(),
-          brandLogoUrl,
-          brandLogoPath,
+          imageUrl: brandLogoUrl,
+          imagePath: brandLogoPath,
+          brandLogoUrl: null,
+          brandLogoPath: null,
           locationPostcode: locationPostcode.trim(),
           locationCity: locationCity.trim(),
           locationRegion: locationRegion.trim(),

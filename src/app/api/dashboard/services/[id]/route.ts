@@ -615,7 +615,29 @@ export async function PATCH(
         }
       }
     }
+    const requestedCoverUrl =
+      body?.imageUrl !== undefined
+        ? clampText(body.imageUrl, 600)
+        : service.imageUrl;
 
+    const requestedCoverPath =
+      body?.imagePath !== undefined
+        ? clampText(body.imagePath, 300)
+        : service.imagePath;
+
+    if (
+      (requestedCoverUrl && !requestedCoverPath) ||
+      (!requestedCoverUrl && requestedCoverPath)
+    ) {
+      return NextResponse.json(
+        { error: "Nesutampa pagrindinės nuotraukos duomenys." },
+        { status: 400 },
+      );
+    }
+
+    if (requestedCoverPath && !requestedCoverPath.startsWith(safePrefix)) {
+      return NextResponse.json({ error: "Invalid imagePath" }, { status: 400 });
+    }
     const oldPathsSet = new Set(
       [
         ...(Array.isArray(service.galleryImagePaths)
@@ -631,8 +653,9 @@ export async function PATCH(
     );
 
     const nextPathsSet = new Set([
+      ...(requestedCoverPath ? [requestedCoverPath] : []),
       ...nextPairs.map((x) => x.path),
-      ...(normalizedBlocks !== null ? collectBlockImagePaths(normalizedBlocks) : []),
+      ...(normalizedBlocks ? collectBlockImagePaths(normalizedBlocks) : []),
     ]);
 
     const toDelete = Array.from(oldPathsSet).filter(
@@ -657,17 +680,6 @@ export async function PATCH(
         { status: 400 },
       );
     }
-
-    const nextBrandLogoUrl =
-      body?.brandLogoUrl !== undefined
-        ? clampText(body.brandLogoUrl, 600)
-        : service.brandLogoUrl;
-
-    const nextBrandLogoPath =
-      body?.brandLogoPath !== undefined
-        ? clampText(body.brandLogoPath, 300)
-        : service.brandLogoPath;
-
     const nextHighlights: string[] = Array.isArray(body?.highlights)
       ? body.highlights
           .map((s: unknown) => String(s).trim())
@@ -691,12 +703,12 @@ export async function PATCH(
     const data: Record<string, unknown> = {
       cityId: nextCityId ?? null,
       categoryId: nextCategoryId ?? null,
-      brandLogoUrl: nextBrandLogoUrl,
-      brandLogoPath: nextBrandLogoPath,
       responseTime: nextResponseTime,
       isActive: nextIsActive,
-      imageUrl: nextGalleryImageUrls[0] ?? null,
-      imagePath: nextGalleryImagePaths[0] ?? null,
+      brandLogoUrl: null,
+      brandLogoPath: null,
+      imageUrl: requestedCoverUrl ?? nextGalleryImageUrls[0] ?? null,
+      imagePath: requestedCoverPath ?? nextGalleryImagePaths[0] ?? null,
       galleryImageUrls: nextGalleryImageUrls,
       galleryImagePaths: nextGalleryImagePaths,
       sourceLocale: service.sourceLocale ?? "lt",
