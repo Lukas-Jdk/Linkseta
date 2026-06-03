@@ -4,14 +4,14 @@
   position: relative;
   overflow: hidden;
   color: var(--text-white);
-  min-height: 520px;
+  min-height: 620px;
   padding-top: clamp(72px, 8vh, 112px);
   padding-bottom: 0;
   background:
    
     url("/home.webp");
   background-size: cover;
-  background-position: center 28%;
+  background-position: center 18%;
   background-repeat: no-repeat;
   border-bottom: 1px solid rgba(20, 184, 166, 0.12);
 }
@@ -24,14 +24,14 @@
   background:
     linear-gradient(
       90deg,
-      rgba(2, 6, 23, 0.3),
-      rgba(2, 6, 23, 0.06) 46%,
-      rgba(2, 6, 23, 0.18)
+      rgba(2, 6, 23, 0.14),
+      rgba(2, 6, 23, 0.03) 46%,
+      rgba(2, 6, 23, 0.10)
     ),
     linear-gradient(
       180deg,
-      rgba(2, 6, 23, 0.18),
-      rgba(2, 6, 23, 0.42)
+      rgba(2, 6, 23, 0.06),
+      rgba(2, 6, 23, 0.16)
     );
   pointer-events: none;
 }
