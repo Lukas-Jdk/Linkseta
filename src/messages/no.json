@@ -415,9 +415,9 @@
 
     "recommended": "Anbefalt",
     "popular": "Mest populær",
-    "newTag": "Ny",
+    "newTag": "",
     "chatKeyword": "Direkte chat",
-
+    
     "buttonBusy": "Behandler...",
     "buttonStartTrial": "Start Free Trial",
     "buttonStartTrialFull": "Start 30 dager gratis",
@@ -441,8 +441,8 @@
         "priceLabel": "0 NOK / 30 dager",
         "description": "Prøv Linkseta uten forpliktelser.",
         "features": [
-          "3 aktive annonser",
-          "Opptil 15 bilder i galleriet",
+          "1 aktive annonser",
+          "Opptil 30 bilder i galleriet",
           "Anmeldelser",
           "Direkte chat med kunder",
           "Mulighet for Top Rated",
@@ -455,7 +455,7 @@
         "priceLabel": "119 NOK / måned",
         "description": "Alt du trenger for å markedsføre tjenestene dine aktivt på Linkseta.",
         "features": [
-          "3 aktive annonser",
+          "1 aktive annonser",
           "Opptil 15 bilder i galleriet",
           "Forespørsler via e-post og telefon",
           "Anmeldelser",
@@ -468,7 +468,7 @@
         "priceLabel": "249 NOK / måned",
         "description": "Mer synlighet, flere forespørsler og raskere kommunikasjon med kunder.",
         "features": [
-          "5 aktive annonser",
+          "1 aktive annonser",
           "Opptil 30 bilder i galleriet",
           "Direkte chat med kunder",
           "Forespørsler via e-post og telefon",
@@ -525,7 +525,7 @@
 
         "fourth": {
           "q": "Hva får jeg i Free Trial?",
-          "a": "Free Trial gir deg 30 dager med Premium-funksjoner, 3 aktive annonser og opptil 15 bilder i galleriet."
+          "a": "Free Trial gir deg 30 dager med Premium-funksjoner, 1 aktive annonser og opptil 30 bilder i galleriet."
         }
       }
     }

@@ -415,7 +415,7 @@
 
     "recommended": "Rekomenduojamas",
     "popular": "Populiariausias",
-    "newTag": "Nauja",
+    "newTag": "",
     "chatKeyword": "Tiesioginis chat",
 
     "buttonBusy": "Vykdoma...",
@@ -441,8 +441,8 @@
         "priceLabel": "0 NOK / 30 dienų",
         "description": "Išbandyk Linksetą be įsipareigojimų.",
         "features": [
-          "3 aktyvūs skelbimai",
-          "Iki 15 nuotraukų galerijoje",
+          "1 aktyvus skelbimas",
+          "Iki 30 nuotraukų galerijoje",
           "Atsiliepimai",
           "Tiesioginis chat su klientais",
           "Top Rated galimybė",
@@ -455,7 +455,7 @@
         "priceLabel": "119 NOK / mėn",
         "description": "Viskas, ko reikia aktyviai reklamuoti savo paslaugas Linksetoje.",
         "features": [
-          "3 aktyvūs skelbimai",
+          "1 aktyvus skelbimas",
           "Iki 15 nuotraukų galerijoje",
           "Užklausos el. paštu ir skambučiais",
           "Atsiliepimai",
@@ -468,7 +468,7 @@
         "priceLabel": "249 NOK / mėn",
         "description": "Didesnis matomumas, daugiau užklausų ir greitesnis bendravimas su klientais.",
         "features": [
-          "5 aktyvūs skelbimai",
+          "1 aktyvus skelbimas",
           "Iki 30 nuotraukų galerijoje",
           "Tiesioginis chat su klientais",
           "Užklausos el. paštu ir skambučiais",
@@ -525,7 +525,7 @@
 
         "fourth": {
           "q": "Ką gaunu per Free Trial?",
-          "a": "Free Trial suteikia 30 dienų prieigą prie Premium funkcijų su 3 aktyviais skelbimais ir iki 15 nuotraukų galerijoje."
+          "a": "Free Trial suteikia 30 dienų prieigą prie Premium funkcijų su 1 aktyviiu skelbimau ir iki 30 nuotraukų galerijoje."
         }
       }
     }

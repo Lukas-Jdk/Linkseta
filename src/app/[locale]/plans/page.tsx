@@ -17,6 +17,12 @@ import {
   LockKeyhole,
   MessageCircle,
   Clock3,
+  HelpCircle,
+  ChevronDown,
+  CreditCard,
+  Sparkles,
+  BadgeCheck,
+  XCircle,
 } from "lucide-react";
 
 import styles from "./plans.module.css";
@@ -47,6 +53,7 @@ export default function PlansPage() {
 
   const [loadingSlug, setLoadingSlug] = useState<PlanSlug | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const plans: Plan[] = useMemo(
     () => [
@@ -128,10 +135,30 @@ export default function PlansPage() {
   }
 
   const faqItems = [
-    { q: t("faq.items.first.q"), a: t("faq.items.first.a") },
-    { q: t("faq.items.second.q"), a: t("faq.items.second.a") },
-    { q: t("faq.items.third.q"), a: t("faq.items.third.a") },
-    { q: t("faq.items.fourth.q"), a: t("faq.items.fourth.a") },
+    {
+      q: t("faq.items.first.q"),
+      a: t("faq.items.first.a"),
+      icon: BadgeCheck,
+      tone: "green",
+    },
+    {
+      q: t("faq.items.second.q"),
+      a: t("faq.items.second.a"),
+      icon: CreditCard,
+      tone: "blue",
+    },
+    {
+      q: t("faq.items.third.q"),
+      a: t("faq.items.third.a"),
+      icon: XCircle ,
+      tone: "orange",
+    },
+    {
+      q: t("faq.items.fourth.q"),
+      a: t("faq.items.fourth.a"),
+      icon: Sparkles,
+      tone: "purple",
+    },
   ];
 
   return (
@@ -330,15 +357,76 @@ export default function PlansPage() {
         </section>
 
         <section className={styles.faqSection}>
-          <h2 className={styles.faqTitle}>{t("faq.title")}</h2>
+          <div className={styles.faqHeader}>
+        
+
+            <div>
+              <h2 className={styles.faqTitle}>{t("faq.title")}</h2>
+              <p className={styles.faqSubtitle}>
+                {locale === "en"
+                  ? "Clear answers about plans, trial and provider features."
+                  : locale === "no"
+                    ? "Klare svar om planer, prøveperiode og leverandørfunksjoner."
+                    : "Aiškūs atsakymai apie planus, bandomąjį laikotarpį ir funkcijas."}
+              </p>
+            </div>
+          </div>
 
           <div className={styles.faqList}>
-            {faqItems.map((item) => (
-              <article key={item.q} className={styles.faqItem}>
-                <h3 className={styles.faqQuestion}>{item.q}</h3>
-                <p className={styles.faqAnswer}>{item.a}</p>
-              </article>
-            ))}
+            {faqItems.map((item, index) => {
+              const Icon = item.icon;
+              const isOpen = openFaqIndex === index;
+
+              return (
+                <article
+                  key={item.q}
+                  className={`${styles.faqItem} ${
+                    isOpen ? styles.faqItemOpen : ""
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className={styles.faqQuestionButton}
+                    onClick={() =>
+                      setOpenFaqIndex((current) =>
+                        current === index ? null : index,
+                      )
+                    }
+                    aria-expanded={isOpen}
+                  >
+                    <span
+                      className={`${styles.faqQuestionIcon} ${
+                        item.tone === "blue"
+                          ? styles.faqIconBlue
+                          : item.tone === "orange"
+                            ? styles.faqIconOrange
+                            : item.tone === "green"
+                              ? styles.faqIconGreen
+                              : styles.faqIconPurple
+                      }`}
+                    >
+                      <Icon size={20} />
+                    </span>
+
+                    <span className={styles.faqQuestionText}>{item.q}</span>
+
+                    <ChevronDown
+                      className={`${styles.faqChevron} ${
+                        isOpen ? styles.faqChevronOpen : ""
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className={`${styles.faqAnswerWrap} ${
+                      isOpen ? styles.faqAnswerWrapOpen : ""
+                    }`}
+                  >
+                    <p className={styles.faqAnswer}>{item.a}</p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       </div>

@@ -459,7 +459,7 @@
 
     "recommended": "Recommended",
     "popular": "Most popular",
-    "newTag": "New",
+    "newTag": "",
     "chatKeyword": "Direct chat",
 
     "buttonBusy": "Processing...",
@@ -485,8 +485,8 @@
         "priceLabel": "0 NOK / 30 days",
         "description": "Try Linkseta without commitment.",
         "features": [
-          "3 active listings",
-          "Up to 15 gallery photos",
+          "1 active listing",
+          "Up to 30 gallery photos",
           "Reviews",
           "Direct chat with customers",
           "Top Rated eligibility",
@@ -499,7 +499,7 @@
         "priceLabel": "119 NOK / month",
         "description": "Everything you need to actively promote your services on Linkseta.",
         "features": [
-          "3 active listings",
+          "1 active listing",
           "Up to 15 gallery photos",
           "Email and phone inquiries",
           "Reviews",
@@ -512,7 +512,7 @@
         "priceLabel": "249 NOK / month",
         "description": "More visibility, more inquiries and faster communication with customers.",
         "features": [
-          "5 active listings",
+          "1 active listing",
           "Up to 30 gallery photos",
           "Direct chat with customers",
           "Email and phone inquiries",
@@ -569,7 +569,7 @@
 
         "fourth": {
           "q": "What do I get during the Free Trial?",
-          "a": "Free Trial gives you 30 days of Premium features with 3 active listings and up to 15 gallery photos."
+          "a": "Free Trial gives you 30 days of Premium features with 1 active listing and up to 30 gallery photos."
         }
       }
     }
