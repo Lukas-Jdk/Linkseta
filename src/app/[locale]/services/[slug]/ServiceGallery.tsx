@@ -195,11 +195,11 @@ export default function ServiceGallery({ blocks }: Props) {
 
                 <h3>{activeBlock.title}</h3>
 
-                {activePrice && (
+            
+                {activeDescription && <p>{activeDescription}</p>}
+    {activePrice && (
                   <div className={styles.galleryPrice}>{activePrice}</div>
                 )}
-
-                {activeDescription && <p>{activeDescription}</p>}
 
                 <div className={styles.galleryInfoDivider} />
               </aside>
