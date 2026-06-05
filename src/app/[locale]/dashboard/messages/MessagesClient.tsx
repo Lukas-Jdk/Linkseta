@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Send, MessageCircle, ArrowLeft } from "lucide-react";
 import { csrfFetch } from "@/lib/csrfClient";
 import styles from "./messages.module.css";
@@ -62,18 +63,23 @@ type Props = {
   initialMessages: ChatMessage[];
 };
 
-function displayName(user: { name: string | null; email: string }) {
-  return user.name?.trim() || user.email.split("@")[0] || "Vartotojas";
+function displayName(
+  user: { name: string | null; email: string },
+  fallback: string,
+) {
+  return user.name?.trim() || user.email.split("@")[0] || fallback;
 }
 
 function initialLetter(user: { name: string | null; email: string }) {
-  return displayName(user).slice(0, 1).toUpperCase();
+  return (user.name?.trim() || user.email.split("@")[0] || "?")
+    .slice(0, 1)
+    .toUpperCase();
 }
 
-function formatTime(value: string | null) {
+function formatTime(value: string | null, locale: string) {
   if (!value) return "";
 
-  return new Intl.DateTimeFormat("lt-LT", {
+  return new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
@@ -88,6 +94,7 @@ export default function MessagesClient({
   initialMessages,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("messagesPage");
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
@@ -111,7 +118,7 @@ export default function MessagesClient({
 
         window.dispatchEvent(new Event("linkseta:chat-read"));
       } catch {
-        // tyliai ignoruojam, chat vis tiek turi veikti
+        // ignore
       }
     }
 
@@ -121,7 +128,7 @@ export default function MessagesClient({
   const hasConversation = Boolean(activeConversationId && activeConversation);
 
   const activeName = activeConversation
-    ? displayName(activeConversation.otherUser)
+    ? displayName(activeConversation.otherUser, t("fallbackUser"))
     : "";
 
   const activeInitial = activeConversation
@@ -152,14 +159,14 @@ export default function MessagesClient({
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.message) {
-        throw new Error(data?.error || "Nepavyko išsiųsti žinutės.");
+        throw new Error(data?.error || t("sendFailed"));
       }
 
       setMessages((prev) => [...prev, data.message]);
       setText("");
       router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Įvyko klaida.");
+      alert(err instanceof Error ? err.message : t("genericError"));
     } finally {
       setSending(false);
     }
@@ -174,9 +181,9 @@ export default function MessagesClient({
       >
         <div className={styles.listHeader}>
           <div>
-            <h2 className={styles.listTitle}>Pokalbiai</h2>
+            <h2 className={styles.listTitle}>{t("conversationsTitle")}</h2>
             <p className={styles.listSubtitle}>
-              {visibleConversations.length} pokalbiai
+              {t("conversationCount", { count: visibleConversations.length })}
             </p>
           </div>
         </div>
@@ -185,13 +192,16 @@ export default function MessagesClient({
           {visibleConversations.length === 0 ? (
             <div className={styles.emptyList}>
               <MessageCircle size={28} />
-              <strong>Nėra pokalbių</strong>
-              <span>Pradėkite pokalbį iš paslaugos puslapio.</span>
+              <strong>{t("emptyListTitle")}</strong>
+              <span>{t("emptyListText")}</span>
             </div>
           ) : (
             visibleConversations.map((conversation) => {
               const isActive = conversation.id === activeConversationId;
-              const name = displayName(conversation.otherUser);
+              const name = displayName(
+                conversation.otherUser,
+                t("fallbackUser"),
+              );
               const initial = initialLetter(conversation.otherUser);
               const img =
                 conversation.otherUser.avatarUrl ||
@@ -229,16 +239,17 @@ export default function MessagesClient({
                           conversation.lastMessageCreatedAt ||
                             conversation.lastMessageAt ||
                             conversation.createdAt,
+                          locale,
                         )}
                       </span>
                     </div>
 
                     <div className={styles.conversationService}>
-                      {conversation.service.title || "Pokalbis"}
+                      {conversation.service.title || t("fallbackConversation")}
                     </div>
 
                     <div className={styles.conversationPreview}>
-                      {conversation.lastMessage || "Naujas pokalbis"}
+                      {conversation.lastMessage || t("newConversation")}
                     </div>
                   </div>
                 </Link>
@@ -256,6 +267,7 @@ export default function MessagesClient({
                 type="button"
                 className={styles.backToList}
                 onClick={() => setMobileListOpen(true)}
+                aria-label={t("backToList")}
               >
                 <ArrowLeft size={18} />
               </button>
@@ -281,10 +293,13 @@ export default function MessagesClient({
                   <Link
                     href={`/${locale}/services/${activeConversation.service.slug}`}
                   >
-                    {activeConversation.service.title || "Paslauga"}
+                    {activeConversation.service.title || t("fallbackService")}
                   </Link>
                 ) : (
-                  <span>{activeConversation.service.title || "Pokalbis"}</span>
+                  <span>
+                    {activeConversation.service.title ||
+                      t("fallbackConversation")}
+                  </span>
                 )}
               </div>
             </header>
@@ -293,8 +308,8 @@ export default function MessagesClient({
               {messages.length === 0 ? (
                 <div className={styles.emptyChat}>
                   <MessageCircle size={36} />
-                  <strong>Pradėkite pokalbį</strong>
-                  <span>Parašykite pirmą žinutę.</span>
+                  <strong>{t("emptyChatTitle")}</strong>
+                  <span>{t("emptyChatText")}</span>
                 </div>
               ) : (
                 messages.map((message) => {
@@ -313,7 +328,7 @@ export default function MessagesClient({
                         }`}
                       >
                         <p>{message.content}</p>
-                        <span>{formatTime(message.createdAt)}</span>
+                        <span>{formatTime(message.createdAt, locale)}</span>
                       </div>
                     </div>
                   );
@@ -325,7 +340,7 @@ export default function MessagesClient({
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Rašykite žinutę..."
+                placeholder={t("inputPlaceholder")}
                 maxLength={1000}
                 disabled={sending}
               />
@@ -333,7 +348,7 @@ export default function MessagesClient({
               <button
                 type="submit"
                 disabled={sending || cleanText.length < 1}
-                aria-label="Siųsti"
+                aria-label={t("send")}
               >
                 <Send size={18} />
               </button>
@@ -342,8 +357,8 @@ export default function MessagesClient({
         ) : (
           <div className={styles.noConversation}>
             <MessageCircle size={48} />
-            <h2>Pasirinkite pokalbį</h2>
-            <p>Čia matysite žinutes su klientais arba paslaugų teikėjais.</p>
+            <h2>{t("noConversationTitle")}</h2>
+            <p>{t("noConversationText")}</p>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 // src/app/[locale]/dashboard/messages/page.tsx
 import { redirect } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import MessagesClient from "./MessagesClient";
@@ -49,6 +49,11 @@ export default async function MessagesPage({ params, searchParams }: Props) {
 
   setRequestLocale(locale);
 
+  const t = await getTranslations({
+    locale,
+    namespace: "messagesPage",
+  });
+
   const conversations = await prisma.$queryRaw<ConversationRow[]>`
     select
       c.id,
@@ -96,9 +101,7 @@ export default async function MessagesPage({ params, searchParams }: Props) {
   `;
 
   const activeConversationId =
-    resolvedSearchParams.conversation ||
-    conversations[0]?.id ||
-    null;
+    resolvedSearchParams.conversation || conversations[0]?.id || null;
 
   const activeConversation = activeConversationId
     ? conversations.find((c) => c.id === activeConversationId) ?? null
@@ -130,10 +133,8 @@ export default async function MessagesPage({ params, searchParams }: Props) {
       <div className="container">
         <section className={styles.topCard}>
           <div>
-            <h1 className={styles.title}>Žinutės</h1>
-            <p className={styles.subtitle}>
-              Bendraukite su klientais ir paslaugų teikėjais vienoje vietoje.
-            </p>
+            <h1 className={styles.title}>{t("title")}</h1>
+            <p className={styles.subtitle}>{t("subtitle")}</p>
           </div>
         </section>
 

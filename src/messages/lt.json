@@ -216,6 +216,27 @@
     "PENDING_APPROVAL": "Atsiliepimas gautas ir laukia patvirtinimo.",
     "REVIEW_SAVED": "Atsiliepimas išsaugotas."
   },
+  "messagesPage": {
+    "title": "Žinutės",
+    "subtitle": "Bendraukite su klientais ir paslaugų teikėjais vienoje vietoje.",
+    "conversationsTitle": "Pokalbiai",
+    "conversationCount": "{count} pokalbiai",
+    "emptyListTitle": "Nėra pokalbių",
+    "emptyListText": "Pradėkite pokalbį iš paslaugos puslapio arba susisiekite su Linkseta support.",
+    "fallbackUser": "Vartotojas",
+    "fallbackService": "Paslauga",
+    "fallbackConversation": "Pokalbis",
+    "newConversation": "Naujas pokalbis",
+    "emptyChatTitle": "Pradėkite pokalbį",
+    "emptyChatText": "Parašykite pirmą žinutę.",
+    "inputPlaceholder": "Rašykite žinutę...",
+    "send": "Siųsti",
+    "sendFailed": "Nepavyko išsiųsti žinutės.",
+    "genericError": "Įvyko klaida.",
+    "backToList": "Grįžti į pokalbių sąrašą",
+    "noConversationTitle": "Pasirinkite pokalbį",
+    "noConversationText": "Čia matysite žinutes su klientais, paslaugų teikėjais arba Linkseta support."
+  },
   "serviceDetailsPage": {
     "home": "Pagrindinis",
     "services": "Paslaugos",
@@ -297,41 +318,41 @@
     "photo": "Nuotrauka {index}",
     "topAd": "TOP skelbimas"
   },
- "contactPage": {
-  "eyebrow": "KONTAKTAI",
-  "title": "Susisiekite su mumis",
-  "subtitle": "Turite klausimų apie platformą, provider paskyrą ar norite pasiūlyti idėją? Parašykite mums tiesiogiai — atsakome greitai.",
-  "supportTitle": "Geriausias būdas susisiekti",
-  "supportSubtitle": "Rašykite mums per Linkseta chat — esame pasiruošę padėti.",
-  "chatTitle": "Tiesioginis pokalbis",
-  "chatText": "Rašykite mums per platformos chat.",
-  "chatHint": "Dažniausiai atsakome per kelias valandas.",
-  "emailTitle": "El. paštas",
-  "emailText": "Taip pat galite susisiekti el. paštu.",
-  "responseTitle": "Atsakymo laikas",
-  "responseText": "Stengiamės atsakyti visiems per 24 val.",
-  "responseHint": "Darbo dienomis — dar greičiau.",
-  "chatButton": "Pradėti pokalbį",
-  "faqTitle": "Dažniausiai užduodami klausimai",
-  "faq": {
-    "security": {
-      "q": "Kaip užtikrinamas mano duomenų saugumas?",
-      "a": "Naudojame saugų prisijungimą, apsaugotas sesijas ir saugome tik platformai reikalingus duomenis."
-    },
-    "provider": {
-      "q": "Kaip tapti provideriu platformoje?",
-      "a": "Susikurkite paskyrą, pasirinkite planą arba Free Trial ir sukurkite pirmą paslaugos skelbimą."
-    },
-    "reviews": {
-      "q": "Kaip veikia atsiliepimai?",
-      "a": "Atsiliepimą gali palikti tik vartotojai, kurie turėjo kontaktą su paslaugos teikėju. Įtartini atsiliepimai gali laukti patvirtinimo."
-    },
-    "idea": {
-      "q": "Turiu idėją platformai — kur ją pasiūlyti?",
-      "a": "Parašykite per chat arba el. paštu. Linkseta aktyviai tobulinama, todėl feedback labai vertiname."
+  "contactPage": {
+    "eyebrow": "KONTAKTAI",
+    "title": "Susisiekite su mumis",
+    "subtitle": "Turite klausimų apie platformą, provider paskyrą ar norite pasiūlyti idėją? Parašykite mums tiesiogiai — atsakome greitai.",
+    "supportTitle": "Geriausias būdas susisiekti",
+    "supportSubtitle": "Rašykite mums per Linkseta chat — esame pasiruošę padėti.",
+    "chatTitle": "Tiesioginis pokalbis",
+    "chatText": "Rašykite mums per platformos chat.",
+    "chatHint": "Dažniausiai atsakome per kelias valandas.",
+    "emailTitle": "El. paštas",
+    "emailText": "Taip pat galite susisiekti el. paštu.",
+    "responseTitle": "Atsakymo laikas",
+    "responseText": "Stengiamės atsakyti visiems per 24 val.",
+    "responseHint": "Darbo dienomis — dar greičiau.",
+    "chatButton": "Pradėti pokalbį",
+    "faqTitle": "Dažniausiai užduodami klausimai",
+    "faq": {
+      "security": {
+        "q": "Kaip užtikrinamas mano duomenų saugumas?",
+        "a": "Naudojame saugų prisijungimą, apsaugotas sesijas ir saugome tik platformai reikalingus duomenis."
+      },
+      "provider": {
+        "q": "Kaip tapti provideriu platformoje?",
+        "a": "Susikurkite paskyrą, pasirinkite planą arba Free Trial ir sukurkite pirmą paslaugos skelbimą."
+      },
+      "reviews": {
+        "q": "Kaip veikia atsiliepimai?",
+        "a": "Atsiliepimą gali palikti tik vartotojai, kurie turėjo kontaktą su paslaugos teikėju. Įtartini atsiliepimai gali laukti patvirtinimo."
+      },
+      "idea": {
+        "q": "Turiu idėją platformai — kur ją pasiūlyti?",
+        "a": "Parašykite per chat arba el. paštu. Linkseta aktyviai tobulinama, todėl feedback labai vertiname."
+      }
     }
-  }
-},
+  },
   "dashboardPage": {
     "title": "Mano paskyra",
     "subtitle": "Valdykite savo profilį ir paslaugų skelbimus vienoje vietoje.",

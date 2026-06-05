@@ -216,6 +216,27 @@
     "PENDING_APPROVAL": "Anmeldelsen er mottatt og venter på godkjenning.",
     "REVIEW_SAVED": "Anmeldelsen er lagret."
   },
+  "messagesPage": {
+    "title": "Meldinger",
+    "subtitle": "Kommuniser med kunder og tjenesteleverandører på ett sted.",
+    "conversationsTitle": "Samtaler",
+    "conversationCount": "{count} samtaler",
+    "emptyListTitle": "Ingen samtaler",
+    "emptyListText": "Start en samtale fra en tjenesteside eller kontakt Linkseta support.",
+    "fallbackUser": "Bruker",
+    "fallbackService": "Tjeneste",
+    "fallbackConversation": "Samtale",
+    "newConversation": "Ny samtale",
+    "emptyChatTitle": "Start samtalen",
+    "emptyChatText": "Skriv den første meldingen.",
+    "inputPlaceholder": "Skriv en melding...",
+    "send": "Send",
+    "sendFailed": "Kunne ikke sende meldingen.",
+    "genericError": "Noe gikk galt.",
+    "backToList": "Tilbake til samtalelisten",
+    "noConversationTitle": "Velg en samtale",
+    "noConversationText": "Her ser du meldinger med kunder, tjenesteleverandører eller Linkseta support."
+  },
   "serviceDetailsPage": {
     "home": "Hjem",
     "services": "Tjenester",

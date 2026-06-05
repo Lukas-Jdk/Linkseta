@@ -218,6 +218,27 @@
     "PENDING_APPROVAL": "Review received and waiting for approval.",
     "REVIEW_SAVED": "Review saved."
   },
+  "messagesPage": {
+    "title": "Messages",
+    "subtitle": "Communicate with customers and service providers in one place.",
+    "conversationsTitle": "Conversations",
+    "conversationCount": "{count} conversations",
+    "emptyListTitle": "No conversations",
+    "emptyListText": "Start a conversation from a service page or contact Linkseta support.",
+    "fallbackUser": "User",
+    "fallbackService": "Service",
+    "fallbackConversation": "Conversation",
+    "newConversation": "New conversation",
+    "emptyChatTitle": "Start the conversation",
+    "emptyChatText": "Write the first message.",
+    "inputPlaceholder": "Write a message...",
+    "send": "Send",
+    "sendFailed": "Could not send the message.",
+    "genericError": "Something went wrong.",
+    "backToList": "Back to conversation list",
+    "noConversationTitle": "Select a conversation",
+    "noConversationText": "Here you will see messages with customers, service providers or Linkseta support."
+  },
   "serviceDetailsPage": {
     "home": "Home",
     "services": "Services",
