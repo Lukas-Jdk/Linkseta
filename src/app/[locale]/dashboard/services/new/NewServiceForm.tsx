@@ -51,6 +51,8 @@ type ServiceBlock = {
 
 type UpgradePlanSlug = "basic" | "premium";
 
+const OTHER_CITY_ID = "__OTHER_CITY__";
+
 function trimOrEmpty(v: string) {
   return v.trim();
 }
@@ -125,6 +127,10 @@ function getLocalText(locale: string) {
       maxImagesError: "You have reached your photo limit",
       logoLabel: "Main service photo",
       uploadLogo: "Upload main photo",
+      otherCityOption: "Other city",
+      customCityLabel: "City name *",
+      customCityPlaceholder: "E.g. Molde, Alta, Narvik",
+      customCityError: "Enter your city name.",
     };
   }
 
@@ -165,6 +171,10 @@ function getLocalText(locale: string) {
       maxImagesError: "Du har nådd bildegrensen",
       logoLabel: "Hovedtjenestefoto",
       uploadLogo: "Last opp hovedfoto",
+      otherCityOption: "Annen by",
+      customCityLabel: "Bynavn *",
+      customCityPlaceholder: "F.eks. Molde, Alta, Narvik",
+      customCityError: "Skriv inn bynavnet ditt.",
     };
   }
 
@@ -204,6 +214,10 @@ function getLocalText(locale: string) {
     maxImagesError: "Pasiekėte nuotraukų limitą",
     logoLabel: "Pagrindinė paslaugos nuotrauka",
     uploadLogo: "Įkelti pagrindinę nuotrauką",
+    otherCityOption: "Kitas miestas",
+    customCityLabel: "Miesto pavadinimas *",
+    customCityPlaceholder: "Pvz. Molde, Alta, Narvik",
+    customCityError: "Įveskite miesto pavadinimą.",
   };
 }
 
@@ -224,6 +238,7 @@ export default function NewServiceForm({
 
   const [title, setTitle] = useState("");
   const [cityId, setCityId] = useState("");
+  const [customCity, setCustomCity] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
   const [responseTime, setResponseTime] = useState("1h");
@@ -269,7 +284,10 @@ export default function NewServiceForm({
     [cities, cityId],
   );
 
-  const locationCity = selectedCity?.name?.trim() ?? "";
+  const isOtherCity = cityId === OTHER_CITY_ID;
+  const locationCity = isOtherCity
+    ? customCity.trim()
+    : (selectedCity?.name?.trim() ?? "");
 
   const highlights = useMemo(() => {
     return [h1, h2, h3, h4].map(trimOrEmpty).filter(Boolean).slice(0, 4);
@@ -324,6 +342,7 @@ export default function NewServiceForm({
     cityId,
     categoryId,
     locationCity,
+    customCity,
     locationPostcode,
     totalImages,
     submitting,
@@ -484,10 +503,20 @@ export default function NewServiceForm({
   }
 
   function handleCityChange(nextCityId: string) {
+    setCityId(nextCityId);
+
+    if (nextCityId === OTHER_CITY_ID) {
+      setCustomCity("");
+      if (!locationPostcode.trim()) {
+        setLocationPostcode("");
+      }
+      return;
+    }
+
     const nextCity = cities.find((c) => c.id === nextCityId) ?? null;
     const nextCityPostcode = nextCity?.postcode?.trim() ?? "";
 
-    setCityId(nextCityId);
+    setCustomCity("");
 
     if (!locationPostcode.trim()) {
       setLocationPostcode(nextCityPostcode);
@@ -608,6 +637,11 @@ export default function NewServiceForm({
       return;
     }
 
+    if (isOtherCity && !customCity.trim()) {
+      setError(text.customCityError);
+      return;
+    }
+
     if (!locationCity || !locationPostcode.trim()) {
       setError(t("errors.invalidCityPostcode"));
       return;
@@ -677,7 +711,7 @@ export default function NewServiceForm({
         locationPostcode: locationPostcode.trim(),
         locationCity,
         locationRegion: locationRegion.trim(),
-        cityId,
+        cityId: isOtherCity ? null : cityId,
       };
 
       const res = await csrfFetch("/api/dashboard/services", {
@@ -1001,8 +1035,24 @@ export default function NewServiceForm({
                     {c.name}
                   </option>
                 ))}
+                <option value={OTHER_CITY_ID}>{text.otherCityOption}</option>
               </select>
             </div>
+
+            {isOtherCity && (
+              <div className={styles.formGroup}>
+                <label className={styles.label}>{text.customCityLabel}</label>
+                <input
+                  className={styles.input}
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder={text.customCityPlaceholder}
+                  autoComplete="address-level2"
+                  disabled={!planLimits.canCreate}
+                  required
+                />
+              </div>
+            )}
 
             <div className={styles.formRow}>
               <div className={styles.formCol}>

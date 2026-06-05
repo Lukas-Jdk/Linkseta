@@ -196,28 +196,28 @@
     }
   },
   "reviewMessages": {
-  "title": "Leave a review",
-  "subtitle": "Only signed-in users who contacted this provider can leave a review.",
-  "ratingAria": "Rating",
-  "starsAria": "{count} stars",
-  "placeholder": "Write your review... minimum {min} characters",
-  "sending": "Sending...",
-  "submit": "Submit review",
-  "LOGIN_REQUIRED": "Please sign in to leave a review.",
-  "INVALID_RATING": "Please choose a rating from 1 to 5.",
-  "TOO_SHORT": "Your review must be at least {min} characters.",
-  "SERVICE_NOT_FOUND": "Service not found.",
-  "OWN_SERVICE": "You cannot review your own service.",
-  "USER_NOT_FOUND": "User not found.",
-  "ACCOUNT_TOO_NEW": "You can leave a review when your account is at least 24 hours old.",
-  "CHAT_REQUIRED": "Please contact this provider through chat first. You can leave a review after 24 hours.",
-  "INTERACTION_REQUIRED": "Please contact this provider or open their contact details first. You can leave a review after 24 hours.",
-  "WAIT_24H": "You can leave a review 24 hours after your first contact.",
-  "ALREADY_EXISTS": "You have already reviewed this provider.",
-  "SERVER_ERROR": "Server error.",
-  "PENDING_APPROVAL": "Review received and waiting for approval.",
-  "REVIEW_SAVED": "Review saved."
-},
+    "title": "Leave a review",
+    "subtitle": "Only signed-in users who contacted this provider can leave a review.",
+    "ratingAria": "Rating",
+    "starsAria": "{count} stars",
+    "placeholder": "Write your review... minimum {min} characters",
+    "sending": "Sending...",
+    "submit": "Submit review",
+    "LOGIN_REQUIRED": "Please sign in to leave a review.",
+    "INVALID_RATING": "Please choose a rating from 1 to 5.",
+    "TOO_SHORT": "Your review must be at least {min} characters.",
+    "SERVICE_NOT_FOUND": "Service not found.",
+    "OWN_SERVICE": "You cannot review your own service.",
+    "USER_NOT_FOUND": "User not found.",
+    "ACCOUNT_TOO_NEW": "You can leave a review when your account is at least 24 hours old.",
+    "CHAT_REQUIRED": "Please contact this provider through chat first. You can leave a review after 24 hours.",
+    "INTERACTION_REQUIRED": "Please contact this provider or open their contact details first. You can leave a review after 24 hours.",
+    "WAIT_24H": "You can leave a review 24 hours after your first contact.",
+    "ALREADY_EXISTS": "You have already reviewed this provider.",
+    "SERVER_ERROR": "Server error.",
+    "PENDING_APPROVAL": "Review received and waiting for approval.",
+    "REVIEW_SAVED": "Review saved."
+  },
   "serviceDetailsPage": {
     "home": "Home",
     "services": "Services",
@@ -300,11 +300,39 @@
     "topAd": "TOP listing"
   },
   "contactPage": {
-    "title": "Contact",
-    "subtitle": "Do you have questions about the platform, services, or want to suggest an idea? Write to us — we will reply as soon as possible.",
-    "contactsTitle": "Contacts",
-    "emailLabel": "Email",
-    "shortMessageTitle": "Short message"
+    "eyebrow": "CONTACT",
+    "title": "Contact us",
+    "subtitle": "Have questions about the platform, provider account, or want to suggest an idea? Write to us directly — we reply quickly.",
+    "supportTitle": "The best way to reach us",
+    "supportSubtitle": "Send us a message through Linkseta chat — we are ready to help.",
+    "chatTitle": "Direct chat",
+    "chatText": "Write to us through the platform chat.",
+    "chatHint": "We usually reply within a few hours.",
+    "emailTitle": "Email",
+    "emailText": "You can also contact us by email.",
+    "responseTitle": "Response time",
+    "responseText": "We aim to respond to everyone within 24 hours.",
+    "responseHint": "On business days — even faster.",
+    "chatButton": "Start conversation",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "security": {
+        "q": "How is my data protected?",
+        "a": "We use secure authentication, protected sessions and only store the data needed to run the platform."
+      },
+      "provider": {
+        "q": "How do I become a provider?",
+        "a": "Create an account, choose a plan or Free Trial, and publish your first service listing."
+      },
+      "reviews": {
+        "q": "How do reviews work?",
+        "a": "Only users who interacted with a provider can leave a review. Suspicious reviews may require approval."
+      },
+      "idea": {
+        "q": "I have an idea for the platform — where can I send it?",
+        "a": "Send it through chat or email. We are actively improving Linkseta and appreciate feedback."
+      }
+    }
   },
   "dashboardPage": {
     "title": "My account",

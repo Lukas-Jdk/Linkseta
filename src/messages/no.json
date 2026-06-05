@@ -194,28 +194,28 @@
     }
   },
   "reviewMessages": {
-  "title": "Legg igjen en anmeldelse",
-  "subtitle": "Bare innloggede brukere som har kontaktet leverandøren kan legge igjen en anmeldelse.",
-  "ratingAria": "Vurdering",
-  "starsAria": "{count} stjerner",
-  "placeholder": "Skriv anmeldelsen din... minst {min} tegn",
-  "sending": "Sender...",
-  "submit": "Send anmeldelse",
-  "LOGIN_REQUIRED": "Logg inn for å legge igjen en anmeldelse.",
-  "INVALID_RATING": "Velg en vurdering fra 1 til 5.",
-  "TOO_SHORT": "Anmeldelsen må være minst {min} tegn.",
-  "SERVICE_NOT_FOUND": "Tjenesten ble ikke funnet.",
-  "OWN_SERVICE": "Du kan ikke anmelde din egen tjeneste.",
-  "USER_NOT_FOUND": "Bruker ikke funnet.",
-  "ACCOUNT_TOO_NEW": "Du kan legge igjen en anmeldelse når kontoen din er minst 24 timer gammel.",
-  "CHAT_REQUIRED": "Kontakt leverandøren via chat først. Du kan legge igjen en anmeldelse etter 24 timer.",
-  "INTERACTION_REQUIRED": "Kontakt leverandøren eller åpne kontaktinformasjonen først. Du kan legge igjen en anmeldelse etter 24 timer.",
-  "WAIT_24H": "Du kan legge igjen en anmeldelse 24 timer etter første kontakt.",
-  "ALREADY_EXISTS": "Du har allerede anmeldt denne leverandøren.",
-  "SERVER_ERROR": "Serverfeil.",
-  "PENDING_APPROVAL": "Anmeldelsen er mottatt og venter på godkjenning.",
-  "REVIEW_SAVED": "Anmeldelsen er lagret."
-},
+    "title": "Legg igjen en anmeldelse",
+    "subtitle": "Bare innloggede brukere som har kontaktet leverandøren kan legge igjen en anmeldelse.",
+    "ratingAria": "Vurdering",
+    "starsAria": "{count} stjerner",
+    "placeholder": "Skriv anmeldelsen din... minst {min} tegn",
+    "sending": "Sender...",
+    "submit": "Send anmeldelse",
+    "LOGIN_REQUIRED": "Logg inn for å legge igjen en anmeldelse.",
+    "INVALID_RATING": "Velg en vurdering fra 1 til 5.",
+    "TOO_SHORT": "Anmeldelsen må være minst {min} tegn.",
+    "SERVICE_NOT_FOUND": "Tjenesten ble ikke funnet.",
+    "OWN_SERVICE": "Du kan ikke anmelde din egen tjeneste.",
+    "USER_NOT_FOUND": "Bruker ikke funnet.",
+    "ACCOUNT_TOO_NEW": "Du kan legge igjen en anmeldelse når kontoen din er minst 24 timer gammel.",
+    "CHAT_REQUIRED": "Kontakt leverandøren via chat først. Du kan legge igjen en anmeldelse etter 24 timer.",
+    "INTERACTION_REQUIRED": "Kontakt leverandøren eller åpne kontaktinformasjonen først. Du kan legge igjen en anmeldelse etter 24 timer.",
+    "WAIT_24H": "Du kan legge igjen en anmeldelse 24 timer etter første kontakt.",
+    "ALREADY_EXISTS": "Du har allerede anmeldt denne leverandøren.",
+    "SERVER_ERROR": "Serverfeil.",
+    "PENDING_APPROVAL": "Anmeldelsen er mottatt og venter på godkjenning.",
+    "REVIEW_SAVED": "Anmeldelsen er lagret."
+  },
   "serviceDetailsPage": {
     "home": "Hjem",
     "services": "Tjenester",
@@ -298,11 +298,39 @@
     "topAd": "TOP annonse"
   },
   "contactPage": {
-    "title": "Kontakt",
-    "subtitle": "Har du spørsmål om plattformen, tjenester eller ønsker å foreslå en idé? Skriv til oss – vi svarer så raskt som mulig.",
-    "contactsTitle": "Kontaktinformasjon",
-    "emailLabel": "E-post",
-    "shortMessageTitle": "Kort melding"
+    "eyebrow": "KONTAKT",
+    "title": "Kontakt oss",
+    "subtitle": "Har du spørsmål om plattformen, leverandørkontoen eller ønsker å foreslå en idé? Skriv direkte til oss — vi svarer raskt.",
+    "supportTitle": "Den beste måten å kontakte oss på",
+    "supportSubtitle": "Skriv til oss via Linkseta-chatten — vi er klare til å hjelpe.",
+    "chatTitle": "Direkte chat",
+    "chatText": "Skriv til oss gjennom plattformens chat.",
+    "chatHint": "Vi svarer vanligvis innen noen timer.",
+    "emailTitle": "E-post",
+    "emailText": "Du kan også kontakte oss på e-post.",
+    "responseTitle": "Svartid",
+    "responseText": "Vi prøver å svare alle innen 24 timer.",
+    "responseHint": "På arbeidsdager — enda raskere.",
+    "chatButton": "Start samtale",
+    "faqTitle": "Ofte stilte spørsmål",
+    "faq": {
+      "security": {
+        "q": "Hvordan beskyttes dataene mine?",
+        "a": "Vi bruker sikker innlogging, beskyttede økter og lagrer bare data som trengs for å drive plattformen."
+      },
+      "provider": {
+        "q": "Hvordan blir jeg leverandør?",
+        "a": "Opprett en konto, velg en plan eller Free Trial, og publiser din første tjenesteannonse."
+      },
+      "reviews": {
+        "q": "Hvordan fungerer anmeldelser?",
+        "a": "Bare brukere som har hatt kontakt med en leverandør kan legge igjen en anmeldelse. Mistenkelige anmeldelser kan kreve godkjenning."
+      },
+      "idea": {
+        "q": "Jeg har en idé til plattformen — hvor kan jeg sende den?",
+        "a": "Send den via chat eller e-post. Vi forbedrer Linkseta aktivt og setter stor pris på tilbakemeldinger."
+      }
+    }
   },
   "dashboardPage": {
     "title": "Min konto",
@@ -417,7 +445,7 @@
     "popular": "Mest populær",
     "newTag": "",
     "chatKeyword": "Direkte chat",
-    
+
     "buttonBusy": "Behandler...",
     "buttonStartTrial": "Start Free Trial",
     "buttonStartTrialFull": "Start 30 dager gratis",

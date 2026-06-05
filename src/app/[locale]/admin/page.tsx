@@ -111,6 +111,7 @@ export default async function AdminHomePage({ params }: PageProps) {
     providersCount,
     servicesCount,
     activeServices,
+    pendingReviewsCount,
     users7,
     services7,
     requests7,
@@ -119,6 +120,13 @@ export default async function AdminHomePage({ params }: PageProps) {
     prisma.providerProfile.count({ where: { isApproved: true } }),
     prisma.serviceListing.count({ where: { deletedAt: null } }),
     prisma.serviceListing.count({ where: { isActive: true, deletedAt: null } }),
+    prisma.serviceReview.count({
+      where: {
+        isApproved: false,
+        isVisible: false,
+        isSuspicious: true,
+      },
+    }),
     countByDay({ from, days: 7, model: "user" }),
     countByDay({ from, days: 7, model: "service" }),
     countByDay({ from, days: 7, model: "providerRequest" }),
@@ -215,6 +223,18 @@ export default async function AdminHomePage({ params }: PageProps) {
             className={styles.actionButton}
           >
             Eiti į planų valdymą
+          </LocalizedLink>
+        </article>
+
+        <article className={`${styles.actionCard} ${styles.actionCardBlue}`}>
+          <div className={styles.actionBadge}>04</div>
+          <h2 className={styles.actionTitle}>Atsiliepimų moderavimas</h2>
+          <p className={styles.text}>
+            Patvirtink arba atmesk suspicious atsiliepimus. Laukiančių
+            atsiliepimų: <strong>{pendingReviewsCount}</strong>.
+          </p>
+          <LocalizedLink href="/admin/reviews" className={styles.actionButton}>
+            Eiti į atsiliepimus
           </LocalizedLink>
         </article>
       </section>
