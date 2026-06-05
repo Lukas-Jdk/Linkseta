@@ -33,12 +33,14 @@
   margin: 0 0 14px 0;
   color: #0f172a;
   overflow-wrap: anywhere;
+  font-family: var(--font-primary);
 }
 
 .form {
   display: grid;
   gap: 12px;
   min-width: 0;
+   font-family: var(--font-primary);
 }
 
 .inputRow {
@@ -86,6 +88,7 @@
   box-shadow: 0 12px 24px rgba(29, 155, 240, 0.25);
   margin-top: 2px;
   width: 100%;
+   font-family: var(--font-primary);
 }
 
 .button:disabled {
