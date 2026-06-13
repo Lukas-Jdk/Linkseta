@@ -304,6 +304,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
+   align-items: start;
 }
 
 .faqItem {
@@ -313,7 +314,9 @@
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.045);
   overflow: hidden;
 }
-
+.faqItem[open] summary::after {
+  transform: translateY(-50%) rotate(225deg);
+}
 .faqItem summary {
   position: relative;
   min-height: 72px;
@@ -329,17 +332,24 @@
   line-height: 1.35;
   font-weight: 900;
 }
+
 .faqItem summary::after {
-  content: "⌄";
+  content: "";
   position: absolute;
   right: 18px;
   top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 18px;
-  font-weight: 700;
-  transition: transform 0.18s ease;
+  width: 8px;
+  height: 8px;
+
+  border-right: 2.5px solid #2563eb;
+  border-bottom: 2.5px solid #2563eb;
+
+  transform: translateY(-60%) rotate(45deg);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease;
 }
+
 .faqItem summary::-webkit-details-marker {
   display: none;
 }

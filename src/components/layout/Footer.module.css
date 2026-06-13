@@ -7,9 +7,8 @@
       transparent 28%
     ),
     #020617;
-
   border-top: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 46px 0 18px;
+  padding: 40px 0 16px;
 }
 
 .container {
@@ -44,7 +43,7 @@
 }
 
 .brandDesc {
-  margin-top: 16px;
+  margin-top: 14px;
   color: #64748b;
   font-family: var(--font-second);
   font-size: 0.95rem;
@@ -56,11 +55,12 @@
 
 .colTitle {
   margin: 0 0 14px;
-  font-size: 0.84rem;
+  font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #14b8a6;
   font-weight: 900;
+  font-family: var(--font-primary);
 }
 
 .list {
@@ -74,7 +74,7 @@
 .link {
   color: #ffffff;
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   transition: color 0.15s ease;
   font-family: var(--font-second);
@@ -85,81 +85,78 @@
 }
 
 .smallText {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.6;
-    font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
-/* CONTACT BUTTONS */
+/* CONTACT */
 
-.contactActions {
+.contactLinks {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
 }
 
-.contactButton {
-  min-height: 30px;
-  padding: 0 22px;
-  gap: 8px;
-  width: fit-content;
-  min-width: 150px;
-
-  border-radius: 14px;
+.contactLink,
+.contactLinkButton {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
 
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
 
+  color: #ffffff;
   text-decoration: none;
 
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #14b8a659;
-
-  color: #14b8a6;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 800;
+  line-height: 1;
+  font-family: var(--font-second);
 
-  font-family: var(--font-primary);
-
+  cursor: pointer;
   transition:
-    transform 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.contactButton:hover {
-  transform: translateY(-2px);
-  border-color: #14b8a659;
-    color: #0de1f0;
-    cursor: pointer;
+.contactLink svg,
+.contactLinkButton svg {
+  width: 16px;
+  height: 16px;
+  color: #14b8a6;
+  flex: 0 0 auto;
 }
 
-.chatButton {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(20, 184, 166, 0.18),
-      rgba(0, 204, 255, 0.14)
-    );
-
-  border-color: rgba(20, 184, 166, 0.26);
+.contactLink:hover,
+.contactLinkButton:hover {
+  color: #14b8a6;
+  transform: translateY(-1px);
 }
 
-.chatButton:hover {
-  box-shadow:
-    0 12px 28px rgba(0, 204, 255, 0.12);
+.contactLink:hover svg,
+.contactLinkButton:hover svg {
+  color: #0de1f0;
+}
+
+.separator {
+  width: 1px;
+  height: 14px;
+  display: inline-block;
+  background: rgba(148, 163, 184, 0.34);
 }
 
 /* BOTTOM */
 
 .bottom {
-  margin-top: 36px;
-  padding-top: 18px;
+  margin-top: 32px;
+  padding-top: 16px;
   border-top: 1px solid rgba(20, 184, 166, 0.18);
   text-align: center;
 }
@@ -169,7 +166,7 @@
   color: #ffffff;
   font-size: 0.82rem;
   line-height: 1.5;
-    font-family: var(--font-second);
+  font-family: var(--font-second);
 }
 
 .createdByLink {
@@ -198,7 +195,7 @@
 
 @media (max-width: 560px) {
   .footer {
-    padding-top: 36px;
+    padding-top: 34px;
   }
 
   .grid {
@@ -206,25 +203,7 @@
     gap: 24px;
   }
 
-  .contactButton {
-    width: 100%;
+  .contactLinks {
+    gap: 8px;
   }
-}
-.emailText {
-  display: inline-block;
-  margin-top: 6px;
-  margin-bottom: 18px;
-
-  color: #ffffff;
-  text-decoration: none;
-
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-font-family: var(--font-second);
-  transition: color 0.15s ease;
-}
-
-.emailText:hover {
-  color: #14b8a6;
 }
